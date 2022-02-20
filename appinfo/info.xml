@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+  <id>oidc</id>
+  <name>OIDC Identity Provider</name>
+  <summary>Use Nextcloud as OpenID Connect Identity Provider.</summary>
+  <description>With this app you can use Nextcloud as OpenID Connect Identity Provider.</description>
+  <version>0.0.1</version>
+  <licence>agpl</licence>
+  <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
+  <namespace>OIDCIdentityProvider</namespace>
+
+  <types>
+    <authentication />
+  </types>
+
+  <documentation>
+    <user>https://github.com/H2CK/oidc/wiki#user-documentation</user>
+    <admin>https://github.com/H2CK/oidc#readme</admin>
+    <developer>https://github.com/H2CK/oidc/wiki#developer-documentation</developer>
+  </documentation>
+  
+  <category>integration</category>
+  <category>security</category>
+
+  <website>https://github.com/H2CK/oidc</website>
+  <discussion>https://github.com/H2CK/oidc/issues</discussion>
+  <bugs>https://github.com/H2CK/oidc/issues</bugs>
+  <repository>https://github.com/H2CK/oidc</repository>
+  <!-- <screenshot small-thumbnail="https://github.com/H2CK/oidc/1-small.png">https://github.com/H2CK/oidc/1.png</screenshot>
+  <screenshot>https://github.com/H2CK/oidc/2.jpg</screenshot> -->
+  <dependencies>
+    <command>openssl</command>
+    <nextcloud min-version="21" max-version="23"/>
+  </dependencies>
+
+  <background-jobs>
+		<job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens</job>
+	</background-jobs>
+
+  <repair-steps>
+		<install>
+			<step>OCA\OIDCIdentityProvider\Migration\CreateKeys</step>
+		</install>
+	</repair-steps>
+
+  <settings>
+    <admin>OCA\OIDCIdentityProvider\Settings\Admin</admin>
+  </settings>
+</info>

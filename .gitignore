@@ -1,0 +1,8 @@
+.idea
+.vscode
+*.iml
+/vendor/
+/build/
+node_modules/
+/.php_cs.cache
+js/*hot-update.*
