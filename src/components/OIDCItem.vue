@@ -39,6 +39,10 @@
 					<td>{{ t('oidc', 'Secret') }}</td>
 					<td><code>{{ renderedSecret }}</code><a class="icon-toggle has-tooltip" :title="t('oidc', 'Show client secret')" @click="toggleSecret" /></td>
 				</tr>
+				<tr>
+					<td>{{ t('oidc', 'Signing Algorithm') }}</td>
+					<td><code>{{ signingAlg }}</code></td>
+				</tr>
 			</table>
 		</td>
 		<td class="action-column">
@@ -63,6 +67,7 @@ export default {
 			redirectUri: this.client.redirectUri,
 			clientId: this.client.clientId,
 			clientSecret: this.client.clientSecret,
+			signingAlg: this.client.signingAlg,
 			renderSecret: false,
 		}
 	},

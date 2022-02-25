@@ -62,7 +62,8 @@ class SettingsController extends Controller {
 	}
 
 	public function addClient(string $name,
-							  string $redirectUri): JSONResponse {
+							  string $redirectUri,
+							  string $signingAlg): JSONResponse {
 		if (filter_var($redirectUri, FILTER_VALIDATE_URL) === false) {
 			return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
 		}
@@ -72,7 +73,11 @@ class SettingsController extends Controller {
 		$client->setRedirectUri($redirectUri);
 		$client->setSecret($this->secureRandom->generate(64, self::validChars));
 		$client->setClientIdentifier($this->secureRandom->generate(64, self::validChars));
-		$client->setSigningAlg('RS256');
+		if ($signingAlg === 'HS256') {
+			$client->setSigningAlg('HS256');
+		} else {
+			$client->setSigningAlg('RS256');
+		}
 		$client = $this->clientMapper->insert($client);
 
 		$result = [
@@ -81,7 +86,7 @@ class SettingsController extends Controller {
 			'redirectUri' => $client->getRedirectUri(),
 			'clientId' => $client->getClientIdentifier(),
 			'clientSecret' => $client->getSecret(),
-			'sigingAlg' => $client->getSigningAlg(),
+			'signingAlg' => $client->getSigningAlg(),
 		];
 
 		return new JSONResponse($result);

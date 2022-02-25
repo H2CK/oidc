@@ -56,6 +56,18 @@
 				type="url"
 				name="redirectUri"
 				:placeholder="t('oidc', 'Redirection URI')">
+			<select id="signingAlg"
+				v-model="newClient.signingAlg">
+				<option disabled value="">
+					{{ t('oidc', 'Select Signing Algorithm') }}
+				</option>
+				<option value="RS256">
+					RS256
+				</option>
+				<option value="HS256">
+					HS256
+				</option>
+			</select>
 			<input type="submit" class="button" :value="t('oidc', 'Add')">
 		</form>
 	</div>
@@ -82,6 +94,7 @@ export default {
 			newClient: {
 				name: '',
 				redirectUri: '',
+				signingAlg: 'RS256',
 				errorMsg: '',
 				error: false,
 			},
@@ -103,6 +116,7 @@ export default {
 				{
 					name: this.newClient.name,
 					redirectUri: this.newClient.redirectUri,
+					signingAlg: this.newClient.signingAlg,
 				}
 			).then(response => {
 				// eslint-disable-next-line vue/no-mutating-props
@@ -110,6 +124,7 @@ export default {
 
 				this.newClient.name = ''
 				this.newClient.redirectUri = ''
+				this.newClient.signingAlg = ''
 			}).catch(reason => {
 				this.newClient.error = true
 				this.newClient.errorMsg = reason.response.data.message

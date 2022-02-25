@@ -5,8 +5,8 @@ This is the an OIDC App for Nextcloud. This application allows to use your Nextc
 Provided features:
 
 - Configuration of accepted client for whom JWT Tokens are provided
-- Creation of JWT Token with claims based on requested scope. (Currently supported scopes openid, profile, email)
-- Supported siging algorithms RS256 (default) and HS256
+- Creation of JWT Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles and groups)
+- Supported signing algorithms RS256 (default) and HS256
 - Group memberships are passed as roles in JWT token.
 - Discovery endpoint provided
 - Logout endpoint
@@ -55,11 +55,12 @@ To continuously run the build when editing source files you can make use of the 
 
 Execute `make build` to build for production bundle at build/artifacts. Perform `make appstore` to create tar.gz in build/artifacts.
 
-## TODOs
+## TODOs / Ideas for extensions
 
-- Add selection for RS256 or HS256 algorithm at client creation
 - Support public clients (no need for client secret)
-- Support other methods to transport client_credentials (in query / body)
+- Support other methods to transport client_credentials (in query / body) 
+- Basic Auth and GET support for token endpoint
 - Add button to admin UI to regenerate key material
 - Add possibilty to set token expiry time in admin UI
-- Add CORS Header for Client Redirect URI to endpoints jwks token authorize userinfo logout (TEST)
+- Add CORS Header for Client Redirect URI to endpoints jwks token authorize userinfo logout (done - to be tested)
+- Add authentication backend to allow usage of JWT to access resources at Nextcloud server

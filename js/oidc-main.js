@@ -8106,6 +8106,18 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 
 
@@ -8125,6 +8137,7 @@ __webpack_require__.r(__webpack_exports__);
       newClient: {
         name: '',
         redirectUri: '',
+        signingAlg: 'RS256',
         errorMsg: '',
         error: false
       }
@@ -8149,13 +8162,15 @@ __webpack_require__.r(__webpack_exports__);
       this.newClient.error = false;
       _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].post((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_2__.generateUrl)('apps/oidc/clients'), {
         name: this.newClient.name,
-        redirectUri: this.newClient.redirectUri
+        redirectUri: this.newClient.redirectUri,
+        signingAlg: this.newClient.signingAlg
       }).then(function (response) {
         // eslint-disable-next-line vue/no-mutating-props
         _this2.clients.push(response.data);
 
         _this2.newClient.name = '';
         _this2.newClient.redirectUri = '';
+        _this2.newClient.signingAlg = '';
       }).catch(function (reason) {
         _this2.newClient.error = true;
         _this2.newClient.errorMsg = reason.response.data.message;
@@ -8226,6 +8241,10 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   name: 'OIDCItem',
   props: {
@@ -8241,6 +8260,7 @@ __webpack_require__.r(__webpack_exports__);
       redirectUri: this.client.redirectUri,
       clientId: this.client.clientId,
       clientSecret: this.client.clientSecret,
+      signingAlg: this.client.signingAlg,
       renderSecret: false
     };
   },
@@ -14101,6 +14121,55 @@ var render = function () {
           },
         }),
         _vm._v(" "),
+        _c(
+          "select",
+          {
+            directives: [
+              {
+                name: "model",
+                rawName: "v-model",
+                value: _vm.newClient.signingAlg,
+                expression: "newClient.signingAlg",
+              },
+            ],
+            attrs: { id: "signingAlg" },
+            on: {
+              change: function ($event) {
+                var $$selectedVal = Array.prototype.filter
+                  .call($event.target.options, function (o) {
+                    return o.selected
+                  })
+                  .map(function (o) {
+                    var val = "_value" in o ? o._value : o.value
+                    return val
+                  })
+                _vm.$set(
+                  _vm.newClient,
+                  "signingAlg",
+                  $event.target.multiple ? $$selectedVal : $$selectedVal[0]
+                )
+              },
+            },
+          },
+          [
+            _c("option", { attrs: { disabled: "", value: "" } }, [
+              _vm._v(
+                "\n\t\t\t\t\t" +
+                  _vm._s(_vm.t("oidc", "Select Signing Algorithm")) +
+                  "\n\t\t\t\t"
+              ),
+            ]),
+            _vm._v(" "),
+            _c("option", { attrs: { value: "RS256" } }, [
+              _vm._v("\n\t\t\t\t\tRS256\n\t\t\t\t"),
+            ]),
+            _vm._v(" "),
+            _c("option", { attrs: { value: "HS256" } }, [
+              _vm._v("\n\t\t\t\t\tHS256\n\t\t\t\t"),
+            ]),
+          ]
+        ),
+        _vm._v(" "),
         _c("input", {
           staticClass: "button",
           attrs: { type: "submit" },
@@ -14180,6 +14249,12 @@ var render = function () {
               on: { click: _vm.toggleSecret },
             }),
           ]),
+        ]),
+        _vm._v(" "),
+        _c("tr", [
+          _c("td", [_vm._v(_vm._s(_vm.t("oidc", "Signing Algorithm")))]),
+          _vm._v(" "),
+          _c("td", [_c("code", [_vm._v(_vm._s(_vm.signingAlg))])]),
         ]),
       ]),
     ]),
@@ -23076,4 +23151,4 @@ oidc.$mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=875e26144c47d7f6c2f1
+//# sourceMappingURL=oidc-main.js.map?v=cdedf53869464550155a

@@ -17,6 +17,8 @@ OC.L10N.register(
     "Secret" : "Geheimnis",
     "Show client secret" : "Geheime Zeichenkette des Clients anzeigen",
     "Delete" : " Löschen",
-    "OpenID Connect Redirect" : "OpenID Connect Weiterleitung"
+    "OpenID Connect Redirect" : "OpenID Connect Weiterleitung",
+    "Signing Algorithm" : "Signatur Algorithmus",
+    "Select Signing Algorithm" : "Signatur Algorithmus auswählen"
 },
 "nplurals=2; plural=(n != 1);");

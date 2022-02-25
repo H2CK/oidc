@@ -55,6 +55,7 @@ class Admin implements ISettings {
 				'redirectUri' => $client->getRedirectUri(),
 				'clientId' => $client->getClientIdentifier(),
 				'clientSecret' => $client->getSecret(),
+				'signingAlg' => $client->getSigningAlg(),
 			];
 		}
 		$this->initialStateService->provideInitialState('oidc', 'clients', $result);
