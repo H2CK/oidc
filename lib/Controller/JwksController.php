@@ -61,6 +61,7 @@ class JwksController extends Controller {
 	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
+     * @CORS
      * 
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration

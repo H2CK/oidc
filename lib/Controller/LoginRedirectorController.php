@@ -117,6 +117,7 @@ class LoginRedirectorController extends Controller {
 	 * @PublicPage
 	 * @NoCSRFRequired
 	 * @UseSession
+	 * @CORS
 	 *
 	 * @param string $client_id
 	 * @param string $state
@@ -130,6 +131,44 @@ class LoginRedirectorController extends Controller {
 							  $response_type,
 							  $redirect_uri,
 							  $scope): Response {
+		
+		if (!$this->userSession->isLoggedIn()) {
+			// Not authenticated yet
+			// Store things in user session to be available after login
+			$this->session->set('client_id', $client_id);
+			$this->session->set('state', $state);
+			$this->session->set('response_type', $response_type);
+			$this->session->set('redirect_uri', $redirect_uri);
+			$this->session->set('scope', $scope);
+
+			$afterLoginRedirectUrl = '/index.php/apps/oidc/redirect';
+
+			$loginUrl = $this->urlGenerator->linkToRoute(
+				'core.login.showLoginForm',
+				[
+					'redirect_url' => $afterLoginRedirectUrl
+				]
+			);
+
+			return new RedirectResponse($loginUrl);
+		}
+
+		if (empty($client_id)) {
+			$client_id = $this->session->get('client_id');
+		}
+		if (empty($state)) {
+			$state = $this->session->get('state');
+		}
+		if (empty($response_type)) {
+			$response_type = $this->session->get('response_type');
+		}
+		if (empty($redirect_uri)) {
+			$redirect_uri = $this->session->get('redirect_uri');
+		}
+		if (empty($scope)) {
+			$scope = $this->session->get('scope');
+		}
+
 		try {
 			$client = $this->clientMapper->getByIdentifier($client_id);
 		} catch (ClientNotFoundException $e) {
@@ -137,42 +176,6 @@ class LoginRedirectorController extends Controller {
 				'content' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
 			];
 			return new TemplateResponse('core', '404', $params, 'guest');
-		}
-
-		if (!$this->userSession->isLoggedIn()) {
-			// Not authenticated yet
-			$afterLoginRedirectUrl = $this->urlGenerator->linkToRoute(
-				'oidc.LoginRedirector.authorize',
-				[
-					'client_id' => $client_id,
-					'state' => $state,
-					'response_type' => $response_type,
-					'redirect_uri' => $redirect_uri,
-					'scope' => $scope
-				]
-			);
-			
-			$csp = new Http\ContentSecurityPolicy();
-			$csp->addAllowedFormActionDomain($this->urlGenerator->getAbsoluteURL($afterLoginRedirectUrl));
-			if ($client) {
-				$csp->addAllowedFormActionDomain($client->getRedirectUri());
-			}
-
-			$this->initialStateService->provideInitialState('core', 'loginRedirectUrl', $afterLoginRedirectUrl);
-
-			$parameters = [
-				'alt_login' => OC_App::getAlternativeLogIns(),
-			];
-
-			$response = new TemplateResponse(
-				'core',
-				'login',
-				$parameters,
-				'guest'
-			);
-	
-			$response->setContentSecurityPolicy($csp);
-			return $response;
 		}
 
 		// Check if redirect uri is configured for client

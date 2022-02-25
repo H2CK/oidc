@@ -55,6 +55,7 @@ class DiscoveryController extends Controller {
 	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
+     * @CORS
      * 
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration
@@ -66,7 +67,9 @@ class DiscoveryController extends Controller {
         $scopesSupported = [
             'openid',
             'profile',
-            'email'
+            'email',
+            'roles',
+            'groups',
         ];
         $responseTypesSupported = [
             'code',

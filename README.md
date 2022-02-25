@@ -28,6 +28,8 @@ The discovery endpoint should be made available at the URL: `<Issuer>/.well-know
 
 Currently it is not yet possible to use an issued JWT Token to access resource at the Nextcloud instance it self. (Future implementation planned)
 
+Client authentication to fetch token currently only supports the sending of the client credentials in the body. Basic Auth is currently not supported.
+
 ## Development
 
 To install it change into your Nextcloud's apps directory:
@@ -52,3 +54,12 @@ To continuously run the build when editing source files you can make use of the 
 ## Build app bundle
 
 Execute `make build` to build for production bundle at build/artifacts. Perform `make appstore` to create tar.gz in build/artifacts.
+
+## TODOs
+
+- Add selection for RS256 or HS256 algorithm at client creation
+- Support public clients (no need for client secret)
+- Support other methods to transport client_credentials (in query / body)
+- Add button to admin UI to regenerate key material
+- Add possibilty to set token expiry time in admin UI
+- Add CORS Header for Client Redirect URI to endpoints jwks token authorize userinfo logout (TEST)

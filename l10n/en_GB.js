@@ -16,6 +16,7 @@ OC.L10N.register(
     "Client Identifier" : "Client Identifier",
     "Secret" : "Secret",
     "Show client secret" : "Show client secret",
-    "Delete" : "Delete"
+    "Delete" : "Delete",
+    "OpenID Connect Redirect" : "OpenID Connect Redirect"
 },
 "nplurals=2; plural=(n != 1);");

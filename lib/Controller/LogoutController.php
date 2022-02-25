@@ -105,6 +105,7 @@ class LogoutController extends Controller {
 	 * @PublicPage
 	 * @NoCSRFRequired
      * @UseSession
+     * @CORS
 	 *
 	 * @param string $client_id
 	 * @param string $refresh_token

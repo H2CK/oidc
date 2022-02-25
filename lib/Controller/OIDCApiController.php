@@ -108,6 +108,7 @@ class OIDCApiController extends Controller {
 	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
+	 * @CORS
 	 *
 	 * @param string $grant_type
 	 * @param string $code
@@ -205,15 +206,23 @@ class OIDCApiController extends Controller {
 		foreach ($groups as $group) {
 			array_push($roles, $group->getGID());
 		}
-		$roles_payload = [
-			'roles' => $roles
-		];
-		$jwt_payload = array_merge($jwt_payload, $roles_payload);
 
 		// Check for scopes
 		// OpenID Connect requests MUST contain the openid scope value. - This implementation does not enforce that openid is specified.
 		// OPTIONAL scope values of profile, email, address, phone, and offline_access are also defined. See Section 2.4 for more about the scope values defined by this document.
 		$scopeArray = preg_split('/ +/', $accessToken->getScope());
+		if (in_array("roles", $scopeArray)) {
+			$roles_payload = [
+				'roles' => $roles
+			];
+			$jwt_payload = array_merge($jwt_payload, $roles_payload);
+		}
+		if (in_array("groups", $scopeArray)) {
+			$roles_payload = [
+				'groups' => $roles
+			];
+			$jwt_payload = array_merge($jwt_payload, $roles_payload);
+		}
 		if (in_array("profile", $scopeArray)) {
 			$profile = [
 				'name' => $user->getDisplayName(),

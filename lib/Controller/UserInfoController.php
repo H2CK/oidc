@@ -86,10 +86,7 @@ class UserInfoController extends Controller {
 	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
-     * 
-     * On Apache this requires:
-     * RewriteEngine On
-     * RewriteRule .* - [e=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+     * @CORS
 	 *
 	 * @return JSONResponse
 	 */

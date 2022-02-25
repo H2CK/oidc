@@ -16,6 +16,7 @@ OC.L10N.register(
     "Client Identifier" : "Client-Identifikationsmerkmal",
     "Secret" : "Geheimnis",
     "Show client secret" : "Geheime Zeichenkette des Clients anzeigen",
-    "Delete" : "Löschen"
+    "Delete" : "Löschen",
+    "OpenID Connect Redirect" : "OpenID Connect Weiterleitung"
 },
 "nplurals=2; plural=(n != 1);");
