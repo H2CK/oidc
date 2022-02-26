@@ -28,7 +28,7 @@ namespace OCA\OIDCIdentityProvider\Controller;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
-use OCP\AppFramework\Controller;
+use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
@@ -47,7 +47,7 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 
-class LoginRedirectorController extends Controller {
+class LoginRedirectorController extends ApiController {
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var ClientMapper */
@@ -114,10 +114,10 @@ class LoginRedirectorController extends Controller {
 	}
 
 	/**
+	 * @CORS
 	 * @PublicPage
 	 * @NoCSRFRequired
 	 * @UseSession
-	 * @CORS
 	 *
 	 * @param string $client_id
 	 * @param string $state

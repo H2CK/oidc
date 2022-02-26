@@ -28,13 +28,11 @@ namespace OCA\OIDCIdentityProvider\Controller;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
-use OCP\AppFramework\Controller;
+use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\Security\ICrypto;
-use OCP\Security\ISecureRandom;
 use OCP\IUserSession;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -47,19 +45,13 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 
-class LogoutController extends Controller {
+class LogoutController extends ApiController {
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var ClientMapper */
 	private $clientMapper;
 	/** @var AccessTokenMapper */
 	private $accessTokenMapper;
-	/** @var ISecureRandom */
-	private $random;
-	/** @var ICrypto */
-	private $crypto;
-	/** @var IProvider */
-	private $tokenProvider;
 	/** @var ISession */
 	private $session;
 	/** @var IL10N */
@@ -68,8 +60,6 @@ class LogoutController extends Controller {
 	private $time;
 	/** @var IUserSession */
 	private $userSession;
-	/** @var IInitialStateService */
-	private $initialStateService;
 
 	/**
 	 * @param string $appName
@@ -102,10 +92,10 @@ class LogoutController extends Controller {
 	}
 
 	/**
-	 * @PublicPage
+	 * @CORS
+     * @PublicPage
 	 * @NoCSRFRequired
      * @UseSession
-     * @CORS
 	 *
 	 * @param string $client_id
 	 * @param string $refresh_token

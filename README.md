@@ -22,6 +22,8 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - JWKS: `jwks`(GET)
 - Logout: `logout` (GET - ?refresh_token=xxx)
 
+CORS is enable for all domains on all the above endpoints.
+
 The discovery endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration`.
 
 ## Limitations
@@ -58,9 +60,9 @@ Execute `make build` to build for production bundle at build/artifacts. Perform 
 ## TODOs / Ideas for extensions
 
 - Support public clients (no need for client secret)
-- Support other methods to transport client_credentials (in query / body) 
+- Support other methods to transport client_credentials (in query / body)
 - Basic Auth and GET support for token endpoint
 - Add button to admin UI to regenerate key material
 - Add possibilty to set token expiry time in admin UI
-- Add CORS Header for Client Redirect URI to endpoints jwks token authorize userinfo logout (done - to be tested)
 - Add authentication backend to allow usage of JWT to access resources at Nextcloud server
+- Create unit and integration tests

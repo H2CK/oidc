@@ -41,7 +41,6 @@ return [
 			'name' => 'LoginRedirect#preflighted_cors',
 			'url' => '/authorize',
 			'verb' => 'OPTIONS',
-			'requirements' => array('path' => '.+')
 		],
 		[
 			'name' => 'Page#index',
@@ -57,7 +56,6 @@ return [
 			'name' => 'OIDCApi#preflighted_cors',
 			'url' => '/token',
 			'verb' => 'OPTIONS',
-			'requirements' => array('path' => '.+')
 		],
 		[
 			'name' => 'UserInfo#getInfo',
@@ -68,7 +66,6 @@ return [
 			'name' => 'UserInfo#preflighted_cors',
 			'url' => '/userinfo',
 			'verb' => 'OPTIONS',
-			'requirements' => array('path' => '.+')
 		],
 		[
 			'name' => 'Discovery#getInfo',
@@ -79,7 +76,6 @@ return [
 			'name' => 'Discovery#preflighted_cors',
 			'url' => '/openid-configuration',
 			'verb' => 'OPTIONS',
-			'requirements' => array('path' => '.+')
 		],
 		[
 			'name' => 'Jwks#getKeyInfo',
@@ -90,7 +86,6 @@ return [
 			'name' => 'Jwks#preflighted_cors',
 			'url' => '/jwks',
 			'verb' => 'OPTIONS',
-			'requirements' => array('path' => '.+')
 		],
 		[
 			'name' => 'Logout#logout',
@@ -101,7 +96,6 @@ return [
 			'name' => 'Logout#preflighted_cors',
 			'url' => '/logout',
 			'verb' => 'OPTIONS',
-			'requirements' => array('path' => '.+')
 		],
 	],
 ];

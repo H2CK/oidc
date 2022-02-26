@@ -33,7 +33,7 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
-use OCP\AppFramework\Controller;
+use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -50,7 +50,7 @@ use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 
-class OIDCApiController extends Controller {
+class OIDCApiController extends ApiController {
 	/** @var AccessTokenMapper */
 	private $accessTokenMapper;
 	/** @var ClientMapper */
@@ -106,9 +106,9 @@ class OIDCApiController extends Controller {
 	}
 
 	/**
+	 * @CORS
 	 * @PublicPage
 	 * @NoCSRFRequired
-	 * @CORS
 	 *
 	 * @param string $grant_type
 	 * @param string $code

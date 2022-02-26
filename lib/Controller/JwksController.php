@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OC\Security\Bruteforce\Throttler;
-use OCP\AppFramework\Controller;
+use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -35,7 +35,7 @@ use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 
 
-class JwksController extends Controller {
+class JwksController extends ApiController {
 	/** @var ITimeFactory */
 	private $time;
 	/** @var Throttler */
@@ -59,9 +59,9 @@ class JwksController extends Controller {
 	}
 
 	/**
-	 * @PublicPage
+	 * @CORS
+     * @PublicPage
 	 * @NoCSRFRequired
-     * @CORS
      * 
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration

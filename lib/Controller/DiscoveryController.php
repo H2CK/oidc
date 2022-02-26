@@ -26,14 +26,14 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OC\Security\Bruteforce\Throttler;
-use OCP\AppFramework\Controller;
+use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 
-class DiscoveryController extends Controller {
+class DiscoveryController extends ApiController {
 	/** @var ITimeFactory */
 	private $time;
 	/** @var Throttler */
@@ -53,9 +53,9 @@ class DiscoveryController extends Controller {
 	}
 
 	/**
-	 * @PublicPage
+	 * @CORS
+     * @PublicPage
 	 * @NoCSRFRequired
-     * @CORS
      * 
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration
