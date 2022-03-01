@@ -36,6 +36,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setName(string $name)
  * @method string getSigningAlg()
  * @method void setSigningAlg(string $name)
+ * @method string getType()
+ * @method void setType(string $type)
  */
 class Client extends Entity {
 	/** @var int */
@@ -50,6 +52,8 @@ class Client extends Entity {
 	protected $secret;
 	/** @var string */
 	protected $signingAlg;
+	/** @var string */
+	protected $type;
 
 	public function __construct() {
 		$this->addType('id', 'int');
@@ -58,5 +62,6 @@ class Client extends Entity {
 		$this->addType('client_identifier', 'string');
 		$this->addType('secret', 'string');
 		$this->addType('signing_alg', 'string');
+		$this->addType('type', 'string');
 	}
 }

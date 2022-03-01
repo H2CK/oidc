@@ -109,6 +109,7 @@ class OIDCApiController extends ApiController {
 	 * @CORS
 	 * @PublicPage
 	 * @NoCSRFRequired
+	 * @UseSession
 	 *
 	 * @param string $grant_type
 	 * @param string $code
@@ -185,7 +186,8 @@ class OIDCApiController extends ApiController {
 		$account = $this->accountManager->getAccount($user);
 
 		$issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
-
+		$nonce = $accessToken->getNonce();
+		
 		$jwt_payload = [
 			'iss' => $issuer,
 			'sub' => $uid,
@@ -200,6 +202,13 @@ class OIDCApiController extends ApiController {
 			'nbf' => $this->time->getTime(),
 			'jti' => $accessToken->getId(),
 		];
+
+		if (!empty($nonce)) {
+			$nonce_payload = [
+				'nonce' => $nonce
+			];
+			$jwt_payload = array_merge($jwt_payload, $nonce_payload);
+		}
 
 		$roles = [];
 		// Add roles

@@ -36,6 +36,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setHashedCode(string $token)
  * @method string getCreated()
  * @method void setCreated(int $timestamp)
+ * @method string getNonce()
+ * @method void setNonce(string $nonce)
  */
 class AccessToken extends Entity {
 	/** @var int */
@@ -54,6 +56,8 @@ class AccessToken extends Entity {
 	protected $created;
 	/** @var int */
 	protected $refreshed;
+	/** @var string */
+	protected $nonce;
 
 	public function __construct() {
 		$this->addType('id', 'int');
@@ -64,5 +68,6 @@ class AccessToken extends Entity {
 		$this->addType('accessToken', 'string');
 		$this->addType('created', 'int');
 		$this->addType('refreshed', 'int');
+		$this->addType('nonce', 'string');
 	}
 }

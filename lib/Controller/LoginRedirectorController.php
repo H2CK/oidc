@@ -124,13 +124,15 @@ class LoginRedirectorController extends ApiController {
 	 * @param string $response_type
 	 * @param string $redirect_uri
 	 * @param string $scope
+	 * @param string $nonce
 	 * @return Response
 	 */
 	public function authorize($client_id,
 							  $state,
 							  $response_type,
 							  $redirect_uri,
-							  $scope): Response {
+							  $scope,
+							  $nonce): Response {
 		
 		if (!$this->userSession->isLoggedIn()) {
 			// Not authenticated yet
@@ -140,6 +142,7 @@ class LoginRedirectorController extends ApiController {
 			$this->session->set('response_type', $response_type);
 			$this->session->set('redirect_uri', $redirect_uri);
 			$this->session->set('scope', $scope);
+			$this->session->set('nonce', $nonce);
 
 			$afterLoginRedirectUrl = '/index.php/apps/oidc/redirect';
 
@@ -167,6 +170,9 @@ class LoginRedirectorController extends ApiController {
 		}
 		if (empty($scope)) {
 			$scope = $this->session->get('scope');
+		}
+		if (empty($nonce)) {
+			$nonce = $this->session->get('nonce');
 		}
 
 		try {
@@ -204,6 +210,12 @@ class LoginRedirectorController extends ApiController {
 		$accessToken->setScope(substr($scope, 0, 128));
 		$accessToken->setCreated($this->time->getTime());
 		$accessToken->setRefreshed($this->time->getTime());
+		if (empty($nonce)) {
+			$nonce = '';
+		} else {
+			$nonce = substr($nonce, 0, 256);
+		}
+		$accessToken->setNonce($nonce);
 		$this->accessTokenMapper->insert($accessToken);
 
 		$url = $client->getRedirectUri() . '?code=' . $code . '&state=' . $state;

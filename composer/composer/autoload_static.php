@@ -39,6 +39,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/ClientNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Migration\\CreateKeys' => __DIR__ . '/..' . '/../lib/Migration/CreateKeys.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0001Date20220209222100' => __DIR__ . '/..' . '/../lib/Migration/Version0001Date20220209222100.php',
+        'OCA\\OIDCIdentityProvider\\Migration\\Version0002Date20220301210900' => __DIR__ . '/..' . '/../lib/Migration/Version0002Date20220301210900.php',
         'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
     );
 

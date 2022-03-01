@@ -24,5 +24,6 @@ return array(
     'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => $baseDir . '/../lib/Exceptions/ClientNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Migration\\CreateKeys' => $baseDir . '/../lib/Migration/CreateKeys.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0001Date20220209222100' => $baseDir . '/../lib/Migration/Version0001Date20220209222100.php',
+    'OCA\\OIDCIdentityProvider\\Migration\\Version0002Date20220301210900' => $baseDir . '/../lib/Migration/Version0002Date20220301210900.php',
     'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
 );
