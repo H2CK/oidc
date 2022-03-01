@@ -70,6 +70,22 @@
 			</select>
 			<input type="submit" class="button" :value="t('oidc', 'Add')">
 		</form>
+
+		<br>
+		<h3>{{ t('oidc', 'Settings') }}</h3>
+		<p>{{ t('oidc', 'Token Expire Time') }}</p>
+		<input id="expireTime"
+			v-model="expTime"
+			type="text"
+			name="expireTime"
+			:placeholder="t('oidc', 'Token Expire Time')"
+			@input="setTokenExpireTime">
+		<p>{{ t('oidc', 'Public Key') }}</p>
+		<code>{{ publicKey }}</code>
+		<br>
+		<form @submit.prevent="regenerateKeys">
+			<input type="submit" class="button" :value="t('oidc', 'Regenerate Keys')">
+		</form>
 	</div>
 </template>
 
@@ -88,6 +104,14 @@ export default {
 			type: Array,
 			required: true,
 		},
+		expireTime: {
+			type: String,
+			required: true,
+		},
+		publicKey: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -98,6 +122,7 @@ export default {
 				errorMsg: '',
 				error: false,
 			},
+			expTime: this.expireTime,
 		}
 	},
 	methods: {
@@ -128,6 +153,26 @@ export default {
 			}).catch(reason => {
 				this.newClient.error = true
 				this.newClient.errorMsg = reason.response.data.message
+			})
+		},
+		setTokenExpireTime() {
+			axios.post(
+				generateUrl('apps/oidc/expire'),
+				{
+					expireTime: this.expTime,
+				}).then((response) => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.expTime = response.data.expire_time
+				// eslint-disable-next-line vue/no-mutating-props
+				this.expireTime = response.data.expire_time
+			})
+		},
+		regenerateKeys() {
+			axios.post(
+				generateUrl('apps/oidc/genKeys'),
+				{}).then((response) => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.publicKey = response.data.public_key
 			})
 		},
 	},

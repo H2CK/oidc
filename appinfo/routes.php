@@ -28,6 +28,16 @@ return [
 			'verb' => 'POST',
 		],
 		[
+			'name' => 'Settings#setTokenExpireTime',
+			'url' => '/expire',
+			'verb' => 'POST',
+		],
+		[
+			'name' => 'Settings#regenerateKeys',
+			'url' => '/genKeys',
+			'verb' => 'POST',
+		],
+		[
 			'name' => 'Settings#deleteClient',
 			'url' => '/clients/{id}',
 			'verb' => 'DELETE'

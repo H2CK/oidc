@@ -34,6 +34,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\Security\ISecureRandom;
+use OCP\AppFramework\Services\IAppConfig;
 
 class SettingsController extends Controller {
 	/** @var ClientMapper */
@@ -44,6 +45,8 @@ class SettingsController extends Controller {
 	private $accessTokenMapper;
 	/** @var IL10N */
 	private $l;
+	/** @var IAppConfig */
+	private $appConfig;
 
 	public const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -52,13 +55,15 @@ class SettingsController extends Controller {
 								ClientMapper $clientMapper,
 								ISecureRandom $secureRandom,
 								AccessTokenMapper $accessTokenMapper,
-								IL10N $l
+								IL10N $l,
+								IAppConfig $appConfig
 	) {
 		parent::__construct($appName, $request);
 		$this->secureRandom = $secureRandom;
 		$this->clientMapper = $clientMapper;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->l = $l;
+		$this->appConfig = $appConfig;
 	}
 
 	public function addClient(string $name,
@@ -97,5 +102,63 @@ class SettingsController extends Controller {
 		$this->accessTokenMapper->deleteByClientId($id);
 		$this->clientMapper->delete($client);
 		return new JSONResponse([]);
+	}
+
+	public function setTokenExpireTime(string $expireTime): JSONResponse {
+		$options = array(
+			'options' => array(
+				'default' => 900, 
+				'min_range' => 60,
+				'max_range' => 3600,
+			),
+			'flags' => FILTER_FLAG_ALLOW_OCTAL,
+		);
+		$finalExpireTime = filter_var($expireTime, FILTER_VALIDATE_INT, $options);
+		$finalExpireTime = strval($finalExpireTime);
+		$this->appConfig->setAppValue('expire_time', $finalExpireTime);
+		$result = [
+			'expire_time' => $expireTime,
+		];
+		return new JSONResponse($result);
+	}
+
+	public function regenerateKeys(): JSONResponse {
+		$config = array(
+			"digest_alg" => 'sha512',
+			"private_key_bits" => 4096,
+			"private_key_type" => OPENSSL_KEYTYPE_RSA
+		);
+		$keyPair = openssl_pkey_new($config);
+		$privateKey = NULL;
+		openssl_pkey_export($keyPair, $privateKey);
+		$keyDetails = openssl_pkey_get_details($keyPair);
+		$publicKey = $keyDetails['key'];
+
+		$this->appConfig->setAppValue('private_key', $privateKey);
+		$this->appConfig->setAppValue('public_key', $publicKey);
+		$uuid = $this->guidv4();
+		$this->appConfig->setAppValue('kid', $uuid);
+		$modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
+		$exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));		
+		$this->appConfig->setAppValue('public_key_n', $modulus);
+		$this->appConfig->setAppValue('public_key_e', $exponent);
+		$result = [
+			'public_key' => $publicKey,
+		];
+		return new JSONResponse($result);
+	}
+
+	function guidv4($data = null) {
+		// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+		$data = $data ?? random_bytes(16);
+		assert(strlen($data) == 16);
+	
+		// Set version to 0100
+		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+		// Set bits 6-7 to 10
+		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+	
+		// Output the 36 character UUID.
+		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}
 }

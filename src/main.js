@@ -28,11 +28,15 @@ Vue.prototype.t = t
 Vue.prototype.OC = OC
 
 const clients = loadState('oidc', 'clients')
+const expireTime = loadState('oidc', 'expireTime')
+const publicKey = loadState('oidc', 'publicKey')
 
 const View = Vue.extend(App)
 const oidc = new View({
 	propsData: {
 		clients,
+		expireTime,
+		publicKey,
 	},
 })
 oidc.$mount('#oidc')

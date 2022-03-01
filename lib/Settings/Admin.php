@@ -29,6 +29,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IInitialStateService;
 use OCP\Settings\ISettings;
+use OCP\AppFramework\Services\IAppConfig;
 
 class Admin implements ISettings {
 
@@ -38,10 +39,15 @@ class Admin implements ISettings {
 	/** @var ClientMapper */
 	private $clientMapper;
 
+	/** @var IAppConfig */
+	private $appConfig;
+
 	public function __construct(IInitialStateService $initialStateService,
-								ClientMapper $clientMapper) {
+								ClientMapper $clientMapper,
+								IAppConfig $appConfig) {
 		$this->initialStateService = $initialStateService;
 		$this->clientMapper = $clientMapper;
+		$this->appConfig = $appConfig;
 	}
 
 	public function getForm(): TemplateResponse {
@@ -59,6 +65,8 @@ class Admin implements ISettings {
 			];
 		}
 		$this->initialStateService->provideInitialState('oidc', 'clients', $result);
+		$this->initialStateService->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue('expire_time'));
+		$this->initialStateService->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
 
 		return new TemplateResponse(
 			'oidc',

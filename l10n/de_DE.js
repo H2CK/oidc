@@ -19,6 +19,10 @@ OC.L10N.register(
     "Delete" : "Löschen",
     "OpenID Connect Redirect" : "OpenID Connect Weiterleitung",
     "Signing Algorithm" : "Signatur Algorithmus",
-    "Select Signing Algorithm" : "Signatur Algorithmus auswählen"
+    "Select Signing Algorithm" : "Signatur Algorithmus auswählen",
+    "Settings" : "Einstellungen",
+    "Token Expire Time" : "Gültigkeitsdauer Token",
+    "Public Key" : "Öffentlicher Schlüssel",
+    "Regenerate Keys" : "Neugenerierung der Schlüssel"
 },
 "nplurals=2; plural=(n != 1);");

@@ -17,6 +17,10 @@
     "Delete" : "Delete",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",
     "Signing Algorithm" : "Signing Algorithm",
-    "Select Signing Algorithm" : "Select Signing Algorithm"
+    "Select Signing Algorithm" : "Select Signing Algorithm",
+    "Settings" : "Settings",
+    "Token Expire Time" : "Token Expire Time",
+    "Public Key" : "Public Key",
+    "Regenerate Keys" : "Regenerate Keys"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

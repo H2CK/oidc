@@ -62,7 +62,5 @@ Execute `make build` to build for production bundle at build/artifacts. Perform 
 - Support public clients (no need for client secret)
 - Support other methods to transport client_credentials (in query / body)
 - Basic Auth and GET support for token endpoint
-- Add button to admin UI to regenerate key material
-- Add possibilty to set token expiry time in admin UI
 - Add authentication backend to allow usage of JWT to access resources at Nextcloud server
 - Create unit and integration tests

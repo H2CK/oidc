@@ -66,7 +66,7 @@ class CreateKeys implements IRepairStep {
 			$this->appConfig->setAppValue('public_key_e', $exponent);
 		}
 		if ($this->appConfig->getAppValue('expire_time') === '' ) {
-			$this->appConfig->setAppValue('expire_time', '3600');
+			$this->appConfig->setAppValue('expire_time', '900');
 		}
 	}
 
