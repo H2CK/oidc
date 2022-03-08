@@ -57,6 +57,10 @@ To continuously run the build when editing source files you can make use of the 
 
 Execute `make build` to build for production bundle at build/artifacts. Perform `make appstore` to create tar.gz in build/artifacts.
 
+## Execute test
+
+Execute `make test` to run phpunit tests.
+
 ## TODOs / Ideas for extensions
 
 - Support public clients (no need for client secret)

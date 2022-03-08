@@ -6,44 +6,64 @@ use PHPUnit\Framework\TestCase;
 
 use OCP\AppFramework\Http;
 use OCP\IRequest;
+use OC\Security\Bruteforce\Throttler;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IURLGenerator;
+use OCP\IConfig;
+use OCP\IDBConnection;
+use OCP\ILogger;
 
 use OCA\OIDCIdentityProvider\Controller\DiscoveryController;
 
 class DiscoveryControllerTest extends TestCase {
 	protected $controller;
 	protected $request;
+	/** @var ITimeFactory */
+	private $time;
+	/** @var Throttler */
+	private $throttler;
+    /** @var IURLGenerator */
+	private $urlGenerator;
+	/** @var IDBConnection */
+	private $db;
+	/** @var IConfig */
+	private $config;
+	/** @var ILogger */
+	private $logger;
 
 	public function setUp(): void {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
+		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
+		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
+		$this->logger = $this->getMockBuilder(ILogger::class)->getMock();
+		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
+		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
+																						$this->time,
+																						$this->logger,
+																						$this->config])->getMock();
+		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->controller = new DiscoveryController(
             'oidc',
-            $this->request);
+            $this->request,
+			$this->time,
+			$this->throttler,
+			$this->urlGenerator);
 	}
 
-	// public function testUpdate() {
-	// 	$note = 'just check if this value is returned correctly';
-	// 	$this->service->expects($this->once())
-	// 		->method('update')
-	// 		->with($this->equalTo(3),
-	// 				$this->equalTo('title'),
-	// 				$this->equalTo('content'),
-	// 			   $this->equalTo($this->userId))
-	// 		->will($this->returnValue($note));
+	public function testDiscoveryResponse() {
+		$scopesSupported = [
+            'openid',
+            'profile',
+            'email',
+            'roles',
+            'groups',
+        ];
 
-	// 	$result = $this->controller->update(3, 'title', 'content');
+		$result = $this->controller->getInfo();
 
-	// 	$this->assertEquals($note, $result->getData());
-	// }
+		$this->assertEquals(Http::STATUS_OK, $result->getStatus());
+		$this->assertEquals($scopesSupported, $result->getData()['scopes_supported']);
+	}
 
 
-	// public function testUpdateNotFound() {
-	// 	// test the correct status code if no note is found
-	// 	$this->service->expects($this->once())
-	// 		->method('update')
-	// 		->will($this->throwException(new NoteNotFound()));
-
-	// 	$result = $this->controller->update(3, 'title', 'content');
-
-	// 	$this->assertEquals(Http::STATUS_NOT_FOUND, $result->getStatus());
-	// }
 }

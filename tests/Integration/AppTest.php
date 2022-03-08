@@ -7,15 +7,13 @@ use Test\TestCase;
 
 
 /**
- * This test shows how to make a small Integration Test. Query your class
- * directly from the container, only pass in mocks if needed and run your tests
- * against the database
+ * This test just checks if the application is installed and enabled.
  */
 class AppTest extends TestCase {
 
     private $container;
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
         $app = new App('oidc');
         $this->container = $app->getContainer();

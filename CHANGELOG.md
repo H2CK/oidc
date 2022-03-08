@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-##  [0.0.1] - 2022-02-20
+##  [0.0.1] - 2022-03-02
 ### Added
 - Base OIDC functionality
   - Configuration of accepted client for whom JWT Tokens are provided
