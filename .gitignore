@@ -7,3 +7,4 @@ node_modules/
 /.php_cs.cache
 js/*hot-update.*
 .DS_Store
+.phpunit.result.cache

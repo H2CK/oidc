@@ -11,6 +11,11 @@ Provided features:
 - Discovery endpoint provided
 - Logout endpoint
 
+Full documentation can be found at:
+
+- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)
+- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
+
 ## Endpoints
 
 The following endpoint are available below `index.php/apps/oidc/`:

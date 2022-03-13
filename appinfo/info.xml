@@ -18,7 +18,7 @@
     <admin>https://github.com/H2CK/oidc#readme</admin>
     <developer>https://github.com/H2CK/oidc/wiki#developer-documentation</developer>
   </documentation>
-  
+
   <category>integration</category>
   <category>security</category>
 
@@ -30,7 +30,7 @@
   <screenshot>https://github.com/H2CK/oidc/2.jpg</screenshot> -->
   <dependencies>
     <command>openssl</command>
-    <nextcloud min-version="21" max-version="23"/>
+    <nextcloud min-version="21" max-version="24"/>
   </dependencies>
 
   <background-jobs>

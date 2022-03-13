@@ -11,16 +11,20 @@ use Test\TestCase;
  */
 class AppTest extends TestCase {
 
-    private $container;
+    private $appContainer;
+	private $serverContainer;
+	private $appConfig;
 
     public function setUp(): void {
         parent::setUp();
         $app = new App('oidc');
-        $this->container = $app->getContainer();
+        $this->appContainer = $app->getContainer();
+		$this->serverContainer = $this->appContainer->getServer();
+		$this->appConfig = $this->serverContainer->getAppConfig();
     }
 
     public function testAppInstalled() {
-        $appManager = $this->container->query('OCP\App\IAppManager');
+        $appManager = $this->appContainer->query('OCP\App\IAppManager');
         $this->assertTrue($appManager->isInstalled('oidc'));
     }
 

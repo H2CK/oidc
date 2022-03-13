@@ -6,6 +6,8 @@ build_tools_directory=$(CURDIR)/build/tools
 build_dir=$(CURDIR)/build/artifacts
 composer=$(shell which composer 2> /dev/null)
 
+.PHONY: composer
+
 all: dev-setup lint build-js-production assemble
 
 # Dev env management
@@ -23,8 +25,8 @@ ifeq (, $(composer))
 	php $(build_tools_directory)/composer.phar install --prefer-dist
 	php $(build_tools_directory)/composer.phar update --prefer-dist
 else
-	composer install --prefer-dist
-	composer update --prefer-dist
+	php $(build_tools_directory)/composer.phar install --prefer-dist
+	php $(build_tools_directory)/composer.phar update --prefer-dist
 endif
 
 npm-init:
