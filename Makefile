@@ -4,6 +4,7 @@ app_name=$(notdir $(CURDIR))
 project_dir=$(CURDIR)/../$(app_name)
 build_tools_directory=$(CURDIR)/build/tools
 build_dir=$(CURDIR)/build/artifacts
+cert_dir=$(HOME)/.nextcloud/certificates
 composer=$(shell which composer 2> /dev/null)
 
 .PHONY: composer
@@ -74,13 +75,13 @@ build: clean build-js-production assemble
 
 appstore: build
 	@echo "Signing…"
-#	php ../server/occ integrity:sign-app \
-#		--privateKey=$(cert_dir)/$(app_name).key\
-#		--certificate=$(cert_dir)/$(app_name).crt\
-#		--path=$(build_dir)/$(app_name)
+	php ../../occ integrity:sign-app \
+		--privateKey=$(cert_dir)/$(app_name).key\
+		--certificate=$(cert_dir)/$(app_name).crt\
+		--path=$(build_dir)/$(app_name)
 	tar -czf $(build_dir)/$(app_name).tar.gz \
 		-C $(build_dir) $(app_name)
-	# openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(build_dir)/$(app_name).tar.gz | openssl base64
+	openssl dgst -sha512 -sign $(cert_dir)/$(app_name).key $(build_dir)/$(app_name).tar.gz | openssl base64
 
 assemble:
 	mkdir -p $(build_dir)
