@@ -4,7 +4,7 @@
   <name>OIDC Identity Provider</name>
   <summary>Use Nextcloud as OpenID Connect Identity Provider.</summary>
   <description>With this app you can use Nextcloud as OpenID Connect Identity Provider.</description>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>

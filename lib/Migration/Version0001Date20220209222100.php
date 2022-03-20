@@ -42,6 +42,10 @@ class Version0001Date20220209222100 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
+		if ($schema->hasTable('oidc_clients')) {
+			$schema->dropTable('oidc_clients');
+		}
+
 		if (!$schema->hasTable('oidc_clients')) {
 			$table = $schema->createTable('oidc_clients');
 			$table->addColumn('id', 'integer', [
@@ -112,7 +116,7 @@ class Version0001Date20220209222100 extends SimpleMigrationStep {
 			$table->setPrimaryKey(['id']);
 			$table->addUniqueIndex(['hashed_code'], 'oidc_access_hash_idx');
 			$table->addIndex(['client_id'], 'oidc_access_client_id_idx');
-			$table->addIndex(['access_token'], 'oidc_access_access_token_idx');
+			// $table->addIndex(['access_token'], 'oidc_access_access_token_idx'); Too big for MySQL/MariaDB
 		}
 
 		return $schema;
