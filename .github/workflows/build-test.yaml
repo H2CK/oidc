@@ -20,7 +20,7 @@ env:
   PHP_VERSION: 7.4
 
 jobs:
-  build_and_publish:
+  build_test:
     runs-on: ubuntu-latest
 
     # Only allowed to be run on nextcloud-releases repositories
