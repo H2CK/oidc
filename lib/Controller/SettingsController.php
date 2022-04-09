@@ -68,7 +68,8 @@ class SettingsController extends Controller {
 
 	public function addClient(string $name,
 							  string $redirectUri,
-							  string $signingAlg): JSONResponse {
+							  string $signingAlg,
+							  string $type): JSONResponse {
 		if (filter_var($redirectUri, FILTER_VALIDATE_URL) === false) {
 			return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
 		}
@@ -83,6 +84,11 @@ class SettingsController extends Controller {
 		} else {
 			$client->setSigningAlg('RS256');
 		}
+		if ($type === 'public') {
+			$client->setType($type);
+		} else {
+			$client->setType('confidential');
+		}
 		$client = $this->clientMapper->insert($client);
 
 		$result = [
@@ -92,6 +98,7 @@ class SettingsController extends Controller {
 			'clientId' => $client->getClientIdentifier(),
 			'clientSecret' => $client->getSecret(),
 			'signingAlg' => $client->getSigningAlg(),
+			'type' => $client->getType(),
 		];
 
 		return new JSONResponse($result);
@@ -107,7 +114,7 @@ class SettingsController extends Controller {
 	public function setTokenExpireTime(string $expireTime): JSONResponse {
 		$options = array(
 			'options' => array(
-				'default' => 900, 
+				'default' => 900,
 				'min_range' => 60,
 				'max_range' => 3600,
 			),
@@ -139,7 +146,7 @@ class SettingsController extends Controller {
 		$uuid = $this->guidv4();
 		$this->appConfig->setAppValue('kid', $uuid);
 		$modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
-		$exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));		
+		$exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
 		$this->appConfig->setAppValue('public_key_n', $modulus);
 		$this->appConfig->setAppValue('public_key_e', $exponent);
 		$result = [
@@ -152,12 +159,12 @@ class SettingsController extends Controller {
 		// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
 		$data = $data ?? random_bytes(16);
 		assert(strlen($data) == 16);
-	
+
 		// Set version to 0100
 		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
 		// Set bits 6-7 to 10
 		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-	
+
 		// Output the 36 character UUID.
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}

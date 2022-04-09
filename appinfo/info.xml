@@ -2,9 +2,19 @@
 <info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
   <id>oidc</id>
   <name>OIDC Identity Provider</name>
-  <summary>Use Nextcloud as OpenID Connect Identity Provider.</summary>
-  <description>With this app you can use Nextcloud as OpenID Connect Identity Provider.</description>
-  <version>0.0.2</version>
+  <summary><![CDATA[Nextcloud as OpenID Connect Identity Provider]]></summary>
+  <description><![CDATA[Nextcloud as OpenID Connect Identity Provider
+
+With this app you can use Nextcloud as OpenID Connect Identity Provider. If other services
+are configured correctly, you are able to access those services with your Nextcloud login.
+
+Full documentation can be found at:
+
+- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)
+- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
+
+	]]></description>
+  <version>0.1.0</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -26,8 +36,7 @@
   <discussion>https://github.com/H2CK/oidc/issues</discussion>
   <bugs>https://github.com/H2CK/oidc/issues</bugs>
   <repository>https://github.com/H2CK/oidc</repository>
-  <!-- <screenshot small-thumbnail="https://github.com/H2CK/oidc/1-small.png">https://github.com/H2CK/oidc/1.png</screenshot>
-  <screenshot>https://github.com/H2CK/oidc/2.jpg</screenshot> -->
+  <screenshot>https://raw.githubusercontent.com/H2CK/oidc/master/docs/oidc-app.jpg</screenshot>
   <dependencies>
     <command>openssl</command>
     <nextcloud min-version="21" max-version="24"/>

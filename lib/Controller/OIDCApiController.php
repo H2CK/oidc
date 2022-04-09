@@ -156,12 +156,22 @@ class OIDCApiController extends ApiController {
 			$client_secret = $this->request->server['PHP_AUTH_PW'];
 		}
 
-		// The client id and secret must match. Else we don't provide an access token!
-		if ($client->getClientIdentifier() !== $client_id || $client->getSecret() !== $client_secret) {
-			return new JSONResponse([
-				'error' => 'invalid_client',
-				'error_description' => 'Client authentication failed.',
-			], Http::STATUS_BAD_REQUEST);
+		if ($client->getType() === 'public') {
+			// Only the client id must match for a public client. Else we don't provide an access token!
+			if ($client->getClientIdentifier() !== $client_id) {
+				return new JSONResponse([
+					'error' => 'invalid_client',
+					'error_description' => 'Client not found.',
+				], Http::STATUS_BAD_REQUEST);
+			}
+		} else {
+			// The client id and secret must match. Else we don't provide an access token!
+			if ($client->getClientIdentifier() !== $client_id || $client->getSecret() !== $client_secret) {
+				return new JSONResponse([
+					'error' => 'invalid_client',
+					'error_description' => 'Client authentication failed.',
+				], Http::STATUS_BAD_REQUEST);
+			}
 		}
 
 		// The accessToken must not be expired
@@ -187,7 +197,7 @@ class OIDCApiController extends ApiController {
 
 		$issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
 		$nonce = $accessToken->getNonce();
-		
+
 		$jwt_payload = [
 			'iss' => $issuer,
 			'sub' => $uid,
@@ -264,7 +274,7 @@ class OIDCApiController extends ApiController {
             }
 			$jwt_payload = array_merge($jwt_payload, $email);
 		}
-		
+
 		$payload = json_encode($jwt_payload);
 		$base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
@@ -281,10 +291,10 @@ class OIDCApiController extends ApiController {
 			$kid = $this->appConfig->getAppValue('kid');
 			$header = json_encode(['typ' => 'JWT', 'alg' => 'RS256', 'kid' => $kid]);
 			$base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-			openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->appConfig->getAppValue('private_key'), 'sha256WithRSAEncryption'); 
+			openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->appConfig->getAppValue('private_key'), 'sha256WithRSAEncryption');
 			$base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 		}
-		
+
 		$jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
 
 		return new JSONResponse(

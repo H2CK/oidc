@@ -62,6 +62,7 @@ class Admin implements ISettings {
 				'clientId' => $client->getClientIdentifier(),
 				'clientSecret' => $client->getSecret(),
 				'signingAlg' => $client->getSigningAlg(),
+				'type' => $client->getType(),
 			];
 		}
 		$this->initialStateService->provideInitialState('oidc', 'clients', $result);

@@ -37,11 +37,20 @@
 				</tr>
 				<tr>
 					<td>{{ t('oidc', 'Secret') }}</td>
-					<td><code>{{ renderedSecret }}</code><a class="icon-toggle has-tooltip" :title="t('oidc', 'Show client secret')" @click="toggleSecret" /></td>
+					<td v-if="!isPublic">
+						<code>{{ renderedSecret }}</code><a class="icon-toggle has-tooltip" :title="t('oidc', 'Show client secret')" @click="toggleSecret" />
+					</td>
+					<td v-if="isPublic">
+						<code>{{ t('oidc', '-- NONE --') }}</code>
+					</td>
 				</tr>
 				<tr>
 					<td>{{ t('oidc', 'Signing Algorithm') }}</td>
 					<td><code>{{ signingAlg }}</code></td>
+				</tr>
+				<tr>
+					<td>{{ t('oidc', 'Type') }}</td>
+					<td><code>{{ t('oidc', type) }}</code></td>
 				</tr>
 			</table>
 		</td>
@@ -68,6 +77,7 @@ export default {
 			clientId: this.client.clientId,
 			clientSecret: this.client.clientSecret,
 			signingAlg: this.client.signingAlg,
+			type: this.client.type,
 			renderSecret: false,
 		}
 	},
@@ -78,6 +88,10 @@ export default {
 			} else {
 				return '****'
 			}
+		},
+		isPublic() {
+			if (this.type === 'public') return true
+			return false
 		},
 	},
 	methods: {

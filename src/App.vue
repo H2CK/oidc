@@ -68,18 +68,47 @@
 					HS256
 				</option>
 			</select>
+			<select id="type"
+				v-model="newClient.type">
+				<option disabled value="">
+					{{ t('oidc', 'Select Type') }}
+				</option>
+				<option value="confidential">
+					{{ t('oidc', 'confidential') }}
+				</option>
+				<option value="public">
+					{{ t('oidc', 'public') }}
+				</option>
+			</select>
 			<input type="submit" class="button" :value="t('oidc', 'Add')">
 		</form>
 
 		<br>
 		<h3>{{ t('oidc', 'Settings') }}</h3>
 		<p>{{ t('oidc', 'Token Expire Time') }}</p>
-		<input id="expireTime"
+		<select id="expireTime"
 			v-model="expTime"
-			type="text"
-			name="expireTime"
 			:placeholder="t('oidc', 'Token Expire Time')"
-			@input="setTokenExpireTime">
+			@change="setTokenExpireTime">
+			<option disabled value="">
+				{{ t('oidc', 'Select Token Expire Time') }}
+			</option>
+			<option value="300">
+				{{ t('oidc', '5 minutes') }}
+			</option>
+			<option value="600">
+				{{ t('oidc', '10 minutes') }}
+			</option>
+			<option value="900">
+				{{ t('oidc', '15 minutes') }}
+			</option>
+			<option value="1800">
+				{{ t('oidc', '30 minutes') }}
+			</option>
+			<option value="3600">
+				{{ t('oidc', '60 minutes') }}
+			</option>
+		</select>
 		<p>{{ t('oidc', 'Public Key') }}</p>
 		<code>{{ publicKey }}</code>
 		<br>
@@ -119,6 +148,7 @@ export default {
 				name: '',
 				redirectUri: '',
 				signingAlg: 'RS256',
+				type: 'confidential',
 				errorMsg: '',
 				error: false,
 			},
@@ -142,6 +172,7 @@ export default {
 					name: this.newClient.name,
 					redirectUri: this.newClient.redirectUri,
 					signingAlg: this.newClient.signingAlg,
+					type: this.newClient.type,
 				}
 			).then(response => {
 				// eslint-disable-next-line vue/no-mutating-props
@@ -149,7 +180,8 @@ export default {
 
 				this.newClient.name = ''
 				this.newClient.redirectUri = ''
-				this.newClient.signingAlg = ''
+				this.newClient.signingAlg = 'RS256'
+				this.newClient.type = 'confidential'
 			}).catch(reason => {
 				this.newClient.error = true
 				this.newClient.errorMsg = reason.response.data.message

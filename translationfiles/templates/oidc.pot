@@ -1,0 +1,261 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Nextcloud package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Nextcloud 3.14159\n"
+"Report-Msgid-Bugs-To: translations\\@example.com\n"
+"POT-Creation-Date: 2022-04-03 23:11+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS src/App.vue:53
+#. TRANSLATORS src/components/OIDCItem.vue:27
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14176
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14476
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:8
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:46
+msgid "Name"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:58
+#. TRANSLATORS src/components/OIDCItem.vue:31
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14202
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14482
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:10
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:48
+msgid "Redirection URI"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:35
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14488
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:50
+msgid "Client Identifier"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:39
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14494
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:52
+msgid "Secret"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:41
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14501
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:54
+msgid "Show client secret"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:48
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14515
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:58
+msgid "Signing Algorithm"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:58
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14532
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:62
+msgid "Delete"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:24
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14108
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:2
+msgid "OpenID Connect clients"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:26
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14116
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:4
+msgid ""
+"OpenID Connect allows to authenticate at external services with "
+"{instanceName} user accounts."
+msgstr ""
+
+#. TRANSLATORS src/App.vue:46
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14144
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:6
+msgid "Add client"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:62
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14249
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:12
+msgid "Select Signing Algorithm"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:83
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14322
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:20
+msgid "Add"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:87
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14329
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:22
+msgid "Settings"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:88
+#. TRANSLATORS src/App.vue:91
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14331
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14346
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:24
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:26
+msgid "Token Expire Time"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:112
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14408
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:40
+msgid "Public Key"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:116
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14428
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:42
+msgid "Regenerate Keys"
+msgstr ""
+
+#. TRANSLATORS src/Redirect.vue:24
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-redirect.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-redirect.js:5489
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:44
+msgid "OpenID Connect Redirect"
+msgstr ""
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/lib/Controller/LoginRedirectorController.php:182
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/lib/Controller/LoginRedirectorController.php:182
+msgid ""
+"Your client is not authorized to connect. Please inform the administrator of "
+"your client."
+msgstr ""
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/lib/Controller/LoginRedirectorController.php:190
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/lib/Controller/LoginRedirectorController.php:190
+msgid ""
+"The received redirect uri is not accepted to connect. Please inform the "
+"administrator of your client."
+msgstr ""
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/lib/Controller/SettingsController.php:73
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/lib/Controller/SettingsController.php:74
+msgid ""
+"Your redirect URL needs to be a full URL for example: https://yourdomain.com/"
+"path"
+msgstr ""
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/specialAppInfoFakeDummyForL10nScript.php:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialAppInfoFakeDummyForL10nScript.php:2
+msgid "OIDC Identity Provider"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:74
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14298
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:14
+msgid "Select Type"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:77
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14306
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:16
+msgid "confidential"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:80
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14313
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:18
+msgid "public"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:94
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14371
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:28
+msgid "Select Token Expire Time"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:97
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14378
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:30
+msgid "5 minutes"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:100
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14384
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:32
+msgid "10 minutes"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:103
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14390
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:34
+msgid "15 minutes"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:106
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14396
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:36
+msgid "30 minutes"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:109
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14402
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:38
+msgid "60 minutes"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:44
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14509
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:56
+msgid "-- NONE --"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:52
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14521
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:60
+msgid "Type"
+msgstr ""
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialAppInfoFakeDummyForL10nScript.php:3
+msgid "Nextcloud as OpenID Connect Identity Provider"
+msgstr ""
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialAppInfoFakeDummyForL10nScript.php:4
+msgid ""
+"Nextcloud as OpenID Connect Identity Provider\n"
+"\n"
+"With this app you can use Nextcloud as OpenID Connect Identity Provider. If "
+"other services\n"
+"are configured correctly, you are able to access those services with your "
+"Nextcloud login.\n"
+"\n"
+"Full documentation can be found at:\n"
+"\n"
+"- [User Documentation](https://github.com/H2CK/oidc/wiki#user-"
+"documentation)\n"
+"- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-"
+"documentation)"
+msgstr ""

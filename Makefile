@@ -30,6 +30,19 @@ else
 	php $(build_tools_directory)/composer.phar update --prefer-dist
 endif
 
+# Install translationtool from https://github.com/nextcloud/docker-ci/tree/master/translations/translationtool
+translationtool:
+	curl -sSO https://raw.githubusercontent.com/nextcloud/docker-ci/master/translations/translationtool/translationtool.phar
+	mv translationtool.phar $(build_tools_directory)
+
+# Generate po files to perform translation
+generate-po-translation:
+	php $(build_tools_directory)/translationtool.phar create-pot-files
+
+# Generate nextcloud translation files
+generate-nc-translation:
+	php $(build_tools_directory)/translationtool.phar convert-po-files
+
 npm-init:
 	npm ci
 
@@ -113,6 +126,10 @@ assemble:
 	--exclude=.vscode \
 	--exclude=vendor \
 	--exclude=webpack*.js \
+	--exclude=translationfiles \
+	--exclude=docs \
+	--exclude=.phpunit.result.cache \
+	--exclude=stylelint.config.js \
 	$(project_dir) $(build_dir)
 
 ##### Cleaning #####
