@@ -1,4 +1,4 @@
-# This workflow is provided via the organization template repository
+# This workflow is based on the nextcloud organization template repository
 #
 # https://github.com/nextcloud/.github
 # https://docs.github.com/en/actions/learn-github-actions/sharing-workflows-with-your-organization
@@ -15,9 +15,6 @@ env:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
-
-    # Only allowed to be run on nextcloud-releases repositories
-    # if: ${{ github.repository_owner == 'nextcloud-releases' }}
 
     steps:
       - name: Check actor permission
@@ -100,7 +97,7 @@ jobs:
         # Try krankerl, fallback to makefile
         run: |
           cd ${{ env.APP_NAME }}
-          krankerl package || make appstore
+          krankerl package || make build
 
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
