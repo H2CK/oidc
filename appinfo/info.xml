@@ -36,7 +36,7 @@ Full documentation can be found at:
   <discussion>https://github.com/H2CK/oidc/issues</discussion>
   <bugs>https://github.com/H2CK/oidc/issues</bugs>
   <repository>https://github.com/H2CK/oidc</repository>
-  <screenshot>https://raw.githubusercontent.com/H2CK/oidc/master/docs/oidc-app.jpg</screenshot>
+  <screenshot>https://raw.githubusercontent.com/H2CK/oidc/master/docs/oidc-app.png</screenshot>
   <dependencies>
     <command>openssl</command>
     <nextcloud min-version="21" max-version="24"/>
