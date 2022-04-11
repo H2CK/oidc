@@ -95,6 +95,11 @@ jobs:
           npm ci
           npm run build
 
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+        run: |
+          cd ${{ env.APP_NAME }}
+          make build-test
+
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
         id: server-checkout
@@ -109,11 +114,6 @@ jobs:
         with:
           repository: nextcloud/server
           path: nextcloud
-
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
-        run: |
-          cd ${{ env.APP_NAME }}
-          make build-test
 
       - name: Sign app
         run: |
