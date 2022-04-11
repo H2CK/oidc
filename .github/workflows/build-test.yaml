@@ -95,10 +95,10 @@ jobs:
           npm ci
           npm run build
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+      - name: Install Krankerl
         run: |
-          cd ${{ env.APP_NAME }}
-          make build-test
+          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
+          sudo dpkg -i krankerl_0.13.0_amd64.deb
 
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
@@ -114,6 +114,12 @@ jobs:
         with:
           repository: nextcloud/server
           path: nextcloud
+
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+        # Try krankerl, fallback to makefile
+        run: |
+          cd ${{ env.APP_NAME }}
+          krankerl package || make build-test
 
       - name: Sign app
         run: |

@@ -108,6 +108,11 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
+      - name: Install Krankerl
+        run: |
+          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
+          sudo dpkg -i krankerl_0.13.0_amd64.deb
+
       - name: Sign app
         run: |
           # Extracting release
