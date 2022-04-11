@@ -95,11 +95,6 @@ jobs:
           npm ci
           npm run build
 
-      - name: Install Krankerl
-        run: |
-          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
-          sudo dpkg -i krankerl_0.13.0_amd64.deb
-
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
         id: server-checkout
@@ -115,9 +110,20 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
-        # Try krankerl, fallback to makefile
+    #   - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+    #     run: |
+    #       cd ${{ env.APP_NAME }}
+    #       make build-test
+
+      - name: Package and sign ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         run: |
+          cd ~/.nextcloud/certificates/
+          echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
+          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           cd ${{ env.APP_NAME }}
-          krankerl package || make build-test
+          make appstore
+          echo "PACKAGE_SIGNATURE=$(openssl dgst -sha512 -sign ~/.nextcloud/certificates/${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64)" >> $GITHUB_ENV
+
+      - name: Delete crt and key from local storage
+        run: rm -f ~/.nextcloud/certificates/*
 
