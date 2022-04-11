@@ -93,12 +93,6 @@ jobs:
           wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
           sudo dpkg -i krankerl_0.13.0_amd64.deb
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
-        # Try krankerl, fallback to makefile
-        run: |
-          cd ${{ env.APP_NAME }}
-          krankerl package || make build
-
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
         id: server-checkout
@@ -114,20 +108,29 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Sign app
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+        # Try krankerl, fallback to makefile
         run: |
-          # Extracting release
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -xvf ${{ env.APP_NAME }}.tar.gz
-          cd ../../../
-          # Setting up keys
+          cd ~/.nextcloud/certificates/
           echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
-          # Signing
-          php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
-          # Rebuilding archive
-          cd ${{ env.APP_NAME }}/build/artifacts
-          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          cd ${{ env.APP_NAME }}
+          krankerl package || make appstore
+
+    #   - name: Sign app
+    #     run: |
+    #       # Extracting release
+    #       cd ${{ env.APP_NAME }}/build/artifacts
+    #       tar -xvf ${{ env.APP_NAME }}.tar.gz
+    #       cd ../../../
+    #       # Setting up keys
+    #       echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
+    #       wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
+    #       # Signing
+    #       php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
+    #       # Rebuilding archive
+    #       cd ${{ env.APP_NAME }}/build/artifacts
+    #       tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
 
       - name: Attach tarball to github release
         uses: svenstaro/upload-release-action@v2
@@ -146,3 +149,6 @@ jobs:
           appstore_token: ${{ secrets.APPSTORE_TOKEN }}
           download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Delete crt and key from local storage
+        run: rm -f ~/.nextcloud/certificates/*
