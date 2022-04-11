@@ -76,13 +76,14 @@ stylelint:
 stylelint-fix:
 	npm run stylelint:fix
 
-
 # Tests
 test:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
 
 ##### Building #####
+
+build-test: clean test build-js-production assemble
 
 build: clean build-js-production assemble
 
