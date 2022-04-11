@@ -110,19 +110,29 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-    #   - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
-    #     run: |
-    #       cd ${{ env.APP_NAME }}
-    #       make build-test
-
-      - name: Package and sign ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         run: |
-          echo "${{ secrets.APP_PRIVATE_KEY }}" > ~/.nextcloud/certificates/${{ env.APP_NAME }}.key
-          wget --quiet -O ~/.nextcloud/certificates/${{ env.APP_NAME }}.crt "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           cd ${{ env.APP_NAME }}
-          make appstore
-          echo "PACKAGE_SIGNATURE=$(openssl dgst -sha512 -sign ~/.nextcloud/certificates/${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64)" >> $GITHUB_ENV
+          make build-test
+
+      - name: Sign app
+        run: |
+          # Extracting release
+          cd ${{ env.APP_NAME }}/build/artifacts
+          tar -xvf ${{ env.APP_NAME }}.tar.gz
+          cd ../../../
+          # Setting up keys
+          echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
+          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
+          # Signing
+          php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
+          # Rebuilding archive
+          cd ${{ env.APP_NAME }}/build/artifacts
+          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          echo "PACKAGE_SIGNATURE=$(openssl dgst -sha512 -sign ../../../${{ env.APP_NAME }}.key ${{ env.APP_NAME }}.tar.gz | openssl base64)" >> $GITHUB_ENV
 
       - name: Delete crt and key from local storage
-        run: rm -f ~/.nextcloud/certificates/*
+        run: |
+          rm -f *.key
+          rm -f *.crt
 
