@@ -105,9 +105,8 @@ jobs:
 
       - name: Package and sign ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         run: |
-          cd ~/.nextcloud/certificates/
-          echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
-          wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
+          echo "${{ secrets.APP_PRIVATE_KEY }}" > ~/.nextcloud/certificates/${{ env.APP_NAME }}.key
+          wget --quiet -O ~/.nextcloud/certificates/${{ env.APP_NAME }}.crt "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           cd ${{ env.APP_NAME }}
           make appstore
           echo "PACKAGE_SIGNATURE=$(openssl dgst -sha512 -sign ~/.nextcloud/certificates/${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64)" >> $GITHUB_ENV
