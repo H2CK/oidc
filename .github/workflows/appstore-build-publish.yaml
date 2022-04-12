@@ -127,6 +127,9 @@ jobs:
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          cd ../../../
+          rm -f ${{ env.APP_NAME }}.key
+          rm -f ${{ env.APP_NAME }}.crt
 
       - name: Attach tarball to github release
         uses: svenstaro/upload-release-action@v2
@@ -145,8 +148,5 @@ jobs:
           appstore_token: ${{ secrets.APPSTORE_TOKEN }}
           download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          nightly: ${{ github.event.release.prerelease }}
 
-      - name: Delete crt and key from local storage
-        run: |
-          rm -f *.key
-          rm -f *.crt

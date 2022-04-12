@@ -135,9 +135,8 @@ jobs:
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          cd ../../../
+          rm -f ${{ env.APP_NAME }}.key
+          rm -f ${{ env.APP_NAME }}.crt
 
-      - name: Delete crt and key from local storage
-        run: |
-          rm -f *.key
-          rm -f *.crt
 
