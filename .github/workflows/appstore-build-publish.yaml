@@ -128,7 +128,7 @@ jobs:
           cd ${{ env.APP_NAME }}/build/artifacts
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
           cd ../../../
-          echo "APP_SIGNATURE=$(openssl dgst -sha512 -sign ../oidc.key oidc/build/artifacts/oidc.tar.gz | openssl base64)" >> $GITHUB_ENV
+          echo "APP_SIGNATURE=$(openssl dgst -sha512 -sign oidc.key oidc/build/artifacts/oidc.tar.gz | openssl base64)" >> $GITHUB_ENV
           rm -f ${{ env.APP_NAME }}.key
           rm -f ${{ env.APP_NAME }}.crt
 
