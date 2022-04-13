@@ -138,7 +138,7 @@ jobs:
           cd ../../../
           openssl dgst -sha512 -sign ${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64 > signature.sha
           APP_SIGNATURE=$(cat signature.sha)
-          echo 'Signature:\n"${APP_SIGNATURE}"'
+          echo 'Signature: "'"${APP_SIGNATURE}"'", Nighly: "'"${{ github.event.release.prerelease }}"'"'
           rm -f ${{ env.APP_NAME }}.key
           rm -f ${{ env.APP_NAME }}.crt
 
