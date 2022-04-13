@@ -158,7 +158,7 @@ jobs:
           APP_SIGNATURE=$(cat signature.sha)
           BODY="{\"download\":\"${{ steps.attach_to_release.outputs.browser_download_url }}\", \"signature\": \"$APP_SIGNATURE\"}"
           echo $BODY
-          curl -s --fail --show-error -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d "${ BODY }"
+          curl -s --fail --show-error -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d $BODY
 
     #   - name: Upload app to Nextcloud appstore
     #     uses: R0Wi/nextcloud-appstore-push-action@v1
