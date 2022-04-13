@@ -129,7 +129,7 @@ jobs:
           cd ${{ env.APP_NAME }}/build/artifacts
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
           cd ../../../
-          openssl dgst -sha512 -sign ${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64 > signature.sha
+          openssl dgst -sha512 -sign ${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64 -A > signature.sha
           rm -f ${{ env.APP_NAME }}.key
           rm -f ${{ env.APP_NAME }}.crt
 
@@ -157,7 +157,7 @@ jobs:
         run: |
           APP_SIGNATURE=$(cat signature.sha)
           echo $APP_SIGNATURE
-          curl -v -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d '{"download":"'"${{ steps.attach_to_release.outputs.browser_download_url }}"'", "signature": "'"${APP_SIGNATURE}"'"}'
+          curl -s --fail --show-error -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d '{"download":"'"${{ steps.attach_to_release.outputs.browser_download_url }}"'", "signature": "'"${APP_SIGNATURE}"'"}'
 
     #   - name: Upload app to Nextcloud appstore
     #     uses: R0Wi/nextcloud-appstore-push-action@v1
