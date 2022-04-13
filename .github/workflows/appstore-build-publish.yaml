@@ -127,7 +127,38 @@ jobs:
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=../${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
           # Rebuilding archive
           cd ${{ env.APP_NAME }}/build/artifacts
-          tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
+          tar  --exclude=babel.config.js \
+            --exclude=build \
+            --exclude=composer.* \
+            --exclude=CONTRIBUTING.md \
+            --exclude=.editorconfig \
+            --exclude=.eslintrc.js \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=.gitignore \
+            --exclude=.gitattributes \
+            --exclude=l10n/no-php \
+            --exclude=l10n/.gitkeep \
+            --exclude=Makefile \
+            --exclude=node_modules \
+            --exclude=package*.json \
+            --exclude=.php_cs.* \
+            --exclude=phpunit*xml \
+            --exclude=.scrutinizer.yml \
+            --exclude=src \
+            --exclude=.stylelintrc.js \
+            --exclude=tests \
+            --exclude=.travis.yml \
+            --exclude=.tx \
+            --exclude=.idea \
+            --exclude=.vscode \
+            --exclude=vendor \
+            --exclude=webpack*.js \
+            --exclude=translationfiles \
+            --exclude=docs \
+            --exclude=.phpunit.result.cache \
+            --exclude=stylelint.config.js \
+            -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
           cd ../../../
           openssl dgst -sha512 -sign ${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64 -A > signature.sha
           rm -f ${{ env.APP_NAME }}.key
