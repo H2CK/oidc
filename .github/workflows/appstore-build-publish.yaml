@@ -88,10 +88,10 @@ jobs:
           npm ci
           npm run build
 
-      - name: Package and sign ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+      - name: Install Krankerl
         run: |
-          cd ${{ env.APP_NAME }}
-          make build
+          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
+          sudo dpkg -i krankerl_0.13.0_amd64.deb
 
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
@@ -108,10 +108,11 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Install Krankerl
+      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
+        # Try krankerl, fallback to makefile
         run: |
-          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
-          sudo dpkg -i krankerl_0.13.0_amd64.deb
+          cd ${{ env.APP_NAME }}
+          krankerl package || make build
 
       - name: Sign app
         run: |
@@ -129,7 +130,6 @@ jobs:
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
           cd ../../../
           openssl dgst -sha512 -sign ${{ env.APP_NAME }}.key ${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64 > signature.sha
-          cat signature.sha
           rm -f ${{ env.APP_NAME }}.key
           rm -f ${{ env.APP_NAME }}.crt
 
@@ -157,7 +157,7 @@ jobs:
         run: |
           APP_SIGNATURE=$(cat signature.sha)
           echo $APP_SIGNATURE
-          curl -v -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d '{"download":"'"${{ steps.attach_to_release.outputs.browser_download_url }}"'", "signature": "'"${APP_SIGNATURE}"'", "nightly": "'"${{ github.event.release.prerelease }}"'"}'
+          curl -v -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d '{"download":"'"${{ steps.attach_to_release.outputs.browser_download_url }}"'", "signature": "'"${APP_SIGNATURE}"'"}'
 
     #   - name: Upload app to Nextcloud appstore
     #     uses: R0Wi/nextcloud-appstore-push-action@v1
