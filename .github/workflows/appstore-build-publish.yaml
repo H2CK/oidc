@@ -191,12 +191,12 @@ jobs:
     #       echo $BODY
     #       curl -s --fail --show-error -X POST https://apps.nextcloud.com/api/v1/apps/releases -H "Authorization: Token ${{ secrets.APPSTORE_TOKEN }}" -H "Content-Type: application/json" -d "$BODY"
 
-    #   - name: Upload app to Nextcloud appstore
-    #     uses: R0Wi/nextcloud-appstore-push-action@v1
-    #     with:
-    #       app_name: ${{ env.APP_NAME }}
-    #       appstore_token: ${{ secrets.APPSTORE_TOKEN }}
-    #       download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
-    #       app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
-    #       nightly: ${{ github.event.release.prerelease }}
+      - name: Upload app to Nextcloud appstore
+        uses: R0Wi/nextcloud-appstore-push-action@v1
+        with:
+          app_name: ${{ env.APP_NAME }}
+          appstore_token: ${{ secrets.APPSTORE_TOKEN }}
+          download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
+          app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          nightly: ${{ github.event.release.prerelease }}
 
