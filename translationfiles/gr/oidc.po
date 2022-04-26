@@ -1,0 +1,282 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Nextcloud package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Nextcloud 3.14159\n"
+"Report-Msgid-Bugs-To: translations\\@example.com\n"
+"POT-Creation-Date: 2022-04-03 23:11+0200\n"
+"PO-Revision-Date: 2022-04-26 22:41+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#. TRANSLATORS src/App.vue:53
+#. TRANSLATORS src/components/OIDCItem.vue:27
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14176
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14476
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:8
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:46
+msgid "Name"
+msgstr "Όνομα"
+
+#. TRANSLATORS src/App.vue:58
+#. TRANSLATORS src/components/OIDCItem.vue:31
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14202
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14482
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:10
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:48
+msgid "Redirection URI"
+msgstr "URI ανακατεύθυνσης"
+
+#. TRANSLATORS src/components/OIDCItem.vue:35
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14488
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:50
+msgid "Client Identifier"
+msgstr "Αναγνωριστικό πελάτη"
+
+#. TRANSLATORS src/components/OIDCItem.vue:39
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14494
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:52
+msgid "Secret"
+msgstr "Μυστικό"
+
+#. TRANSLATORS src/components/OIDCItem.vue:41
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14501
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:54
+msgid "Show client secret"
+msgstr "Εμφάνιση του μυστικού του πελάτη"
+
+#. TRANSLATORS src/components/OIDCItem.vue:48
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14515
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:58
+msgid "Signing Algorithm"
+msgstr "Αλγόριθμος υπογραφής"
+
+#. TRANSLATORS src/components/OIDCItem.vue:58
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14532
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:62
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#. TRANSLATORS src/App.vue:24
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14108
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:2
+msgid "OpenID Connect clients"
+msgstr "Πελάτες OpenID Connect"
+
+#. TRANSLATORS src/App.vue:26
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14116
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:4
+msgid ""
+"OpenID Connect allows to authenticate at external services with "
+"{instanceName} user accounts."
+msgstr ""
+"Το OpenID Connect επιτρέπει τον έλεγχο ταυτότητας σε εξωτερικές υπηρεσίες με "
+"λογαριασμούς χρηστών {instanceName}."
+
+#. TRANSLATORS src/App.vue:46
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14144
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:6
+msgid "Add client"
+msgstr "Προσθήκη πελάτη"
+
+#. TRANSLATORS src/App.vue:62
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14249
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:12
+msgid "Select Signing Algorithm"
+msgstr "Επιλέξτε Αλγόριθμο υπογραφής"
+
+#. TRANSLATORS src/App.vue:83
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14322
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:20
+msgid "Add"
+msgstr "Προσθέστε"
+
+#. TRANSLATORS src/App.vue:87
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14329
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:22
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+#. TRANSLATORS src/App.vue:88
+#. TRANSLATORS src/App.vue:91
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14331
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14346
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:24
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:26
+msgid "Token Expire Time"
+msgstr "Χρόνος λήξης κουπονιού"
+
+#. TRANSLATORS src/App.vue:112
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14408
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:40
+msgid "Public Key"
+msgstr "Δημόσιο κλειδί"
+
+#. TRANSLATORS src/App.vue:116
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-main.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14428
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:42
+msgid "Regenerate Keys"
+msgstr "Αναγέννηση κλειδιών"
+
+#. TRANSLATORS src/Redirect.vue:24
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/js/oidc-redirect.js:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-redirect.js:5489
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:44
+msgid "OpenID Connect Redirect"
+msgstr "Ανακατεύθυνση OpenID Connect"
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/lib/Controller/LoginRedirectorController.php:182
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/lib/Controller/LoginRedirectorController.php:182
+msgid ""
+"Your client is not authorized to connect. Please inform the administrator of "
+"your client."
+msgstr ""
+"Ο πελάτης σας δεν είναι εξουσιοδοτημένος να συνδεθεί. Παρακαλούμε ενημερώστε "
+"τον διαχειριστή του πελάτη σας."
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/lib/Controller/LoginRedirectorController.php:190
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/lib/Controller/LoginRedirectorController.php:190
+msgid ""
+"The received redirect uri is not accepted to connect. Please inform the "
+"administrator of your client."
+msgstr ""
+"Το λαμβανόμενο uri ανακατεύθυνσης δεν είναι αποδεκτό για σύνδεση. "
+"Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας."
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/lib/Controller/SettingsController.php:73
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/lib/Controller/SettingsController.php:74
+msgid ""
+"Your redirect URL needs to be a full URL for example: https://yourdomain.com/"
+"path"
+msgstr ""
+"Η διεύθυνση URL ανακατεύθυνσης πρέπει να είναι μια πλήρης διεύθυνση URL, για "
+"παράδειγμα: https://yourdomain.com/path"
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/build/artifacts/oidc/specialAppInfoFakeDummyForL10nScript.php:2
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialAppInfoFakeDummyForL10nScript.php:2
+msgid "OIDC Identity Provider"
+msgstr "Πάροχος ταυτότητας OIDC"
+
+#. TRANSLATORS src/App.vue:74
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14298
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:14
+msgid "Select Type"
+msgstr "Επιλέξτε τύπο"
+
+#. TRANSLATORS src/App.vue:77
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14306
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:16
+msgid "confidential"
+msgstr "εμπιστευτικό"
+
+#. TRANSLATORS src/App.vue:80
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14313
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:18
+msgid "public"
+msgstr "δημόσια"
+
+#. TRANSLATORS src/App.vue:94
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14371
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:28
+msgid "Select Token Expire Time"
+msgstr "Επιλέξτε χρόνο λήξης Token"
+
+#. TRANSLATORS src/App.vue:97
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14378
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:30
+msgid "5 minutes"
+msgstr "5 λεπτά"
+
+#. TRANSLATORS src/App.vue:100
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14384
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:32
+msgid "10 minutes"
+msgstr "10 λεπτά"
+
+#. TRANSLATORS src/App.vue:103
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14390
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:34
+msgid "15 minutes"
+msgstr "15 λεπτά"
+
+#. TRANSLATORS src/App.vue:106
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14396
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:36
+msgid "30 minutes"
+msgstr "30 λεπτά"
+
+#. TRANSLATORS src/App.vue:109
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14402
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:38
+msgid "60 minutes"
+msgstr "60 λεπτά"
+
+#. TRANSLATORS src/components/OIDCItem.vue:44
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14509
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:56
+msgid "-- NONE --"
+msgstr "— ΚΑΝΕΝΑΣ —"
+
+#. TRANSLATORS src/components/OIDCItem.vue:52
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/js/oidc-main.js:14521
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialVueFakeDummyForL10nScript.js:60
+msgid "Type"
+msgstr "Τύπος"
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialAppInfoFakeDummyForL10nScript.php:3
+msgid "Nextcloud as OpenID Connect Identity Provider"
+msgstr "Το Nextcloud ως πάροχος ταυτότητας OpenID Connect"
+
+#: /Users/thorsten/Development/nextcloud-src/server/apps/oidc/specialAppInfoFakeDummyForL10nScript.php:4
+msgid ""
+"Nextcloud as OpenID Connect Identity Provider\n"
+"\n"
+"With this app you can use Nextcloud as OpenID Connect Identity Provider. If "
+"other services\n"
+"are configured correctly, you are able to access those services with your "
+"Nextcloud login.\n"
+"\n"
+"Full documentation can be found at:\n"
+"\n"
+"- [User Documentation](https://github.com/H2CK/oidc/wiki#user-"
+"documentation)\n"
+"- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-"
+"documentation)"
+msgstr ""
+"Το Nextcloud ως πάροχος ταυτότητας OpenID Connect\n"
+"\n"
+"Με αυτή την εφαρμογή μπορείτε να χρησιμοποιήσετε το Nextcloud ως πάροχο "
+"ταυτότητας OpenID Connect. Εάν άλλες υπηρεσίες\n"
+"έχουν ρυθμιστεί σωστά, μπορείτε να έχετε πρόσβαση σε αυτές τις υπηρεσίες με "
+"τη σύνδεσή σας στο Nextcloud.\n"
+"\n"
+"Πλήρη τεκμηρίωση μπορείτε να βρείτε στη διεύθυνση:\n"
+"\n"
+"- [Τεκμηρίωση χρήστη](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- [Τεκμηρίωση για προγραμματιστές](https://github.com/H2CK/oidc/"
+"wiki#developer-documentation)"
