@@ -58,9 +58,25 @@ The app requires to have Node and npm installed.
 
 To continuously run the build when editing source files you can make use of the `make watch-js` command.
 
+## Translations
+
+Execute `make translationtool` to install the necessary translation tool.
+
+To create the pot file from the source code execute `make generate-po-translation`.
+
+After creating the po translation files under translationfiles/...LANGUAGE-CODE.../oidc.po you must execute `make generate-nc-translation` to generate the necessary nextcloud translation files.
+
 ## Build app bundle
 
 Execute `make build` to build for production bundle at build/artifacts. Perform `make appstore` to create tar.gz in build/artifacts.
+
+### Releasing
+
+To create a new release the following files must be modified and contain the new version.
+
+- appinfo/info.xml
+- package.json
+- CHANGELOG.md
 
 ## Execute test
 
@@ -68,7 +84,7 @@ Execute `make test` to run phpunit tests.
 
 ### Manual testing of BackgroundJobs
 
-Execute  `php -dxdebug.remote_host=localhost:8080 -f cron.php`
+Execute  `php -dxdebug.remote_host=localhost -f cron.php`
 
 To run the job again if you have errors, however, you may have to remove it from the oc_jobs table and disable/reenable the app.
 
