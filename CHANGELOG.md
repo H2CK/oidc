@@ -1,8 +1,44 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
-##  [0.0.1] - 2022-03-02
+## [0.1.1] - 2022-05-01
+
 ### Added
+
+- Added Spanish, Finnish, Swedish, Dutch, French, Italian and Greek translation
+Bugfix to run clean up job to delete expired tokens from db successfully
+
+### Changed
+
+- Bugfix to run clean up job to delete expired tokens from db successfully
+
+## [0.1.0] - 2022-04-13
+
+### Added
+
+- Added support for public clients
+- Added Portuguese translation
+- Added Github Actions to build & test application on commit and build, sign and publish to App Store
+
+### Changed
+
+- Optimized selection of token expire time
+
+## [0.0.2] - 2022-03-20
+
+### Added
+
+- n/a
+
+### Changed
+
+- Fixed setting up of database tables to support MySQL / MariaDB
+
+## [0.0.1] - 2022-03-02
+
+### Added
+
 - Base OIDC functionality
   - Configuration of accepted client for whom JWT Tokens are provided
   - Creation of JWT Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles, groups)
@@ -11,4 +47,5 @@ All notable changes to this project will be documented in this file.
   - Discovery endpoint provided
 
 ### Changed
+
 - n/a
