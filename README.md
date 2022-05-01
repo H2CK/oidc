@@ -66,6 +66,12 @@ Execute `make build` to build for production bundle at build/artifacts. Perform 
 
 Execute `make test` to run phpunit tests.
 
+### Manual testing of BackgroundJobs
+
+Execute  `php -dxdebug.remote_host=localhost:8080 -f cron.php`
+
+To run the job again if you have errors, however, you may have to remove it from the oc_jobs table and disable/reenable the app.
+
 ## TODOs / Ideas for extensions
 
 - Support other methods to transport client_credentials (in query / body)
