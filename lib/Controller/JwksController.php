@@ -62,7 +62,7 @@ class JwksController extends ApiController {
 	 * @CORS
      * @PublicPage
 	 * @NoCSRFRequired
-     * 
+     *
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration
 	 *
@@ -79,22 +79,17 @@ class JwksController extends ApiController {
             // 'deriveKey',  // (derive key)
             // 'deriveBits', // (derive bits not to be used as a key)
         ];
-        
-        $use = [
-            'sig',
-            // 'enc',
-        ];
-        
+
         $oidcKey = [
             'kty' => 'RSA',
-            'use' => $use,
+            'use' => 'sig',
             'key_ops' => $keyOps,
             'alg' => 'RS256',
             'kid' => $this->appConfig->getAppValue('kid'),
             'n' => $this->appConfig->getAppValue('public_key_n'),
             'e' => $this->appConfig->getAppValue('public_key_e'),
         ];
-        
+
         $keys = [
             $oidcKey
         ];
@@ -106,5 +101,5 @@ class JwksController extends ApiController {
 		return new JSONResponse($jwkPayload);
 	}
 
-    
+
 }

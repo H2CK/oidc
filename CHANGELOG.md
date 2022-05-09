@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] - 2022-05-09
+
+### Changed
+
+- Bugfix for setting use correctly conforming to OpenID Connect Specification
+
 ## [0.1.1] - 2022-05-01
 
 ### Added

@@ -69,14 +69,9 @@ class JwksControllerTest extends TestCase {
             // 'deriveBits', // (derive bits not to be used as a key)
         ];
 
-        $use = [
-            'sig',
-            // 'enc',
-        ];
-
         $oidcKey = [
             'kty' => 'RSA',
-            'use' => $use,
+            'use' => 'sig',
             'key_ops' => $keyOps,
             'alg' => 'RS256',
             'kid' => $this->appConfig->getAppValue('kid'),
