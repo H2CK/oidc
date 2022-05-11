@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.4] - 2022-05-12
+
+### Changed
+
+- Fixed integrity check problem
+
+
 ## [0.1.3] - 2022-05-11
 
 ### Changed

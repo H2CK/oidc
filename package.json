@@ -1,8 +1,8 @@
 {
 	"name": "oidc",
 	"description": "Use Nextcloud as OIDC Identity Provider",
-	"version": "0.1.3",
-	"author": "Thorsten Jagel <dev@jagel.net",
+	"version": "0.1.4",
+	"author": "Thorsten Jagel <dev@jagel.net>",
 	"bugs": {
 		"url": "https://github.com/H2CK/oidc/issues"
 	},
