@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] - 2022-05-11
+
+### Changed
+
+- Modified dependency to php module instead of command for openssl
+
 ## [0.1.2] - 2022-05-09
 
 ### Changed
