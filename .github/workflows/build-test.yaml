@@ -129,6 +129,8 @@ jobs:
           cd oidc/
           rm -rf babel.config.js
           rm -rf build/
+          rm -rf composer.json
+          rm -rf composer.lock
           rm -rf composer/composer.json
           rm -rf composer/composer.lock
           rm -rf CONTRIBUTING.md
