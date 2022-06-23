@@ -133,7 +133,7 @@ class LoginRedirectorController extends ApiController {
 							  $redirect_uri,
 							  $scope,
 							  $nonce): Response {
-		
+
 		if (!$this->userSession->isLoggedIn()) {
 			// Not authenticated yet
 			// Store things in user session to be available after login
@@ -175,6 +175,11 @@ class LoginRedirectorController extends ApiController {
 			$nonce = $this->session->get('nonce');
 		}
 
+		// Set default scope if scope is not set at all
+		if (!isset($scope)) {
+			$scope = 'openid profile email roles';
+		}
+
 		try {
 			$client = $this->clientMapper->getByIdentifier($client_id);
 		} catch (ClientNotFoundException $e) {
@@ -210,7 +215,7 @@ class LoginRedirectorController extends ApiController {
 		$accessToken->setScope(substr($scope, 0, 128));
 		$accessToken->setCreated($this->time->getTime());
 		$accessToken->setRefreshed($this->time->getTime());
-		if (empty($nonce)) {
+		if (empty($nonce) || !isset($nonce)) {
 			$nonce = '';
 		} else {
 			$nonce = substr($nonce, 0, 256);
@@ -219,6 +224,10 @@ class LoginRedirectorController extends ApiController {
 		$this->accessTokenMapper->insert($accessToken);
 
 		$url = $client->getRedirectUri() . '?code=' . $code . '&state=' . $state;
+		if (str_contains($client->getRedirectUri(), '?')) {
+			$url = $client->getRedirectUri() . '&code=' . $code . '&state=' . $state;
+		}
+
 		return new RedirectResponse($url);
 	}
 }
