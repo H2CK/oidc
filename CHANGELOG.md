@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.6] - 2022-06-23
+
+### Changed
+
+- Increased robustness for not OpenID Connect conforming clients
+- Allow scope to be unset from client. Default scope: openid profile email roles
+- Allow using redirect urls which contain parameters
+
 ## [0.1.5] - 2022-05-15
 
 ### Changed
