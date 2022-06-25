@@ -183,8 +183,10 @@ class OIDCApiController extends ApiController {
 			], Http::STATUS_BAD_REQUEST);
 		}
 
-		$newAccessToken = $this->secureRandom->generate(72, ISecureRandom::CHAR_ALPHANUMERIC);
-		$newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_ALPHANUMERIC);
+		$newAccessToken = $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
+		$newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
+		// FROM NC23 on the following could be used: $newAccessToken = $this->secureRandom->generate(72, ISecureRandom::CHAR_ALPHANUMERIC);
+		// FROM NC23 on the following could be used: $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_ALPHANUMERIC);
 		$accessToken->setHashedCode(hash('sha512', $newCode));
 		$accessToken->setAccessToken($newAccessToken);
 		$accessToken->setRefreshed($this->time->getTime() + $expireTime);
