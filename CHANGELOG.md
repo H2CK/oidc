@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.7] - 2022-06-25
+
+### Changed
+
+- Fix compatability for NC 21 & 22
+
 ## [0.1.6] - 2022-06-23
 
 ### Changed
