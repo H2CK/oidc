@@ -1,0 +1,8 @@
+{ "translations": {
+    "Name" : "নাম",
+    "Add" : "যোগ করুন",
+    "Settings" : "সেটিংস",
+    "Type" : "ধরণ",
+    "Delete" : "মুছে"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

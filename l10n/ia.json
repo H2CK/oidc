@@ -1,0 +1,8 @@
+{ "translations": {
+    "Name" : "Nomine",
+    "Add" : "Adder",
+    "Settings" : "Configurationes",
+    "Type" : "Typo",
+    "Delete" : "Deler"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

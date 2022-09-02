@@ -1,0 +1,8 @@
+{ "translations": {
+    "Name" : "اسم",
+    "Add" : "شامل کریں",
+    "Settings" : "سیٹینگز",
+    "Type" : "Type",
+    "Delete" : "حذف کریں"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

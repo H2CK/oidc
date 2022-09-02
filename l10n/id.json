@@ -1,0 +1,12 @@
+{ "translations": {
+    "Add client" : "Tambah klien",
+    "Name" : "Nama",
+    "Redirection URI" : "URI Pengalihan",
+    "Add" : "Masukkan",
+    "Settings" : "Setelan",
+    "Client Identifier" : "Identifier klien",
+    "Secret" : "Rahasia",
+    "Type" : "tipe",
+    "Delete" : "Hapus"
+},"pluralForm" :"nplurals=1; plural=0;"
+}

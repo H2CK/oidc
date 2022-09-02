@@ -1,0 +1,9 @@
+{ "translations": {
+    "Name" : "Nomo",
+    "Add" : "Aldoni",
+    "Settings" : "Agordoj",
+    "Secret" : "Sekreta",
+    "Type" : "Tipo",
+    "Delete" : "Forigi"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
