@@ -10,15 +10,16 @@
 # Álvaro Fernández <bosscyril+transifex@gmail.com>, 2022
 # Miguel de Dios Matias <tres.14159@gmail.com>, 2022
 # Paúl Sanz <registro@polkillas.net>, 2022
+# H2CK, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-02 03:51+0000\n"
+"POT-Creation-Date: 2022-09-03 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Paúl Sanz <registro@polkillas.net>, 2022\n"
+"Last-Translator: H2CK, 2022\n"
 "Language-Team: Spanish (https://www.transifex.com/nextcloud/teams/64236/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,6 +40,8 @@ msgid ""
 "The received redirect uri is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"La uri de redirección recibida no es aceptada para conectarse. Por favor, "
+"informa de tu cliente al administrador."
 
 #: /app/lib/Controller/SettingsController.php:74
 msgid ""
@@ -50,11 +53,11 @@ msgstr ""
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
-msgstr ""
+msgstr "Proveedor de identidades OIDC"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
-msgstr ""
+msgstr "Nextcloud como proveedor de identidades de OpenID Connect"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:4
 msgid ""
@@ -68,11 +71,19 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
+"Nextcloud como proveedor de identidad de OpenID Connect\n"
+"\n"
+"Con esta aplicación puedes utilizar Nextcloud como proveedor de identidad de OpenID Connect. Si otros servicios\\nestán configurados correctamente, podrás acceder a esos servicios con tu login de Nextcloud.\n"
+"\n"
+"La documentación completa se puede encontrar en:\n"
+"\n"
+"- [Documentación del usuario](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- Documentación para desarrolladores](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr ""
+msgstr "Clientes de OpenID Connect"
 
 #. TRANSLATORS src/App.vue:26
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -80,6 +91,8 @@ msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
 msgstr ""
+"OpenID Connect permite autenticarse en servicios externos con cuentas de "
+"usuario de {instanceName}."
 
 #. TRANSLATORS src/App.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:6
@@ -103,22 +116,22 @@ msgstr "URI de redirección"
 #. TRANSLATORS src/App.vue:62
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr ""
+msgstr "Seleccione el algoritmo de firma"
 
 #. TRANSLATORS src/App.vue:74
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
-msgstr ""
+msgstr "Seleccione el tipo"
 
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "confidential"
-msgstr ""
+msgstr "confidencial"
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "public"
-msgstr ""
+msgstr "público"
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20
@@ -135,12 +148,12 @@ msgstr "Ajustes"
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
-msgstr ""
+msgstr "Hora de caducidad de la ficha"
 
 #. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
-msgstr ""
+msgstr "Seleccione la hora de caducidad de la ficha"
 
 #. TRANSLATORS src/App.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:30
@@ -165,7 +178,7 @@ msgstr "30 minutos"
 #. TRANSLATORS src/App.vue:109
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
-msgstr ""
+msgstr "60 minutos"
 
 #. TRANSLATORS src/App.vue:112
 #: /app/specialVueFakeDummyForL10nScript.js:40
@@ -175,12 +188,12 @@ msgstr "Clave pública"
 #. TRANSLATORS src/App.vue:116
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Regenerate Keys"
-msgstr ""
+msgstr "Regenerar claves"
 
 #. TRANSLATORS src/Redirect.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "OpenID Connect Redirect"
-msgstr ""
+msgstr "Redirección de OpenID Connect"
 
 #. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:50
@@ -200,12 +213,12 @@ msgstr "Mostrar secreto del cliente"
 #. TRANSLATORS src/components/OIDCItem.vue:44
 #: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "-- NONE --"
-msgstr ""
+msgstr "-- NADA --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:48
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Signing Algorithm"
-msgstr ""
+msgstr "Algoritmo de firma"
 
 #. TRANSLATORS src/components/OIDCItem.vue:52
 #: /app/specialVueFakeDummyForL10nScript.js:60

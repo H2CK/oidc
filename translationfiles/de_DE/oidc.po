@@ -10,15 +10,16 @@
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
 # Joachim Sokolowski, 2022
 # Mario Siegmann <mario_siegmann@web.de>, 2022
+# H2CK, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-02 03:51+0000\n"
+"POT-Creation-Date: 2022-09-03 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Mario Siegmann <mario_siegmann@web.de>, 2022\n"
+"Last-Translator: H2CK, 2022\n"
 "Language-Team: German (Germany) (https://www.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -192,7 +193,7 @@ msgstr "Schlüssel neu erzeugen"
 #. TRANSLATORS src/Redirect.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "OpenID Connect Redirect"
-msgstr "OpenID-Verbindungsweiterleitung"
+msgstr "OpenID Connect Weiterleitung"
 
 #. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:50

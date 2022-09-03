@@ -11,15 +11,16 @@
 # Nico Vromans, 2022
 # MegaXLR <tedvanriel@gmail.com>, 2022
 # EWouters, 2022
+# H2CK, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-02 03:51+0000\n"
+"POT-Creation-Date: 2022-09-03 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: EWouters, 2022\n"
+"Last-Translator: H2CK, 2022\n"
 "Language-Team: Dutch (https://www.transifex.com/nextcloud/teams/64236/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,6 +41,8 @@ msgid ""
 "The received redirect uri is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"De ontvangen redirect uri is niet geaccepteerd om verbinding te maken. "
+"Informeer de beheerder van uw client."
 
 #: /app/lib/Controller/SettingsController.php:74
 msgid ""
@@ -51,11 +54,11 @@ msgstr ""
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
-msgstr ""
+msgstr "OIDC Identity Provider"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
-msgstr ""
+msgstr "Nextcloud als OpenID Connect Identity Provider"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:4
 msgid ""
@@ -69,11 +72,19 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
+"Nextcloud als OpenID Connect Identity Provider\n"
+"\n"
+"Met deze app kun je Nextcloud gebruiken als OpenID Connect Identity Provider. Als andere diensten\\ncorrect zijn geconfigureerd, hebt u toegang tot die diensten met uw Nextcloud-login.\n"
+"\n"
+"Volledige documentatie is te vinden op:\n"
+"\n"
+"- [Gebruikersdocumentatie](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- Ontwikkelaarsdocumentatie](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr ""
+msgstr "OpenID Connect-clients"
 
 #. TRANSLATORS src/App.vue:26
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -81,6 +92,8 @@ msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
 msgstr ""
+"OpenID Connect maakt het mogelijk om te authenticeren bij externe diensten "
+"met {instanceName} gebruikersaccounts."
 
 #. TRANSLATORS src/App.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:6
@@ -104,22 +117,22 @@ msgstr "Omeiding URI"
 #. TRANSLATORS src/App.vue:62
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr ""
+msgstr "Selecteer een algoritme voor ondertekening"
 
 #. TRANSLATORS src/App.vue:74
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
-msgstr ""
+msgstr "Selecteer type"
 
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "confidential"
-msgstr ""
+msgstr "vertrouwelijk"
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "public"
-msgstr ""
+msgstr "openbaar"
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20
@@ -136,12 +149,12 @@ msgstr "Instellingen"
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
-msgstr ""
+msgstr "Token Vervaltijd"
 
 #. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
-msgstr ""
+msgstr "Selecteer Token Vervaltijd"
 
 #. TRANSLATORS src/App.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:30
@@ -166,22 +179,22 @@ msgstr "30 minuten"
 #. TRANSLATORS src/App.vue:109
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
-msgstr ""
+msgstr "60 minuten"
 
 #. TRANSLATORS src/App.vue:112
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Public Key"
-msgstr "Public Key"
+msgstr "Openbare sleutel"
 
 #. TRANSLATORS src/App.vue:116
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Regenerate Keys"
-msgstr ""
+msgstr "Sleutels regenereren"
 
 #. TRANSLATORS src/Redirect.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "OpenID Connect Redirect"
-msgstr ""
+msgstr "OpenID Connect omleiden"
 
 #. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:50
@@ -201,12 +214,12 @@ msgstr "Tonen client secret"
 #. TRANSLATORS src/components/OIDCItem.vue:44
 #: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "-- NONE --"
-msgstr ""
+msgstr "-- GEEN --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:48
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Signing Algorithm"
-msgstr ""
+msgstr "Ondertekenend algoritme"
 
 #. TRANSLATORS src/components/OIDCItem.vue:52
 #: /app/specialVueFakeDummyForL10nScript.js:60

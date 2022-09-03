@@ -10,15 +10,16 @@
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2022
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
 # Markus Eckstein, 2022
+# H2CK, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-02 03:51+0000\n"
+"POT-Creation-Date: 2022-09-03 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Markus Eckstein, 2022\n"
+"Last-Translator: H2CK, 2022\n"
 "Language-Team: German (https://www.transifex.com/nextcloud/teams/64236/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,6 +40,8 @@ msgid ""
 "The received redirect uri is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung"
+" akzeptiert. Bitte informieren Sie den Administrator Ihres Clients."
 
 #: /app/lib/Controller/SettingsController.php:74
 msgid ""
@@ -50,11 +53,11 @@ msgstr ""
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
-msgstr ""
+msgstr "OIDC-Identitätsanbieter"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
-msgstr ""
+msgstr "Nextcloud als OpenID Connect Identitätsanbieter"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:4
 msgid ""
@@ -68,11 +71,19 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
+"Nextcloud als OpenID Connect Identitätsanbieter\n"
+"\n"
+"Mit dieser App können Sie Nextcloud als OpenID Connect Identitätsanbieter nutzen. Wenn andere Dienstleistungen korrekt konfiguriert sind, können Sie mit Ihrem Nextcloud-Login auf diese Dienste zugreifen.\n"
+"\n"
+"Die vollständige Dokumentation finden Sie unter:\n"
+"\n"
+"- [Benutzerdokumentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- [Entwicklerdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr ""
+msgstr "OpenID Connect-Clients"
 
 #. TRANSLATORS src/App.vue:26
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -80,6 +91,8 @@ msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
 msgstr ""
+"OpenID Connect ermöglicht die Authentifizierung bei externen Diensten mit "
+"{instanceName} Benutzerkonten."
 
 #. TRANSLATORS src/App.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:6
@@ -103,22 +116,22 @@ msgstr "Weiterleitungs-URI"
 #. TRANSLATORS src/App.vue:62
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr ""
+msgstr "Signieralgorithmus auswählen"
 
 #. TRANSLATORS src/App.vue:74
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
-msgstr ""
+msgstr "Typ auswählen"
 
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "confidential"
-msgstr ""
+msgstr "Vertraulich"
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "public"
-msgstr ""
+msgstr "Öffentlich"
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20
@@ -135,45 +148,37 @@ msgstr "Einstellungen"
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
-msgstr ""
+msgstr "Ablaufzeit des Tokens"
 
 #. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
-msgstr ""
+msgstr "Ablaufzeit des Tokens auswählen"
 
 #. TRANSLATORS src/App.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:30
 msgid "5 minutes"
-msgstr ""
-"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
-" (de_DE)."
+msgstr "5 Minuten"
 
 #. TRANSLATORS src/App.vue:100
 #: /app/specialVueFakeDummyForL10nScript.js:32
 msgid "10 minutes"
-msgstr ""
-"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
-" (de_DE)."
+msgstr "10 Minuten"
 
 #. TRANSLATORS src/App.vue:103
 #: /app/specialVueFakeDummyForL10nScript.js:34
 msgid "15 minutes"
-msgstr ""
-"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
-" (de_DE)."
+msgstr "15 Minuten"
 
 #. TRANSLATORS src/App.vue:106
 #: /app/specialVueFakeDummyForL10nScript.js:36
 msgid "30 minutes"
-msgstr ""
-"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
-" (de_DE)."
+msgstr "30 Minuten"
 
 #. TRANSLATORS src/App.vue:109
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
-msgstr ""
+msgstr "60 Minuten"
 
 #. TRANSLATORS src/App.vue:112
 #: /app/specialVueFakeDummyForL10nScript.js:40
@@ -183,12 +188,12 @@ msgstr "Öffentlicher Schlüssel"
 #. TRANSLATORS src/App.vue:116
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Regenerate Keys"
-msgstr ""
+msgstr "Schlüssel neu erzeugen"
 
 #. TRANSLATORS src/Redirect.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "OpenID Connect Redirect"
-msgstr ""
+msgstr "OpenID Connect Weiterleitung"
 
 #. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:50
@@ -198,7 +203,7 @@ msgstr "Client-Identifikationsmerkmal"
 #. TRANSLATORS src/components/OIDCItem.vue:39
 #: /app/specialVueFakeDummyForL10nScript.js:52
 msgid "Secret"
-msgstr "Geheim"
+msgstr "Geheimnis"
 
 #. TRANSLATORS src/components/OIDCItem.vue:41
 #: /app/specialVueFakeDummyForL10nScript.js:54
@@ -208,19 +213,17 @@ msgstr "Geheime Zeichenkette des Clients anzeigen"
 #. TRANSLATORS src/components/OIDCItem.vue:44
 #: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "-- NONE --"
-msgstr ""
+msgstr "-- KEINER --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:48
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Signing Algorithm"
-msgstr ""
+msgstr "Signieralgorithmus"
 
 #. TRANSLATORS src/components/OIDCItem.vue:52
 #: /app/specialVueFakeDummyForL10nScript.js:60
 msgid "Type"
-msgstr ""
-"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
-" (de_DE)."
+msgstr "Typ"
 
 #. TRANSLATORS src/components/OIDCItem.vue:58
 #: /app/specialVueFakeDummyForL10nScript.js:62
