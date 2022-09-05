@@ -12,15 +12,16 @@
 # Erik Lennartsson, 2022
 # Niklas Andersson <mail.niklasandersson@gmail.com>, 2022
 # Andy Scherzinger <info@andy-scherzinger.de>, 2022
+# H2CK, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-04 03:49+0000\n"
+"POT-Creation-Date: 2022-09-05 03:52+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Andy Scherzinger <info@andy-scherzinger.de>, 2022\n"
+"Last-Translator: H2CK, 2022\n"
 "Language-Team: Swedish (https://www.transifex.com/nextcloud/teams/64236/sv/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -41,6 +42,8 @@ msgid ""
 "The received redirect uri is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"Den mottagna omdirigeringsurien accepteras inte för anslutning. Vänligen "
+"meddela din administratör."
 
 #: /app/lib/Controller/SettingsController.php:74
 msgid ""
@@ -52,11 +55,11 @@ msgstr ""
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
-msgstr ""
+msgstr "OIDC Identity Provider"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
-msgstr ""
+msgstr "Nextcloud som identitetsleverantör för OpenID Connect"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:4
 msgid ""
@@ -70,11 +73,19 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
+"Nextcloud som identitetsleverantör för OpenID Connect\n"
+"\n"
+"Med den här appen kan du använda Nextcloud som OpenID Connect Identity Provider. Om andra tjänster är korrekt konfigurerade kan du få tillgång till dessa tjänster med din inloggning till Nextcloud.\n"
+"\n"
+"Fullständig dokumentation finns på följande adress:\n"
+"\n"
+"- [Användardokumentation] (https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- [Utvecklingsdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr ""
+msgstr "OpenID Connect-klienter"
 
 #. TRANSLATORS src/App.vue:26
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -82,6 +93,8 @@ msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
 msgstr ""
+"OpenID Connect gör det möjligt att autentisera externa tjänster med "
+"{instanceName}-användarkonton."
 
 #. TRANSLATORS src/App.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:6
@@ -105,22 +118,22 @@ msgstr "Omdirigerings-URI"
 #. TRANSLATORS src/App.vue:62
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr ""
+msgstr "Välj signeringsalgoritm"
 
 #. TRANSLATORS src/App.vue:74
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
-msgstr ""
+msgstr "Välj typ"
 
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "confidential"
-msgstr ""
+msgstr "konfidentiell"
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "public"
-msgstr ""
+msgstr "offentligt"
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20
@@ -137,12 +150,12 @@ msgstr "Inställningar"
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
-msgstr ""
+msgstr "Token upphör att gälla"
 
 #. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
-msgstr ""
+msgstr "Välj tid för utgången av Token"
 
 #. TRANSLATORS src/App.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:30
@@ -167,22 +180,22 @@ msgstr "30 minuter"
 #. TRANSLATORS src/App.vue:109
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
-msgstr ""
+msgstr "60 minuter"
 
 #. TRANSLATORS src/App.vue:112
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Public Key"
-msgstr ""
+msgstr "Offentlig nyckel"
 
 #. TRANSLATORS src/App.vue:116
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Regenerate Keys"
-msgstr ""
+msgstr "Återskapa nycklar"
 
 #. TRANSLATORS src/Redirect.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "OpenID Connect Redirect"
-msgstr ""
+msgstr "Omdirigering av OpenID Connect"
 
 #. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:50
@@ -202,12 +215,12 @@ msgstr "Visa klienthemlighet"
 #. TRANSLATORS src/components/OIDCItem.vue:44
 #: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "-- NONE --"
-msgstr ""
+msgstr "-- INGA --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:48
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Signing Algorithm"
-msgstr ""
+msgstr "Algoritm för signering"
 
 #. TRANSLATORS src/components/OIDCItem.vue:52
 #: /app/specialVueFakeDummyForL10nScript.js:60

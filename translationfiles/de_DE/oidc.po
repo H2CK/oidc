@@ -9,17 +9,17 @@
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2022
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
 # Joachim Sokolowski, 2022
-# Mario Siegmann <mario_siegmann@web.de>, 2022
 # H2CK, 2022
+# Mario Siegmann <mario_siegmann@web.de>, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-04 03:49+0000\n"
+"POT-Creation-Date: 2022-09-05 03:52+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2022\n"
+"Last-Translator: Mario Siegmann <mario_siegmann@web.de>, 2022\n"
 "Language-Team: German (Germany) (https://www.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -57,7 +57,7 @@ msgstr "OIDC-Identitätsanbieter"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
-msgstr "Nextcloud als OpenID-Verbindungsidentitätsanbieter"
+msgstr "Nextcloud als OpenID Connect Identitätsanbieter"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:4
 msgid ""
@@ -71,9 +71,9 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
-"Nextcloud als OpenID-Verbindungsidentitätsanbieter\n"
+"Nextcloud als OpenID Connect Identitätsanbieter\n"
 "\n"
-"Mit dieser App können Sie Nextcloud als OpenID-Verbindungsidentitätsanbieter nutzen. Wenn andere Dienstleistungen korrekt konfiguriert sind, können Sie mit Ihrem Nextcloud-Login auf diese Dienste zugreifen.\n"
+"Mit dieser App können Sie Nextcloud als OpenID Connect Identitätsanbieter nutzen. Wenn andere Dienstleistungen korrekt konfiguriert sind, können Sie mit Ihrem Nextcloud-Login auf diese Dienste zugreifen.\n"
 "\n"
 "Die vollständige Dokumentation finden Sie unter:\n"
 "\n"
@@ -83,7 +83,7 @@ msgstr ""
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr "OpenID-Verbindungsclients"
+msgstr "OpenID Connect-Clients"
 
 #. TRANSLATORS src/App.vue:26
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -91,8 +91,8 @@ msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
 msgstr ""
-"OpenID-Verbindung ermöglicht die Authentifizierung bei externen Diensten mit"
-" {instanceName} Benutzerkonten."
+"OpenID Connect ermöglicht die Authentifizierung bei externen Diensten mit "
+"{instanceName} Benutzerkonten."
 
 #. TRANSLATORS src/App.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:6

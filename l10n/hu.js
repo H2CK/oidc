@@ -2,7 +2,9 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Az Ön kliensalkalmazása számára nem engedélyezett a kapcsolódás. Értesítse a kliense rendszergazdáját.",
-    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Az átirányítási URL-jének teljes URL-nek kell lennie, például: https://yourdomain.com/path",
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Az átirányítási webcímnek teljes webcímnek kell lennie, például: https://yourdomain.com/path",
+    "OIDC Identity Provider" : "OIDC személyazonosság-szolgáltató",
+    "Nextcloud as OpenID Connect Identity Provider" : "Nextclous mint OpenID Connect személyazonosság-szolgáltató",
     "Add client" : "Kliens hozzáadása",
     "Name" : "Név",
     "Redirection URI" : "Átirányítési URI",
