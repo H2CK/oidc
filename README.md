@@ -60,11 +60,9 @@ To continuously run the build when editing source files you can make use of the 
 
 ## Translations
 
-Execute `make translationtool` to install the necessary translation tool.
+Translations are done using Transifex. If you like to contribute and do some translations please visit [Transifex](https://www.transifex.com/nextcloud/nextcloud/oidc/).
 
-To create the pot file from the source code execute `make generate-po-translation`.
-
-After creating the po translation files under translationfiles/...LANGUAGE-CODE.../oidc.po you must execute `make generate-nc-translation` to generate the necessary nextcloud translation files.
+Before using Transifex, translations were made with a local translation tool. For installation of the necessary tools execute `make translationtool`. To create the pot file from the source code execute `make generate-po-translation`. After creating the po translation files under translationfiles/...LANGUAGE-CODE.../oidc.po you must execute `make generate-nc-translation` to generate the necessary nextcloud translation files.
 
 ## Build app bundle
 
