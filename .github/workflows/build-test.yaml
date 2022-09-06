@@ -25,6 +25,7 @@ jobs:
 
     steps:
       - name: Check actor permission
+        if: github.actor != 'dependabot[bot]'
         uses: skjnldsv/check-actor-permission@v2
         with:
           require: read
