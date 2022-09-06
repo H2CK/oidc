@@ -8,6 +8,7 @@ OC.L10N.register(
     "10 minutes" : "10 хвилин",
     "15 minutes" : "15 хвилин",
     "30 minutes" : "30 хвилин",
+    "Public Key" : "Відкритий ключ",
     "Secret" : "Секретне",
     "Type" : "Тип",
     "Delete" : "Вилучити"
