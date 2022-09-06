@@ -27,7 +27,7 @@ jobs:
       - name: Check actor permission
         uses: skjnldsv/check-actor-permission@v2
         with:
-          require: write
+          require: read
 
       - name: Set app env
         run: |
@@ -122,6 +122,7 @@ jobs:
           krankerl package || make build-test
 
       - name: Sign app
+        if: github.actor != 'dependabot[bot]'
         run: |
           # Extracting release
           cd ${{ env.APP_NAME }}/build/artifacts
