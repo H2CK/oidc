@@ -28,7 +28,7 @@
 		"@nextcloud/axios": "^1.9.0",
 		"@nextcloud/dialogs": "^3.1.2",
 		"@nextcloud/eslint-plugin": "^2.0.0",
-		"@nextcloud/initial-state": "^1.2.1",
+		"@nextcloud/initial-state": "^2.0.0",
 		"@nextcloud/router": "^2.0.0",
 		"@nextcloud/vue": "^4.3.0",
 		"@vue/compiler-sfc": "^3.2.30",
