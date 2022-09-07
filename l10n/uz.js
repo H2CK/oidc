@@ -1,9 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "Ism...",
-    "Add" : "Qo'shish",
-    "Settings" : "Sozlamalar",
-    "Delete" : "O'chir"
+    "Name" : "Name",
+    "Add" : "Add",
+    "Settings" : "Settings",
+    "30 minutes" : "30 minutes",
+    "Delete" : "Delete"
 },
 "nplurals=1; plural=0;");
