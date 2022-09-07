@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.8] - 2022-09-07
+
+### Changed
+
+- Dependency Updates
+- Switch translations to Transifex
+
 ## [0.1.7] - 2022-06-25
 
 ### Changed
