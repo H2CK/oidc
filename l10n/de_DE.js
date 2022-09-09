@@ -27,7 +27,7 @@ OC.L10N.register(
     "60 minutes" : "60 Minuten",
     "Public Key" : "Öffentlicher Schlüssel",
     "Regenerate Keys" : "Schlüssel neu erzeugen",
-    "OpenID Connect Redirect" : "OpenID Connect Weiterleitung",
+    "OpenID Connect Redirect" : "OpenID Connect-Weiterleitung",
     "Client Identifier" : "Client-Identifikationsmerkmal",
     "Secret" : "Geheim",
     "Show client secret" : "Geheime Zeichenkette des Clients anzeigen",
