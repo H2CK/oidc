@@ -30,7 +30,7 @@
 		"@nextcloud/eslint-plugin": "^2.0.0",
 		"@nextcloud/initial-state": "^2.0.0",
 		"@nextcloud/router": "^2.0.0",
-		"@nextcloud/vue": "^4.3.0",
+		"@nextcloud/vue": "^5.4.0",
 		"@vue/compiler-sfc": "^3.2.30",
 		"babel-loader": "^8.2.3",
 		"css-loader": "^6.6.0",
