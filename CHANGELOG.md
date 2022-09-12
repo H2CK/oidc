@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.9] - 2022-09-12
+
+### Changed
+
+- Dependency Updates
+- Updated translations from Transifex
+- Fix url-encoding for state variable
+- Support Nextcloud 25
+
 ## [0.1.8] - 2022-09-07
 
 ### Changed

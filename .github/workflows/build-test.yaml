@@ -123,7 +123,7 @@ jobs:
           krankerl package || make build-test
 
       - name: Sign app
-        if: github.actor != 'dependabot[bot]'
+        if: github.actor == 'H2CK'
         run: |
           # Extracting release
           cd ${{ env.APP_NAME }}/build/artifacts
