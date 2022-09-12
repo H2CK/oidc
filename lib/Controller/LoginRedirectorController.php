@@ -223,9 +223,9 @@ class LoginRedirectorController extends ApiController {
 		$accessToken->setNonce($nonce);
 		$this->accessTokenMapper->insert($accessToken);
 
-		$url = $client->getRedirectUri() . '?code=' . $code . '&state=' . $state;
+		$url = $client->getRedirectUri() . '?code=' . $code . '&state=' . urlencode($state);
 		if (str_contains($client->getRedirectUri(), '?')) {
-			$url = $client->getRedirectUri() . '&code=' . $code . '&state=' . $state;
+			$url = $client->getRedirectUri() . '&code=' . $code . '&state=' . urlencode($state);
 		}
 
 		return new RedirectResponse($url);
