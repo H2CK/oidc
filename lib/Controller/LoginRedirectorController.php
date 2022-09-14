@@ -223,6 +223,9 @@ class LoginRedirectorController extends ApiController {
 		$accessToken->setNonce($nonce);
 		$this->accessTokenMapper->insert($accessToken);
 
+		if (empty($state) || !isset($state)) {
+			$state = '';
+		}
 		$url = $client->getRedirectUri() . '?code=' . $code . '&state=' . urlencode($state);
 		if (str_contains($client->getRedirectUri(), '?')) {
 			$url = $client->getRedirectUri() . '&code=' . $code . '&state=' . urlencode($state);
