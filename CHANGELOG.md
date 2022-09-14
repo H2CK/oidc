@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.10] - 2022-09-14
+
+### Changed
+
+- Fix for url-encoding if state is missing
+
 ## [0.1.9] - 2022-09-12
 
 ### Changed
