@@ -192,7 +192,7 @@ class LoginRedirectorController extends ApiController {
 		// Check if redirect uri is configured for client
 		if ($redirect_uri !== $client->getRedirectUri()) {
 			$params = [
-				'content' => $this->l->t('The received redirect uri is not accepted to connect. Please inform the administrator of your client.'),
+				'content' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
 			];
 			return new TemplateResponse('core', '404', $params, 'guest');
 		}

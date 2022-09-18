@@ -74,10 +74,10 @@
 					{{ t('oidc', 'Select Type') }}
 				</option>
 				<option value="confidential">
-					{{ t('oidc', 'confidential') }}
+					{{ t('oidc', 'Confidential') }}
 				</option>
 				<option value="public">
-					{{ t('oidc', 'public') }}
+					{{ t('oidc', 'Public') }}
 				</option>
 			</select>
 			<input type="submit" class="button" :value="t('oidc', 'Add')">
