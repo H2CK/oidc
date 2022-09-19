@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "クライアントの追加",
     "Name" : "名前",
     "Redirection URI" : "リダイレクトURI",
+    "Public" : "公開",
     "Add" : "追加",
     "Settings" : "設定",
     "5 minutes" : "5分",

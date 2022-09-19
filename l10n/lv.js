@@ -5,6 +5,7 @@ OC.L10N.register(
     "Add client" : "Pievienot klientu",
     "Name" : "Vārds",
     "Redirection URI" : "Pārvirzāmais URI",
+    "Public" : "Publiska",
     "Add" : "Pievienot",
     "Settings" : "Iestatījumi",
     "5 minutes" : "5 minūtes",

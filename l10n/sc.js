@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Agiunghe cliente",
     "Name" : "Nùmene",
     "Redirection URI" : "URI de torrada a deretare",
+    "Public" : "Pùblicu",
     "Add" : "Agiunghe",
     "Settings" : "Impostatziones",
     "5 minutes" : "5 minutos",

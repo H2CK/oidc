@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Ouzhoennañ kliant",
     "Name" : "Anv",
     "Redirection URI" : "Adhent URL",
+    "Public" : "Publik",
     "Add" : "Ouzhpennañ",
     "Settings" : "Arventennoù",
     "Client Identifier" : "Anavezer Kliant",

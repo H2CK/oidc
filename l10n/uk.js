@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш клієнт не авторизований для підключення. Будь ласка, повідомте адміністратора вашого клієнта.",
-    "The received redirect uri is not accepted to connect. Please inform the administrator of your client." : "Отриманий URI перенаправлення не приймається для підключення. Будь ласка, повідомте адміністратора вашого клієнта.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ваша URL-адреса переспрямування має бути повною URL-адресою, наприклад: https://yourdomain.com/path",
     "OIDC Identity Provider" : "Постачальник ідентифікації OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud як постачальник ідентифікації OpenID Connect",
@@ -14,8 +13,7 @@ OC.L10N.register(
     "Redirection URI" : "URI перенаправлення",
     "Select Signing Algorithm" : "Виберіть Алгоритм підпису",
     "Select Type" : "Виберіть Тип",
-    "confidential" : "конфіденційно",
-    "public" : "публічно",
+    "Public" : "Публічна",
     "Add" : "Додати",
     "Settings" : "Налаштування",
     "Token Expire Time" : "Термін дії маркера",

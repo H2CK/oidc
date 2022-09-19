@@ -8,6 +8,7 @@ OC.L10N.register(
     "Add client" : "Kliens hozzáadása",
     "Name" : "Név",
     "Redirection URI" : "Átirányítési URI",
+    "Public" : "Nyilvános",
     "Add" : "Hozzáadás",
     "Settings" : "Beállítások",
     "5 minutes" : "5 perc",

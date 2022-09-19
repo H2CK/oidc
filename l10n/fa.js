@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "افزودن مشتری",
     "Name" : "نام",
     "Redirection URI" : "تغییر مسیر URI",
+    "Public" : "عمومی",
     "Add" : "افزودن",
     "Settings" : "تنظیمات",
     "5 minutes" : "۵ دقیقه",

@@ -1,6 +1,5 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Il tuo client non è autorizzato a collegarsi. Informa l'amministratore del tuo client.",
-    "The received redirect uri is not accepted to connect. Please inform the administrator of your client." : "L’uri di reindirizzamento ricevuto non è accettato per la connessione. Per favore, informi l’amministratore del tuo cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Il tuo URL di redirezione deve essere un URL completo, ad esempio: https://tuodominio.com/percorso",
     "OIDC Identity Provider" : "Fornitore di identità OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud come fornitore di identità OpenID Connect",
@@ -12,8 +11,6 @@
     "Redirection URI" : "URI di redirezione",
     "Select Signing Algorithm" : "Selezionare l’algoritmo di firma",
     "Select Type" : "Selezionare il tipo",
-    "confidential" : "riservato",
-    "public" : "pubblico",
     "Add" : "Aggiungi",
     "Settings" : "Impostazioni",
     "Token Expire Time" : "Tempo di scadenza dei gettoni",

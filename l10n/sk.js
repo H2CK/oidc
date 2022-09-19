@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Pridať klienta",
     "Name" : "Meno",
     "Redirection URI" : "URI presmerovania",
+    "Public" : "Verejné",
     "Add" : "Pridať",
     "Settings" : "Nastavenia",
     "5 minutes" : "5 minút",

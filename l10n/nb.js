@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Legg til klient",
     "Name" : "Navn",
     "Redirection URI" : "Videresendings-URI",
+    "Public" : "Offentlig",
     "Add" : "Legg til",
     "Settings" : "Innstillinger",
     "5 minutes" : "5 minutter",

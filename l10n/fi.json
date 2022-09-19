@@ -1,6 +1,5 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle asiakkaastasi.",
-    "The received redirect uri is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen uria ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC-tunnisteiden tarjoaja",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana",
@@ -12,8 +11,6 @@
     "Redirection URI" : "Uudelleenohjaus URI",
     "Select Signing Algorithm" : "Valitse allekirjoitusalgoritmi",
     "Select Type" : "Valitse tyyppi",
-    "confidential" : "luottamuksellinen",
-    "public" : "julkinen",
     "Add" : "Lisä",
     "Settings" : "Asetukset",
     "Token Expire Time" : "Tokenin viimeinen voimassaoloaika",

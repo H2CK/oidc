@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "添加客户端",
     "Name" : "名称",
     "Redirection URI" : "跳转URI",
+    "Public" : "公开",
     "Add" : "添加",
     "Settings" : "设置",
     "5 minutes" : "5 分钟",

@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Afegeix un client",
     "Name" : "Cognom",
     "Redirection URI" : "URI de redirecció",
+    "Public" : "Públic",
     "Add" : "Afegeix",
     "Settings" : "Paràmetres",
     "5 minutes" : "5 minuts",

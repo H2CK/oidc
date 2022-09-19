@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Bæta við biðlara",
     "Name" : "Heiti",
     "Redirection URI" : "Endurbeiningarslóð",
+    "Public" : "Opinbert",
     "Add" : "Bæta við",
     "Settings" : "Stillingar",
     "5 minutes" : "5 mínútur",

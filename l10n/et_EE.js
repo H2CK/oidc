@@ -4,6 +4,7 @@ OC.L10N.register(
     "Add client" : "Lisa klient",
     "Name" : "Nimi",
     "Redirection URI" : "Suunamise URI",
+    "Public" : "Avalik",
     "Add" : "Lisa",
     "Settings" : "Seaded",
     "Client Identifier" : "Kliendi identifikaator",

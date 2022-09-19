@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Name" : "Nomine",
+    "Public" : "Public",
     "Add" : "Adder",
     "Settings" : "Configurationes",
     "Type" : "Typo",

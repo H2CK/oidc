@@ -4,6 +4,7 @@ OC.L10N.register(
     "Add client" : "Shto klient",
     "Name" : "Emri",
     "Redirection URI" : "URI Ridrejtimi",
+    "Public" : "Publik",
     "Add" : "Shto",
     "Settings" : "Rregullimet",
     "5 minutes" : "5 minuta",

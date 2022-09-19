@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "הוספת לקוחי",
     "Name" : "שם",
     "Redirection URI" : "כתובת הפנייה",
+    "Public" : "ציבורי",
     "Add" : "הוספה",
     "Settings" : "הגדרות",
     "5 minutes" : "5 דקות",

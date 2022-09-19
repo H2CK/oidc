@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Name" : "Нэр",
+    "Public" : "Нийтийн",
     "Add" : "нэмэх",
     "Settings" : "Тохиргоо",
     "5 minutes" : "5 минут",

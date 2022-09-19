@@ -4,6 +4,7 @@ OC.L10N.register(
     "Add client" : "إضافة عميل",
     "Name" : "الاسم",
     "Redirection URI" : "رابط إعادة التوجيه",
+    "Public" : "للعامة",
     "Add" : "إضافة",
     "Settings" : "الإعدادات",
     "5 minutes" : "5 دقائق",

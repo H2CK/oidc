@@ -4,6 +4,7 @@ OC.L10N.register(
     "Add client" : "კლიენტის დამატება",
     "Name" : "სახელი",
     "Redirection URI" : "გადამისამართების URI",
+    "Public" : "ღია",
     "Add" : "დამატება",
     "Settings" : "პარამეტრები",
     "5 minutes" : "5 წუთი",

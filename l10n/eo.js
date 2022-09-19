@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Name" : "Nomo",
+    "Public" : "Publika",
     "Add" : "Aldoni",
     "Settings" : "Agordoj",
     "Secret" : "Sekreta",

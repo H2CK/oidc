@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Name" : "Ime",
+    "Public" : "Javno",
     "Add" : "Dodaj",
     "Settings" : "Podešavanje",
     "Secret" : "Tajna",

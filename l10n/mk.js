@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Додади клиент",
     "Name" : "Име",
     "Redirection URI" : "Пренасочено URI",
+    "Public" : "Јавна",
     "Add" : "Додади",
     "Settings" : "Параметри",
     "5 minutes" : "5 минути",

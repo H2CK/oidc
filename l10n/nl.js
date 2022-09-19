@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Je client is niet geautoriseerd om te verbinden. Informeer de beheerder van je client.",
-    "The received redirect uri is not accepted to connect. Please inform the administrator of your client." : "De ontvangen redirect uri is niet geaccepteerd om verbinding te maken. Informeer de beheerder van uw client.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Je doorverwijzings-URL moet een volledige URL zijn, bijvoorbeeld: https://jouwdomein.com/pad",
     "OIDC Identity Provider" : "OIDC Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud als OpenID Connect Identity Provider",
@@ -14,8 +13,6 @@ OC.L10N.register(
     "Redirection URI" : "Omeiding URI",
     "Select Signing Algorithm" : "Selecteer een algoritme voor ondertekening",
     "Select Type" : "Selecteer type",
-    "confidential" : "vertrouwelijk",
-    "public" : "openbaar",
     "Add" : "Toevoegen",
     "Settings" : "Instellingen",
     "Token Expire Time" : "Token Vervaltijd",

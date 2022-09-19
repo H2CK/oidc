@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Bezeroa gehitu",
     "Name" : "Izena",
     "Redirection URI" : "Birbideraketaren URI",
+    "Public" : "Publikoa",
     "Add" : "Gehitu",
     "Settings" : "Ezarpenak",
     "5 minutes" : "5 minutu",

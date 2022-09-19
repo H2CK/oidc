@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-18 03:50+0000\n"
+"POT-Creation-Date: 2022-09-19 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2022\n"
 "Language-Team: Italian (https://www.transifex.com/nextcloud/teams/64236/it/)\n"
@@ -35,11 +35,9 @@ msgstr ""
 
 #: /app/lib/Controller/LoginRedirectorController.php:195
 msgid ""
-"The received redirect uri is not accepted to connect. Please inform the "
+"The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
-"L’uri di reindirizzamento ricevuto non è accettato per la connessione. Per "
-"favore, informi l’amministratore del tuo cliente."
 
 #: /app/lib/Controller/SettingsController.php:74
 msgid ""
@@ -123,13 +121,13 @@ msgstr "Selezionare il tipo"
 
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
-msgid "confidential"
-msgstr "riservato"
+msgid "Confidential"
+msgstr ""
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
-msgid "public"
-msgstr "pubblico"
+msgid "Public"
+msgstr ""
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20

@@ -5,6 +5,7 @@ OC.L10N.register(
     "Add client" : "Pridėti klientą",
     "Name" : "Vardas, pavardė",
     "Redirection URI" : "Peradresavimo URI",
+    "Public" : "Viešas",
     "Add" : "Pridėti",
     "Settings" : "Nustatymai",
     "5 minutes" : "5 minutės",

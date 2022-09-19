@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-18 03:50+0000\n"
+"POT-Creation-Date: 2022-09-19 03:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,7 +25,7 @@ msgstr ""
 
 #: /app/lib/Controller/LoginRedirectorController.php:195
 msgid ""
-"The received redirect uri is not accepted to connect. Please inform the "
+"The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
 
@@ -103,12 +103,12 @@ msgstr ""
 
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
-msgid "confidential"
+msgid "Confidential"
 msgstr ""
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
-msgid "public"
+msgid "Public"
 msgstr ""
 
 #. TRANSLATORS src/App.vue:83

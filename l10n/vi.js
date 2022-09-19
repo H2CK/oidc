@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Thêm kết nối",
     "Name" : "Tên",
     "Redirection URI" : "Liên kết chuyển tiếp",
+    "Public" : "Công khai",
     "Add" : "Thêm",
     "Settings" : "Cài đặt",
     "5 minutes" : "5 phút",

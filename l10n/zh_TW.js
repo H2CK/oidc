@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "您的客戶端無權連線。請通知您客戶端的管理員。",
-    "The received redirect uri is not accepted to connect. Please inform the administrator of your client." : "所收到之重新導向連結不被連線所接受。 請通知您的用戶端管理員。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的重新導向 URL 必須為完整的 URL，例如：https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC 身分驗證提供者",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud 作為 OpenID Connect 身分驗證提供者",
@@ -14,8 +13,7 @@ OC.L10N.register(
     "Redirection URI" : "重新導向 URI",
     "Select Signing Algorithm" : "選取簽章演算法",
     "Select Type" : "選取類型",
-    "confidential" : "機密",
-    "public" : "公開",
+    "Public" : "公開",
     "Add" : "新增",
     "Settings" : "設定",
     "Token Expire Time" : "權杖逾期時間",
