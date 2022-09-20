@@ -9,17 +9,17 @@
 # teemue, 2022
 # Eldemarkki <eldemarkkiyt@gmail.com>, 2022
 # Robin Lahtinen <robin.lahtinen@gmail.com>, 2022
-# Jiri Grönroos <jiri.gronroos@iki.fi>, 2022
 # H2CK, 2022
+# Jiri Grönroos <jiri.gronroos@iki.fi>, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-19 03:57+0000\n"
+"POT-Creation-Date: 2022-09-20 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2022\n"
+"Last-Translator: Jiri Grönroos <jiri.gronroos@iki.fi>, 2022\n"
 "Language-Team: Finnish (Finland) (https://www.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -130,7 +130,7 @@ msgstr ""
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
-msgstr ""
+msgstr "Julkinen"
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20

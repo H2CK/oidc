@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Váš klient není autorizován pro připojení se. Informujte správce svého klienta.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené uri přesměrování není přijato pro připojení se. Informujte o tom správce vašeho klienta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL adresu přesměrování je třeba uvádět celou, např. https://yourdomain.com/umisteni",
     "OIDC Identity Provider" : "Poskytovatel OIDC identity",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud jako poskytovat OpenID Connect ",
@@ -13,6 +14,7 @@ OC.L10N.register(
     "Redirection URI" : "URL pro přesměrování",
     "Select Signing Algorithm" : "Vybrat algoritmus podepisování",
     "Select Type" : "Vyberte typ",
+    "Confidential" : "Důvěrné",
     "Public" : "Veřejná",
     "Add" : "Přidat",
     "Settings" : "Nastavení",

@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "İstemcinizin bağlantı kurma izni yok. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Alınan yönlendirme adresi bağlantı kurmak için kabul edilmiyor. Lütfen istemcinizin BT yöneticisini bilgilendirin.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Yönlendirme adresi https://websitem.com/yol gibi tam bir adres olmalıdır",
     "OIDC Identity Provider" : "OIDC kimlik hizmeti sağlayıcısı",
     "Nextcloud as OpenID Connect Identity Provider" : "OpenID Connect kimlik hizmeti sağlayıcısı olarak Nextcloud",
@@ -11,6 +12,7 @@
     "Redirection URI" : "Yönlendirme adresi",
     "Select Signing Algorithm" : "İmzalama algoritmasını seçin",
     "Select Type" : "Türü seçin",
+    "Confidential" : "Gizli bilgi",
     "Public" : "Herkese açık",
     "Add" : "Ekle",
     "Settings" : "Ayarlar",

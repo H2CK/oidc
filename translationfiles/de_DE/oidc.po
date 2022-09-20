@@ -7,18 +7,18 @@
 # M M <drcarsonbeckett@icloud.com>, 2022
 # Markus Eckstein, 2022
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
-# Joachim Sokolowski, 2022
 # Mario Siegmann <mario_siegmann@web.de>, 2022
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2022
+# Joachim Sokolowski, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-09-19 03:57+0000\n"
+"POT-Creation-Date: 2022-09-20 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Mark Ziegler <mark.ziegler@rakekniven.de>, 2022\n"
+"Last-Translator: Joachim Sokolowski, 2022\n"
 "Language-Team: German (Germany) (https://www.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,6 +39,8 @@ msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung"
+" akzeptiert. Bitte informieren Sie den Administrator Ihres Clients."
 
 #: /app/lib/Controller/SettingsController.php:74
 msgid ""
@@ -123,12 +125,12 @@ msgstr "Typ auswählen"
 #. TRANSLATORS src/App.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "Confidential"
-msgstr ""
+msgstr "Vertraulich"
 
 #. TRANSLATORS src/App.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
-msgstr ""
+msgstr "Öffentlich"
 
 #. TRANSLATORS src/App.vue:83
 #: /app/specialVueFakeDummyForL10nScript.js:20

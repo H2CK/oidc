@@ -13,6 +13,7 @@ OC.L10N.register(
     "Redirection URI" : "URI di redirezione",
     "Select Signing Algorithm" : "Selezionare l’algoritmo di firma",
     "Select Type" : "Selezionare il tipo",
+    "Public" : "Pubblica",
     "Add" : "Aggiungi",
     "Settings" : "Impostazioni",
     "Token Expire Time" : "Tempo di scadenza dei gettoni",

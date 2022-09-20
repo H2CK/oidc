@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Dein Client ist nicht berechtigt, eine Verbindung herzustellen. Bitte informiere den Administrator deines Clients.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung akzeptiert. Bitte informiere den Administrator deines Clients.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Die Weiterleitungs-URL muss eine vollständige URL sein. Beispiel: https://deinedomain.com/pfad",
     "OIDC Identity Provider" : "OIDC-Identitätsanbieter",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud als OpenID Connect Identitätsanbieter",

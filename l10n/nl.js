@@ -13,6 +13,7 @@ OC.L10N.register(
     "Redirection URI" : "Omeiding URI",
     "Select Signing Algorithm" : "Selecteer een algoritme voor ondertekening",
     "Select Type" : "Selecteer type",
+    "Public" : "Openbaar",
     "Add" : "Toevoegen",
     "Settings" : "Instellingen",
     "Token Expire Time" : "Token Vervaltijd",
