@@ -13,6 +13,7 @@ OC.L10N.register(
     "Public" : "Publikoa",
     "Add" : "Gehitu",
     "Settings" : "Ezarpenak",
+    "Token Expire Time" : "Token iraungitze denbora",
     "5 minutes" : "5 minutu",
     "10 minutes" : "10 minutu",
     "15 minutes" : "15 minutu",
