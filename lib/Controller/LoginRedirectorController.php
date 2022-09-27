@@ -144,7 +144,7 @@ class LoginRedirectorController extends ApiController {
 			$this->session->set('scope', $scope);
 			$this->session->set('nonce', $nonce);
 
-			$afterLoginRedirectUrl = '/index.php/apps/oidc/redirect';
+			$afterLoginRedirectUrl = $this->urlGenerator->getWebroot() . '/index.php/apps/oidc/redirect';
 
 			$loginUrl = $this->urlGenerator->linkToRoute(
 				'core.login.showLoginForm',

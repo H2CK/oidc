@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.11] - 2022-09-27
+
+### Changed
+
+- Fixed redired after login to make use of configured webroot
+
 ## [0.1.10] - 2022-09-14
 
 ### Changed
