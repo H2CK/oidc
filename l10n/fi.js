@@ -13,6 +13,7 @@ OC.L10N.register(
     "Redirection URI" : "Uudelleenohjaus URI",
     "Select Signing Algorithm" : "Valitse allekirjoitusalgoritmi",
     "Select Type" : "Valitse tyyppi",
+    "Confidential" : "Luottamuksellinen",
     "Public" : "Julkinen",
     "Add" : "Lisä",
     "Settings" : "Asetukset",
