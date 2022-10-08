@@ -7,7 +7,7 @@ OC.L10N.register(
     "Nextcloud as OpenID Connect Identity Provider" : "Nextclous mint OpenID Connect személyazonosság-szolgáltató",
     "Add client" : "Kliens hozzáadása",
     "Name" : "Név",
-    "Redirection URI" : "Átirányítési URI",
+    "Redirection URI" : "Átirányítási URI",
     "Public" : "Nyilvános",
     "Add" : "Hozzáadás",
     "Settings" : "Beállítások",
