@@ -11,10 +11,14 @@
     "10 minutes" : "10 minút",
     "15 minutes" : "15 minút",
     "30 minutes" : "30 minút",
+    "60 minutes" : "60 minút",
     "Public Key" : "Verejný kľúč",
+    "Regenerate Keys" : "Znova vytvoriť kľúče",
     "Client Identifier" : "Identifikátor klienta",
     "Secret" : "Tajný kľúč",
     "Show client secret" : "Zobraziť tajomstvo klienta",
+    "-- NONE --" : "-- PRÁZDNE --",
+    "Signing Algorithm" : "Algoritmus podpisu",
     "Type" : "Typ",
     "Delete" : "Vymazať"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"
