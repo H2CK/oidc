@@ -14,7 +14,7 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
 	]]></description>
-  <version>0.2.2</version>
+  <version>0.2.3</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>

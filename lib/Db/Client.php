@@ -30,6 +30,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setClientIdentifier(string $clientIdentifier)
  * @method string getSecret()
  * @method void setSecret(string $secret)
+ * @method string getRedirectUri()
+ * @method void setRedirectUri(string $redirectUri)
  * @method string getName()
  * @method void setName(string $name)
  * @method string getSigningAlg()
@@ -43,6 +45,8 @@ class Client extends Entity {
 	/** @var string */
 	protected $name;
 	/** @var string */
+	protected $redirectUri;
+	/** @var string */
 	protected $clientIdentifier;
 	/** @var string */
 	protected $secret;
@@ -54,6 +58,7 @@ class Client extends Entity {
 	public function __construct() {
 		$this->addType('id', 'int');
 		$this->addType('name', 'string');
+		$this->addType('redirect_uri', 'string');
 		$this->addType('client_identifier', 'string');
 		$this->addType('secret', 'string');
 		$this->addType('signing_alg', 'string');

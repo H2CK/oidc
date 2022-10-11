@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2022-10-11
+
+### Changed
+
+- Fixed problem in migration schema
+
 ## [0.2.2] - 2022-10-11
 
 ### Changed
