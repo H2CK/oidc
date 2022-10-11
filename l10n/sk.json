@@ -1,6 +1,7 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Váš klient nemá oprávnenie na pripojenie. Prosím informujte administrátora svojho klienta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vaša URL pre presmerovanie musí byť úplná. Napríklad: https://yourdomain.com/path",
+    "OIDC Identity Provider" : "Poskytovateľ identity OIDC",
     "Add client" : "Pridať klienta",
     "Name" : "Meno",
     "Redirection URI" : "URI presmerovania",
