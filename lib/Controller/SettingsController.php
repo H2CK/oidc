@@ -182,7 +182,7 @@ class SettingsController extends Controller
 	}
 
 	public function deleteRedirectUri(
-					int $id,
+					int $id
 					): JSONResponse
 	{
 		$this->logger->debug("Deleting Redirect Uri with id " . $id);
