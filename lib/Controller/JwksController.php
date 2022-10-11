@@ -33,9 +33,10 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
-
-class JwksController extends ApiController {
+class JwksController extends ApiController
+{
 	/** @var ITimeFactory */
 	private $time;
 	/** @var Throttler */
@@ -44,18 +45,25 @@ class JwksController extends ApiController {
 	private $urlGenerator;
     /** @var IAppConfig */
 	private $appConfig;
+	/** @var LoggerInterface */
+	private $logger;
 
-	public function __construct(string $appName,
-								IRequest $request,
-								ITimeFactory $time,
-								Throttler $throttler,
-                                IURLGenerator $urlGenerator,
-                                IAppConfig $appConfig) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					ITimeFactory $time,
+					Throttler $throttler,
+					IURLGenerator $urlGenerator,
+					IAppConfig $appConfig,
+					LoggerInterface $logger
+					)
+	{
 		parent::__construct($appName, $request);
 		$this->time = $time;
 		$this->throttler = $throttler;
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -68,7 +76,8 @@ class JwksController extends ApiController {
 	 *
 	 * @return JSONResponse
 	 */
-	public function getKeyInfo(): JSONResponse {
+	public function getKeyInfo(): JSONResponse
+	{
         $keyOps = [
             // 'sign',       // (compute digital signature or MAC)
             'verify',     // (verify digital signature or MAC)
@@ -97,6 +106,8 @@ class JwksController extends ApiController {
 		$jwkPayload = [
 			'keys' => $keys,
 		];
+
+		$this->logger->info('Request to JWKS Endpoint.');
 
 		return new JSONResponse($jwkPayload);
 	}

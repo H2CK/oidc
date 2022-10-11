@@ -46,14 +46,21 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\Client;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUri;
+use Psr\Log\LoggerInterface;
 
-class LoginRedirectorController extends ApiController {
+class LoginRedirectorController extends ApiController
+{
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var ClientMapper */
 	private $clientMapper;
 	/** @var AccessTokenMapper */
 	private $accessTokenMapper;
+	/** @var RedirectUriMapper */
+	private $redirectUriMapper;
 	/** @var ISecureRandom */
 	private $random;
 	/** @var ICrypto */
@@ -70,6 +77,8 @@ class LoginRedirectorController extends ApiController {
 	private $userSession;
 	/** @var IInitialStateService */
 	private $initialStateService;
+	/** @var LoggerInterface */
+	private $logger;
 
 	/**
 	 * @param string $appName
@@ -84,21 +93,28 @@ class LoginRedirectorController extends ApiController {
 	 * @param ITimeFactory $time
 	 * @param IUserSession $userSession
 	 * @param AccessTokenMapper $accessTokenMapper
+	 * @param RedirectUriMapper $redirectUriMapper
 	 * @param IInitialStateService $initialStateService
+	 * @param LoggerInterface $loggerInterface
 	 */
-	public function __construct(string $appName,
-								IRequest $request,
-								IURLGenerator $urlGenerator,
-								ClientMapper $clientMapper,
-								ISecureRandom $random,
-								ICrypto $crypto,
-								IProvider $tokenProvider,
-								ISession $session,
-								IL10N $l,
-								ITimeFactory $time,
-								IUserSession $userSession,
-								AccessTokenMapper $accessTokenMapper,
-								IInitialStateService $initialStateService) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					IURLGenerator $urlGenerator,
+					ClientMapper $clientMapper,
+					ISecureRandom $random,
+					ICrypto $crypto,
+					IProvider $tokenProvider,
+					ISession $session,
+					IL10N $l,
+					ITimeFactory $time,
+					IUserSession $userSession,
+					AccessTokenMapper $accessTokenMapper,
+					RedirectUriMapper $redirectUriMapper,
+					IInitialStateService $initialStateService,
+					LoggerInterface $logger
+					)
+		{
 		parent::__construct($appName, $request);
 		$this->urlGenerator = $urlGenerator;
 		$this->clientMapper = $clientMapper;
@@ -110,7 +126,9 @@ class LoginRedirectorController extends ApiController {
 		$this->time = $time;
 		$this->userSession = $userSession;
 		$this->accessTokenMapper = $accessTokenMapper;
+		$this->redirectUriMapper = $redirectUriMapper;
 		$this->initialStateService = $initialStateService;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -127,13 +145,15 @@ class LoginRedirectorController extends ApiController {
 	 * @param string $nonce
 	 * @return Response
 	 */
-	public function authorize($client_id,
-							  $state,
-							  $response_type,
-							  $redirect_uri,
-							  $scope,
-							  $nonce): Response {
-
+	public function authorize(
+					$client_id,
+					$state,
+					$response_type,
+					$redirect_uri,
+					$scope,
+					$nonce
+					): Response
+		{
 		if (!$this->userSession->isLoggedIn()) {
 			// Not authenticated yet
 			// Store things in user session to be available after login
@@ -144,14 +164,16 @@ class LoginRedirectorController extends ApiController {
 			$this->session->set('scope', $scope);
 			$this->session->set('nonce', $nonce);
 
-			$afterLoginRedirectUrl = $this->urlGenerator->getWebroot() . '/index.php/apps/oidc/redirect';
+			$afterLoginRedirectUrl = $this->urlGenerator->getWebroot() . $this->urlGenerator->linkToRoute('oidc.Page.index', []);
 
 			$loginUrl = $this->urlGenerator->linkToRoute(
-				'core.login.showLoginForm',
-				[
-					'redirect_url' => $afterLoginRedirectUrl
-				]
+							'core.login.showLoginForm',
+							[
+								'redirect_url' => $afterLoginRedirectUrl
+							]
 			);
+
+			$this->logger->debug('Not authenticated yet for client ' . $client_id . '. Redirect to login.');
 
 			return new RedirectResponse($loginUrl);
 		}
@@ -186,20 +208,30 @@ class LoginRedirectorController extends ApiController {
 			$params = [
 				'content' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
 			];
+			$this->logger->notice('Client ' . $client_id . ' is not authorized to connect.');
 			return new TemplateResponse('core', '404', $params, 'guest');
 		}
 
 		// Check if redirect uri is configured for client
-		if ($redirect_uri !== $client->getRedirectUri()) {
+		$redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+		$redirectUriFound = false;
+		foreach ($redirectUris as $i => $redirectUri) {
+			if ($redirect_uri === $redirectUri->getRedirectUri()) {
+				$redirectUriFound = true;
+				break;
+			}
+		}
+		if (!$redirectUriFound) {
 			$params = [
 				'content' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
 			];
+			$this->logger->notice('Redirect URI ' . $redirect_uri . ' is not accepted for client ' . $client_id . '.');
 			return new TemplateResponse('core', '404', $params, 'guest');
 		}
 
 		if ($response_type !== 'code' && $response_type !== 'code id_token') {
 			//Fail
-			$url = $client->getRedirectUri() . '?error=unsupported_response_type&state=' . $state;
+			$url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
 			return new RedirectResponse($url);
 		}
 
@@ -226,10 +258,11 @@ class LoginRedirectorController extends ApiController {
 		if (empty($state) || !isset($state)) {
 			$state = '';
 		}
-		$url = $client->getRedirectUri() . '?code=' . $code . '&state=' . urlencode($state);
-		if (str_contains($client->getRedirectUri(), '?')) {
-			$url = $client->getRedirectUri() . '&code=' . $code . '&state=' . urlencode($state);
+		$url = $redirect_uri . '?code=' . $code . '&state=' . urlencode($state);
+		if (str_contains($redirect_uri, '?')) {
+			$url = $redirect_uri . '&code=' . $code . '&state=' . urlencode($state);
 		}
+		$this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
 		return new RedirectResponse($url);
 	}

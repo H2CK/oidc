@@ -47,12 +47,15 @@ class PageController extends Controller {
 	/** @var IUserSession */
 	private $userSession;
 
-	public function __construct(string $appName, 
-                                IRequest $request,
-                                ISession $session,
-                                IL10N $l,
-                                ITimeFactory $time,
-                                IUserSession $userSession) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					ISession $session,
+					IL10N $l,
+					ITimeFactory $time,
+					IUserSession $userSession
+					)
+	{
 		parent::__construct($appName, $request);
         $this->session = $session;
         $this->l = $l;
@@ -67,7 +70,8 @@ class PageController extends Controller {
 	 *
 	 * Render default template
 	 */
-	public function index() {
+	public function index()
+	{
         $client_id = $this->session->get('client_id');
 		$state = $this->session->get('state');
 		$response_type = $this->session->get('response_type');
@@ -83,6 +87,5 @@ class PageController extends Controller {
         ];
 
 		return new TemplateResponse('oidc', 'main', $parameters);
-
 	}
 }

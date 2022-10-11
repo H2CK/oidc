@@ -26,37 +26,22 @@ use OCP\AppFramework\Db\Entity;
 
 /**
  * @method int getId()
- * @method string getClientIdentifier()
- * @method void setClientIdentifier(string $clientIdentifier)
- * @method string getSecret()
- * @method void setSecret(string $secret)
- * @method string getName()
- * @method void setName(string $name)
- * @method string getSigningAlg()
- * @method void setSigningAlg(string $name)
- * @method string getType()
- * @method void setType(string $type)
+ * @method int getClientId()
+ * @method void setClientId(int $identifier)
+ * @method string getRedirectUri()
+ * @method void setRedirectUri(string $redirectUri)
  */
-class Client extends Entity {
+class RedirectUri extends Entity {
 	/** @var int */
 	public $id;
+	/** @var int */
+	protected $clientId;
 	/** @var string */
-	protected $name;
-	/** @var string */
-	protected $clientIdentifier;
-	/** @var string */
-	protected $secret;
-	/** @var string */
-	protected $signingAlg;
-	/** @var string */
-	protected $type;
+	protected $redirectUri;
 
 	public function __construct() {
 		$this->addType('id', 'int');
-		$this->addType('name', 'string');
-		$this->addType('client_identifier', 'string');
-		$this->addType('secret', 'string');
-		$this->addType('signing_alg', 'string');
-		$this->addType('type', 'string');
+		$this->addType('client_id', 'int');
+		$this->addType('redirect_uri', 'string');
 	}
 }

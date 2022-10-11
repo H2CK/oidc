@@ -28,6 +28,8 @@ namespace OCA\OIDCIdentityProvider\Controller;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUri;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -35,48 +37,62 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
-class SettingsController extends Controller {
+class SettingsController extends Controller
+{
 	/** @var ClientMapper */
 	private $clientMapper;
 	/** @var ISecureRandom */
 	private $secureRandom;
 	/** @var AccessTokenMapper  */
 	private $accessTokenMapper;
+	/** @var RedirectUriMapper  */
+	private $redirectUriMapper;
 	/** @var IL10N */
 	private $l;
 	/** @var IAppConfig */
 	private $appConfig;
+	/** @var LoggerInterface */
+	private $logger;
 
 	public const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
-	public function __construct(string $appName,
-								IRequest $request,
-								ClientMapper $clientMapper,
-								ISecureRandom $secureRandom,
-								AccessTokenMapper $accessTokenMapper,
-								IL10N $l,
-								IAppConfig $appConfig
-	) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					ClientMapper $clientMapper,
+					ISecureRandom $secureRandom,
+					AccessTokenMapper $accessTokenMapper,
+					RedirectUriMapper $redirectUriMapper,
+					IL10N $l,
+					IAppConfig $appConfig,
+					LoggerInterface $logger
+					)
+	{
 		parent::__construct($appName, $request);
 		$this->secureRandom = $secureRandom;
 		$this->clientMapper = $clientMapper;
 		$this->accessTokenMapper = $accessTokenMapper;
+		$this->redirectUriMapper = $redirectUriMapper;
 		$this->l = $l;
 		$this->appConfig = $appConfig;
+		$this->logger = $logger;
 	}
 
-	public function addClient(string $name,
-							  string $redirectUri,
-							  string $signingAlg,
-							  string $type): JSONResponse {
+	public function addClient(
+					string $name,
+					string $redirectUri,
+					string $signingAlg,
+					string $type
+					): JSONResponse
+	{
 		if (filter_var($redirectUri, FILTER_VALIDATE_URL) === false) {
 			return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
 		}
 
 		$client = new Client();
 		$client->setName($name);
-		$client->setRedirectUri($redirectUri);
 		$client->setSecret($this->secureRandom->generate(64, self::validChars));
 		$client->setClientIdentifier($this->secureRandom->generate(64, self::validChars));
 		if ($signingAlg === 'HS256') {
@@ -90,11 +106,25 @@ class SettingsController extends Controller {
 			$client->setType('confidential');
 		}
 		$client = $this->clientMapper->insert($client);
+		$redirectUriObj = new RedirectUri();
+		$redirectUriObj->setClientId($client->getId());
+		$redirectUriObj->setRedirectUri($redirectUri);
+		$redirectUriObj = $this->redirectUriMapper->insert($redirectUriObj);
+
+		$redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+		$resultRedirectUris = [];
+		foreach ($redirectUris as $tmpRedirectUri) {
+			$resultRedirectUris[] = [
+				'id' => $tmpRedirectUri->getId(),
+				'client_id' => $tmpRedirectUri->getClientId(),
+				'redirect_uri' => $tmpRedirectUri->getRedirectUri(),
+			];
+		}
 
 		$result = [
 			'id' => $client->getId(),
 			'name' => $client->getName(),
-			'redirectUri' => $client->getRedirectUri(),
+			'redirectUris' => $resultRedirectUris,
 			'clientId' => $client->getClientIdentifier(),
 			'clientSecret' => $client->getSecret(),
 			'signingAlg' => $client->getSigningAlg(),
@@ -104,14 +134,91 @@ class SettingsController extends Controller {
 		return new JSONResponse($result);
 	}
 
-	public function deleteClient(int $id): JSONResponse {
+	public function deleteClient(int $id): JSONResponse
+	{
 		$client = $this->clientMapper->getByUid($id);
 		$this->accessTokenMapper->deleteByClientId($id);
+		$this->redirectUriMapper->deleteByClientId($id);
 		$this->clientMapper->delete($client);
 		return new JSONResponse([]);
 	}
 
-	public function setTokenExpireTime(string $expireTime): JSONResponse {
+	public function addRedirectUri(
+					int $id,
+					string $redirectUri
+					): JSONResponse
+	{
+		$this->logger->debug("Adding Redirect Uri " . $redirectUri . " for client " . $id);
+
+		$redirectUriObj = new RedirectUri();
+		$redirectUriObj->setClientId($id);
+		$redirectUriObj->setRedirectUri($redirectUri);
+		$redirectUriObj = $this->redirectUriMapper->insert($redirectUriObj);
+		$clients = $this->clientMapper->getClients();
+
+		$result = [];
+
+		foreach ($clients as $client) {
+			$redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+			$resultRedirectUris = [];
+			foreach ($redirectUris as $redirectUri) {
+				$resultRedirectUris[] = [
+					'id' => $redirectUri->getId(),
+					'client_id' => $redirectUri->getClientId(),
+					'redirect_uri' => $redirectUri->getRedirectUri(),
+				];
+			}
+			$result[] = [
+				'id' => $client->getId(),
+				'name' => $client->getName(),
+				'redirectUris' => $resultRedirectUris,
+				'clientId' => $client->getClientIdentifier(),
+				'clientSecret' => $client->getSecret(),
+				'signingAlg' => $client->getSigningAlg(),
+				'type' => $client->getType(),
+			];
+		}
+		return new JSONResponse($result);
+	}
+
+	public function deleteRedirectUri(
+					int $id,
+					): JSONResponse
+	{
+		$this->logger->debug("Deleting Redirect Uri with id " . $id);
+
+		$this->redirectUriMapper->deleteOneById($id);
+
+		$clients = $this->clientMapper->getClients();
+		$result = [];
+
+		foreach ($clients as $client) {
+			$redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+			$resultRedirectUris = [];
+			foreach ($redirectUris as $redirectUri) {
+				$resultRedirectUris[] = [
+					'id' => $redirectUri->getId(),
+					'client_id' => $redirectUri->getClientId(),
+					'redirect_uri' => $redirectUri->getRedirectUri(),
+				];
+			}
+			$result[] = [
+				'id' => $client->getId(),
+				'name' => $client->getName(),
+				'redirectUris' => $resultRedirectUris,
+				'clientId' => $client->getClientIdentifier(),
+				'clientSecret' => $client->getSecret(),
+				'signingAlg' => $client->getSigningAlg(),
+				'type' => $client->getType(),
+			];
+		}
+		return new JSONResponse($result);
+	}
+
+	public function setTokenExpireTime(
+					string $expireTime
+					): JSONResponse
+	{
 		$options = array(
 			'options' => array(
 				'default' => 900,
@@ -129,7 +236,8 @@ class SettingsController extends Controller {
 		return new JSONResponse($result);
 	}
 
-	public function regenerateKeys(): JSONResponse {
+	public function regenerateKeys(): JSONResponse
+	{
 		$config = array(
 			"digest_alg" => 'sha512',
 			"private_key_bits" => 4096,
@@ -155,7 +263,8 @@ class SettingsController extends Controller {
 		return new JSONResponse($result);
 	}
 
-	function guidv4($data = null) {
+	private function guidv4($data = null)
+	{
 		// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
 		$data = $data ?? random_bytes(16);
 		assert(strlen($data) == 16);

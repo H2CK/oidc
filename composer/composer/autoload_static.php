@@ -7,14 +7,14 @@ namespace Composer\Autoload;
 class ComposerStaticInitOIDCIdentityProvider
 {
     public static $prefixLengthsPsr4 = array (
-        'O' => 
+        'O' =>
         array (
             'OCA\\OIDCIdentityProvider\\' => 11,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'OCA\\OIDCIdentityProvider\\' => 
+        'OCA\\OIDCIdentityProvider\\' =>
         array (
             0 => __DIR__ . '/..' . '/../lib',
         ),
@@ -35,12 +35,19 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Db\\AccessTokenMapper' => __DIR__ . '/..' . '/../lib/Db/AccessTokenMapper.php',
         'OCA\\OIDCIdentityProvider\\Db\\Client' => __DIR__ . '/..' . '/../lib/Db/Client.php',
         'OCA\\OIDCIdentityProvider\\Db\\ClientMapper' => __DIR__ . '/..' . '/../lib/Db/ClientMapper.php',
+        'OCA\\OIDCIdentityProvider\\Db\\RedirectUri' => __DIR__ . '/..' . '/../lib/Db/RedirectUri.php',
+        'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => __DIR__ . '/..' . '/../lib/Db/RedirectUriMapper.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/AccessTokenNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/ClientNotFoundException.php',
-        'OCA\\OIDCIdentityProvider\\Migration\\CreateKeys' => __DIR__ . '/..' . '/../lib/Migration/CreateKeys.php',
+        'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/RedirectUriNotFoundException.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\CreateKeys' => __DIR__ . '/..' . '/../lib/Migration/CreateKeys.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0001Date20220209222100' => __DIR__ . '/..' . '/../lib/Migration/Version0001Date20220209222100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0002Date20220301210900' => __DIR__ . '/..' . '/../lib/Migration/Version0002Date20220301210900.php',
-        'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
+        'OCA\\OIDCIdentityProvider\\Migration\\Version0003Date20220927082100' => __DIR__ . '/..' . '/../lib/Migration/Version0003Date20220927082100.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0004Date20220928082100' => __DIR__ . '/..' . '/../lib/Migration/Version0004Date20220928082100.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0005Date20221009082100' => __DIR__ . '/..' . '/../lib/Migration/Version0005Date20221009082100.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0006Date20221011082100' => __DIR__ . '/..' . '/../lib/Migration/Version0006Date20221011082100.php',
+		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

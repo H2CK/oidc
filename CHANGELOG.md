@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2022-10-11
+
+### Changed
+
+- Added possibility edit multiple redirect urls in admin panel.
+
+## [0.2.1] - 2022-10-09
+
+### Changed
+
+- Modification to use app when Nextcloud is installed in subdirectory
+
+## [0.2.0] - 2022-10-07
+
+### Changed
+
+- Added possibility to store multiple redirect urls in backend
+
 ## [0.1.11] - 2022-09-27
 
 ### Changed

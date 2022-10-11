@@ -49,6 +49,7 @@ use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
 	/** @var AccessTokenMapper */
@@ -75,21 +76,27 @@ class OIDCApiController extends ApiController {
 	private $urlGenerator;
 	/** @var IAppConfig */
 	private $appConfig;
+	/** @var LoggerInterface */
+	private $logger;
 
-	public function __construct(string $appName,
-								IRequest $request,
-								ICrypto $crypto,
-								AccessTokenMapper $accessTokenMapper,
-								ClientMapper $clientMapper,
-								TokenProvider $tokenProvider,
-								ISecureRandom $secureRandom,
-								ITimeFactory $time,
-								Throttler $throttler,
-								IUserManager $userManager,
-								IGroupManager $groupManager,
-								IAccountManager $accountManager,
-								IURLGenerator $urlGenerator,
-								IAppConfig $appConfig) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					ICrypto $crypto,
+					AccessTokenMapper $accessTokenMapper,
+					ClientMapper $clientMapper,
+					TokenProvider $tokenProvider,
+					ISecureRandom $secureRandom,
+					ITimeFactory $time,
+					Throttler $throttler,
+					IUserManager $userManager,
+					IGroupManager $groupManager,
+					IAccountManager $accountManager,
+					IURLGenerator $urlGenerator,
+					IAppConfig $appConfig,
+					LoggerInterface $logger
+					)
+	{
 		parent::__construct($appName, $request);
 		$this->crypto = $crypto;
 		$this->accessTokenMapper = $accessTokenMapper;
@@ -103,6 +110,7 @@ class OIDCApiController extends ApiController {
 		$this->accountManager = $accountManager;
 		$this->urlGenerator = $urlGenerator;
 		$this->appConfig = $appConfig;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -118,10 +126,12 @@ class OIDCApiController extends ApiController {
 	 * @param string $client_secret
 	 * @return JSONResponse
 	 */
-	public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse {
+	public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
+	{
 		$expireTime = $this->appConfig->getAppValue('expire_time');
 		// We only handle two types
 		if ($grant_type !== 'authorization_code' && $grant_type !== 'refresh_token') {
+			$this->logger->notice('Invalid grant_type provided. Must be authorization_code or refresh_token for client id ' . $client_id . '.');
 			return new JSONResponse([
 				'error' => 'invalid_grant',
 				'error_description' => 'Invalid grant_type provided. Must be authorization_code or refresh_token.',
@@ -136,6 +146,7 @@ class OIDCApiController extends ApiController {
 		try {
 			$accessToken = $this->accessTokenMapper->getByCode($code);
 		} catch (AccessTokenNotFoundException $e) {
+			$this->logger->notice('Could not find access token for code or refresh_token for client id ' . $client_id . '.');
 			return new JSONResponse([
 				'error' => 'invalid_request',
 				'error_description' => 'Could not find access token for code or refresh_token.',
@@ -145,6 +156,7 @@ class OIDCApiController extends ApiController {
 		try {
 			$client = $this->clientMapper->getByUid($accessToken->getClientId());
 		} catch (ClientNotFoundException $e) {
+			$this->logger->error('Could not find client for access token. Client id was ' . $client_id . '.');
 			return new JSONResponse([
 				'error' => 'invalid_request',
 				'error_description' => 'Could not find client for access token.',
@@ -159,6 +171,7 @@ class OIDCApiController extends ApiController {
 		if ($client->getType() === 'public') {
 			// Only the client id must match for a public client. Else we don't provide an access token!
 			if ($client->getClientIdentifier() !== $client_id) {
+				$this->logger->notice('Client not found. Client id was ' . $client_id . '.');
 				return new JSONResponse([
 					'error' => 'invalid_client',
 					'error_description' => 'Client not found.',
@@ -167,6 +180,7 @@ class OIDCApiController extends ApiController {
 		} else {
 			// The client id and secret must match. Else we don't provide an access token!
 			if ($client->getClientIdentifier() !== $client_id || $client->getSecret() !== $client_secret) {
+				$this->logger->error('Client authentication failed. Client id was ' . $client_id . '.');
 				return new JSONResponse([
 					'error' => 'invalid_client',
 					'error_description' => 'Client authentication failed.',
@@ -177,6 +191,7 @@ class OIDCApiController extends ApiController {
 		// The accessToken must not be expired
 		if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime ) {
 			$this->accessTokenMapper->delete($accessToken);
+			$this->logger->notice('Access token already expired. Client id was ' . $client_id . '.');
 			return new JSONResponse([
 				'error' => 'invalid_grant',
 				'error_description' => 'Access token already expired.',
@@ -298,6 +313,8 @@ class OIDCApiController extends ApiController {
 		}
 
 		$jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
+		$this->logger->debug('Generated JWT with iss => ' . $issuer . ' sub => ' . $uid . ' aud/azp => ' . $client->getClientIdentifier() . ' preferred_username => ' . $uid);
+		$this->logger->info('Returned token for user ' . $uid);
 
 		return new JSONResponse(
 			[
