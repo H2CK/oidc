@@ -26,15 +26,16 @@
 </template>
 
 <script>
+import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'Redirect',
 	created() {
-		window.location.replace('/index.php/apps/oidc/authorize')
+		window.location.replace(generateUrl('apps/oidc/authorize'))
 	},
 }
 </script>
-// <style scoped>
+<style scoped>
 	table {
 		max-width: 800px;
 	}

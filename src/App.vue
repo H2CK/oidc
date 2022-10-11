@@ -25,6 +25,7 @@
 		<p class="settings-hint">
 			{{ t('oidc', 'OpenID Connect allows to authenticate at external services with {instanceName} user accounts.', { instanceName: OC.theme.name}) }}
 		</p>
+		<span v-if="error" class="msg error">{{ errorMsg }}</span>
 		<table v-if="clients.length > 0" class="grid">
 			<thead>
 				<tr>
@@ -34,10 +35,13 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody v-if="clients"
+				:key="version">
 				<OIDCItem v-for="client in clients"
 					:key="client.id"
 					:client="client"
+					@addredirect="addRedirectUri"
+					@deleteredirect="deleteRedirectUri"
 					@delete="deleteClient" />
 			</tbody>
 		</table>
@@ -153,9 +157,49 @@ export default {
 				error: false,
 			},
 			expTime: this.expireTime,
+			error: false,
+			errorMsg: '',
+			version: 0,
 		}
 	},
 	methods: {
+		deleteRedirectUri(id) {
+			axios.delete(generateUrl('apps/oidc/clients/redirect/{id}', { id }))
+				.then((response) => {
+					// eslint-disable-next-line vue/no-mutating-props
+					this.clients.splice(0, this.clients.length)
+					for (let index = 0; index < response.data.length; index++) {
+						// eslint-disable-next-line vue/no-mutating-props
+						this.clients.push(response.data[index])
+					}
+					this.version += 1
+				}).catch(reason => {
+					this.error = true
+					this.errorMsg = reason
+				})
+		},
+		addRedirectUri(id, uri) {
+			this.error = false
+
+			axios.post(
+				generateUrl('apps/oidc/clients/redirect'),
+				{
+					id,
+					redirectUri: uri,
+				}
+			).then(response => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.clients.splice(0, this.clients.length)
+				for (let index = 0; index < response.data.length; index++) {
+					// eslint-disable-next-line vue/no-mutating-props
+					this.clients.push(response.data[index])
+				}
+				this.version += 1
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
+			})
+		},
 		deleteClient(id) {
 			axios.delete(generateUrl('apps/oidc/clients/{id}', { id }))
 				.then((response) => {

@@ -26,10 +26,13 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Settings;
 
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IInitialStateService;
 use OCP\Settings\ISettings;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
 class Admin implements ISettings {
 
@@ -39,26 +42,49 @@ class Admin implements ISettings {
 	/** @var ClientMapper */
 	private $clientMapper;
 
+	/** @var RedirectUriMapper */
+	private $redirectUriMapper;
+
 	/** @var IAppConfig */
 	private $appConfig;
 
-	public function __construct(IInitialStateService $initialStateService,
-								ClientMapper $clientMapper,
-								IAppConfig $appConfig) {
+	/** @var LoggerInterface */
+	private $logger;
+
+	public function __construct(
+					IInitialStateService $initialStateService,
+					ClientMapper $clientMapper,
+					RedirectUriMapper $redirectUriMapper,
+					IAppConfig $appConfig,
+					LoggerInterface $logger
+					)
+	{
 		$this->initialStateService = $initialStateService;
 		$this->clientMapper = $clientMapper;
+		$this->redirectUriMapper = $redirectUriMapper;
 		$this->appConfig = $appConfig;
+		$this->logger = $logger;
 	}
 
-	public function getForm(): TemplateResponse {
+	public function getForm(): TemplateResponse
+	{
 		$clients = $this->clientMapper->getClients();
 		$result = [];
 
 		foreach ($clients as $client) {
+			$redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+			$resultRedirectUris = [];
+			foreach ($redirectUris as $redirectUri) {
+				$resultRedirectUris[] = [
+					'id' => $redirectUri->getId(),
+					'client_id' => $redirectUri->getClientId(),
+					'redirect_uri' => $redirectUri->getRedirectUri(),
+				];
+			}
 			$result[] = [
 				'id' => $client->getId(),
 				'name' => $client->getName(),
-				'redirectUri' => $client->getRedirectUri(),
+				'redirectUris' => $resultRedirectUris,
 				'clientId' => $client->getClientIdentifier(),
 				'clientSecret' => $client->getSecret(),
 				'signingAlg' => $client->getSigningAlg(),
@@ -70,18 +96,20 @@ class Admin implements ISettings {
 		$this->initialStateService->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
 
 		return new TemplateResponse(
-			'oidc',
-			'admin',
-			[],
-			''
-		);
+						'oidc',
+						'admin',
+						[],
+						''
+						);
 	}
 
-	public function getSection(): string {
+	public function getSection(): string
+	{
 		return 'security';
 	}
 
-	public function getPriority(): int {
+	public function getPriority(): int
+	{
 		return 150;
 	}
 }

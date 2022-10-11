@@ -21,91 +21,101 @@
  *
  */
 return [
-	'routes' => [
-		[
-			'name' => 'Settings#addClient',
-			'url' => '/clients',
-			'verb' => 'POST',
-		],
-		[
-			'name' => 'Settings#setTokenExpireTime',
-			'url' => '/expire',
-			'verb' => 'POST',
-		],
-		[
-			'name' => 'Settings#regenerateKeys',
-			'url' => '/genKeys',
-			'verb' => 'POST',
-		],
-		[
-			'name' => 'Settings#deleteClient',
-			'url' => '/clients/{id}',
-			'verb' => 'DELETE'
-		],
-		[
-			'name' => 'LoginRedirector#authorize',
-			'url' => '/authorize',
-			'verb' => 'GET',
-		],
-		[
-			'name' => 'LoginRedirect#preflighted_cors',
-			'url' => '/authorize',
-			'verb' => 'OPTIONS',
-		],
-		[
-			'name' => 'Page#index',
-			'url' => '/redirect',
-			'verb' => 'GET',
-		],
-		[
-			'name' => 'OIDCApi#getToken',
-			'url' => '/token',
-			'verb' => 'POST'
-		],
-		[
-			'name' => 'OIDCApi#preflighted_cors',
-			'url' => '/token',
-			'verb' => 'OPTIONS',
-		],
-		[
-			'name' => 'UserInfo#getInfo',
-			'url' => '/userinfo',
-			'verb' => 'GET'
-		],
-		[
-			'name' => 'UserInfo#preflighted_cors',
-			'url' => '/userinfo',
-			'verb' => 'OPTIONS',
-		],
-		[
-			'name' => 'Discovery#getInfo',
-			'url' => '/openid-configuration',
-			'verb' => 'GET'
-		],
-		[
-			'name' => 'Discovery#preflighted_cors',
-			'url' => '/openid-configuration',
-			'verb' => 'OPTIONS',
-		],
-		[
-			'name' => 'Jwks#getKeyInfo',
-			'url' => '/jwks',
-			'verb' => 'GET'
-		],
-		[
-			'name' => 'Jwks#preflighted_cors',
-			'url' => '/jwks',
-			'verb' => 'OPTIONS',
-		],
-		[
-			'name' => 'Logout#logout',
-			'url' => '/logout',
-			'verb' => 'GET'
-		],
-		[
-			'name' => 'Logout#preflighted_cors',
-			'url' => '/logout',
-			'verb' => 'OPTIONS',
-		],
-	],
+    'routes' => [
+        [
+            'name' => 'Settings#addRedirectUri',
+            'url' => '/clients/redirect',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Settings#deleteRedirectUri',
+            'url' => '/clients/redirect/{id}',
+            'verb' => 'DELETE'
+        ],
+        [
+            'name' => 'Settings#addClient',
+            'url' => '/clients',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Settings#setTokenExpireTime',
+            'url' => '/expire',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Settings#regenerateKeys',
+            'url' => '/genKeys',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Settings#deleteClient',
+            'url' => '/clients/{id}',
+            'verb' => 'DELETE'
+        ],
+        [
+            'name' => 'LoginRedirector#authorize',
+            'url' => '/authorize',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'LoginRedirect#preflighted_cors',
+            'url' => '/authorize',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Page#index',
+            'url' => '/redirect',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'OIDCApi#getToken',
+            'url' => '/token',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'OIDCApi#preflighted_cors',
+            'url' => '/token',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'UserInfo#getInfo',
+            'url' => '/userinfo',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'UserInfo#preflighted_cors',
+            'url' => '/userinfo',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Discovery#getInfo',
+            'url' => '/openid-configuration',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'Discovery#preflighted_cors',
+            'url' => '/openid-configuration',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Jwks#getKeyInfo',
+            'url' => '/jwks',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'Jwks#preflighted_cors',
+            'url' => '/jwks',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Logout#logout',
+            'url' => '/logout',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'Logout#preflighted_cors',
+            'url' => '/logout',
+            'verb' => 'OPTIONS',
+        ],
+    ],
 ];

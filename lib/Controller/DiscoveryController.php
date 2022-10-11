@@ -32,37 +32,47 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use Psr\Log\LoggerInterface;
 
-class DiscoveryController extends ApiController {
+class DiscoveryController extends ApiController
+{
 	/** @var ITimeFactory */
 	private $time;
 	/** @var Throttler */
 	private $throttler;
     /** @var IURLGenerator */
 	private $urlGenerator;
+	/** @var LoggerInterface */
+	private $logger;
 
-	public function __construct(string $appName,
-								IRequest $request,
-								ITimeFactory $time,
-								Throttler $throttler,
-                                IURLGenerator $urlGenerator) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					ITimeFactory $time,
+					Throttler $throttler,
+					IURLGenerator $urlGenerator,
+					LoggerInterface $logger
+					)
+	{
 		parent::__construct($appName, $request);
 		$this->time = $time;
 		$this->throttler = $throttler;
         $this->urlGenerator = $urlGenerator;
+		$this->logger = $logger;
 	}
 
 	/**
 	 * @CORS
      * @PublicPage
 	 * @NoCSRFRequired
-     * 
+     *
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration
 	 *
 	 * @return JSONResponse
 	 */
-	public function getInfo(): JSONResponse {
+	public function getInfo(): JSONResponse
+	{
         $issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
         $scopesSupported = [
             'openid',
@@ -102,7 +112,7 @@ class DiscoveryController extends ApiController {
             'none',
         ];
         $tokenEndpointAuthMethodsSupported = [
-            'client_secret_post', 
+            'client_secret_post',
             // 'client_secret_basic',
             // 'client_secret_jwt',
             // 'private_key_jwt',
@@ -141,10 +151,10 @@ class DiscoveryController extends ApiController {
 
 		$discoveryPayload = [
 			'issuer' => $issuer,
-			'authorization_endpoint' => $issuer . '/index.php/apps/oidc/authorize',
-			'token_endpoint' => $issuer . '/index.php/apps/oidc/token',
-            'userinfo_endpoint' => $issuer . '/index.php/apps/oidc/userinfo',
-            'jwks_uri' => $issuer . '/index.php/apps/oidc/jwks',
+			'authorization_endpoint' => $issuer . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
+			'token_endpoint' => $issuer . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
+            'userinfo_endpoint' => $issuer . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []),
+            'jwks_uri' => $issuer . $this->urlGenerator->linkToRoute('oidc.Jwks.getKeyInfo', []),
             'scopes_supported' => $scopesSupported,
             'response_types_supported' => $responseTypesSupported,
             'response_modes_supported' => $responseModesSupported,
@@ -176,8 +186,9 @@ class DiscoveryController extends ApiController {
             // 'op_tos_uri' => ,
 		];
 
+		$this->logger->info('Request to Discovery Endpoint.');
+
 		return new JSONResponse($discoveryPayload);
 	}
 
-    
 }

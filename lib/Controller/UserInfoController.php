@@ -43,8 +43,10 @@ use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
+use Psr\Log\LoggerInterface;
 
-class UserInfoController extends ApiController {
+class UserInfoController extends ApiController
+{
 	/** @var AccessTokenMapper */
 	private $accessTokenMapper;
 	/** @var ClientMapper */
@@ -61,17 +63,23 @@ class UserInfoController extends ApiController {
 	private $accountManager;
     /** @var IAppConfig */
 	private $appConfig;
+	/** @var LoggerInterface */
+	private $logger;
 
-	public function __construct(string $appName,
-								IRequest $request,
-								AccessTokenMapper $accessTokenMapper,
-								ClientMapper $clientMapper,
-								ITimeFactory $time,
-								Throttler $throttler,
-								IUserManager $userManager,
-								IGroupManager $groupManager,
-								IAccountManager $accountManager,
-                                IAppConfig $appConfig) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					AccessTokenMapper $accessTokenMapper,
+					ClientMapper $clientMapper,
+					ITimeFactory $time,
+					Throttler $throttler,
+					IUserManager $userManager,
+					IGroupManager $groupManager,
+					IAccountManager $accountManager,
+					IAppConfig $appConfig,
+					LoggerInterface $logger
+					)
+	{
 		parent::__construct($appName, $request);
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->clientMapper = $clientMapper;
@@ -81,6 +89,7 @@ class UserInfoController extends ApiController {
 		$this->groupManager = $groupManager;
 		$this->accountManager = $accountManager;
         $this->appConfig = $appConfig;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -90,19 +99,22 @@ class UserInfoController extends ApiController {
 	 *
 	 * @return JSONResponse
 	 */
-	public function getInfo(): JSONResponse {
+	public function getInfo(): JSONResponse
+	{
 
         $accessTokenCode = $this->getBearerToken();
         if ($accessTokenCode == null) {
+			$this->logger->notice('No bearer token found in request.');
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'No bearer token found in request.'
             ], Http::STATUS_BAD_REQUEST);
-		} 
-        
+		}
+
         try {
 			$accessToken = $this->accessTokenMapper->getByAccessToken($accessTokenCode);
 		} catch (AccessTokenNotFoundException $e) {
+			$this->logger->notice('Could not find provided bearer token.');
 			return new JSONResponse([
 				'error' => 'invalid_request',
                 'error_description' => 'Could not find provided bearer token.',
@@ -112,6 +124,7 @@ class UserInfoController extends ApiController {
 		try {
 			$client = $this->clientMapper->getByUid($accessToken->getClientId());
 		} catch (ClientNotFoundException $e) {
+			$this->logger->error('Could not find client for access token.');
 			return new JSONResponse([
 				'error' => 'invalid_request',
                 'error_description' => 'Could not find client for access token.',
@@ -121,6 +134,7 @@ class UserInfoController extends ApiController {
 		// The accessToken must not be expired
 		if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue('expire_time') ) {
 			$this->accessTokenMapper->delete($accessToken);
+			$this->logger->notice('Access token already expired.');
 			return new JSONResponse([
 				'error' => 'invalid_grant',
                 'error_description' => 'Access token already expired.',
@@ -132,20 +146,20 @@ class UserInfoController extends ApiController {
 		$groups = $this->groupManager->getUserGroups($user);
 		$account = $this->accountManager->getAccount($user);
 
-		$userInfo_payload = [
+		$userInfoPayload = [
 			'sub' => $uid,
 			'preferred_username' => $uid,
-			
+
 		];
 
 		$roles = [];
 		foreach ($groups as $group) {
 			array_push($roles, $group->getGID());
 		}
-		$roles_payload = [
+		$rolesPayload = [
 			'roles' => $roles
 		];
-		$userInfo_payload = array_merge($userInfo_payload, $roles_payload);
+		$userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
 
 		// Check for scopes
 		$scopeArray = preg_split('/ +/', $accessToken->getScope());
@@ -168,7 +182,7 @@ class UserInfoController extends ApiController {
 			// 'birthdate' => ,
 			// 'zoneinfo' => ,
 			// 'locale' => ,
-			$userInfo_payload = array_merge($userInfo_payload, $profile);
+			$userInfoPayload = array_merge($userInfoPayload, $profile);
 		}
 		if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
 			$email = [
@@ -179,25 +193,27 @@ class UserInfoController extends ApiController {
 			} else {
                 $email = array_merge($email, ['email_verified' => false]);
             }
-			$userInfo_payload = array_merge($userInfo_payload, $email);
+			$userInfoPayload = array_merge($userInfoPayload, $email);
 		}
-		
-		return new JSONResponse($userInfo_payload);
+		$this->logger->debug('Returned user info for user ' . $uid);
+		return new JSONResponse($userInfoPayload);
 	}
 
-    /** 
+    /**
      * Get hearder Authorization
      */
-    function getAuthorizationHeader(){
+    private function getAuthorizationHeader()
+	{
         $headers = null;
         if (isset($_SERVER['Authorization'])) {
             $headers = trim($_SERVER["Authorization"]);
-        }
-        else if (isset($_SERVER['HTTP_AUTHORIZATION'])) { //Nginx or fast CGI
+        } elseif (isset($_SERVER['HTTP_AUTHORIZATION'])) { //Nginx or fast CGI
             $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
         } elseif (function_exists('apache_request_headers')) {
             $requestHeaders = apache_request_headers();
-            // Server-side fix for bug in old Android versions (a nice side-effect of this fix means we don't care about capitalization for Authorization)
+            // Server-side fix for bug in old Android versions
+			// (a nice side-effect of this fix means we don't care
+			// about capitalization for Authorization)
             $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
             if (isset($requestHeaders['Authorization'])) {
                 $headers = trim($requestHeaders['Authorization']);
@@ -205,11 +221,12 @@ class UserInfoController extends ApiController {
         }
         return $headers;
     }
-    
+
     /**
      * get access token from header
      */
-    function getBearerToken() {
+    private function getBearerToken()
+	{
         $headers = $this->getAuthorizationHeader();
         // HEADER: Get the access token from the header
         if (!empty($headers)) {

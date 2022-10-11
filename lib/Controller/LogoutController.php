@@ -44,8 +44,10 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use Psr\Log\LoggerInterface;
 
-class LogoutController extends ApiController {
+class LogoutController extends ApiController
+{
 	/** @var IURLGenerator */
 	private $urlGenerator;
 	/** @var ClientMapper */
@@ -60,6 +62,8 @@ class LogoutController extends ApiController {
 	private $time;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var LoggerInterface */
+	private $logger;
 
 	/**
 	 * @param string $appName
@@ -71,16 +75,21 @@ class LogoutController extends ApiController {
 	 * @param ITimeFactory $time
 	 * @param IUserSession $userSession
 	 * @param AccessTokenMapper $accessTokenMapper
+	 * @param LoggerInstance $logger
 	 */
-	public function __construct(string $appName,
-								IRequest $request,
-								IURLGenerator $urlGenerator,
-								ClientMapper $clientMapper,
-								ISession $session,
-								IL10N $l,
-								ITimeFactory $time,
-								IUserSession $userSession,
-								AccessTokenMapper $accessTokenMapper) {
+	public function __construct(
+					string $appName,
+					IRequest $request,
+					IURLGenerator $urlGenerator,
+					ClientMapper $clientMapper,
+					ISession $session,
+					IL10N $l,
+					ITimeFactory $time,
+					IUserSession $userSession,
+					AccessTokenMapper $accessTokenMapper,
+					LoggerInterface $logger
+					)
+	{
 		parent::__construct($appName, $request);
 		$this->urlGenerator = $urlGenerator;
 		$this->clientMapper = $clientMapper;
@@ -89,6 +98,7 @@ class LogoutController extends ApiController {
 		$this->time = $time;
 		$this->userSession = $userSession;
 		$this->accessTokenMapper = $accessTokenMapper;
+		$this->logger = $logger;
 	}
 
 	/**
@@ -99,37 +109,43 @@ class LogoutController extends ApiController {
 	 *
 	 * @param string $client_id
 	 * @param string $refresh_token
-	 * @param string $response_type
-	 * @param string $redirect_uri
-	 * @param string $scope
 	 * @return Response
 	 */
-	public function logout($client_id,
-							$refresh_token): Response {
+	public function logout(
+					$client_id,
+					$refresh_token
+					): Response
+	{
         try {
             $accessToken = $this->accessTokenMapper->getByCode($refresh_token);
         } catch (AccessTokenNotFoundException $e) {
+			$this->logger->notice('Logout failed. Could not find access token for code or refresh_token.');
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Could not find access token for code or refresh_token.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
+		$userId = $accessToken->getUserId();
+
         try {
             $client = $this->clientMapper->getByUid($accessToken->getClientId());
         } catch (ClientNotFoundException $e) {
-            return new JSONResponse([
+            $this->logger->error('Logout failed. Could not find client for access token.');
+			return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Could not find client for access token.',
             ], Http::STATUS_BAD_REQUEST);
         }
-        
+
         $this->accessTokenMapper->deleteByClientId($client->getId());
-        
+
 		if ($this->userSession !== null && $this->userSession->isLoggedIn()) {
 			// Logout user from session
             $this->userSession->logout();
         }
+
+		$this->logger->debug('Logout user for user ' . $userId . ' performed.');
 
         $logoutRedirectUrl = $this->urlGenerator->linkToRoute(
             'core.login.showLoginForm',
@@ -137,6 +153,6 @@ class LogoutController extends ApiController {
             ]
         );
         return new RedirectResponse($logoutRedirectUrl);
-			
+
     }
 }

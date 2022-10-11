@@ -29,7 +29,24 @@
 				</tr>
 				<tr>
 					<td>{{ t('oidc', 'Redirection URI') }}</td>
-					<td>{{ redirectUri }}</td>
+					<td>
+						<table>
+							<tr v-for="redirectUri in redirectUris" :key="redirectUri.id">
+								<td>{{ redirectUri.redirect_uri }}</td>
+								<td class="action-column">
+									<span><a class="icon-delete has-tooltip" :title="t('oidc', 'Delete')" @click="$emit('deleteredirect', redirectUri.id)" /></span>
+								</td>
+							</tr>
+						</table>
+						<form @submit.prevent="addRedirect">
+							<input id="redirectUri"
+								v-model="addRedirectUri"
+								type="url"
+								name="redirectUri"
+								:placeholder="t('oidc', 'Redirection URI')">
+							<input type="submit" class="button" :value="t('oidc', 'Add')">
+						</form>
+					</td>
 				</tr>
 				<tr>
 					<td>{{ t('oidc', 'Client Identifier') }}</td>
@@ -73,12 +90,13 @@ export default {
 		return {
 			id: this.client.id,
 			name: this.client.name,
-			redirectUri: this.client.redirectUri,
+			redirectUris: this.client.redirectUris,
 			clientId: this.client.clientId,
 			clientSecret: this.client.clientSecret,
 			signingAlg: this.client.signingAlg,
 			type: this.client.type,
 			renderSecret: false,
+			addRedirectUri: '',
 		}
 	},
 	computed: {
@@ -97,6 +115,10 @@ export default {
 	methods: {
 		toggleSecret() {
 			this.renderSecret = !this.renderSecret
+		},
+		addRedirect() {
+			this.$emit('addredirect', this.id, this.addRedirectUri)
+			this.addRedirectUri = ''
 		},
 	},
 }
