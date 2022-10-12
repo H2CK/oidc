@@ -7,17 +7,17 @@
 # Random_R, 2022
 # lollos78, 2022
 # Stefano Gualmo - Agesp, 2022
-# H2CK, 2022
 # Vincenzo Reale <vinx.reale@gmail.com>, 2022
+# H2CK, 2022
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2022-10-01 03:13+0000\n"
+"POT-Creation-Date: 2022-10-12 03:05+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Vincenzo Reale <vinx.reale@gmail.com>, 2022\n"
+"Last-Translator: H2CK, 2022\n"
 "Language-Team: Italian (https://www.transifex.com/nextcloud/teams/64236/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Language: it\n"
 "Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:187
+#: /app/lib/Controller/LoginRedirectorController.php:209
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
@@ -33,13 +33,15 @@ msgstr ""
 "Il tuo client non è autorizzato a collegarsi. Informa l'amministratore del "
 "tuo client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:195
+#: /app/lib/Controller/LoginRedirectorController.php:226
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"L'URI di reindirizzamento ricevuto non è accettato per la connessione. "
+"Informare l'amministratore del client."
 
-#: /app/lib/Controller/SettingsController.php:74
+#: /app/lib/Controller/SettingsController.php:91
 msgid ""
 "Your redirect URL needs to be a full URL for example: "
 "https://yourdomain.com/path"
@@ -90,98 +92,102 @@ msgstr ""
 "OpenID Connect permette di autenticarsi a servizi esterni con account utente"
 " {instanceName}."
 
-#. TRANSLATORS src/App.vue:46
+#. TRANSLATORS src/App.vue:50
 #: /app/specialVueFakeDummyForL10nScript.js:6
 msgid "Add client"
 msgstr "Aggiungi client"
 
-#. TRANSLATORS src/App.vue:53
+#. TRANSLATORS src/App.vue:57
 #. TRANSLATORS src/components/OIDCItem.vue:27
 #: /app/specialVueFakeDummyForL10nScript.js:8
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Name"
 msgstr "Nome"
 
-#. TRANSLATORS src/App.vue:58
+#. TRANSLATORS src/App.vue:62
 #. TRANSLATORS src/components/OIDCItem.vue:31
+#. TRANSLATORS src/components/OIDCItem.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:10
 #: /app/specialVueFakeDummyForL10nScript.js:48
+#: /app/specialVueFakeDummyForL10nScript.js:52
 msgid "Redirection URI"
 msgstr "URI di redirezione"
 
-#. TRANSLATORS src/App.vue:62
+#. TRANSLATORS src/App.vue:66
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
 msgstr "Selezionare l’algoritmo di firma"
 
-#. TRANSLATORS src/App.vue:74
+#. TRANSLATORS src/App.vue:78
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
 msgstr "Selezionare il tipo"
 
-#. TRANSLATORS src/App.vue:77
+#. TRANSLATORS src/App.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "Confidential"
-msgstr ""
+msgstr "Riservato"
 
-#. TRANSLATORS src/App.vue:80
+#. TRANSLATORS src/App.vue:84
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
 msgstr "Pubblica"
 
-#. TRANSLATORS src/App.vue:83
+#. TRANSLATORS src/App.vue:87
+#. TRANSLATORS src/components/OIDCItem.vue:47
 #: /app/specialVueFakeDummyForL10nScript.js:20
+#: /app/specialVueFakeDummyForL10nScript.js:54
 msgid "Add"
 msgstr "Aggiungi"
 
-#. TRANSLATORS src/App.vue:87
+#. TRANSLATORS src/App.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:22
 msgid "Settings"
 msgstr "Impostazioni"
 
-#. TRANSLATORS src/App.vue:88
-#. TRANSLATORS src/App.vue:91
+#. TRANSLATORS src/App.vue:92
+#. TRANSLATORS src/App.vue:95
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
 msgstr "Tempo di scadenza dei gettoni"
 
-#. TRANSLATORS src/App.vue:94
+#. TRANSLATORS src/App.vue:98
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
 msgstr "Seleziona il tempo di scadenza del token"
 
-#. TRANSLATORS src/App.vue:97
+#. TRANSLATORS src/App.vue:101
 #: /app/specialVueFakeDummyForL10nScript.js:30
 msgid "5 minutes"
 msgstr "5 minuti"
 
-#. TRANSLATORS src/App.vue:100
+#. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:32
 msgid "10 minutes"
 msgstr "10 minuti"
 
-#. TRANSLATORS src/App.vue:103
+#. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:34
 msgid "15 minutes"
 msgstr "15 minuti"
 
-#. TRANSLATORS src/App.vue:106
+#. TRANSLATORS src/App.vue:110
 #: /app/specialVueFakeDummyForL10nScript.js:36
 msgid "30 minutes"
 msgstr "30 minuti"
 
-#. TRANSLATORS src/App.vue:109
+#. TRANSLATORS src/App.vue:113
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
 msgstr "60 minuti"
 
-#. TRANSLATORS src/App.vue:112
+#. TRANSLATORS src/App.vue:116
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Public Key"
 msgstr "Chiave pubblica"
 
-#. TRANSLATORS src/App.vue:116
+#. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Regenerate Keys"
 msgstr "Rigenerare le chiavi"
@@ -191,37 +197,39 @@ msgstr "Rigenerare le chiavi"
 msgid "OpenID Connect Redirect"
 msgstr "Reindirizzamento di OpenID Connect"
 
-#. TRANSLATORS src/components/OIDCItem.vue:35
+#. TRANSLATORS src/components/OIDCItem.vue:37
+#. TRANSLATORS src/components/OIDCItem.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:50
+#: /app/specialVueFakeDummyForL10nScript.js:68
+msgid "Delete"
+msgstr "Elimina"
+
+#. TRANSLATORS src/components/OIDCItem.vue:52
+#: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "Client Identifier"
 msgstr "Identificatore client"
 
-#. TRANSLATORS src/components/OIDCItem.vue:39
-#: /app/specialVueFakeDummyForL10nScript.js:52
+#. TRANSLATORS src/components/OIDCItem.vue:56
+#: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Secret"
 msgstr "Segreta"
 
-#. TRANSLATORS src/components/OIDCItem.vue:41
-#: /app/specialVueFakeDummyForL10nScript.js:54
+#. TRANSLATORS src/components/OIDCItem.vue:58
+#: /app/specialVueFakeDummyForL10nScript.js:60
 msgid "Show client secret"
 msgstr "Mostra segreto del client"
 
-#. TRANSLATORS src/components/OIDCItem.vue:44
-#: /app/specialVueFakeDummyForL10nScript.js:56
+#. TRANSLATORS src/components/OIDCItem.vue:61
+#: /app/specialVueFakeDummyForL10nScript.js:62
 msgid "-- NONE --"
 msgstr "-- NESSUNO --"
 
-#. TRANSLATORS src/components/OIDCItem.vue:48
-#: /app/specialVueFakeDummyForL10nScript.js:58
+#. TRANSLATORS src/components/OIDCItem.vue:65
+#: /app/specialVueFakeDummyForL10nScript.js:64
 msgid "Signing Algorithm"
 msgstr "Algoritmo di firma"
 
-#. TRANSLATORS src/components/OIDCItem.vue:52
-#: /app/specialVueFakeDummyForL10nScript.js:60
+#. TRANSLATORS src/components/OIDCItem.vue:69
+#: /app/specialVueFakeDummyForL10nScript.js:66
 msgid "Type"
 msgstr "Tipo"
-
-#. TRANSLATORS src/components/OIDCItem.vue:58
-#: /app/specialVueFakeDummyForL10nScript.js:62
-msgid "Delete"
-msgstr "Elimina"

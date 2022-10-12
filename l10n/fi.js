@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle asiakkaastasi.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC-tunnisteiden tarjoaja",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana",
@@ -27,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Julkinen avain",
     "Regenerate Keys" : "Uudelleen avaimet",
     "OpenID Connect Redirect" : "OpenID Connectin uudelleenohjaus",
+    "Delete" : "Poista",
     "Client Identifier" : "Asiakkaan tunniste",
     "Secret" : "Salainen",
     "Show client secret" : "Näytä asiakkaan salaisuus",
     "-- NONE --" : "-- EI OLE --",
     "Signing Algorithm" : "Allekirjoitusalgoritmi",
-    "Type" : "Tyyppi",
-    "Delete" : "Poista"
+    "Type" : "Tyyppi"
 },
 "nplurals=2; plural=(n != 1);");

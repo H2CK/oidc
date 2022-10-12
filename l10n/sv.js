@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient har inte behörighet att ansluta. Vänligen meddela din administratör.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den mottagna omdirigerings-URI:n accepteras inte för anslutning. Vänligen informera administratören för din klient.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigeringsadress måste vara en fullständig webbadress till exempel: https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud som identitetsleverantör för OpenID Connect",
@@ -13,6 +14,7 @@ OC.L10N.register(
     "Redirection URI" : "Omdirigerings-URI",
     "Select Signing Algorithm" : "Välj signeringsalgoritm",
     "Select Type" : "Välj typ",
+    "Confidential" : "Konfidentiell",
     "Public" : "Offentlig",
     "Add" : "Lägg till",
     "Settings" : "Inställningar",
@@ -26,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Offentlig nyckel",
     "Regenerate Keys" : "Återskapa nycklar",
     "OpenID Connect Redirect" : "Omdirigering av OpenID Connect",
+    "Delete" : "Radera",
     "Client Identifier" : "Klientidentifierare",
     "Secret" : "Hemlig",
     "Show client secret" : "Visa klienthemlighet",
     "-- NONE --" : "-- INGA --",
     "Signing Algorithm" : "Algoritm för signering",
-    "Type" : "Typ",
-    "Delete" : "Radera"
+    "Type" : "Typ"
 },
 "nplurals=2; plural=(n != 1);");

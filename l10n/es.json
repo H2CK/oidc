@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Tu cliente no está autorizado a conectarse. Por favor, informa de tu cliente al administrador.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "El URI de redirección recibido no es aceptado para conectarse. Por favor, informe al administrador de su cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tu URL de redirección debe ser una URL completa, por ejemplo: https://tudominio.com/ruta",
     "OIDC Identity Provider" : "Proveedor de identidades OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud como proveedor de identidades de OpenID Connect",
@@ -11,6 +12,7 @@
     "Redirection URI" : "URI de redirección",
     "Select Signing Algorithm" : "Seleccione el algoritmo de firma",
     "Select Type" : "Seleccione el tipo",
+    "Confidential" : "Confidencial",
     "Public" : "Público",
     "Add" : "Añadir",
     "Settings" : "Ajustes",
@@ -24,12 +26,12 @@
     "Public Key" : "Clave pública",
     "Regenerate Keys" : "Regenerar claves",
     "OpenID Connect Redirect" : "Redirección de OpenID Connect",
+    "Delete" : "Eliminar",
     "Client Identifier" : "Identificador de cliente",
     "Secret" : "Secreto",
     "Show client secret" : "Mostrar secreto del cliente",
     "-- NONE --" : "-- NADA --",
     "Signing Algorithm" : "Algoritmo de firma",
-    "Type" : "Tipo",
-    "Delete" : "Eliminar"
+    "Type" : "Tipo"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

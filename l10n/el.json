@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ο εφαρμογή σας δεν είναι εξουσιοδοτημένη να συνδεθεί. Ενημερώστε τον διαχειριστή σας.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Το ληφθέν URI ανακατεύθυνσης δεν είναι αποδεκτό για σύνδεση. Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Η διεύθυνση URL ανακατεύθυνσης πρέπει να είναι μια πλήρη διεύθυνση URL, για παράδειγμα: https://yourdomain.com/path",
     "OIDC Identity Provider" : "Πάροχος ταυτότητας OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Το Nextcloud ως πάροχος ταυτότητας OpenID Connect",
@@ -11,6 +12,7 @@
     "Redirection URI" : "URI ανακατεύθυνσης",
     "Select Signing Algorithm" : "Επιλέξτε Αλγόριθμο υπογραφής",
     "Select Type" : "Επιλέξτε τύπο",
+    "Confidential" : "Εμπιστευτικό",
     "Public" : "Δημόσιο",
     "Add" : "Προσθήκη",
     "Settings" : "Ρυθμίσεις",
@@ -24,12 +26,12 @@
     "Public Key" : "Δημόσιο κλειδί",
     "Regenerate Keys" : "Αναγέννηση κλειδιών",
     "OpenID Connect Redirect" : "Ανακατεύθυνση OpenID Connect",
+    "Delete" : "Διαγραφή",
     "Client Identifier" : "Αναγνωριστικό πελάτη",
     "Secret" : "Μυστικός",
     "Show client secret" : "Εμφάνιση μυστικού εφαρμογής υπολογιστή",
     "-- NONE --" : "-- ΚΑΝΕΝΑΣ --",
     "Signing Algorithm" : "Αλγόριθμος υπογραφής",
-    "Type" : "Τύπος",
-    "Delete" : "Διαγραφή"
+    "Type" : "Τύπος"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

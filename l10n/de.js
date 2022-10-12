@@ -14,6 +14,7 @@ OC.L10N.register(
     "Redirection URI" : "Weiterleitungs-URI",
     "Select Signing Algorithm" : "Signieralgorithmus auswählen",
     "Select Type" : "Typ auswählen",
+    "Confidential" : "Vertraulich",
     "Public" : "Öffentlich",
     "Add" : "Hinzufügen",
     "Settings" : "Einstellungen",
@@ -27,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Öffentlicher Schlüssel",
     "Regenerate Keys" : "Schlüssel neu erzeugen",
     "OpenID Connect Redirect" : "OpenID Connect Weiterleitung",
+    "Delete" : "Löschen",
     "Client Identifier" : "Client-Identifikationsmerkmal",
     "Secret" : "Geheimnis",
     "Show client secret" : "Geheime Zeichenkette des Clients anzeigen",
     "-- NONE --" : "-- KEINER --",
     "Signing Algorithm" : "Signieralgorithmus",
-    "Type" : "Typ",
-    "Delete" : "Löschen"
+    "Type" : "Typ"
 },
 "nplurals=2; plural=(n != 1);");
