@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2022-10-15
+
+### Changed
+
+- Updated translations.
+
 ## [0.2.4] - 2022-10-11
 
 ### Changed
