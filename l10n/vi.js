@@ -13,10 +13,10 @@ OC.L10N.register(
     "10 minutes" : "10 phút",
     "15 minutes" : "15 phút",
     "30 minutes" : "30 phút",
+    "Delete" : "Xóa",
     "Client Identifier" : "Mã định danh ứng dụng khách",
     "Secret" : "Mật khẩu",
     "Show client secret" : "Hiện bí mật ứng dụng khách",
-    "Type" : "Loại",
-    "Delete" : "Xóa"
+    "Type" : "Loại"
 },
 "nplurals=1; plural=0;");

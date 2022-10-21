@@ -12,10 +12,10 @@
     "15 minutes" : "15分",
     "30 minutes" : "30分",
     "Public Key" : "公開鍵",
+    "Delete" : "削除",
     "Client Identifier" : "クライアントID",
     "Secret" : "シークレットキー",
     "Show client secret" : "クライアントシークレットキーを表示",
-    "Type" : "タイプ",
-    "Delete" : "削除"
+    "Type" : "タイプ"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

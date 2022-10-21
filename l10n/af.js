@@ -7,9 +7,9 @@ OC.L10N.register(
     "Add" : "Voeg by",
     "Settings" : "Instellings",
     "30 minutes" : "30 minute",
+    "Delete" : "Skrap",
     "Client Identifier" : "Kliëntidentifiseerder",
     "Secret" : "Geheim",
-    "Type" : "Tipe",
-    "Delete" : "Skrap"
+    "Type" : "Tipe"
 },
 "nplurals=2; plural=(n != 1);");

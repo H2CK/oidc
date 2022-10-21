@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "﻿ಹೆಸರು",
     "Add" : "﻿ಸೇರಿಸಿ",
     "Settings" : "ಆಯ್ಕೆ",
-    "Type" : "Type",
-    "Delete" : "﻿ಅಳಿಸಿ"
+    "Delete" : "﻿ಅಳಿಸಿ",
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n > 1);");

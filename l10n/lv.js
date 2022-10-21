@@ -11,9 +11,9 @@ OC.L10N.register(
     "5 minutes" : "5 minūtes",
     "15 minutes" : "15 minūtes",
     "30 minutes" : "30 minūtes",
+    "Delete" : "Dzēst",
     "Client Identifier" : "Klienta identifikators",
     "Secret" : "Noslēpums",
-    "Type" : "Tips",
-    "Delete" : "Dzēst"
+    "Type" : "Tips"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

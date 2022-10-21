@@ -12,10 +12,10 @@
     "15 minutes" : "15 分钟 ",
     "30 minutes" : "30 分钟",
     "Public Key" : "公钥",
+    "Delete" : "删除",
     "Client Identifier" : "客户端 ID",
     "Secret" : "Secret",
     "Show client secret" : "显示客户端 secret",
-    "Type" : "类型",
-    "Delete" : "删除"
+    "Type" : "类型"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

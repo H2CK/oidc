@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "ئاتى",
     "Add" : "قوش",
     "Settings" : "تەڭشەكلەر",
-    "Type" : "Type",
-    "Delete" : "ئۆچۈر"
+    "Delete" : "ئۆچۈر",
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");

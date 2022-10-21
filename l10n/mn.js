@@ -8,7 +8,7 @@ OC.L10N.register(
     "5 minutes" : "5 минут",
     "15 minutes" : "15 минут",
     "30 minutes" : "30 минут",
-    "Type" : "Төрөл",
-    "Delete" : "Устгах"
+    "Delete" : "Устгах",
+    "Type" : "Төрөл"
 },
 "nplurals=2; plural=(n != 1);");

@@ -14,10 +14,10 @@ OC.L10N.register(
     "15 minutes" : "15 minuts",
     "30 minutes" : "30 minuts",
     "Public Key" : "Clau pública",
+    "Delete" : "Suprimeix",
     "Client Identifier" : "Identificador del client",
     "Secret" : "Secret",
     "Show client secret" : "Mostra el secret del client",
-    "Type" : "Tipus",
-    "Delete" : "Suprimeix"
+    "Type" : "Tipus"
 },
 "nplurals=2; plural=(n != 1);");

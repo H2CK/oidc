@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "Անուն",
     "Add" : "Ավելացնել",
     "Settings" : "կարգավորումներ",
-    "Type" : "Տիպ",
-    "Delete" : "հեռացնել"
+    "Delete" : "հեռացնել",
+    "Type" : "Տիպ"
 },
 "nplurals=2; plural=(n != 1);");

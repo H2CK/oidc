@@ -11,9 +11,9 @@ OC.L10N.register(
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
+    "Delete" : "Eliminar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",
-    "Type" : "Escribir",
-    "Delete" : "Eliminar"
+    "Type" : "Escribir"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

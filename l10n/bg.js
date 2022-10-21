@@ -28,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Публичен ключ",
     "Regenerate Keys" : "Регенериране на ключове",
     "OpenID Connect Redirect" : "OpenID Connect Пренасочване",
+    "Delete" : "Изтриване",
     "Client Identifier" : "Идентификатор на клиента",
     "Secret" : "Тайна",
     "Show client secret" : "Покажете тайната на клиента",
     "-- NONE --" : "-- НЯМА --",
     "Signing Algorithm" : "Алгоритъм за подписване",
-    "Type" : "Тип",
-    "Delete" : "Изтриване"
+    "Type" : "Тип"
 },
 "nplurals=2; plural=(n != 1);");

@@ -5,7 +5,7 @@ OC.L10N.register(
     "Add" : "Rnu",
     "Settings" : "Iɣewwaṛen",
     "30 minutes" : "30 n tesdatin",
-    "Type" : "Anaw",
-    "Delete" : "Kkes"
+    "Delete" : "Kkes",
+    "Type" : "Anaw"
 },
 "nplurals=2; plural=(n != 1);");

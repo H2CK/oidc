@@ -12,10 +12,10 @@
     "15 minutes" : "15 minutas",
     "30 minutes" : "30  minutas",
     "Public Key" : "Clau publica",
+    "Delete" : "Suprimir",
     "Client Identifier" : "Identificador client",
     "Secret" : "Secret",
     "Show client secret" : "Afichar lo secret del client",
-    "Type" : "Tipe",
-    "Delete" : "Suprimir"
+    "Type" : "Tipe"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

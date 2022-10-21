@@ -14,10 +14,10 @@ OC.L10N.register(
     "15 minutes" : "15 minuta",
     "30 minutes" : "30 minuta",
     "Public Key" : "Javni ključ",
+    "Delete" : "Izbriši",
     "Client Identifier" : "Identifikator klijenta",
     "Secret" : "Tajno",
     "Show client secret" : "Prikaži tajni ključ klijenta",
-    "Type" : "Vrsta",
-    "Delete" : "Izbriši"
+    "Type" : "Vrsta"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

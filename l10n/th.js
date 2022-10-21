@@ -6,7 +6,7 @@ OC.L10N.register(
     "Add" : "เพิ่ม",
     "Settings" : "การตั้งค่า",
     "30 minutes" : "30 นาที",
-    "Type" : "ประเภท",
-    "Delete" : "ลบ"
+    "Delete" : "ลบ",
+    "Type" : "ประเภท"
 },
 "nplurals=1; plural=0;");

@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "Ad",
     "Add" : "Əlavə etmək",
     "Settings" : "Quraşdırmalar",
-    "Type" : "Type",
-    "Delete" : "Sil"
+    "Delete" : "Sil",
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");

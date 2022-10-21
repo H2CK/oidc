@@ -14,10 +14,10 @@ OC.L10N.register(
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
     "Public Key" : "Crae pùblica",
+    "Delete" : "Cantzella",
     "Client Identifier" : "Identificadore cliente",
     "Secret" : "Segretu",
     "Show client secret" : "Mustra su segretu de su cliente",
-    "Type" : "Genia",
-    "Delete" : "Cantzella"
+    "Type" : "Genia"
 },
 "nplurals=2; plural=(n != 1);");

@@ -12,9 +12,9 @@ OC.L10N.register(
     "15 minutes" : "15 minutter",
     "30 minutes" : "30 minutter",
     "Public Key" : "Offentlig nøgle",
+    "Delete" : "Slet",
     "Client Identifier" : "Klient ID",
     "Secret" : "Hemmelighed",
-    "Type" : "Type",
-    "Delete" : "Slet"
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");

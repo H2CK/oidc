@@ -28,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Gako publikoa",
     "Regenerate Keys" : "Berriro sortu gakoak",
     "OpenID Connect Redirect" : "OpenID Connect birbideraketa",
+    "Delete" : "Ezabatu",
     "Client Identifier" : "Bezeroaren Identifikadorea",
     "Secret" : "Sekretua",
     "Show client secret" : "Erakutsi bezeroaren sekretua",
     "-- NONE --" : "-- BAT ERE EZ --",
     "Signing Algorithm" : "Sinatze algoritmoa",
-    "Type" : "Mota",
-    "Delete" : "Ezabatu"
+    "Type" : "Mota"
 },
 "nplurals=2; plural=(n != 1);");

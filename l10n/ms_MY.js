@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "Nama",
     "Add" : "Tambah",
     "Settings" : "Tetapan",
-    "Type" : "Jenis",
-    "Delete" : "Padam"
+    "Delete" : "Padam",
+    "Type" : "Jenis"
 },
 "nplurals=1; plural=0;");

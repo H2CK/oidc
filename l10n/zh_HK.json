@@ -26,12 +26,12 @@
     "Public Key" : "公鑰",
     "Regenerate Keys" : "重新生成密鑰",
     "OpenID Connect Redirect" : "OpenID 連接重定向",
+    "Delete" : "刪除",
     "Client Identifier" : "用戶識別",
     "Secret" : "密鑰",
     "Show client secret" : "顯示客戶端密碼",
     "-- NONE --" : "-- 無 --",
     "Signing Algorithm" : "簽名算法",
-    "Type" : "類型",
-    "Delete" : "刪除"
+    "Type" : "類型"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

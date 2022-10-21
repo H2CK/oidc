@@ -5,9 +5,9 @@
     "Public" : "Publik",
     "Add" : "Masukkan",
     "Settings" : "Setelan",
+    "Delete" : "Hapus",
     "Client Identifier" : "Identifier klien",
     "Secret" : "Rahasia",
-    "Type" : "tipe",
-    "Delete" : "Hapus"
+    "Type" : "tipe"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

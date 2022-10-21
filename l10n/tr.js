@@ -28,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Herkese açık anahtar",
     "Regenerate Keys" : "Anahtarları yeniden üret",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",
+    "Delete" : "Sil",
     "Client Identifier" : "İstemci belirteci",
     "Secret" : "Parola",
     "Show client secret" : "İstemci parolasını görüntüle",
     "-- NONE --" : "-- YOK --",
     "Signing Algorithm" : "İmzalama algoritması",
-    "Type" : "Tür",
-    "Delete" : "Sil"
+    "Type" : "Tür"
 },
 "nplurals=2; plural=(n > 1);");

@@ -12,10 +12,10 @@ OC.L10N.register(
     "5 minutes" : "5 minutes",
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
+    "Delete" : "Delete",
     "Client Identifier" : "Client Identifier",
     "Secret" : "Secret",
     "Show client secret" : "Show client secret",
-    "Type" : "Type",
-    "Delete" : "Delete"
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");

@@ -14,10 +14,10 @@ OC.L10N.register(
     "15 minutes" : "15 דקות",
     "30 minutes" : "30 דקות",
     "Public Key" : "מפתח ציבורי",
+    "Delete" : "מחיקה",
     "Client Identifier" : "זיהוי לקו",
     "Secret" : "סוד",
     "Show client secret" : "הצגת סוד לקוח",
-    "Type" : "סוג",
-    "Delete" : "מחיקה"
+    "Type" : "סוג"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: (n % 10 == 0 && n % 1 == 0 && n > 10) ? 2 : 3;");

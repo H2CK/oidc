@@ -13,10 +13,10 @@ OC.L10N.register(
     "10 minutes" : "10 mínútur",
     "15 minutes" : "15 mínútur",
     "30 minutes" : "30 mínútur",
+    "Delete" : "Eyða",
     "Client Identifier" : "Biðlaraauðkenni",
     "Secret" : "Leyni",
     "Show client secret" : "Sýna leynilykil biðlara",
-    "Type" : "Tegund",
-    "Delete" : "Eyða"
+    "Type" : "Tegund"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

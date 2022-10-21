@@ -5,9 +5,9 @@
     "Public" : "Avalik",
     "Add" : "Lisa",
     "Settings" : "Seaded",
+    "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",
     "Secret" : "Salajane",
-    "Type" : "Tüüp",
-    "Delete" : "Kustuta"
+    "Type" : "Tüüp"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

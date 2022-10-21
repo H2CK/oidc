@@ -28,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "公鑰",
     "Regenerate Keys" : "重新生成密鑰",
     "OpenID Connect Redirect" : "OpenID Connect 重新導向",
+    "Delete" : "刪除",
     "Client Identifier" : "客戶端識別",
     "Secret" : "密碼",
     "Show client secret" : "顯示客戶端密碼",
     "-- NONE --" : "-- 無 --",
     "Signing Algorithm" : "簽章演算法",
-    "Type" : "類型",
-    "Delete" : "刪除"
+    "Type" : "類型"
 },
 "nplurals=1; plural=0;");

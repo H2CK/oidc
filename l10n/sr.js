@@ -13,10 +13,10 @@ OC.L10N.register(
     "10 minutes" : "10 минута",
     "15 minutes" : "15 минута",
     "30 minutes" : "30 минута",
+    "Delete" : "Избриши",
     "Client Identifier" : "Идентификација клијента",
     "Secret" : "Тајни",
     "Show client secret" : "Прикажи клијентску лозинку",
-    "Type" : "Тип",
-    "Delete" : "Избриши"
+    "Type" : "Тип"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

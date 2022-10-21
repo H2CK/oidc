@@ -7,9 +7,9 @@ OC.L10N.register(
     "Public" : "Avalik",
     "Add" : "Lisa",
     "Settings" : "Seaded",
+    "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",
     "Secret" : "Salajane",
-    "Type" : "Tüüp",
-    "Delete" : "Kustuta"
+    "Type" : "Tüüp"
 },
 "nplurals=2; plural=(n != 1);");

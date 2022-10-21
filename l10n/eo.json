@@ -3,8 +3,8 @@
     "Public" : "Publika",
     "Add" : "Aldoni",
     "Settings" : "Agordoj",
+    "Delete" : "Forigi",
     "Secret" : "Sekreta",
-    "Type" : "Tipo",
-    "Delete" : "Forigi"
+    "Type" : "Tipo"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -13,10 +13,10 @@ OC.L10N.register(
     "10 minutes" : "10 minutter",
     "15 minutes" : "15 minutter",
     "30 minutes" : "30 minutter",
+    "Delete" : "Slett",
     "Client Identifier" : "Klient-identifikator",
     "Secret" : "Hemmelig",
     "Show client secret" : "Vis klients hemmelighet",
-    "Type" : "Type",
-    "Delete" : "Slett"
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");

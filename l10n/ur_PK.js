@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "اسم",
     "Add" : "شامل کریں",
     "Settings" : "سیٹینگز",
-    "Type" : "Type",
-    "Delete" : "حذف کریں"
+    "Delete" : "حذف کریں",
+    "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");

@@ -14,10 +14,10 @@ OC.L10N.register(
     "15 minutes" : "15 minut",
     "30 minutes" : "30 minut",
     "Public Key" : "Javni ključ",
+    "Delete" : "Izbriši",
     "Client Identifier" : "ID odjemalca",
     "Secret" : "Skrivna koda",
     "Show client secret" : "Pokaži skrivno kodo odjemalca",
-    "Type" : "Vrsta",
-    "Delete" : "Izbriši"
+    "Type" : "Vrsta"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

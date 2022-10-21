@@ -28,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Veřejný klíč",
     "Regenerate Keys" : "Znovu vytvořit klíče",
     "OpenID Connect Redirect" : "Přesměrování OpenID Connect",
+    "Delete" : "Smazat",
     "Client Identifier" : "Identifikátor klienta",
     "Secret" : "Soukromý",
     "Show client secret" : "Zobrazit klientské tajemství",
     "-- NONE --" : "-- ŽÁDNÉ --",
     "Signing Algorithm" : "Algoritmus podepisování",
-    "Type" : "Typ",
-    "Delete" : "Smazat"
+    "Type" : "Typ"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

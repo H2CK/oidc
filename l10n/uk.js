@@ -26,12 +26,12 @@ OC.L10N.register(
     "Public Key" : "Відкритий ключ",
     "Regenerate Keys" : "Відновити ключі",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",
+    "Delete" : "Вилучити",
     "Client Identifier" : "Ідентифікатор клієнта",
     "Secret" : "Секретне",
     "Show client secret" : "Показати секрет клієнта",
     "-- NONE --" : "-- NONE --",
     "Signing Algorithm" : "Алгоритм підписання",
-    "Type" : "Тип",
-    "Delete" : "Вилучити"
+    "Type" : "Тип"
 },
 "nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);");

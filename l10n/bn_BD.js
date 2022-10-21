@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "নাম",
     "Add" : "যোগ করুন",
     "Settings" : "সেটিংস",
-    "Type" : "ধরণ",
-    "Delete" : "মুছে"
+    "Delete" : "মুছে",
+    "Type" : "ধরণ"
 },
 "nplurals=2; plural=(n != 1);");

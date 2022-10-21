@@ -5,8 +5,8 @@ OC.L10N.register(
     "Public" : "Publika",
     "Add" : "Aldoni",
     "Settings" : "Agordoj",
+    "Delete" : "Forigi",
     "Secret" : "Sekreta",
-    "Type" : "Tipo",
-    "Delete" : "Forigi"
+    "Type" : "Tipo"
 },
 "nplurals=2; plural=(n != 1);");

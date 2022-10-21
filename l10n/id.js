@@ -7,9 +7,9 @@ OC.L10N.register(
     "Public" : "Publik",
     "Add" : "Masukkan",
     "Settings" : "Setelan",
+    "Delete" : "Hapus",
     "Client Identifier" : "Identifier klien",
     "Secret" : "Rahasia",
-    "Type" : "tipe",
-    "Delete" : "Hapus"
+    "Type" : "tipe"
 },
 "nplurals=1; plural=0;");

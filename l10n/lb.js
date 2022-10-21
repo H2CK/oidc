@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "Numm",
     "Add" : "Derbäimaachen",
     "Settings" : "Astellungen",
-    "Type" : "Typ",
-    "Delete" : "Läschen"
+    "Delete" : "Läschen",
+    "Type" : "Typ"
 },
 "nplurals=2; plural=(n != 1);");

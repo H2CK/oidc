@@ -5,7 +5,7 @@ OC.L10N.register(
     "Public" : "Public",
     "Add" : "Adder",
     "Settings" : "Configurationes",
-    "Type" : "Typo",
-    "Delete" : "Deler"
+    "Delete" : "Deler",
+    "Type" : "Typo"
 },
 "nplurals=2; plural=(n != 1);");

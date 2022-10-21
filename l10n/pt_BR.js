@@ -28,12 +28,12 @@ OC.L10N.register(
     "Public Key" : "Chave pública",
     "Regenerate Keys" : "Regenerar Chaves",
     "OpenID Connect Redirect" : "OpenID Connect Redirecto",
+    "Delete" : "Excluir",
     "Client Identifier" : "Identificador do Cliente",
     "Secret" : "Secreto",
     "Show client secret" : "Mostra senha do cliente",
     "-- NONE --" : "-- NENHUM --",
     "Signing Algorithm" : "Algoritmo de Assinatura",
-    "Type" : "Tipo",
-    "Delete" : "Excluir"
+    "Type" : "Tipo"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -4,7 +4,7 @@ OC.L10N.register(
     "Name" : "ឈ្មោះ",
     "Add" : "បញ្ចូល",
     "Settings" : "ការកំណត់",
-    "Type" : "ប្រភេទ",
-    "Delete" : "លុប"
+    "Delete" : "លុប",
+    "Type" : "ប្រភេទ"
 },
 "nplurals=1; plural=0;");

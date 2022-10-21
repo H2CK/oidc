@@ -26,12 +26,12 @@
     "Public Key" : "Klucz publiczny",
     "Regenerate Keys" : "Wygeneruj ponownie klucze",
     "OpenID Connect Redirect" : "Przekierowanie OpenID Connect",
+    "Delete" : "Usuń",
     "Client Identifier" : "Identyfikator Klienta",
     "Secret" : "Tajny klucz",
     "Show client secret" : "Pokaż tajny klucz klienta",
     "-- NONE --" : "-- ŻADEN --",
     "Signing Algorithm" : "Algorytm podpisywania",
-    "Type" : "Rodzaj",
-    "Delete" : "Usuń"
+    "Type" : "Rodzaj"
 },"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
 }
