@@ -73,7 +73,8 @@ class DiscoveryController extends ApiController
 	 */
 	public function getInfo(): JSONResponse
 	{
-        $issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
+		$host = $this->request->getServerProtocol() . '://' . $this->request->getServerHost();
+        $issuer = $host . $this->urlGenerator->getWebroot();
         $scopesSupported = [
             'openid',
             'profile',
@@ -151,10 +152,10 @@ class DiscoveryController extends ApiController
 
 		$discoveryPayload = [
 			'issuer' => $issuer,
-			'authorization_endpoint' => $issuer . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
-			'token_endpoint' => $issuer . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
-            'userinfo_endpoint' => $issuer . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []),
-            'jwks_uri' => $issuer . $this->urlGenerator->linkToRoute('oidc.Jwks.getKeyInfo', []),
+			'authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
+			'token_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
+            'userinfo_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []),
+            'jwks_uri' => $host . $this->urlGenerator->linkToRoute('oidc.Jwks.getKeyInfo', []),
             'scopes_supported' => $scopesSupported,
             'response_types_supported' => $responseTypesSupported,
             'response_modes_supported' => $responseModesSupported,
