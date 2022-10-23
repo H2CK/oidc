@@ -13,6 +13,7 @@ OC.L10N.register(
     "Redirection URI" : "Átirányítási URI",
     "Select Signing Algorithm" : "Válasszon aláírási algoritmust",
     "Select Type" : "Válasszon típust",
+    "Confidential" : "Bizalmas",
     "Public" : "Nyilvános",
     "Add" : "Hozzáadás",
     "Settings" : "Beállítások",
