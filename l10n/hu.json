@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Az Ön kliensalkalmazása számára nem engedélyezett a kapcsolódás. Értesítse a kliense rendszergazdáját.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "A megadott átirányítási webcím nem elfogadott a kapcsolódáshoz. Tájékoztassa a kliens rendszergazdáját.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Az átirányítási webcímnek teljes webcímnek kell lennie, például: https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC személyazonosság-szolgáltató",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextclous mint OpenID Connect személyazonosság-szolgáltató",
