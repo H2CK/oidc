@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.7] - 2022-12-04
+
+### Changed
+
+- Updated package dependencies. Requires now Node 16.
+
 ## [0.2.6] - 2022-10-21
 
 ### Changed
