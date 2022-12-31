@@ -31,7 +31,7 @@
 		"@nextcloud/eslint-plugin": "^2.0.0",
 		"@nextcloud/initial-state": "^2.0.0",
 		"@nextcloud/logger": "^2.1.0",
-		"@nextcloud/router": "^2.0.0",
+		"@nextcloud/router": "^2.0.1",
 		"@nextcloud/vue": "^7.2.0",
 		"@vue/compiler-sfc": "^3.2.39",
 		"babel-loader": "^8.2.3",
