@@ -13,6 +13,7 @@ OC.L10N.register(
     "Delete" : "წაშლა",
     "Client Identifier" : "კლიენტის იდენტიფიკატორი",
     "Secret" : "საიდუმლო",
+    "Show client secret" : "გამოაჩინე კლიენტის საიდუმლო",
     "Type" : "სახეობა"
 },
 "nplurals=2; plural=(n!=1);");
