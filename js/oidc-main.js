@@ -92,8 +92,9 @@ __webpack_require__.r(__webpack_exports__);
 
 const RETRY_KEY = Symbol('csrf-retry');
 const onError$2 = axios => async (error) => {
-    const { config, response, request: { responseURL } } = error;
-    const { status } = response;
+    const { config, response, request } = error;
+    const responseURL = request?.responseURL;
+    const status = response?.status;
     if (status === 412
         && response?.data?.message === 'CSRF check failed'
         && config[RETRY_KEY] === undefined) {
@@ -115,8 +116,10 @@ const onError$2 = axios => async (error) => {
 
 const RETRY_DELAY_KEY = Symbol('retryDelay');
 const onError$1 = axios => async (error) => {
-    const { config, response, request: { responseURL } } = error;
-    const { status, headers } = response;
+    const { config, response, request } = error;
+    const responseURL = request?.responseURL;
+    const status = response?.status;
+    const headers = response?.headers;
     /**
      * Retry requests if they failed due to maintenance mode
      *
@@ -143,8 +146,9 @@ const onError$1 = axios => async (error) => {
 };
 
 const onError = async (error) => {
-    const { config, response, request: { responseURL } } = error;
-    const { status } = response;
+    const { config, response, request } = error;
+    const responseURL = request?.responseURL;
+    const status = response?.status;
     if (status === 401
         && response?.data?.message === 'Current user is not logged in'
         && config.reloadExpiredSession
@@ -1007,13 +1011,17 @@ function loadState(app, key, fallback) {
 "use strict";
 
 
+__webpack_require__(/*! core-js/modules/es.object.define-property.js */ "./node_modules/core-js/modules/es.object.define-property.js");
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.getRootUrl = exports.generateFilePath = exports.imagePath = exports.generateUrl = exports.generateOcsUrl = exports.generateRemoteUrl = exports.linkTo = void 0;
-
+exports.linkTo = exports.imagePath = exports.getRootUrl = exports.generateUrl = exports.generateRemoteUrl = exports.generateOcsUrl = exports.generateFilePath = void 0;
+__webpack_require__(/*! core-js/modules/es.object.assign.js */ "./node_modules/core-js/modules/es.object.assign.js");
+__webpack_require__(/*! core-js/modules/es.regexp.exec.js */ "./node_modules/core-js/modules/es.regexp.exec.js");
 __webpack_require__(/*! core-js/modules/es.string.replace.js */ "./node_modules/core-js/modules/es.string.replace.js");
-
+__webpack_require__(/*! core-js/modules/es.object.to-string.js */ "./node_modules/core-js/modules/es.object.to-string.js");
+__webpack_require__(/*! core-js/modules/es.regexp.to-string.js */ "./node_modules/core-js/modules/es.regexp.to-string.js");
+__webpack_require__(/*! core-js/modules/es.array.index-of.js */ "./node_modules/core-js/modules/es.array.index-of.js");
 /// <reference types="@nextcloud/typings" />
 
 /**
@@ -1023,26 +1031,30 @@ __webpack_require__(/*! core-js/modules/es.string.replace.js */ "./node_modules/
  * @param {string} file the file path relative to the app folder
  * @return {string} URL with webroot to a file
  */
-const linkTo = (app, file) => generateFilePath(app, '', file);
+var linkTo = function linkTo(app, file) {
+  return generateFilePath(app, '', file);
+};
+
 /**
  * Creates a relative url for remote use
  *
  * @param {string} service id
  * @return {string} the url
  */
-
-
 exports.linkTo = linkTo;
+var linkToRemoteBase = function linkToRemoteBase(service) {
+  return getRootUrl() + '/remote.php/' + service;
+};
 
-const linkToRemoteBase = service => getRootUrl() + '/remote.php/' + service;
 /**
  * @brief Creates an absolute url for remote use
  * @param {string} service id
  * @return {string} the url
  */
+var generateRemoteUrl = function generateRemoteUrl(service) {
+  return window.location.protocol + '//' + window.location.host + linkToRemoteBase(service);
+};
 
-
-const generateRemoteUrl = service => window.location.protocol + '//' + window.location.host + linkToRemoteBase(service);
 /**
  * Get the base path for the given OCS API service
  *
@@ -1053,20 +1065,15 @@ const generateRemoteUrl = service => window.location.protocol + '//' + window.lo
  * @param {Number} options.ocsVersion OCS version to use (defaults to 2)
  * @return {string} Absolute path for the OCS URL
  */
-
-
 exports.generateRemoteUrl = generateRemoteUrl;
-
-const generateOcsUrl = (url, params, options) => {
-  const allOptions = Object.assign({
+var generateOcsUrl = function generateOcsUrl(url, params, options) {
+  var allOptions = Object.assign({
     ocsVersion: 2
   }, options || {});
-  const version = allOptions.ocsVersion === 1 ? 1 : 2;
+  var version = allOptions.ocsVersion === 1 ? 1 : 2;
   return window.location.protocol + '//' + window.location.host + getRootUrl() + '/ocs/v' + version + '.php' + _generateUrlPath(url, params, options);
 };
-
 exports.generateOcsUrl = generateOcsUrl;
-
 /**
  * Generate a url path, which can contain parameters
  *
@@ -1077,16 +1084,14 @@ exports.generateOcsUrl = generateOcsUrl;
  * @param {UrlOptions} options options for the parameter replacement
  * @return {string} Path part for the given URL
  */
-const _generateUrlPath = (url, params, options) => {
-  const allOptions = Object.assign({
+var _generateUrlPath = function _generateUrlPath(url, params, options) {
+  var allOptions = Object.assign({
     escape: true
   }, options || {});
-
-  const _build = function (text, vars) {
+  var _build = function _build(text, vars) {
     vars = vars || {};
     return text.replace(/{([^{}]*)}/g, function (a, b) {
       var r = vars[b];
-
       if (allOptions.escape) {
         return typeof r === 'string' || typeof r === 'number' ? encodeURIComponent(r.toString()) : encodeURIComponent(a);
       } else {
@@ -1094,13 +1099,12 @@ const _generateUrlPath = (url, params, options) => {
       }
     });
   };
-
   if (url.charAt(0) !== '/') {
     url = '/' + url;
   }
-
   return _build(url, params || {});
 };
+
 /**
  * Generate the url with webroot for the given relative url, which can contain parameters
  *
@@ -1113,19 +1117,17 @@ const _generateUrlPath = (url, params, options) => {
  * @param {boolean} options.escape Set to false if parameters should not be URL encoded (default true)
  * @return {string} URL with webroot for the given relative URL
  */
-
-
-const generateUrl = (url, params, options) => {
-  const allOptions = Object.assign({
+var generateUrl = function generateUrl(url, params, options) {
+  var _window, _window$OC, _window$OC$config;
+  var allOptions = Object.assign({
     noRewrite: false
   }, options || {});
-
-  if (OC.config.modRewriteWorking === true && !allOptions.noRewrite) {
+  if (((_window = window) === null || _window === void 0 ? void 0 : (_window$OC = _window.OC) === null || _window$OC === void 0 ? void 0 : (_window$OC$config = _window$OC.config) === null || _window$OC$config === void 0 ? void 0 : _window$OC$config.modRewriteWorking) === true && !allOptions.noRewrite) {
     return getRootUrl() + _generateUrlPath(url, params, options);
   }
-
   return getRootUrl() + '/index.php' + _generateUrlPath(url, params, options);
 };
+
 /**
  * Get the path with webroot to an image file
  * if no extension is given for the image, it will automatically decide
@@ -1135,18 +1137,15 @@ const generateUrl = (url, params, options) => {
  * @param {string} file the name of the image file
  * @return {string}
  */
-
-
 exports.generateUrl = generateUrl;
-
-const imagePath = (app, file) => {
+var imagePath = function imagePath(app, file) {
   if (file.indexOf('.') === -1) {
     //if no extension is given, use svg
     return generateFilePath(app, 'img', file + '.svg');
   }
-
   return generateFilePath(app, 'img', file);
 };
+
 /**
  * Get the url with webroot for a file in an app
  *
@@ -1155,37 +1154,29 @@ const imagePath = (app, file) => {
  * @param {string} file the filename
  * @return {string} URL with webroot for a file in an app
  */
-
-
 exports.imagePath = imagePath;
-
-const generateFilePath = (app, type, file) => {
-  const isCore = OC.coreApps.indexOf(app) !== -1;
-  let link = getRootUrl();
-
+var generateFilePath = function generateFilePath(app, type, file) {
+  var _window2, _window2$OC, _window2$OC$coreApps;
+  var isCore = ((_window2 = window) === null || _window2 === void 0 ? void 0 : (_window2$OC = _window2.OC) === null || _window2$OC === void 0 ? void 0 : (_window2$OC$coreApps = _window2$OC.coreApps) === null || _window2$OC$coreApps === void 0 ? void 0 : _window2$OC$coreApps.indexOf(app)) !== -1;
+  var link = getRootUrl();
   if (file.substring(file.length - 3) === 'php' && !isCore) {
     link += '/index.php/apps/' + app;
-
     if (file !== 'index.php') {
       link += '/';
-
       if (type) {
         link += encodeURI(type + '/');
       }
-
       link += file;
     }
   } else if (file.substring(file.length - 3) !== 'php' && !isCore) {
-    link = OC.appswebroots[app];
-
+    var _window3, _window3$OC, _window3$OC$appswebro;
+    link = (_window3 = window) === null || _window3 === void 0 ? void 0 : (_window3$OC = _window3.OC) === null || _window3$OC === void 0 ? void 0 : (_window3$OC$appswebro = _window3$OC.appswebroots) === null || _window3$OC$appswebro === void 0 ? void 0 : _window3$OC$appswebro[app];
     if (type) {
       link += '/' + type + '/';
     }
-
     if (link.substring(link.length - 1) !== '/') {
       link += '/';
     }
-
     link += file;
   } else {
     if ((app === 'settings' || app === 'core' || app === 'search') && type === 'ajax') {
@@ -1193,25 +1184,21 @@ const generateFilePath = (app, type, file) => {
     } else {
       link += '/';
     }
-
     if (!isCore) {
       link += 'apps/';
     }
-
     if (app !== '') {
       app += '/';
       link += app;
     }
-
     if (type) {
       link += type + '/';
     }
-
     link += file;
   }
-
   return link;
 };
+
 /**
  * Return the web root path where this Nextcloud instance
  * is accessible, with a leading slash.
@@ -1219,12 +1206,11 @@ const generateFilePath = (app, type, file) => {
  *
  * @return {string} web root path
  */
-
-
 exports.generateFilePath = generateFilePath;
-
-const getRootUrl = () => OC.webroot;
-
+var getRootUrl = function getRootUrl() {
+  var _window4, _window4$OC;
+  return ((_window4 = window) === null || _window4 === void 0 ? void 0 : (_window4$OC = _window4.OC) === null || _window4$OC === void 0 ? void 0 : _window4$OC.webroot) || '';
+};
 exports.getRootUrl = getRootUrl;
 //# sourceMappingURL=index.js.map
 
@@ -8865,6 +8851,27 @@ module.exports = {
 
 /***/ }),
 
+/***/ "./node_modules/core-js/internals/array-method-is-strict.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/core-js/internals/array-method-is-strict.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/core-js/internals/fails.js");
+
+module.exports = function (METHOD_NAME, argument) {
+  var method = [][METHOD_NAME];
+  return !!method && fails(function () {
+    // eslint-disable-next-line no-useless-call -- required for testing
+    method.call(null, argument || function () { return 1; }, 1);
+  });
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/core-js/internals/classof-raw.js":
 /*!*******************************************************!*\
   !*** ./node_modules/core-js/internals/classof-raw.js ***!
@@ -9989,6 +9996,74 @@ module.exports = Math.trunc || function trunc(x) {
 
 /***/ }),
 
+/***/ "./node_modules/core-js/internals/object-assign.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/core-js/internals/object-assign.js ***!
+  \*********************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "./node_modules/core-js/internals/descriptors.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this */ "./node_modules/core-js/internals/function-uncurry-this.js");
+var call = __webpack_require__(/*! ../internals/function-call */ "./node_modules/core-js/internals/function-call.js");
+var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/core-js/internals/fails.js");
+var objectKeys = __webpack_require__(/*! ../internals/object-keys */ "./node_modules/core-js/internals/object-keys.js");
+var getOwnPropertySymbolsModule = __webpack_require__(/*! ../internals/object-get-own-property-symbols */ "./node_modules/core-js/internals/object-get-own-property-symbols.js");
+var propertyIsEnumerableModule = __webpack_require__(/*! ../internals/object-property-is-enumerable */ "./node_modules/core-js/internals/object-property-is-enumerable.js");
+var toObject = __webpack_require__(/*! ../internals/to-object */ "./node_modules/core-js/internals/to-object.js");
+var IndexedObject = __webpack_require__(/*! ../internals/indexed-object */ "./node_modules/core-js/internals/indexed-object.js");
+
+// eslint-disable-next-line es/no-object-assign -- safe
+var $assign = Object.assign;
+// eslint-disable-next-line es/no-object-defineproperty -- required for testing
+var defineProperty = Object.defineProperty;
+var concat = uncurryThis([].concat);
+
+// `Object.assign` method
+// https://tc39.es/ecma262/#sec-object.assign
+module.exports = !$assign || fails(function () {
+  // should have correct order of operations (Edge bug)
+  if (DESCRIPTORS && $assign({ b: 1 }, $assign(defineProperty({}, 'a', {
+    enumerable: true,
+    get: function () {
+      defineProperty(this, 'b', {
+        value: 3,
+        enumerable: false
+      });
+    }
+  }), { b: 2 })).b !== 1) return true;
+  // should work with symbols and should have deterministic property order (V8 bug)
+  var A = {};
+  var B = {};
+  // eslint-disable-next-line es/no-symbol -- safe
+  var symbol = Symbol();
+  var alphabet = 'abcdefghijklmnopqrst';
+  A[symbol] = 7;
+  alphabet.split('').forEach(function (chr) { B[chr] = chr; });
+  return $assign({}, A)[symbol] != 7 || objectKeys($assign({}, B)).join('') != alphabet;
+}) ? function assign(target, source) { // eslint-disable-line no-unused-vars -- required for `.length`
+  var T = toObject(target);
+  var argumentsLength = arguments.length;
+  var index = 1;
+  var getOwnPropertySymbols = getOwnPropertySymbolsModule.f;
+  var propertyIsEnumerable = propertyIsEnumerableModule.f;
+  while (argumentsLength > index) {
+    var S = IndexedObject(arguments[index++]);
+    var keys = getOwnPropertySymbols ? concat(objectKeys(S), getOwnPropertySymbols(S)) : objectKeys(S);
+    var length = keys.length;
+    var j = 0;
+    var key;
+    while (length > j) {
+      key = keys[j++];
+      if (!DESCRIPTORS || call(propertyIsEnumerable, S, key)) T[key] = S[key];
+    }
+  } return T;
+} : $assign;
+
+
+/***/ }),
+
 /***/ "./node_modules/core-js/internals/object-create.js":
 /*!*********************************************************!*\
   !*** ./node_modules/core-js/internals/object-create.js ***!
@@ -10317,6 +10392,26 @@ exports.f = NASHORN_BUG ? function propertyIsEnumerable(V) {
 
 /***/ }),
 
+/***/ "./node_modules/core-js/internals/object-to-string.js":
+/*!************************************************************!*\
+  !*** ./node_modules/core-js/internals/object-to-string.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+var TO_STRING_TAG_SUPPORT = __webpack_require__(/*! ../internals/to-string-tag-support */ "./node_modules/core-js/internals/to-string-tag-support.js");
+var classof = __webpack_require__(/*! ../internals/classof */ "./node_modules/core-js/internals/classof.js");
+
+// `Object.prototype.toString` method implementation
+// https://tc39.es/ecma262/#sec-object.prototype.tostring
+module.exports = TO_STRING_TAG_SUPPORT ? {}.toString : function toString() {
+  return '[object ' + classof(this) + ']';
+};
+
+
+/***/ }),
+
 /***/ "./node_modules/core-js/internals/ordinary-to-primitive.js":
 /*!*****************************************************************!*\
   !*** ./node_modules/core-js/internals/ordinary-to-primitive.js ***!
@@ -10548,6 +10643,28 @@ module.exports = function () {
   if (that.unicodeSets) result += 'v';
   if (that.sticky) result += 'y';
   return result;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/internals/regexp-get-flags.js":
+/*!************************************************************!*\
+  !*** ./node_modules/core-js/internals/regexp-get-flags.js ***!
+  \************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var call = __webpack_require__(/*! ../internals/function-call */ "./node_modules/core-js/internals/function-call.js");
+var hasOwn = __webpack_require__(/*! ../internals/has-own-property */ "./node_modules/core-js/internals/has-own-property.js");
+var isPrototypeOf = __webpack_require__(/*! ../internals/object-is-prototype-of */ "./node_modules/core-js/internals/object-is-prototype-of.js");
+var regExpFlags = __webpack_require__(/*! ../internals/regexp-flags */ "./node_modules/core-js/internals/regexp-flags.js");
+
+var RegExpPrototype = RegExp.prototype;
+
+module.exports = function (R) {
+  var flags = R.flags;
+  return flags === undefined && !('flags' in RegExpPrototype) && !hasOwn(R, 'flags') && isPrototypeOf(RegExpPrototype, R)
+    ? call(regExpFlags, R) : flags;
 };
 
 
@@ -11092,6 +11209,98 @@ module.exports = function (name) {
 
 /***/ }),
 
+/***/ "./node_modules/core-js/modules/es.array.index-of.js":
+/*!***********************************************************!*\
+  !*** ./node_modules/core-js/modules/es.array.index-of.js ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+/* eslint-disable es/no-array-prototype-indexof -- required for testing */
+var $ = __webpack_require__(/*! ../internals/export */ "./node_modules/core-js/internals/export.js");
+var uncurryThis = __webpack_require__(/*! ../internals/function-uncurry-this-clause */ "./node_modules/core-js/internals/function-uncurry-this-clause.js");
+var $indexOf = (__webpack_require__(/*! ../internals/array-includes */ "./node_modules/core-js/internals/array-includes.js").indexOf);
+var arrayMethodIsStrict = __webpack_require__(/*! ../internals/array-method-is-strict */ "./node_modules/core-js/internals/array-method-is-strict.js");
+
+var nativeIndexOf = uncurryThis([].indexOf);
+
+var NEGATIVE_ZERO = !!nativeIndexOf && 1 / nativeIndexOf([1], 1, -0) < 0;
+var STRICT_METHOD = arrayMethodIsStrict('indexOf');
+
+// `Array.prototype.indexOf` method
+// https://tc39.es/ecma262/#sec-array.prototype.indexof
+$({ target: 'Array', proto: true, forced: NEGATIVE_ZERO || !STRICT_METHOD }, {
+  indexOf: function indexOf(searchElement /* , fromIndex = 0 */) {
+    var fromIndex = arguments.length > 1 ? arguments[1] : undefined;
+    return NEGATIVE_ZERO
+      // convert -0 to +0
+      ? nativeIndexOf(this, searchElement, fromIndex) || 0
+      : $indexOf(this, searchElement, fromIndex);
+  }
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/modules/es.object.assign.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/core-js/modules/es.object.assign.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+var $ = __webpack_require__(/*! ../internals/export */ "./node_modules/core-js/internals/export.js");
+var assign = __webpack_require__(/*! ../internals/object-assign */ "./node_modules/core-js/internals/object-assign.js");
+
+// `Object.assign` method
+// https://tc39.es/ecma262/#sec-object.assign
+// eslint-disable-next-line es/no-object-assign -- required for testing
+$({ target: 'Object', stat: true, arity: 2, forced: Object.assign !== assign }, {
+  assign: assign
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/modules/es.object.define-property.js":
+/*!*******************************************************************!*\
+  !*** ./node_modules/core-js/modules/es.object.define-property.js ***!
+  \*******************************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+var $ = __webpack_require__(/*! ../internals/export */ "./node_modules/core-js/internals/export.js");
+var DESCRIPTORS = __webpack_require__(/*! ../internals/descriptors */ "./node_modules/core-js/internals/descriptors.js");
+var defineProperty = (__webpack_require__(/*! ../internals/object-define-property */ "./node_modules/core-js/internals/object-define-property.js").f);
+
+// `Object.defineProperty` method
+// https://tc39.es/ecma262/#sec-object.defineproperty
+// eslint-disable-next-line es/no-object-defineproperty -- safe
+$({ target: 'Object', stat: true, forced: Object.defineProperty !== defineProperty, sham: !DESCRIPTORS }, {
+  defineProperty: defineProperty
+});
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/modules/es.object.to-string.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/core-js/modules/es.object.to-string.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+var TO_STRING_TAG_SUPPORT = __webpack_require__(/*! ../internals/to-string-tag-support */ "./node_modules/core-js/internals/to-string-tag-support.js");
+var defineBuiltIn = __webpack_require__(/*! ../internals/define-built-in */ "./node_modules/core-js/internals/define-built-in.js");
+var toString = __webpack_require__(/*! ../internals/object-to-string */ "./node_modules/core-js/internals/object-to-string.js");
+
+// `Object.prototype.toString` method
+// https://tc39.es/ecma262/#sec-object.prototype.tostring
+if (!TO_STRING_TAG_SUPPORT) {
+  defineBuiltIn(Object.prototype, 'toString', toString, { unsafe: true });
+}
+
+
+/***/ }),
+
 /***/ "./node_modules/core-js/modules/es.regexp.exec.js":
 /*!********************************************************!*\
   !*** ./node_modules/core-js/modules/es.regexp.exec.js ***!
@@ -11108,6 +11317,43 @@ var exec = __webpack_require__(/*! ../internals/regexp-exec */ "./node_modules/c
 $({ target: 'RegExp', proto: true, forced: /./.exec !== exec }, {
   exec: exec
 });
+
+
+/***/ }),
+
+/***/ "./node_modules/core-js/modules/es.regexp.to-string.js":
+/*!*************************************************************!*\
+  !*** ./node_modules/core-js/modules/es.regexp.to-string.js ***!
+  \*************************************************************/
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+var PROPER_FUNCTION_NAME = (__webpack_require__(/*! ../internals/function-name */ "./node_modules/core-js/internals/function-name.js").PROPER);
+var defineBuiltIn = __webpack_require__(/*! ../internals/define-built-in */ "./node_modules/core-js/internals/define-built-in.js");
+var anObject = __webpack_require__(/*! ../internals/an-object */ "./node_modules/core-js/internals/an-object.js");
+var $toString = __webpack_require__(/*! ../internals/to-string */ "./node_modules/core-js/internals/to-string.js");
+var fails = __webpack_require__(/*! ../internals/fails */ "./node_modules/core-js/internals/fails.js");
+var getRegExpFlags = __webpack_require__(/*! ../internals/regexp-get-flags */ "./node_modules/core-js/internals/regexp-get-flags.js");
+
+var TO_STRING = 'toString';
+var RegExpPrototype = RegExp.prototype;
+var nativeToString = RegExpPrototype[TO_STRING];
+
+var NOT_GENERIC = fails(function () { return nativeToString.call({ source: 'a', flags: 'b' }) != '/a/b'; });
+// FF44- RegExp#toString has a wrong name
+var INCORRECT_NAME = PROPER_FUNCTION_NAME && nativeToString.name != TO_STRING;
+
+// `RegExp.prototype.toString` method
+// https://tc39.es/ecma262/#sec-regexp.prototype.tostring
+if (NOT_GENERIC || INCORRECT_NAME) {
+  defineBuiltIn(RegExp.prototype, TO_STRING, function toString() {
+    var R = anObject(this);
+    var pattern = $toString(R.source);
+    var flags = $toString(getRegExpFlags(R));
+    return '/' + pattern + '/' + flags;
+  }, { unsafe: true });
+}
 
 
 /***/ }),
@@ -24106,4 +24352,4 @@ oidc.$mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=59eb07ba1650b2f4a43e
+//# sourceMappingURL=oidc-main.js.map?v=d7501ce95fa7e4af0473
