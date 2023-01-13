@@ -10,7 +10,7 @@ on:
     types: [published]
 
 env:
-  PHP_VERSION: 7.4
+  PHP_VERSION: 8.1
 
 jobs:
   build_and_publish:
@@ -41,13 +41,13 @@ jobs:
           expression: "//info//dependencies//nextcloud/@min-version"
 
       - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@v1.2
+        uses: skjnldsv/read-package-engines-version-actions@v2.0
         id: versions
         # Continue if no package.json
         continue-on-error: true
         with:
           path: ${{ env.APP_NAME }}
-          fallbackNode: "^12"
+          fallbackNode: "^14"
           fallbackNpm: "^6"
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
