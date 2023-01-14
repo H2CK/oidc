@@ -42,7 +42,7 @@
 		"eslint-plugin-jsdoc": "^39.6.4",
 		"eslint-plugin-node": "^11.1.0",
 		"eslint-plugin-promise": "^6.1.1",
-		"eslint-plugin-vue": "^9.8.0",
+		"eslint-plugin-vue": "^9.9.0",
 		"eslint-webpack-plugin": "^3.2.0",
 		"json5": "^2.2.3",
 		"linkifyjs": "^4.1.0",
