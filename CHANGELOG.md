@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.10] - 2023-01-20
+
+### Changed
+
+- Fixed bug for jti claim which must be a string and not number.
+
 ## [0.2.9] - 2023-01-13
 
 ### Changed

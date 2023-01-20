@@ -227,7 +227,7 @@ class OIDCApiController extends ApiController {
 			'preferred_username' => $uid,
 			'scope' => $accessToken->getScope(),
 			'nbf' => $this->time->getTime(),
-			'jti' => $accessToken->getId(),
+			'jti' => strval($accessToken->getId()),
 		];
 
 		if (!empty($nonce)) {
