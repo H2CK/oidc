@@ -9,17 +9,17 @@
 # Joas Schilling, 2022
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2022
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
-# Markus Eckstein, 2022
 # H2CK, 2022
+# Markus Eckstein, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-01-12 03:16+0000\n"
+"POT-Creation-Date: 2023-01-20 02:03+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2022\n"
+"Last-Translator: Markus Eckstein, 2023\n"
 "Language-Team: German (https://www.transifex.com/nextcloud/teams/64236/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -73,9 +73,9 @@ msgid ""
 msgstr ""
 "Nextcloud als OpenID Connect Identitätsanbieter\n"
 "\n"
-"Mit dieser App können Sie Nextcloud als OpenID Connect Identitätsanbieter nutzen. Wenn andere Dienstleistungen korrekt konfiguriert sind, können Sie mit Ihrem Nextcloud-Login auf diese Dienste zugreifen.\n"
+"Mit dieser App kannst du Nextcloud als OpenID Connect Identitätsanbieter nutzen. Wenn andere Dienstleistungen korrekt konfiguriert sind, kannst du mit deinem Nextcloud-Login auf diese Dienste zugreifen.\n"
 "\n"
-"Die vollständige Dokumentation finden Sie unter:\n"
+"Die vollständige Dokumentation findest du unter:\n"
 "\n"
 "- [Benutzerdokumentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Entwicklerdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
