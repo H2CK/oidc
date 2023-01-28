@@ -39,6 +39,8 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\IGroup;
+use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
 
 class SettingsController extends Controller
@@ -53,6 +55,8 @@ class SettingsController extends Controller
 	private $redirectUriMapper;
 	/** @var GroupMapper  */
 	private $groupMapper;
+	/** @var IGroupManager  */
+	private $groupManager;
 	/** @var IL10N */
 	private $l;
 	/** @var IAppConfig */
@@ -70,6 +74,7 @@ class SettingsController extends Controller
 					AccessTokenMapper $accessTokenMapper,
 					RedirectUriMapper $redirectUriMapper,
 					GroupMapper $groupMapper,
+					IGroupManager $groupManager,
 					IL10N $l,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
@@ -81,6 +86,7 @@ class SettingsController extends Controller
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
 		$this->groupMapper = $groupMapper;
+		$this->groupManager = $groupManager;
 		$this->l = $l;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
@@ -148,10 +154,12 @@ class SettingsController extends Controller
 		$this->logger->debug("Updating groups for client " . $id);
 		$this->groupMapper->deleteByClientId($id);
 		foreach ($groups as $i => $group) {
-			$groupObj = new Group();
-			$groupObj->setClientId($id);
-			$groupObj->setGroupId($group);
-			$this->groupMapper->insert($groupObj);
+			if ($this->groupManager->groupExists($group)) {
+				$groupObj = new Group();
+				$groupObj->setClientId($id);
+				$groupObj->setGroupId($group);
+				$this->groupMapper->insert($groupObj);
+			}
 		}
 		return new JSONResponse([]);
 	}
