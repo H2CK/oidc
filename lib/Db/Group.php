@@ -26,42 +26,23 @@ use OCP\AppFramework\Db\Entity;
 
 /**
  * @method int getId()
- * @method string getClientIdentifier()
- * @method void setClientIdentifier(string $clientIdentifier)
- * @method string getSecret()
- * @method void setSecret(string $secret)
- * @method string getRedirectUri()
- * @method void setRedirectUri(string $redirectUri)
- * @method string getName()
- * @method void setName(string $name)
- * @method string getSigningAlg()
- * @method void setSigningAlg(string $name)
- * @method string getType()
- * @method void setType(string $type)
+ * @method int getClientId()
+ * @method void setClientId(int $clientId)
+ * @method string getGroupId()
+ * @method void setGroupId(string $groupId)
  */
-class Client extends Entity {
+class Group extends Entity
+{
 	/** @var int */
 	public $id;
+	/** @var int */
+	protected $clientId;
 	/** @var string */
-	protected $name;
-	/** @var string */
-	protected $redirectUri;
-	/** @var string */
-	protected $clientIdentifier;
-	/** @var string */
-	protected $secret;
-	/** @var string */
-	protected $signingAlg;
-	/** @var string */
-	protected $type;
+	protected $groupId;
 
 	public function __construct() {
 		$this->addType('id', 'int');
-		$this->addType('name', 'string');
-		$this->addType('redirect_uri', 'string');
-		$this->addType('client_identifier', 'string');
-		$this->addType('secret', 'string');
-		$this->addType('signing_alg', 'string');
-		$this->addType('type', 'string');
+		$this->addType('client_id', 'int');
+		$this->addType('group_id', 'string');
 	}
 }

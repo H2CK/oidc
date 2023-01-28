@@ -17798,7 +17798,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.runtime.esm.js");
 /* harmony import */ var _Redirect_vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Redirect.vue */ "./src/Redirect.vue");
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -17832,4 +17832,4 @@ oidc.$mount('#oidc-redirect');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-redirect.js.map?v=4deb2c6bba6526e1ba1a
+//# sourceMappingURL=oidc-redirect.js.map?v=577540a23cf9d5817ad0

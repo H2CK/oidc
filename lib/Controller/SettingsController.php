@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -30,6 +30,8 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\Group;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -49,6 +51,8 @@ class SettingsController extends Controller
 	private $accessTokenMapper;
 	/** @var RedirectUriMapper  */
 	private $redirectUriMapper;
+	/** @var GroupMapper  */
+	private $groupMapper;
 	/** @var IL10N */
 	private $l;
 	/** @var IAppConfig */
@@ -65,6 +69,7 @@ class SettingsController extends Controller
 					ISecureRandom $secureRandom,
 					AccessTokenMapper $accessTokenMapper,
 					RedirectUriMapper $redirectUriMapper,
+					GroupMapper $groupMapper,
 					IL10N $l,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
@@ -75,6 +80,7 @@ class SettingsController extends Controller
 		$this->clientMapper = $clientMapper;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
+		$this->groupMapper = $groupMapper;
 		$this->l = $l;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
@@ -134,11 +140,28 @@ class SettingsController extends Controller
 		return new JSONResponse($result);
 	}
 
+	public function updateClient(
+					int $id,
+					array $groups
+					): JSONResponse
+	{
+		$this->logger->debug("Updating groups for client " . $id);
+		$this->groupMapper->deleteByClientId($id);
+		foreach ($groups as $i => $group) {
+			$groupObj = new Group();
+			$groupObj->setClientId($id);
+			$groupObj->setGroupId($group);
+			$this->groupMapper->insert($groupObj);
+		}
+		return new JSONResponse([]);
+	}
+
 	public function deleteClient(int $id): JSONResponse
 	{
 		$client = $this->clientMapper->getByUid($id);
 		$this->accessTokenMapper->deleteByClientId($id);
 		$this->redirectUriMapper->deleteByClientId($id);
+		$this->groupMapper->deleteByClientId($id);
 		$this->clientMapper->delete($client);
 		return new JSONResponse([]);
 	}

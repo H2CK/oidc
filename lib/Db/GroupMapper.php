@@ -25,88 +25,63 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Db;
 
-use OCA\OIDCIdentityProvider\Exceptions\RedirectUriNotFoundException;
+use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\AppFramework\Services\IAppConfig;
+use OCP\IGroup;
+use OCP\IGroupManager;
 
 /**
- * @template-extends QBMapper<AccessToken>
+ * @template-extends QBMapper<Group>
  */
-class RedirectUriMapper extends QBMapper {
-	/** @var ITimeFactory */
-	private $time;
-	/** @var IAppConfig */
-	private $appConfig;
+class GroupMapper extends QBMapper {
+
+	/** @var IGroupManager */
+	private $groupManager;
 
 	/**
 	 * @param IDBConnection $db
+	 * @param IGroupManager $groupManager
 	 */
-	public function __construct(IDBConnection $db,
-								ITimeFactory $time,
-								IAppConfig $appConfig) {
-		parent::__construct($db, 'oidc_redirect_uris');
-		$this->time = $time;
-		$this->appConfig = $appConfig;
+	public function __construct(IDBConnection $db, IGroupManager $groupManager) {
+		parent::__construct($db, 'oidc_group_map');
+		$this->groupManager = $groupManager;
 	}
 
 	/**
-	 * @param string $id
-	 * @return RedirectUri[]
-	 * @throws RedirectUriNotFoundException
+	 * @param int $id
+	 * @return Group
+	 * @throws ClientNotFoundException
 	 */
-	public function getByClientId(int $id): array {
+	public function getByIdentifier(string $id): Group {
 		$qb = $this->db->getQueryBuilder();
 		$qb
 			->select('*')
 			->from($this->tableName)
-			->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id)));
+
+		try {
+			$client = $this->findEntity($qb);
+		} catch (IMapperException $e) {
+			throw new ClientNotFoundException('could not find group mapping '.$id, 0, $e);
+		}
+		return $client;
+	}
+
+	/**
+	 * @param int $clientId
+	 * @return Groups[]
+	 */
+	public function getGroupsByClientId(int $clientId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb
+			->select('*')
+			->from($this->tableName)
+			->where($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
 
 		return $this->findEntities($qb);
-	}
-
-	/**
-	 * @param int $id id of the redirect uri
-	 * @return RedirectUri
-	 * @throws RedirectUriNotFoundException
-	 */
-	public function getById(int $id): RedirectUri {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-
-		try {
-			$redirectUri = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new RedirectUriNotFoundException('could not find redirect uri with id '.$id, 0, $e);
-		}
-		return $redirectUri;
-	}
-
-	/**
-	 * @param string $redirectUri
-	 * @return RedirectUri[]
-	 * @throws RedirectUriNotFoundException
-	 */
-	public function getByRedirectUri(string $redirectUri): array {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('redirect_uri', $qb->createNamedParameter($redirectUri)));
-
-		try {
-			$redirectUriEntry = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new RedirectUriTokenNotFoundException('Could not find redirect uri', 0, $e);
-		}
-
-		return $redirectUriEntry;
 	}
 
 	/**
@@ -123,15 +98,32 @@ class RedirectUriMapper extends QBMapper {
 	}
 
 	/**
-	 * delete one redirect uri by id
+	 * delete mapping entry by id
 	 *
 	 * @param int $id
 	 */
-	public function deleteOneById(int $id) {
+	public function deleteById(int $id) {
 		$qb = $this->db->getQueryBuilder();
 		$qb
 			->delete($this->tableName)
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
 		$qb->executeStatement();
+	}
+
+	/**
+	 * delete all groups that do not exist any more
+	 *
+	 */
+	public function cleanUp() {
+		$qb = $this->db->getQueryBuilder();
+		$qb
+			->select('*')
+			->from($this->tableName);
+		$usedGroups = $this->findEntities($qb);
+		foreach ($usedGroups as $i => $group) {
+			if (!$this->groupManager->groupExists($group->getGroupId())) {
+				$this->deleteById($group->getId());
+			}
+		}
 	}
 }

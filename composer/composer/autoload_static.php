@@ -31,10 +31,13 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Controller\\PageController' => __DIR__ . '/..' . '/../lib/Controller/PageController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\SettingsController' => __DIR__ . '/..' . '/../lib/Controller/SettingsController.php',
         'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
-        'OCA\\OIDCIdentityProvider\\Db\\AccessToken' => __DIR__ . '/..' . '/../lib/Db/AccessToken.php',
+        'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupGroups.php',
+		'OCA\\OIDCIdentityProvider\\Db\\AccessToken' => __DIR__ . '/..' . '/../lib/Db/AccessToken.php',
         'OCA\\OIDCIdentityProvider\\Db\\AccessTokenMapper' => __DIR__ . '/..' . '/../lib/Db/AccessTokenMapper.php',
         'OCA\\OIDCIdentityProvider\\Db\\Client' => __DIR__ . '/..' . '/../lib/Db/Client.php',
         'OCA\\OIDCIdentityProvider\\Db\\ClientMapper' => __DIR__ . '/..' . '/../lib/Db/ClientMapper.php',
+		'OCA\\OIDCIdentityProvider\\Db\\Group' => __DIR__ . '/..' . '/../lib/Db/Group.php',
+        'OCA\\OIDCIdentityProvider\\Db\\GroupMapper' => __DIR__ . '/..' . '/../lib/Db/GroupMapper.php',
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUri' => __DIR__ . '/..' . '/../lib/Db/RedirectUri.php',
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => __DIR__ . '/..' . '/../lib/Db/RedirectUriMapper.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/AccessTokenNotFoundException.php',
@@ -47,6 +50,7 @@ class ComposerStaticInitOIDCIdentityProvider
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0004Date20220928082100' => __DIR__ . '/..' . '/../lib/Migration/Version0004Date20220928082100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0005Date20221009082100' => __DIR__ . '/..' . '/../lib/Migration/Version0005Date20221009082100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0006Date20221011082100' => __DIR__ . '/..' . '/../lib/Migration/Version0006Date20221011082100.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0007Date20230121172100' => __DIR__ . '/..' . '/../lib/Migration/Version0007Date20230121172100.php',
 		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
     );
 

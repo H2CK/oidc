@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -41,12 +41,16 @@ use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
 use OCP\IInitialStateService;
+use OCP\IGroup;
+use OCP\IGroupManager;
 use OC_App;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use Psr\Log\LoggerInterface;
@@ -57,6 +61,8 @@ class LoginRedirectorController extends ApiController
 	private $urlGenerator;
 	/** @var ClientMapper */
 	private $clientMapper;
+	/** @var GroupMapper */
+	private $groupMapper;
 	/** @var AccessTokenMapper */
 	private $accessTokenMapper;
 	/** @var RedirectUriMapper */
@@ -75,6 +81,8 @@ class LoginRedirectorController extends ApiController
 	private $time;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var IGroupManager */
+	private $groupManager;
 	/** @var IInitialStateService */
 	private $initialStateService;
 	/** @var LoggerInterface */
@@ -85,6 +93,7 @@ class LoginRedirectorController extends ApiController
 	 * @param IRequest $request
 	 * @param IURLGenerator $urlGenerator
 	 * @param ClientMapper $clientMapper
+	 * @param GroupMapper $groupMapper
 	 * @param ISecureRandom $random
 	 * @param ICrypto $crypto
 	 * @param IProvider $tokenProvider
@@ -92,6 +101,7 @@ class LoginRedirectorController extends ApiController
 	 * @param IL10N $l
 	 * @param ITimeFactory $time
 	 * @param IUserSession $userSession
+	 * @param IGroupManager $groupManager
 	 * @param AccessTokenMapper $accessTokenMapper
 	 * @param RedirectUriMapper $redirectUriMapper
 	 * @param IInitialStateService $initialStateService
@@ -102,6 +112,7 @@ class LoginRedirectorController extends ApiController
 					IRequest $request,
 					IURLGenerator $urlGenerator,
 					ClientMapper $clientMapper,
+					GroupMapper $groupMapper,
 					ISecureRandom $random,
 					ICrypto $crypto,
 					IProvider $tokenProvider,
@@ -109,6 +120,7 @@ class LoginRedirectorController extends ApiController
 					IL10N $l,
 					ITimeFactory $time,
 					IUserSession $userSession,
+					IGroupManager $groupManager,
 					AccessTokenMapper $accessTokenMapper,
 					RedirectUriMapper $redirectUriMapper,
 					IInitialStateService $initialStateService,
@@ -118,6 +130,7 @@ class LoginRedirectorController extends ApiController
 		parent::__construct($appName, $request);
 		$this->urlGenerator = $urlGenerator;
 		$this->clientMapper = $clientMapper;
+		$this->groupMapper = $groupMapper;
 		$this->random = $random;
 		$this->crypto = $crypto;
 		$this->tokenProvider = $tokenProvider;
@@ -125,6 +138,7 @@ class LoginRedirectorController extends ApiController
 		$this->l = $l;
 		$this->time = $time;
 		$this->userSession = $userSession;
+		$this->groupManager = $groupManager;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
 		$this->initialStateService = $initialStateService;
@@ -233,6 +247,28 @@ class LoginRedirectorController extends ApiController
 			//Fail
 			$url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
 			return new RedirectResponse($url);
+		}
+
+		// Check if user is in allowed groups for client
+		$clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
+		$userGroups = $this->groupManager->getUserGroups($this->userSession->getUser());
+
+		$groupFound = false;
+		if (count($clientGroups) < 1) { $groupFound = true; }
+		foreach ($clientGroups as $i => $clientGroup) {
+			foreach ($userGroups as $j => $userGroup) {
+				if ($clientGroup->getGroupId() === $userGroup->getGID()) {
+					$groupFound = true;
+					break;
+				}
+			}
+		}
+		if (!$groupFound) {
+			$params = [
+				'content' => $this->l->t('The user is not member of the groups defined for the client. You are not allowed to retrieve a login token.'),
+			];
+			$this->logger->notice('User ' . $this->userSession->getUser()->getUID() . ' is not accepted for client ' . $client_id . ' due to missing group assignment.');
+			return new TemplateResponse('core', '404', $params, 'guest');
 		}
 
 		$accessTokenCode = $this->random->generate(72, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);

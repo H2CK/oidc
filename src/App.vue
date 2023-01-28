@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+  - @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
   -
   - @author Thorsten Jagel <dev@jagel.net>
   -
@@ -40,9 +40,11 @@
 				<OIDCItem v-for="client in clients"
 					:key="client.id"
 					:client="client"
+					:groups="groups"
 					@addredirect="addRedirectUri"
 					@deleteredirect="deleteRedirectUri"
-					@delete="deleteClient" />
+					@delete="deleteClient"
+					@updategroups="updateGroups" />
 			</tbody>
 		</table>
 
@@ -124,7 +126,7 @@
 
 <script>
 import axios from '@nextcloud/axios'
-import OIDCItem from './components/OIDCItem'
+import OIDCItem from './components/OIDCItem.vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -143,6 +145,10 @@ export default {
 		},
 		publicKey: {
 			type: String,
+			required: true,
+		},
+		groups: {
+			type: Array,
 			required: true,
 		},
 	},
@@ -249,6 +255,22 @@ export default {
 				{}).then((response) => {
 				// eslint-disable-next-line vue/no-mutating-props
 				this.publicKey = response.data.public_key
+			})
+		},
+		updateGroups(id, groups) {
+			this.error = false
+
+			axios.patch(
+				generateUrl('apps/oidc/clients/{id}', { id }),
+				{
+					id,
+					groups,
+				}
+			).then(response => {
+				// Nothing to do
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
 			})
 		},
 	},

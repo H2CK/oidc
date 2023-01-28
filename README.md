@@ -13,6 +13,7 @@ Provided features:
 - Creation of JWT Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles and groups)
 - Supported signing algorithms RS256 (default) and HS256
 - Group memberships are passed as roles in JWT token.
+- Clients can be assigned to dedicated user groups. Only users in the configured group are allowed to retrieve an access token to fetch the JWT.
 - Discovery endpoint provided
 - Logout endpoint
 
