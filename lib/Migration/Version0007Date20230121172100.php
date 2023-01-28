@@ -30,7 +30,7 @@ use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-class Version0006Date20221011082100 extends SimpleMigrationStep {
+class Version0007Date20230121172100 extends SimpleMigrationStep {
 
 	/**
 	 * @param IOutput $output
@@ -43,10 +43,22 @@ class Version0006Date20221011082100 extends SimpleMigrationStep {
 		$schema = $schemaClosure();
 
 		// Modify index on client id
-		if ($schema->hasTable('oidc_redirect_uris')) {
-			$table = $schema->getTable('oidc_redirect_uris');
-			$table->dropIndex('oidc_redir_id_idx');
-			$table->addIndex(['client_id'], 'oidc_redir_id_idx');
+		if (!$schema->hasTable('oidc_group_map')) {
+			$table = $schema->createTable('oidc_group_map');
+			$table->addColumn('id', 'integer', [
+				'autoincrement' => true,
+				'notnull' => true,
+				'unsigned' => true,
+			]);
+			$table->addColumn('client_id', 'integer', [
+				'notnull' => true,
+			]);
+			$table->addColumn('group_id', 'string', [
+				'notnull' => true,
+				'length' => 256,
+			]);
+			$table->setPrimaryKey(['id']);
+			$table->addIndex(['client_id'], 'oidc_group_id_idx');
 		}
 
 		return $schema;

@@ -47,6 +47,11 @@ return [
             'url' => '/genKeys',
             'verb' => 'POST',
         ],
+		[
+            'name' => 'Settings#updateClient',
+            'url' => '/clients/{id}',
+            'verb' => 'PATCH'
+        ],
         [
             'name' => 'Settings#deleteClient',
             'url' => '/clients/{id}',

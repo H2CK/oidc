@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -28,10 +28,14 @@ namespace OCA\OIDCIdentityProvider\Settings;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\Group;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IInitialStateService;
 use OCP\Settings\ISettings;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\IGroup;
+use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
 
 class Admin implements ISettings {
@@ -45,6 +49,12 @@ class Admin implements ISettings {
 	/** @var RedirectUriMapper */
 	private $redirectUriMapper;
 
+	/** @var GroupMapper */
+	private $groupMapper;
+
+	/** @var IGroupManager */
+	private $groupManager;
+
 	/** @var IAppConfig */
 	private $appConfig;
 
@@ -55,6 +65,8 @@ class Admin implements ISettings {
 					IInitialStateService $initialStateService,
 					ClientMapper $clientMapper,
 					RedirectUriMapper $redirectUriMapper,
+					GroupMapper $groupMapper,
+					IGroupManager $groupManager,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
 					)
@@ -62,6 +74,8 @@ class Admin implements ISettings {
 		$this->initialStateService = $initialStateService;
 		$this->clientMapper = $clientMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
+		$this->groupMapper = $groupMapper;
+		$this->groupManager = $groupManager;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
 	}
@@ -81,6 +95,11 @@ class Admin implements ISettings {
 					'redirect_uri' => $redirectUri->getRedirectUri(),
 				];
 			}
+			$groups = $this->groupMapper->getGroupsByClientId($client->getId());
+			$resultGroups = [];
+			foreach ($groups as $group) {
+				array_push($resultGroups, $group->getGroupId());
+			}
 			$result[] = [
 				'id' => $client->getId(),
 				'name' => $client->getName(),
@@ -89,11 +108,20 @@ class Admin implements ISettings {
 				'clientSecret' => $client->getSecret(),
 				'signingAlg' => $client->getSigningAlg(),
 				'type' => $client->getType(),
+				'groups' => $resultGroups,
 			];
 		}
+
+		$availableGroups = [];
+		$allGroups = $this->groupManager->search('');
+		foreach ($allGroups as $i => $group) {
+			array_push($availableGroups, $group->getGID());
+		}
+
 		$this->initialStateService->provideInitialState('oidc', 'clients', $result);
 		$this->initialStateService->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue('expire_time'));
 		$this->initialStateService->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
+		$this->initialStateService->provideInitialState('oidc', 'groups', $availableGroups);
 
 		return new TemplateResponse(
 						'oidc',

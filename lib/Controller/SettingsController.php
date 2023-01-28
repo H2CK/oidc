@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -30,6 +30,8 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\Group;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -37,6 +39,8 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\IGroup;
+use OCP\IGroupManager;
 use Psr\Log\LoggerInterface;
 
 class SettingsController extends Controller
@@ -49,6 +53,10 @@ class SettingsController extends Controller
 	private $accessTokenMapper;
 	/** @var RedirectUriMapper  */
 	private $redirectUriMapper;
+	/** @var GroupMapper  */
+	private $groupMapper;
+	/** @var IGroupManager  */
+	private $groupManager;
 	/** @var IL10N */
 	private $l;
 	/** @var IAppConfig */
@@ -65,6 +73,8 @@ class SettingsController extends Controller
 					ISecureRandom $secureRandom,
 					AccessTokenMapper $accessTokenMapper,
 					RedirectUriMapper $redirectUriMapper,
+					GroupMapper $groupMapper,
+					IGroupManager $groupManager,
 					IL10N $l,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
@@ -75,6 +85,8 @@ class SettingsController extends Controller
 		$this->clientMapper = $clientMapper;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
+		$this->groupMapper = $groupMapper;
+		$this->groupManager = $groupManager;
 		$this->l = $l;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
@@ -134,11 +146,30 @@ class SettingsController extends Controller
 		return new JSONResponse($result);
 	}
 
+	public function updateClient(
+					int $id,
+					array $groups
+					): JSONResponse
+	{
+		$this->logger->debug("Updating groups for client " . $id);
+		$this->groupMapper->deleteByClientId($id);
+		foreach ($groups as $i => $group) {
+			if ($this->groupManager->groupExists($group)) {
+				$groupObj = new Group();
+				$groupObj->setClientId($id);
+				$groupObj->setGroupId($group);
+				$this->groupMapper->insert($groupObj);
+			}
+		}
+		return new JSONResponse([]);
+	}
+
 	public function deleteClient(int $id): JSONResponse
 	{
 		$client = $this->clientMapper->getByUid($id);
 		$this->accessTokenMapper->deleteByClientId($id);
 		$this->redirectUriMapper->deleteByClientId($id);
+		$this->groupMapper->deleteByClientId($id);
 		$this->clientMapper->delete($client);
 		return new JSONResponse([]);
 	}

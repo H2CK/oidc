@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+  - @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
   -
   - @author Thorsten Jagel <dev@jagel.net>
   -
@@ -39,8 +39,7 @@
 							</tr>
 						</table>
 						<form @submit.prevent="addRedirect">
-							<input id="redirectUri"
-								v-model="addRedirectUri"
+							<input v-model="addRedirectUri"
 								type="url"
 								name="redirectUri"
 								:placeholder="t('oidc', 'Redirection URI')">
@@ -69,6 +68,23 @@
 					<td>{{ t('oidc', 'Type') }}</td>
 					<td><code>{{ t('oidc', type) }}</code></td>
 				</tr>
+				<tr>
+					<td>{{ t('oidc', 'Limited to Groups') }}</td>
+					<td>
+						<p>
+							{{ t('oidc', 'Only users in one of the following groups are allowed to use the client.') }}
+							<br>
+						</p>
+						<div class="oidc_group_container">
+							<NcSelect v-bind="groupData.props"
+								v-model="groupData.props.value"
+								:placeholder="t('oidc', 'Groups allowed to use the client.')"
+								:no-wrap="false"
+								class="nc_select"
+								@input="updateGroups" />
+						</div>
+					</td>
+				</tr>
 			</table>
 		</td>
 		<td class="action-column">
@@ -78,11 +94,20 @@
 </template>
 
 <script>
+import NcSelect from '@nextcloud/vue/dist/Components/NcSelect'
+
 export default {
 	name: 'OIDCItem',
+	components: {
+		NcSelect,
+	},
 	props: {
 		client: {
 			type: Object,
+			required: true,
+		},
+		groups: {
+			type: Array,
 			required: true,
 		},
 	},
@@ -97,6 +122,15 @@ export default {
 			type: this.client.type,
 			renderSecret: false,
 			addRedirectUri: '',
+			groupData: {
+				props: {
+					inputId: this.client.id + '-group-select',
+					multiple: true,
+					closeOnSelect: true,
+					options: this.groups,
+					value: this.client.groups,
+				},
+			},
 		}
 	},
 	computed: {
@@ -120,9 +154,30 @@ export default {
 			this.$emit('addredirect', this.id, this.addRedirectUri)
 			this.addRedirectUri = ''
 		},
+		updateGroups() {
+			this.$emit('updategroups', this.id, this.groupData.props.value)
+		},
 	},
 }
 </script>
+
+<style>
+	.vs__deselect {
+		padding: 0 !important;
+		border: 0 !important;
+		margin-left: 4px !important;
+		min-height: 24px !important;
+	}
+
+	.vs__search {
+		border-width: 0px !important;
+	}
+
+	.vs__selected {
+		min-height: 32px !important;
+	}
+
+</style>
 
 <style scoped>
 	.icon-toggle,
@@ -143,4 +198,11 @@ export default {
 		border: none;
 		padding: 5px;
 	}
+
+	.oidc_group_container {
+		display: flex;
+		flex-direction: column;
+		gap: 2px 0;
+	}
+
 </style>

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2023-01-28
+
+### Changed
+
+- Added ability to limit clients to specific user groups.
+
 ## [0.2.10] - 2023-01-20
 
 ### Changed

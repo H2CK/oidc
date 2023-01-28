@@ -25,37 +25,37 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\BackgroundJob;
 
-use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use OCP\IConfig;
 
-class CleanupExpiredTokens extends TimedJob {
+class CleanupGroups extends TimedJob {
 
-    /** @var AccessTokenMapper */
-	private $accessTokenMapper;
+    /** @var GroupMapper */
+	private $groupMapper;
 	/** @var IConfig */
 	private $settings;
 
 	/**
 	 * @param ITimeFactory $time
-	 * @param AccessTokenMapper $accessTokenMapper
+	 * @param GroupMapper $groupMapper
 	 */
 	public function __construct(ITimeFactory $time,
-								AccessTokenMapper $accessTokenMapper,
+								GroupMapper $groupMapper,
 								IConfig $settings) {
 		parent::__construct($time);
-		$this->accessTokenMapper = $accessTokenMapper;
+		$this->groupMapper = $groupMapper;
 		$this->settings = $settings;
 
-		// Run four times a day
-		$this->setInterval(6 * 60 * 60);
+		// Run once a day
+		$this->setInterval(24 * 60 * 60);
 		$this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
 	}
 
 	protected function run($argument): void {
 		// Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
 		// if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
-        $this->accessTokenMapper->cleanUp();
+        $this->groupMapper->cleanUp();
 	}
 }

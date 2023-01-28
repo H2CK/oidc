@@ -14,7 +14,7 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
 	]]></description>
-  <version>0.2.9</version>
+  <version>0.3.0</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -44,6 +44,7 @@ Full documentation can be found at:
 
   <background-jobs>
     <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens</job>
+	<job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupGroups</job>
   </background-jobs>
 
   <repair-steps>

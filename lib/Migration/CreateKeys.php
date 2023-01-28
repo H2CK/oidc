@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -55,13 +55,13 @@ class CreateKeys implements IRepairStep {
 			openssl_pkey_export($keyPair, $privateKey);
 			$keyDetails = openssl_pkey_get_details($keyPair);
 			$publicKey = $keyDetails['key'];
-	
+
 			$this->appConfig->setAppValue('private_key', $privateKey);
 			$this->appConfig->setAppValue('public_key', $publicKey);
 			$uuid = $this->guidv4();
 			$this->appConfig->setAppValue('kid', $uuid);
 			$modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
-			$exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));		
+			$exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
 			$this->appConfig->setAppValue('public_key_n', $modulus);
 			$this->appConfig->setAppValue('public_key_e', $exponent);
 		}
@@ -74,12 +74,12 @@ class CreateKeys implements IRepairStep {
 		// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
 		$data = $data ?? random_bytes(16);
 		assert(strlen($data) == 16);
-	
+
 		// Set version to 0100
 		$data[6] = chr(ord($data[6]) & 0x0f | 0x40);
 		// Set bits 6-7 to 10
 		$data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-	
+
 		// Output the 36 character UUID.
 		return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 	}

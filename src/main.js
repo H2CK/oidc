@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -30,6 +30,7 @@ Vue.prototype.OC = OC
 const clients = loadState('oidc', 'clients')
 const expireTime = loadState('oidc', 'expireTime')
 const publicKey = loadState('oidc', 'publicKey')
+const groups = loadState('oidc', 'groups')
 
 const View = Vue.extend(App)
 const oidc = new View({
@@ -37,6 +38,7 @@ const oidc = new View({
 		clients,
 		expireTime,
 		publicKey,
+		groups,
 	},
 })
 oidc.$mount('#oidc')
