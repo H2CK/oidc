@@ -220,10 +220,10 @@ class LoginRedirectorController extends ApiController
 			$client = $this->clientMapper->getByIdentifier($client_id);
 		} catch (ClientNotFoundException $e) {
 			$params = [
-				'content' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+				'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
 			];
 			$this->logger->notice('Client ' . $client_id . ' is not authorized to connect.');
-			return new TemplateResponse('core', '404', $params, 'guest');
+			return new TemplateResponse('core', '403', $params, 'error');
 		}
 
 		// Check if redirect uri is configured for client
@@ -237,10 +237,10 @@ class LoginRedirectorController extends ApiController
 		}
 		if (!$redirectUriFound) {
 			$params = [
-				'content' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
+				'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
 			];
 			$this->logger->notice('Redirect URI ' . $redirect_uri . ' is not accepted for client ' . $client_id . '.');
-			return new TemplateResponse('core', '404', $params, 'guest');
+			return new TemplateResponse('core', '403', $params, 'error');
 		}
 
 		if ($response_type !== 'code' && $response_type !== 'code id_token') {
@@ -265,10 +265,10 @@ class LoginRedirectorController extends ApiController
 		}
 		if (!$groupFound) {
 			$params = [
-				'content' => $this->l->t('The user is not member of the groups defined for the client. You are not allowed to retrieve a login token.'),
+				'message' => $this->l->t('The user is not member of the groups defined for the client. You are not allowed to retrieve a login token.'),
 			];
 			$this->logger->notice('User ' . $this->userSession->getUser()->getUID() . ' is not accepted for client ' . $client_id . ' due to missing group assignment.');
-			return new TemplateResponse('core', '404', $params, 'guest');
+			return new TemplateResponse('core', '403', $params, 'error');
 		}
 
 		$accessTokenCode = $this->random->generate(72, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
