@@ -31,6 +31,8 @@ use OC\Authentication\Token\IProvider as TokenProvider;
 use OC\Security\Bruteforce\Throttler;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCP\AppFramework\ApiController;
@@ -56,6 +58,8 @@ class OIDCApiController extends ApiController {
 	private $accessTokenMapper;
 	/** @var ClientMapper */
 	private $clientMapper;
+	/** @var GroupMapper */
+	private $groupMapper;
 	/** @var ICrypto */
 	private $crypto;
 	/** @var TokenProvider */
@@ -85,6 +89,7 @@ class OIDCApiController extends ApiController {
 					ICrypto $crypto,
 					AccessTokenMapper $accessTokenMapper,
 					ClientMapper $clientMapper,
+					GroupMapper $groupMapper,
 					TokenProvider $tokenProvider,
 					ISecureRandom $secureRandom,
 					ITimeFactory $time,
@@ -101,6 +106,7 @@ class OIDCApiController extends ApiController {
 		$this->crypto = $crypto;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->clientMapper = $clientMapper;
+		$this->groupMapper = $groupMapper;
 		$this->tokenProvider = $tokenProvider;
 		$this->secureRandom = $secureRandom;
 		$this->time = $time;
@@ -205,12 +211,35 @@ class OIDCApiController extends ApiController {
 		$accessToken->setHashedCode(hash('sha512', $newCode));
 		$accessToken->setAccessToken($newAccessToken);
 		$accessToken->setRefreshed($this->time->getTime() + $expireTime);
-		$this->accessTokenMapper->update($accessToken);
 
 		$uid = $accessToken->getUserId();
 		$user = $this->userManager->get($uid);
 		$groups = $this->groupManager->getUserGroups($user);
 		$account = $this->accountManager->getAccount($user);
+
+		// Check if user is in allowed groups for client
+		$clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
+
+		$groupFound = false;
+		if (count($clientGroups) < 1) { $groupFound = true; }
+		foreach ($clientGroups as $i => $clientGroup) {
+			foreach ($groups as $j => $userGroup) {
+				if ($clientGroup->getGroupId() === $userGroup->getGID()) {
+					$groupFound = true;
+					break;
+				}
+			}
+		}
+		if (!$groupFound) {
+			$this->accessTokenMapper->delete($accessToken);
+			$this->logger->notice('Access token used for allowed for user groups. Client id was ' . $client_id . '.');
+			return new JSONResponse([
+				'error' => 'invalid_grant',
+				'error_description' => 'Access token not allowed for user groups.',
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		$this->accessTokenMapper->update($accessToken);
 
 		$issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
 		$nonce = $accessToken->getNonce();
