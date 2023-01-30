@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ο εφαρμογή σας δεν είναι εξουσιοδοτημένη να συνδεθεί. Ενημερώστε τον διαχειριστή σας.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Το ληφθέν URI ανακατεύθυνσης δεν είναι αποδεκτό για σύνδεση. Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Ο χρήστης δεν είναι μέλος των ομάδων που έχουν οριστεί για τον πελάτη. Δεν επιτρέπεται η ανάκτηση ενός κουπονιού σύνδεσης.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Η διεύθυνση URL ανακατεύθυνσης πρέπει να είναι μια πλήρη διεύθυνση URL, για παράδειγμα: https://yourdomain.com/path",
     "OIDC Identity Provider" : "Πάροχος ταυτότητας OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Το Nextcloud ως πάροχος ταυτότητας OpenID Connect",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "Εμφάνιση μυστικού εφαρμογής υπολογιστή",
     "-- NONE --" : "-- ΚΑΝΕΝΑΣ --",
     "Signing Algorithm" : "Αλγόριθμος υπογραφής",
-    "Type" : "Τύπος"
+    "Type" : "Τύπος",
+    "Limited to Groups" : "Περιορίζεται σε ομάδες",
+    "Only users in one of the following groups are allowed to use the client." : "Μόνο οι χρήστες που ανήκουν σε μία από τις ακόλουθες ομάδες επιτρέπεται να χρησιμοποιούν το πρόγραμμα-πελάτη.",
+    "Groups allowed to use the client." : "Ομάδες που επιτρέπεται να χρησιμοποιούν το πρόγραμμα-πελάτη."
 },
 "nplurals=2; plural=(n != 1);");

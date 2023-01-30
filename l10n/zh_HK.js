@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "此客戶端無權連結，請通知此客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "不接受接收到的重定向 uri 進行連接。 請通知您客戶的管理員。",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "用戶不是為客戶端定義的群組的成員。您無權檢索登錄權杖。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "重導向 URL 必須為完整的 URL，如範例所示：https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC 身分提供者",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud 作為 OpenID Connect 身份提供者",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "顯示客戶端密碼",
     "-- NONE --" : "-- 無 --",
     "Signing Algorithm" : "簽名算法",
-    "Type" : "類型"
+    "Type" : "類型",
+    "Limited to Groups" : "限於群組",
+    "Only users in one of the following groups are allowed to use the client." : "僅允許以下群組之一的用戶使用客戶端。",
+    "Groups allowed to use the client." : "允許使用客戶端的群組。"
 },
 "nplurals=1; plural=0;");

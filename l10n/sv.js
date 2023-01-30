@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient har inte behörighet att ansluta. Vänligen meddela din administratör.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den mottagna omdirigerings-URI:n accepteras inte för anslutning. Vänligen informera administratören för din klient.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Användaren är inte medlem i de grupper som definierats för klienten. Du får inte hämta en inloggningstoken.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigeringsadress måste vara en fullständig webbadress till exempel: https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud som identitetsleverantör för OpenID Connect",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "Visa klienthemlighet",
     "-- NONE --" : "-- INGA --",
     "Signing Algorithm" : "Algoritm för signering",
-    "Type" : "Typ"
+    "Type" : "Typ",
+    "Limited to Groups" : "Begränsat till grupper",
+    "Only users in one of the following groups are allowed to use the client." : "Endast användare i någon av följande grupper får använda klienten.",
+    "Groups allowed to use the client." : "Grupper som får använda klienten."
 },
 "nplurals=2; plural=(n != 1);");

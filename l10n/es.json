@@ -1,6 +1,7 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Tu cliente no está autorizado a conectarse. Por favor, informa de tu cliente al administrador.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "El URI de redirección recibido no es aceptado para conectarse. Por favor, informe al administrador de su cliente.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "El usuario no es miembro de los grupos definidos para el cliente. No se le permite recuperar un token de inicio de sesión.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tu URL de redirección debe ser una URL completa, por ejemplo: https://tudominio.com/ruta",
     "OIDC Identity Provider" : "Proveedor de identidades OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud como proveedor de identidades de OpenID Connect",
@@ -32,6 +33,9 @@
     "Show client secret" : "Mostrar secreto del cliente",
     "-- NONE --" : "-- NADA --",
     "Signing Algorithm" : "Algoritmo de firma",
-    "Type" : "Tipo"
+    "Type" : "Tipo",
+    "Limited to Groups" : "Limitado a grupos",
+    "Only users in one of the following groups are allowed to use the client." : "Sólo los usuarios de uno de los siguientes grupos pueden utilizar el cliente.",
+    "Groups allowed to use the client." : "Grupos autorizados a utilizar el cliente."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

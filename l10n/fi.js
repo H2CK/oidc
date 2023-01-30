@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle asiakkaastasi.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Käyttäjä ei kuulu asiakkaalle määriteltyihin ryhmiin. Et saa hakea kirjautumistunnusta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
     "OIDC Identity Provider" : "OIDC-tunnisteiden tarjoaja",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "Näytä asiakkaan salaisuus",
     "-- NONE --" : "-- EI OLE --",
     "Signing Algorithm" : "Allekirjoitusalgoritmi",
-    "Type" : "Tyyppi"
+    "Type" : "Tyyppi",
+    "Limited to Groups" : "Rajoitettu ryhmille",
+    "Only users in one of the following groups are allowed to use the client." : "Vain johonkin seuraavista ryhmistä kuuluvat käyttäjät saavat käyttää asiakasta.",
+    "Groups allowed to use the client." : "Ryhmät, jotka saavat käyttää asiakasta."
 },
 "nplurals=2; plural=(n != 1);");

@@ -11,16 +11,16 @@
 # MegaXLR <tedvanriel@gmail.com>, 2022
 # EWouters, 2022
 # André Koot <meneer@tken.net>, 2022
-# H2CK, 2022
+# H2CK, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-01-29 03:18+0000\n"
+"POT-Creation-Date: 2023-01-30 03:24+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2022\n"
+"Last-Translator: H2CK, 2023\n"
 "Language-Team: Dutch (https://www.transifex.com/nextcloud/teams/64236/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,6 +49,8 @@ msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"De gebruiker is geen lid van de voor de client gedefinieerde groepen. Het is"
+" niet toegestaan een login token op te halen."
 
 #: /app/lib/Controller/SettingsController.php:103
 msgid ""
@@ -246,15 +248,16 @@ msgstr "Type"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Limited to Groups"
-msgstr ""
+msgstr "Beperkt tot groepen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
+"Alleen gebruikers in een van de volgende groepen mogen de client gebruiken."
 
 #. TRANSLATORS src/components/OIDCItem.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Groups allowed to use the client."
-msgstr ""
+msgstr "Groepen die de client mogen gebruiken."

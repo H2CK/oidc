@@ -16,16 +16,16 @@
 # Alain Rihs <alainrihs@sunrise.ch>, 2022
 # Mer0me <postmaster@merome.net>, 2022
 # Ldm Public <ldmpub@gmail.com>, 2022
-# H2CK, 2022
+# H2CK, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-01-29 03:18+0000\n"
+"POT-Creation-Date: 2023-01-30 03:24+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2022\n"
+"Last-Translator: H2CK, 2023\n"
 "Language-Team: French (https://www.transifex.com/nextcloud/teams/64236/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -54,6 +54,8 @@ msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"L'utilisateur n'est pas membre des groupes définis pour le client. Vous "
+"n'êtes pas autorisé à récupérer un jeton de connexion."
 
 #: /app/lib/Controller/SettingsController.php:103
 msgid ""
@@ -251,15 +253,17 @@ msgstr "Type"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Limited to Groups"
-msgstr ""
+msgstr "Limité aux groupes"
 
 #. TRANSLATORS src/components/OIDCItem.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
+"Seuls les utilisateurs appartenant à l'un des groupes suivants sont "
+"autorisés à utiliser le client."
 
 #. TRANSLATORS src/components/OIDCItem.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Groups allowed to use the client."
-msgstr ""
+msgstr "Groupes autorisés à utiliser le client."

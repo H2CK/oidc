@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Il tuo client non è autorizzato a collegarsi. Informa l'amministratore del tuo client.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "L'URI di reindirizzamento ricevuto non è accettato per la connessione. Informare l'amministratore del client.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utente non fa parte dei gruppi definiti per il client. Non è possibile recuperare un token di accesso.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Il tuo URL di redirezione deve essere un URL completo, ad esempio: https://tuodominio.com/percorso",
     "OIDC Identity Provider" : "Fornitore di identità OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud come fornitore di identità OpenID Connect",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "Mostra segreto del client",
     "-- NONE --" : "-- NESSUNO --",
     "Signing Algorithm" : "Algoritmo di firma",
-    "Type" : "Tipo"
+    "Type" : "Tipo",
+    "Limited to Groups" : "Limitato ai gruppi",
+    "Only users in one of the following groups are allowed to use the client." : "Solo gli utenti di uno dei seguenti gruppi possono utilizzare il client.",
+    "Groups allowed to use the client." : "Gruppi autorizzati a utilizzare il client."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

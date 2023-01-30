@@ -10,15 +10,16 @@
 # Mario Siegmann <mario_siegmann@web.de>, 2022
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2022
 # Joachim Sokolowski, 2022
+# H2CK, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-01-29 03:18+0000\n"
+"POT-Creation-Date: 2023-01-30 03:24+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Joachim Sokolowski, 2022\n"
+"Last-Translator: H2CK, 2023\n"
 "Language-Team: German (Germany) (https://www.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -47,6 +48,8 @@ msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"Der Benutzer ist nicht Mitglied der für den Client definierten Gruppen. Sie "
+"sind nicht berechtigt, ein Login-Token abzurufen."
 
 #: /app/lib/Controller/SettingsController.php:103
 msgid ""
@@ -244,15 +247,17 @@ msgstr "Typ"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Limited to Groups"
-msgstr ""
+msgstr "Beschränkt auf Gruppen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
+"Nur Benutzer, die einer der folgenden Gruppen angehören, dürfen den Client "
+"verwenden."
 
 #. TRANSLATORS src/components/OIDCItem.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Groups allowed to use the client."
-msgstr ""
+msgstr "Gruppen, die den Client benutzen dürfen."

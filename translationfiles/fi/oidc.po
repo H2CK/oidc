@@ -10,16 +10,16 @@
 # 72d686daabd2f7212739b412929536be_e195df1 <a6caa6e567bfabba50a29e9a037273fb_1019631>, 2022
 # Robin Lahtinen <robin.lahtinen@gmail.com>, 2022
 # Jiri Grönroos <jiri.gronroos@iki.fi>, 2022
-# H2CK, 2022
+# H2CK, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-01-29 03:18+0000\n"
+"POT-Creation-Date: 2023-01-30 03:24+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2022\n"
+"Last-Translator: H2CK, 2023\n"
 "Language-Team: Finnish (Finland) (https://www.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -48,6 +48,8 @@ msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"Käyttäjä ei kuulu asiakkaalle määriteltyihin ryhmiin. Et saa hakea "
+"kirjautumistunnusta."
 
 #: /app/lib/Controller/SettingsController.php:103
 msgid ""
@@ -246,15 +248,17 @@ msgstr "Tyyppi"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Limited to Groups"
-msgstr ""
+msgstr "Rajoitettu ryhmille"
 
 #. TRANSLATORS src/components/OIDCItem.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
+"Vain johonkin seuraavista ryhmistä kuuluvat käyttäjät saavat käyttää "
+"asiakasta."
 
 #. TRANSLATORS src/components/OIDCItem.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Groups allowed to use the client."
-msgstr ""
+msgstr "Ryhmät, jotka saavat käyttää asiakasta."
