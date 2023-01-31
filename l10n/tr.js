@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "İstemcinizin bağlantı kurma izni yok. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Alınan yönlendirme adresi bağlantı kurmak için kabul edilmiyor. Lütfen istemcinizin BT yöneticisini bilgilendirin.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kullanıcı, istemci için tanımlanmış grupların üyesi değil. Oturum açma kodu almanıza izin verilmiyor.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Yönlendirme adresi https://websitem.com/yol gibi tam bir adres olmalıdır",
     "OIDC Identity Provider" : "OIDC kimlik hizmeti sağlayıcısı",
     "Nextcloud as OpenID Connect Identity Provider" : "OpenID Connect kimlik hizmeti sağlayıcısı olarak Nextcloud",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "İstemci parolasını görüntüle",
     "-- NONE --" : "-- YOK --",
     "Signing Algorithm" : "İmzalama algoritması",
-    "Type" : "Tür"
+    "Type" : "Tür",
+    "Limited to Groups" : "Şu gruplarla sınırlanmış",
+    "Only users in one of the following groups are allowed to use the client." : "Yalnızca aşağıdaki gruplardan birindeki kullanıcıların istemciyi kullanmasına izin verilir.",
+    "Groups allowed to use the client." : "İstemciyi kullanmasına izin verilecek gruplar"
 },
 "nplurals=2; plural=(n > 1);");

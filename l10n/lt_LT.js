@@ -17,6 +17,7 @@ OC.L10N.register(
     "Delete" : "Ištrinti",
     "Client Identifier" : "Kliento identifikatorius",
     "Secret" : "Paslaptis",
+    "-- NONE --" : "-- NĖRA --",
     "Signing Algorithm" : "Pasirašymo algoritmas",
     "Type" : "Tipas"
 },
