@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашият клиент не е упълномощен да се свързва. Моля, информирайте администратора на вашия клиент.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Полученият URI адрес за пренасочване не се приема за свързване. Моля, информирайте администратора на вашия клиент.",
+    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Потребителят не е член на групите, определени за клиента. Нямате право да изтеглите токен за вход.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Вашият URL за пренасочване трябва да е пълен URL, например: https://yourdomain.com/path",
     "OIDC Identity Provider" : "Доставчик на OIDC самоличност",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud като доставчик на стандарта за самоличност OpenID Connect Identity ",
@@ -34,6 +35,9 @@ OC.L10N.register(
     "Show client secret" : "Покажете тайната на клиента",
     "-- NONE --" : "-- НЯМА --",
     "Signing Algorithm" : "Алгоритъм за подписване",
-    "Type" : "Тип"
+    "Type" : "Тип",
+    "Limited to Groups" : "Ограничено за групи",
+    "Only users in one of the following groups are allowed to use the client." : "Само потребители, включени в една от следните групи, е разрешено да използват клиента.",
+    "Groups allowed to use the client." : "Групи, на които е разрешено да използват клиента."
 },
 "nplurals=2; plural=(n != 1);");
