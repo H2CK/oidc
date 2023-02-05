@@ -117,6 +117,7 @@ class SettingsController extends Controller
 		} else {
 			$client->setType('confidential');
 		}
+		$client->setFlowType('code');
 		$client = $this->clientMapper->insert($client);
 		$redirectUriObj = new RedirectUri();
 		$redirectUriObj->setClientId($client->getId());
@@ -141,6 +142,7 @@ class SettingsController extends Controller
 			'clientSecret' => $client->getSecret(),
 			'signingAlg' => $client->getSigningAlg(),
 			'type' => $client->getType(),
+			'flowType' => $client-getFlowType(),
 		];
 
 		return new JSONResponse($result);
@@ -161,6 +163,23 @@ class SettingsController extends Controller
 				$this->groupMapper->insert($groupObj);
 			}
 		}
+		return new JSONResponse([]);
+	}
+
+	public function updateClientFlow(
+					int $id,
+					string $flowType
+					): JSONResponse
+	{
+		$this->logger->debug("Updating flow_type for client " . $id);
+		$client = $this->clientMapper->getByUid($id);
+		$allowedResponseTypeEntries = explode(' ', strtolower(trim($flowType)), 3);
+		if (in_array('id_token', $allowedResponseTypeEntries)) {
+			$client->setFlowType('code id_token');
+		} else {
+			$client->setFlowType('code');
+		}
+		$this->clientMapper->update($client);
 		return new JSONResponse([]);
 	}
 

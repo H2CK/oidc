@@ -6,9 +6,11 @@
 [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QRSDVQA2UMJQC&source=url)
 
 This is the an OIDC App for Nextcloud. This application allows to use your Nextcloud Login at other services supporting OpenID Connect.
+Hint: Up to now it is not possible to use the provided Access Tokens or ID Tokens to access resources (e.g. files, calendars, ...) from your Nextcloud instance. Only the Authorization Codes can be used to fetch the Access Tokens / ID Tokens at the `/token` endpoint.
 
 Provided features:
 
+- Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow (since version 0.4.0) - Implicite Flow must be activated per client.
 - Configuration of accepted client for whom JWT Tokens are provided. Public and confidential types are supported.
 - Creation of JWT Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles and groups)
 - Supported signing algorithms RS256 (default) and HS256
@@ -37,9 +39,19 @@ CORS is enable for all domains on all the above endpoints.
 
 The discovery endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration`.
 
+## Scopes
+
+| Scope | Description |
+|---|---|
+| openid | Default scope. Will be added if missing. |
+| profile | Adds the claims `name`and `updated_at`to the ID Token. |
+| email | Adds the email address of the user to the claim `email`. Furthermore the claim `email_verified` is added. |
+| roles | Adds the groups of the user in the claim `roles`. |
+| groups | Adds the groups of the user in the claim `groups`. |
+
 ## Limitations
 
-Currently it is not yet possible to use an issued JWT Token to access resource at the Nextcloud instance it self. (Future implementation planned)
+Currently it is not yet possible to use an issued Access Token or ID Token to access resources at the Nextcloud instance it self. (Future implementation planned)
 
 Client authentication to fetch token currently only supports the sending of the client credentials in the body. Basic Auth is currently not supported.
 

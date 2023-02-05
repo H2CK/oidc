@@ -69,6 +69,19 @@
 					<td><code>{{ t('oidc', type) }}</code></td>
 				</tr>
 				<tr>
+					<td>{{ t('oidc', 'Flows') }}</td>
+					<td>
+						<div class="oidc_flow_container">
+							<NcSelect v-bind="flowData.props"
+								v-model="flowData.props.value"
+								:placeholder="t('oidc', 'Flows allowed to be used with the client.')"
+								:no-wrap="true"
+								class="nc_select"
+								@input="updateFlowTypes" />
+						</div>
+					</td>
+				</tr>
+				<tr>
 					<td>{{ t('oidc', 'Limited to Groups') }}</td>
 					<td>
 						<p>
@@ -122,6 +135,27 @@ export default {
 			type: this.client.type,
 			renderSecret: false,
 			addRedirectUri: '',
+			flowData: {
+				props: {
+					inputId: this.client.id + '-flow-select',
+					multiple: false,
+					closeOnSelect: true,
+					options: [
+						{
+							label: t('oidc', 'Code Authorization Flow'),
+							value: 'code',
+						},
+						{
+							label: t('oidc', 'Code & Implicit Authorization Flow'),
+							value: 'code id_token',
+						},
+					],
+					value: {
+						label: this.client.flowTypeLabel,
+						value: this.client.flowType,
+					},
+				},
+			},
 			groupData: {
 				props: {
 					inputId: this.client.id + '-group-select',
@@ -157,6 +191,9 @@ export default {
 		updateGroups() {
 			this.$emit('updategroups', this.id, this.groupData.props.value)
 		},
+		updateFlowTypes() {
+			this.$emit('updateflowtypes', this.id, this.flowData.props.value)
+		},
 	},
 }
 </script>
@@ -167,6 +204,14 @@ export default {
 		border: 0 !important;
 		margin-left: 4px !important;
 		min-height: 24px !important;
+	}
+
+	.vs__clear {
+		padding: 0 !important;
+		border: 0 !important;
+		margin-left: 4px !important;
+		min-height: 24px !important;
+		background-color: transparent !important;
 	}
 
 	.vs__search {
@@ -200,6 +245,12 @@ export default {
 	}
 
 	.oidc_group_container {
+		display: flex;
+		flex-direction: column;
+		gap: 2px 0;
+	}
+
+	.oidc_flow_container {
 		display: flex;
 		flex-direction: column;
 		gap: 2px 0;

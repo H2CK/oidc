@@ -49,7 +49,12 @@ return [
         ],
 		[
             'name' => 'Settings#updateClient',
-            'url' => '/clients/{id}',
+            'url' => '/clients/groups/{id}',
+            'verb' => 'PATCH'
+        ],
+		[
+            'name' => 'Settings#updateClientFlow',
+            'url' => '/clients/flows/{id}',
             'verb' => 'PATCH'
         ],
         [
@@ -122,5 +127,10 @@ return [
             'url' => '/logout',
             'verb' => 'OPTIONS',
         ],
+		// [
+        //     'name' => 'JwtLogin#login',
+        //     'url' => '/login',
+        //     'verb' => 'GET',
+        // ],
     ],
 ];

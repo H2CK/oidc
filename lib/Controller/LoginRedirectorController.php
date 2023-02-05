@@ -53,6 +53,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
+use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class LoginRedirectorController extends ApiController
@@ -85,6 +86,10 @@ class LoginRedirectorController extends ApiController
 	private $groupManager;
 	/** @var IInitialStateService */
 	private $initialStateService;
+	/** @var IAppConfig */
+	private $appConfig;
+	/** @var JwtGenerator */
+	private $jwtGenerator;
 	/** @var LoggerInterface */
 	private $logger;
 
@@ -105,6 +110,8 @@ class LoginRedirectorController extends ApiController
 	 * @param AccessTokenMapper $accessTokenMapper
 	 * @param RedirectUriMapper $redirectUriMapper
 	 * @param IInitialStateService $initialStateService
+	 * @param IAppConfig $appConfig
+	 * @param JwtGenerator $jwtGenerator
 	 * @param LoggerInterface $loggerInterface
 	 */
 	public function __construct(
@@ -124,6 +131,8 @@ class LoginRedirectorController extends ApiController
 					AccessTokenMapper $accessTokenMapper,
 					RedirectUriMapper $redirectUriMapper,
 					IInitialStateService $initialStateService,
+					IAppConfig $appConfig,
+					JwtGenerator $jwtGenerator,
 					LoggerInterface $logger
 					)
 		{
@@ -142,6 +151,8 @@ class LoginRedirectorController extends ApiController
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
 		$this->initialStateService = $initialStateService;
+		$this->appConfig = $appConfig;
+		$this->jwtGenerator = $jwtGenerator;
 		$this->logger = $logger;
 	}
 
@@ -243,8 +254,29 @@ class LoginRedirectorController extends ApiController
 			return new TemplateResponse('core', '403', $params, 'error');
 		}
 
-		if ($response_type !== 'code' && $response_type !== 'code id_token') {
-			//Fail
+		$responseTypeEntries = explode(' ', strtolower(trim($response_type)), 3);
+		$codeFlow = false;
+		$implicitFlow = false;
+		if (in_array('code', $responseTypeEntries)) {
+			$codeFlow = true;
+		}
+		if (in_array('token', $responseTypeEntries) || !in_array('id_token', $responseTypeEntries)) {
+			$implicitFlow = true;
+			// array_push($responseTypeEntries, 'id_token'); // Add ID token by default
+		}
+
+		$allowedResponseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
+		$isImplicitFlowAllowed = false;
+		if (in_array('id_token', $allowedResponseTypeEntries)) {
+			$isImplicitFlowAllowed = true;
+		}
+		if (($implicitFlow && !$isImplicitFlowAllowed) || (!$codeFlow && !$implicitFlow)) {
+			// $params = [
+			// 	'message' => $this->l->t('The received response_type is not accepted. Please inform the administrator of your client.'),
+			// ];
+			// $this->logger->notice('Response_type ' . $response_type . ' from client ' . $client_id . ' is not accepted.');
+			// return new TemplateResponse('core', '403', $params, 'error');
+			//Fail - Instead Template Response???
 			$url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
 			return new RedirectResponse($url);
 		}
@@ -294,10 +326,27 @@ class LoginRedirectorController extends ApiController
 		if (empty($state) || !isset($state)) {
 			$state = '';
 		}
-		$url = $redirect_uri . '?code=' . $code . '&state=' . urlencode($state);
+
+		$expireTime = $this->appConfig->getAppValue('expire_time');
+
+		$url = $redirect_uri . '?state=' . urlencode($state);
 		if (str_contains($redirect_uri, '?')) {
-			$url = $redirect_uri . '&code=' . $code . '&state=' . urlencode($state);
+			$url = $redirect_uri . '&state=' . urlencode($state);
 		}
+		if (in_array('code', $responseTypeEntries)) {
+			$url = $url . '&code=' . $code;
+		}
+		if (in_array('token', $responseTypeEntries)) {
+			$url = $url . '&access_token=' . $accessTokenCode;
+		}
+		if (in_array('id_token', $responseTypeEntries)) {
+			$jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request);
+			$url = $url . '&id_token=' . $jwt;
+		}
+		if (in_array('id_token', $responseTypeEntries) || in_array('token', $responseTypeEntries)) {
+			$url = $url . '&token_type=Bearer&expires_in=' . $expireTime . '&scope=' . $scope;
+		}
+
 		$this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
 		return new RedirectResponse($url);

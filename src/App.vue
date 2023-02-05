@@ -44,7 +44,8 @@
 					@addredirect="addRedirectUri"
 					@deleteredirect="deleteRedirectUri"
 					@delete="deleteClient"
-					@updategroups="updateGroups" />
+					@updategroups="updateGroups"
+					@updateflowtypes="updateFlowTypes" />
 			</tbody>
 		</table>
 
@@ -261,10 +262,30 @@ export default {
 			this.error = false
 
 			axios.patch(
-				generateUrl('apps/oidc/clients/{id}', { id }),
+				generateUrl('apps/oidc/clients/groups/{id}', { id }),
 				{
 					id,
 					groups,
+				}
+			).then(response => {
+				// Nothing to do
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
+			})
+		},
+		updateFlowTypes(id, flowTypes) {
+			this.error = false
+			let resultingFlowTypes = 'code'
+			if (flowTypes && flowTypes.value === 'code id_token') {
+				resultingFlowTypes = 'code id_token'
+			}
+
+			axios.patch(
+				generateUrl('apps/oidc/clients/flows/{id}', { id }),
+				{
+					id,
+					flowType: resultingFlowTypes,
 				}
 			).then(response => {
 				// Nothing to do

@@ -36,6 +36,7 @@ use OCP\Settings\ISettings;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IGroup;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use Psr\Log\LoggerInterface;
 
 class Admin implements ISettings {
@@ -58,6 +59,9 @@ class Admin implements ISettings {
 	/** @var IAppConfig */
 	private $appConfig;
 
+	/** @var IL10N */
+	private $l;
+
 	/** @var LoggerInterface */
 	private $logger;
 
@@ -67,6 +71,7 @@ class Admin implements ISettings {
 					RedirectUriMapper $redirectUriMapper,
 					GroupMapper $groupMapper,
 					IGroupManager $groupManager,
+					IL10N $l,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
 					)
@@ -76,6 +81,7 @@ class Admin implements ISettings {
 		$this->redirectUriMapper = $redirectUriMapper;
 		$this->groupMapper = $groupMapper;
 		$this->groupManager = $groupManager;
+		$this->l = $l;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
 	}
@@ -100,6 +106,12 @@ class Admin implements ISettings {
 			foreach ($groups as $group) {
 				array_push($resultGroups, $group->getGroupId());
 			}
+			$flowTypeLabel = $this->l->t('Code Authorization Flow');
+			$responseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
+			if (in_array('id_token', $responseTypeEntries)) {
+				$flowTypeLabel = $this->l->t('Code & Implicit Authorization Flow');
+			}
+
 			$result[] = [
 				'id' => $client->getId(),
 				'name' => $client->getName(),
@@ -108,6 +120,8 @@ class Admin implements ISettings {
 				'clientSecret' => $client->getSecret(),
 				'signingAlg' => $client->getSigningAlg(),
 				'type' => $client->getType(),
+				'flowType' => $client->getFlowType(),
+				'flowTypeLabel' => $flowTypeLabel,
 				'groups' => $resultGroups,
 			];
 		}
