@@ -29,6 +29,8 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => __DIR__ . '/..' . '/../lib/Controller/JwksController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => __DIR__ . '/..' . '/../lib/Controller/LogoutController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\PageController' => __DIR__ . '/..' . '/../lib/Controller/PageController.php',
+		// 'OCA\\OIDCIdentityProvider\\Controller\\JwtLoginController' => __DIR__ . '/..' . '/../lib/Controller/JwtLoginController.php',
+		'OCA\\OIDCIdentityProvider\\Controller\\JwtGenerator' => __DIR__ . '/..' . '/../lib/Controller/JwtGenerator.php',
         'OCA\\OIDCIdentityProvider\\Controller\\SettingsController' => __DIR__ . '/..' . '/../lib/Controller/SettingsController.php',
         'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
         'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupGroups.php',
@@ -51,6 +53,7 @@ class ComposerStaticInitOIDCIdentityProvider
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0005Date20221009082100' => __DIR__ . '/..' . '/../lib/Migration/Version0005Date20221009082100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0006Date20221011082100' => __DIR__ . '/..' . '/../lib/Migration/Version0006Date20221011082100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0007Date20230121172100' => __DIR__ . '/..' . '/../lib/Migration/Version0007Date20230121172100.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0008Date20230204190000' => __DIR__ . '/..' . '/../lib/Migration/Version0008Date20230204190000.php',
 		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
     );
 

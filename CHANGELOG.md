@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2023-02-04
+
+### Changed
+
+- Added support for implicit flow.
+
+## [0.3.1] - 2023-01-31
+
+### Changed
+
+- Added translations.
+
 ## [0.3.0] - 2023-01-28
 
 ### Changed
