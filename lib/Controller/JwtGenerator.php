@@ -23,6 +23,7 @@ declare(strict_types=1);
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OC\Authentication\Token\IProvider as TokenProvider;
@@ -44,7 +45,8 @@ use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 
-class JwtGenerator {
+class JwtGenerator
+{
 	/** @var ICrypto */
 	private $crypto;
 	/** @var TokenProvider */
@@ -77,8 +79,7 @@ class JwtGenerator {
 					IURLGenerator $urlGenerator,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
-					)
-	{
+	) {
 		$this->crypto = $crypto;
 		$this->tokenProvider = $tokenProvider;
 		$this->secureRandom = $secureRandom;
@@ -98,7 +99,7 @@ class JwtGenerator {
 	 * @param Client $client
 	 * @return string
 	 */
-	public function generateIdToken(AccessToken $accessToken, Client $client, IRequest $request): string
+	public function generateIdToken(AccessToken $accessToken, Client $client, IRequest $request, bool $atHash): string
 	{
 		$expireTime = $this->appConfig->getAppValue('expire_time');
 		$issuer = $request->getServerProtocol() . '://' . $request->getServerHost() . $this->urlGenerator->getWebroot();
@@ -122,6 +123,18 @@ class JwtGenerator {
 			'nbf' => $this->time->getTime(),
 			'jti' => strval($accessToken->getId()),
 		];
+
+		if ($atHash) {
+			$atHashData = str_replace(
+				['+', '/', '='],
+				['-', '_', ''],
+				base64_encode(substr(hash('sha256', $accessToken->getAccessToken()), 0, 128))
+			);
+			$athashPayload = [
+				'at_hash' => $atHashData
+			];
+			$jwt_payload = array_merge($jwt_payload, $athashPayload);
+		}
 
 		if (!empty($nonce)) {
 			$nonce_payload = [
@@ -177,11 +190,11 @@ class JwtGenerator {
 			$email = [
 				'email' => $user->getEMailAddress(),
 			];
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified()) {
+			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified()) {
 				$email = array_merge($email, ['email_verified' => true]);
 			} else {
-                $email = array_merge($email, ['email_verified' => false]);
-            }
+				$email = array_merge($email, ['email_verified' => false]);
+			}
 			$jwt_payload = array_merge($jwt_payload, $email);
 		}
 

@@ -247,7 +247,7 @@ class OIDCApiController extends ApiController {
 
 		$this->accessTokenMapper->update($accessToken);
 
-		$jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request);
+		$jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request, false);
 
 		$this->logger->info('Returned token for user ' . $uid);
 

@@ -260,9 +260,19 @@ class LoginRedirectorController extends ApiController
 		if (in_array('code', $responseTypeEntries)) {
 			$codeFlow = true;
 		}
-		if (in_array('token', $responseTypeEntries) || !in_array('id_token', $responseTypeEntries)) {
+		if (in_array('token', $responseTypeEntries) || in_array('id_token', $responseTypeEntries)) {
 			$implicitFlow = true;
+		}
+		if (in_array('id_token', $responseTypeEntries)) {
+			if (empty($nonce)) {
+				$url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20nonce&state=' . $state;
+				return new RedirectResponse($url);
+			}
+		}
+		if (in_array('token', $responseTypeEntries) && !in_array('id_token', $responseTypeEntries)) {
 			// array_push($responseTypeEntries, 'id_token'); // Add ID token by default
+			$url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20id_token&state=' . $state;
+			return new RedirectResponse($url);
 		}
 
 		$allowedResponseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
@@ -340,7 +350,7 @@ class LoginRedirectorController extends ApiController
 			$url = $url . '&access_token=' . $accessTokenCode;
 		}
 		if (in_array('id_token', $responseTypeEntries)) {
-			$jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request);
+			$jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request, in_array('token', $responseTypeEntries));
 			$url = $url . '&id_token=' . $jwt;
 		}
 		if (in_array('id_token', $responseTypeEntries) || in_array('token', $responseTypeEntries)) {

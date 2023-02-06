@@ -27,19 +27,24 @@ use OCP\AppFramework\Db\Entity;
 /**
  * @method int getId()
  * @method int getClientId()
- * @method void setClientId(int $identifier)
+ * @method void setClientId(int $clientId)
  * @method int getUserId()
- * @method void setUserId(int $identifier)
- * @method string getAccessToken()
- * @method void setAccessToken(string $token)
+ * @method void setUserId(int $userId)
+ * @method int getScope()
+ * @method void setScope(string $scope)
  * @method string getHashedCode()
- * @method void setHashedCode(string $token)
+ * @method void setHashedCode(string $hashedCode)
+ * @method string getAccessToken()
+ * @method void setAccessToken(string $accessToken)
  * @method string getCreated()
  * @method void setCreated(int $timestamp)
+ * @method string getRefreshed()
+ * @method void setRefreshed(int $timestamp)
  * @method string getNonce()
  * @method void setNonce(string $nonce)
  */
-class AccessToken extends Entity {
+class AccessToken extends Entity
+{
 	/** @var int */
 	public $id;
 	/** @var int */
