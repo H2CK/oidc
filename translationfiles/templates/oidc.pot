@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-02-05 03:15+0000\n"
+"POT-Creation-Date: 2023-02-06 03:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:223
+#: /app/lib/Controller/LoginRedirectorController.php:234
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of "
 "your client."
 msgstr ""
 
-#: /app/lib/Controller/LoginRedirectorController.php:240
+#: /app/lib/Controller/LoginRedirectorController.php:251
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
 
-#: /app/lib/Controller/LoginRedirectorController.php:268
+#: /app/lib/Controller/LoginRedirectorController.php:300
 msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
@@ -39,6 +39,16 @@ msgstr ""
 msgid ""
 "Your redirect URL needs to be a full URL for example: https://yourdomain.com/"
 "path"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:145
+#: /app/lib/Settings/Admin.php:109 /app/specialVueFakeDummyForL10nScript.js:80
+msgid "Code Authorization Flow"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:149
+#: /app/lib/Settings/Admin.php:112 /app/specialVueFakeDummyForL10nScript.js:82
+msgid "Code & Implicit Authorization Flow"
 msgstr ""
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
@@ -78,19 +88,19 @@ msgid ""
 "{instanceName} user accounts."
 msgstr ""
 
-#. TRANSLATORS src/App.vue:52
+#. TRANSLATORS src/App.vue:53
 #: /app/specialVueFakeDummyForL10nScript.js:6
 msgid "Add client"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:59
+#. TRANSLATORS src/App.vue:60
 #. TRANSLATORS src/components/OIDCItem.vue:27
 #: /app/specialVueFakeDummyForL10nScript.js:8
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Name"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:64
+#. TRANSLATORS src/App.vue:65
 #. TRANSLATORS src/components/OIDCItem.vue:31
 #. TRANSLATORS src/components/OIDCItem.vue:45
 #: /app/specialVueFakeDummyForL10nScript.js:10
@@ -99,81 +109,81 @@ msgstr ""
 msgid "Redirection URI"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:68
+#. TRANSLATORS src/App.vue:69
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:80
+#. TRANSLATORS src/App.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:83
+#. TRANSLATORS src/App.vue:84
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "Confidential"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:86
+#. TRANSLATORS src/App.vue:87
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:89
+#. TRANSLATORS src/App.vue:90
 #. TRANSLATORS src/components/OIDCItem.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:20
 #: /app/specialVueFakeDummyForL10nScript.js:54
 msgid "Add"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:93
+#. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:22
 msgid "Settings"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:94
-#. TRANSLATORS src/App.vue:97
+#. TRANSLATORS src/App.vue:95
+#. TRANSLATORS src/App.vue:98
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:100
+#. TRANSLATORS src/App.vue:101
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:103
+#. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:30
 msgid "5 minutes"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:106
+#. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:32
 msgid "10 minutes"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:109
+#. TRANSLATORS src/App.vue:110
 #: /app/specialVueFakeDummyForL10nScript.js:34
 msgid "15 minutes"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:112
+#. TRANSLATORS src/App.vue:113
 #: /app/specialVueFakeDummyForL10nScript.js:36
 msgid "30 minutes"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:115
+#. TRANSLATORS src/App.vue:116
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:118
+#. TRANSLATORS src/App.vue:119
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Public Key"
 msgstr ""
 
-#. TRANSLATORS src/App.vue:122
+#. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Regenerate Keys"
 msgstr ""
@@ -184,9 +194,9 @@ msgid "OpenID Connect Redirect"
 msgstr ""
 
 #. TRANSLATORS src/components/OIDCItem.vue:37
-#. TRANSLATORS src/components/OIDCItem.vue:91
+#. TRANSLATORS src/components/OIDCItem.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:50
-#: /app/specialVueFakeDummyForL10nScript.js:74
+#: /app/specialVueFakeDummyForL10nScript.js:78
 msgid "Delete"
 msgstr ""
 
@@ -222,16 +232,26 @@ msgstr ""
 
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
+msgid "Flows"
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:77
+#: /app/specialVueFakeDummyForL10nScript.js:70
+msgid "Flows allowed to be used with the client."
+msgstr ""
+
+#. TRANSLATORS src/components/OIDCItem.vue:85
+#: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Limited to Groups"
 msgstr ""
 
-#. TRANSLATORS src/components/OIDCItem.vue:75
-#: /app/specialVueFakeDummyForL10nScript.js:70
+#. TRANSLATORS src/components/OIDCItem.vue:88
+#: /app/specialVueFakeDummyForL10nScript.js:74
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
 
-#. TRANSLATORS src/components/OIDCItem.vue:81
-#: /app/specialVueFakeDummyForL10nScript.js:72
+#. TRANSLATORS src/components/OIDCItem.vue:94
+#: /app/specialVueFakeDummyForL10nScript.js:76
 msgid "Groups allowed to use the client."
 msgstr ""
