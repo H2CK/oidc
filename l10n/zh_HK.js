@@ -5,6 +5,8 @@ OC.L10N.register(
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "不接受接收到的重定向 uri 進行連接。 請通知您客戶的管理員。",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "用戶不是為客戶端定義的群組的成員。您無權檢索登錄權杖。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "重導向 URL 必須為完整的 URL，如範例所示：https://yourdomain.com/path",
+    "Code Authorization Flow" : "代碼授權流程",
+    "Code & Implicit Authorization Flow" : "代碼和隱式授權流程",
     "OIDC Identity Provider" : "OIDC 身分提供者",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud 作為 OpenID Connect 身份提供者",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud 作為 OpenID Connect 身份提供者\n\n有了這個應用程式，您可以使用 Nextcloud 作為 OpenID Connect 身份提供者。 如果其他服務\n配置正確，您可以使用 Nextcloud 登錄訪問這些服務。完整的文檔可以在以下位置找到：\n\n- [用戶文檔](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [開發者文檔](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -36,6 +38,8 @@ OC.L10N.register(
     "-- NONE --" : "-- 無 --",
     "Signing Algorithm" : "簽名算法",
     "Type" : "類型",
+    "Flows" : "流程",
+    "Flows allowed to be used with the client." : "允許使用客戶端的流程。",
     "Limited to Groups" : "限於群組",
     "Only users in one of the following groups are allowed to use the client." : "僅允許以下群組之一的用戶使用客戶端。",
     "Groups allowed to use the client." : "允許使用客戶端的群組。"

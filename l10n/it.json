@@ -3,6 +3,8 @@
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "L'URI di reindirizzamento ricevuto non è accettato per la connessione. Informare l'amministratore del client.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utente non fa parte dei gruppi definiti per il client. Non è possibile recuperare un token di accesso.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Il tuo URL di redirezione deve essere un URL completo, ad esempio: https://tuodominio.com/percorso",
+    "Code Authorization Flow" : "Flusso di autorizzazione del codice",
+    "Code & Implicit Authorization Flow" : "Flusso di autorizzazione del codice e implicito",
     "OIDC Identity Provider" : "Fornitore di identità OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud come fornitore di identità OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud come fornitore di identità OpenID Connect\n\nCon questa app puoi usare Nextcloud come OpenID Connect Identity Provider. Se altri servizi\\nsono configurati correttamente, sei in grado di accedere a quei servizi con il tuo login Nextcloud.\n\nLa documentazione completa può essere trovata su:\n\n- [Documentazione utente](https://github.com/H2CK/oidc/wiki#user-documentation)\n- Documentazione per sviluppatori](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -34,6 +36,8 @@
     "-- NONE --" : "-- NESSUNO --",
     "Signing Algorithm" : "Algoritmo di firma",
     "Type" : "Tipo",
+    "Flows" : "Flussi",
+    "Flows allowed to be used with the client." : "Flussi che possono essere utilizzati con il client.",
     "Limited to Groups" : "Limitato ai gruppi",
     "Only users in one of the following groups are allowed to use the client." : "Solo gli utenti di uno dei seguenti gruppi possono utilizzare il client.",
     "Groups allowed to use the client." : "Gruppi autorizzati a utilizzare il client."

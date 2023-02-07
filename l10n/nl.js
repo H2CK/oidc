@@ -5,6 +5,8 @@ OC.L10N.register(
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "De ontvangen redirect URI wordt niet geaccepteerd om verbinding te maken. Informeer de beheerder van uw client.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "De gebruiker is geen lid van de voor de client gedefinieerde groepen. Het is niet toegestaan een login token op te halen.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Je doorverwijzings-URL moet een volledige URL zijn, bijvoorbeeld: https://jouwdomein.com/pad",
+    "Code Authorization Flow" : "Code autorisatiestroom",
+    "Code & Implicit Authorization Flow" : "Code en impliciete autorisatiestroom",
     "OIDC Identity Provider" : "OIDC Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud als OpenID Connect Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud als OpenID Connect Identity Provider\n\nMet deze app kun je Nextcloud gebruiken als OpenID Connect Identity Provider. Als andere diensten\\ncorrect zijn geconfigureerd, hebt u toegang tot die diensten met uw Nextcloud-login.\n\nVolledige documentatie is te vinden op:\n\n- [Gebruikersdocumentatie](https://github.com/H2CK/oidc/wiki#user-documentation)\n- Ontwikkelaarsdocumentatie](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -36,6 +38,8 @@ OC.L10N.register(
     "-- NONE --" : "-- GEEN --",
     "Signing Algorithm" : "Ondertekenend algoritme",
     "Type" : "Type",
+    "Flows" : "Stromen",
+    "Flows allowed to be used with the client." : "Stromen die met de cliënt mogen worden gebruikt.",
     "Limited to Groups" : "Beperkt tot groepen",
     "Only users in one of the following groups are allowed to use the client." : "Alleen gebruikers in een van de volgende groepen mogen de client gebruiken.",
     "Groups allowed to use the client." : "Groepen die de client mogen gebruiken."

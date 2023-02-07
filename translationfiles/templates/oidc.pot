@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-02-06 03:14+0000\n"
+"POT-Creation-Date: 2023-02-07 03:17+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,7 +29,7 @@ msgid ""
 "administrator of your client."
 msgstr ""
 
-#: /app/lib/Controller/LoginRedirectorController.php:300
+#: /app/lib/Controller/LoginRedirectorController.php:310
 msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."

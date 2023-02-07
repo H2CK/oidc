@@ -5,6 +5,8 @@ OC.L10N.register(
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den mottagna omdirigerings-URI:n accepteras inte för anslutning. Vänligen informera administratören för din klient.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Användaren är inte medlem i de grupper som definierats för klienten. Du får inte hämta en inloggningstoken.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigeringsadress måste vara en fullständig webbadress till exempel: https://yourdomain.com/path",
+    "Code Authorization Flow" : "Flöde för kodauktorisering",
+    "Code & Implicit Authorization Flow" : "Kod och flöde för implicit auktorisering",
     "OIDC Identity Provider" : "OIDC Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud som identitetsleverantör för OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud som identitetsleverantör för OpenID Connect\n\nMed den här appen kan du använda Nextcloud som OpenID Connect Identity Provider. Om andra tjänster är korrekt konfigurerade kan du få tillgång till dessa tjänster med din inloggning till Nextcloud.\n\nFullständig dokumentation finns på följande adress:\n\n- [Användardokumentation] (https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Utvecklingsdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -36,6 +38,8 @@ OC.L10N.register(
     "-- NONE --" : "-- INGA --",
     "Signing Algorithm" : "Algoritm för signering",
     "Type" : "Typ",
+    "Flows" : "Flöden",
+    "Flows allowed to be used with the client." : "Flöden som får användas med klienten.",
     "Limited to Groups" : "Begränsat till grupper",
     "Only users in one of the following groups are allowed to use the client." : "Endast användare i någon av följande grupper får använda klienten.",
     "Groups allowed to use the client." : "Grupper som får använda klienten."

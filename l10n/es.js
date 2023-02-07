@@ -5,6 +5,8 @@ OC.L10N.register(
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "El URI de redirección recibido no es aceptado para conectarse. Por favor, informe al administrador de su cliente.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "El usuario no es miembro de los grupos definidos para el cliente. No se le permite recuperar un token de inicio de sesión.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tu URL de redirección debe ser una URL completa, por ejemplo: https://tudominio.com/ruta",
+    "Code Authorization Flow" : "Flujo de autorización de código",
+    "Code & Implicit Authorization Flow" : "Flujo de autorización de códigos y implícito",
     "OIDC Identity Provider" : "Proveedor de identidades OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud como proveedor de identidades de OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud como proveedor de identidad de OpenID Connect\n\nCon esta aplicación puedes utilizar Nextcloud como proveedor de identidad de OpenID Connect. Si otros servicios\\nestán configurados correctamente, podrás acceder a esos servicios con tu login de Nextcloud.\n\nLa documentación completa se puede encontrar en:\n\n- [Documentación del usuario](https://github.com/H2CK/oidc/wiki#user-documentation)\n- Documentación para desarrolladores](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -36,6 +38,8 @@ OC.L10N.register(
     "-- NONE --" : "-- NADA --",
     "Signing Algorithm" : "Algoritmo de firma",
     "Type" : "Tipo",
+    "Flows" : "Flujos",
+    "Flows allowed to be used with the client." : "Flujos que se pueden utilizar con el cliente.",
     "Limited to Groups" : "Limitado a grupos",
     "Only users in one of the following groups are allowed to use the client." : "Sólo los usuarios de uno de los siguientes grupos pueden utilizar el cliente.",
     "Groups allowed to use the client." : "Grupos autorizados a utilizar el cliente."

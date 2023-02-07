@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-02-06 03:14+0000\n"
+"POT-Creation-Date: 2023-02-07 03:17+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: Italian (https://www.transifex.com/nextcloud/teams/64236/it/)\n"
@@ -41,7 +41,7 @@ msgstr ""
 "L'URI di reindirizzamento ricevuto non è accettato per la connessione. "
 "Informare l'amministratore del client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:300
+#: /app/lib/Controller/LoginRedirectorController.php:310
 msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
@@ -60,12 +60,12 @@ msgstr ""
 #. TRANSLATORS src/components/OIDCItem.vue:145
 #: /app/lib/Settings/Admin.php:109 /app/specialVueFakeDummyForL10nScript.js:80
 msgid "Code Authorization Flow"
-msgstr ""
+msgstr "Flusso di autorizzazione del codice"
 
 #. TRANSLATORS src/components/OIDCItem.vue:149
 #: /app/lib/Settings/Admin.php:112 /app/specialVueFakeDummyForL10nScript.js:82
 msgid "Code & Implicit Authorization Flow"
-msgstr ""
+msgstr "Flusso di autorizzazione del codice e implicito"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
@@ -255,12 +255,12 @@ msgstr "Tipo"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Flows"
-msgstr ""
+msgstr "Flussi"
 
 #. TRANSLATORS src/components/OIDCItem.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid "Flows allowed to be used with the client."
-msgstr ""
+msgstr "Flussi che possono essere utilizzati con il client."
 
 #. TRANSLATORS src/components/OIDCItem.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:72

@@ -17,15 +17,16 @@
 # Mer0me <postmaster@merome.net>, 2022
 # Ldm Public <ldmpub@gmail.com>, 2022
 # H2CK, 2023
+# Jérémie Tarot <silopolis@gmail.com>, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-02-06 03:14+0000\n"
+"POT-Creation-Date: 2023-02-07 03:17+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2023\n"
+"Last-Translator: Jérémie Tarot <silopolis@gmail.com>, 2023\n"
 "Language-Team: French (https://www.transifex.com/nextcloud/teams/64236/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -49,7 +50,7 @@ msgstr ""
 "L'URI de redirection reçu n'est pas accepté pour se connecter. Veuillez "
 "informer l'administrateur de votre client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:300
+#: /app/lib/Controller/LoginRedirectorController.php:310
 msgid ""
 "The user is not member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
@@ -68,12 +69,12 @@ msgstr ""
 #. TRANSLATORS src/components/OIDCItem.vue:145
 #: /app/lib/Settings/Admin.php:109 /app/specialVueFakeDummyForL10nScript.js:80
 msgid "Code Authorization Flow"
-msgstr ""
+msgstr "Flux d'autorisation par code"
 
 #. TRANSLATORS src/components/OIDCItem.vue:149
 #: /app/lib/Settings/Admin.php:112 /app/specialVueFakeDummyForL10nScript.js:82
 msgid "Code & Implicit Authorization Flow"
-msgstr ""
+msgstr "Flux d'autorisation par code et implicite"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
@@ -263,12 +264,12 @@ msgstr "Type"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Flows"
-msgstr ""
+msgstr "Flux"
 
 #. TRANSLATORS src/components/OIDCItem.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid "Flows allowed to be used with the client."
-msgstr ""
+msgstr "Flux autorisés avec le client."
 
 #. TRANSLATORS src/components/OIDCItem.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:72

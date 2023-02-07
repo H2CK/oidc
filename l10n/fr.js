@@ -5,6 +5,8 @@ OC.L10N.register(
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "L'URI de redirection reçu n'est pas accepté pour se connecter. Veuillez informer l'administrateur de votre client.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utilisateur n'est pas membre des groupes définis pour le client. Vous n'êtes pas autorisé à récupérer un jeton de connexion.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Votre adresse de redirection doit être une URL complète, par exemple: https://example.com/chemin",
+    "Code Authorization Flow" : "Flux d'autorisation par code",
+    "Code & Implicit Authorization Flow" : "Flux d'autorisation par code et implicite",
     "OIDC Identity Provider" : "Fournisseur d’identité de l’OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud comme fournisseur d’identité OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud comme fournisseur d’identité OpenID Connect\n\nAvec cette application vous pouvez utiliser Nextcloud comme fournisseur d’identité OpenID Connect. Si d’autres services\\nsont configurés correctement, vous pouvez accéder à ces services avec votre login Nextcloud.\n\nLa documentation complète peut être trouvée à l’adresse suivante :\n\n- [Documentation utilisateur](https://github.com/H2CK/oidc/wiki#user-documentation)\n- Documentation pour les développeurs] (https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -36,6 +38,8 @@ OC.L10N.register(
     "-- NONE --" : "-- AUCUN --",
     "Signing Algorithm" : "Algorithme de signature",
     "Type" : "Type",
+    "Flows" : "Flux",
+    "Flows allowed to be used with the client." : "Flux autorisés avec le client.",
     "Limited to Groups" : "Limité aux groupes",
     "Only users in one of the following groups are allowed to use the client." : "Seuls les utilisateurs appartenant à l'un des groupes suivants sont autorisés à utiliser le client.",
     "Groups allowed to use the client." : "Groupes autorisés à utiliser le client."

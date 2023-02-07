@@ -3,6 +3,8 @@
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Käyttäjä ei kuulu asiakkaalle määriteltyihin ryhmiin. Et saa hakea kirjautumistunnusta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
+    "Code Authorization Flow" : "Koodin hyväksyntävirta",
+    "Code & Implicit Authorization Flow" : "Koodi ja implisiittisen valtuutuksen virtaus",
     "OIDC Identity Provider" : "OIDC-tunnisteiden tarjoaja",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana\n\nTämän sovelluksen avulla voit käyttää Nextcloudia OpenID Connect Identity Providerina. Jos muut palvelut\non määritetty oikein, voit käyttää näitä palveluja Nextcloud-tunnuksillasi.\n\nTäydellinen dokumentaatio löytyy osoitteesta:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -34,6 +36,8 @@
     "-- NONE --" : "-- EI OLE --",
     "Signing Algorithm" : "Allekirjoitusalgoritmi",
     "Type" : "Tyyppi",
+    "Flows" : "Virtaukset",
+    "Flows allowed to be used with the client." : "Virrat, joita saa käyttää asiakkaan kanssa.",
     "Limited to Groups" : "Rajoitettu ryhmille",
     "Only users in one of the following groups are allowed to use the client." : "Vain johonkin seuraavista ryhmistä kuuluvat käyttäjät saavat käyttää asiakasta.",
     "Groups allowed to use the client." : "Ryhmät, jotka saavat käyttää asiakasta."
