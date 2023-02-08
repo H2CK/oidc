@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2023-02-08
+
+### Changed
+
+- Fixed bug to display settings menu for flows.
+
 ## [0.4.0] - 2023-02-04
 
 ### Changed
