@@ -5,6 +5,8 @@ OC.L10N.register(
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené uri přesměrování není přijato pro připojení se. Informujte o tom správce vašeho klienta.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Uživatel není členem skupin určených pro klienta. Nemáte oprávnění získat přihlašovací token.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL adresu přesměrování je třeba uvádět celou, např. https://yourdomain.com/umisteni",
+    "Code Authorization Flow" : "Tok pověřování kódu",
+    "Code & Implicit Authorization Flow" : "Kód a tok výslovného pověřování",
     "OIDC Identity Provider" : "Poskytovatel OIDC identity",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud jako poskytovat OpenID Connect ",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud jako poskytovatel OpenID Connect identit\n\nPomocí této aplikace je možné používat Nextcloud jako poskytovatele OpenID Connect identit.\nPokud jsou ostatní služby správně nastaveny, můžete k nim přistupovat pomocí svého přihlášení do\nNextcloud.\n\nÚplná dokumentace je k dispozici na:\n\n- [Uživatelská dokumentace](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Vývojářská dokumentace](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -36,6 +38,8 @@ OC.L10N.register(
     "-- NONE --" : "-- ŽÁDNÉ --",
     "Signing Algorithm" : "Algoritmus podepisování",
     "Type" : "Typ",
+    "Flows" : "Toky",
+    "Flows allowed to be used with the client." : "Toky, které je umožněno používat pomocí klienta.",
     "Limited to Groups" : "Omezeno na skupiny",
     "Only users in one of the following groups are allowed to use the client." : "Klienta je umožněno používat pouze uživatelům v následujících skupinách.",
     "Groups allowed to use the client." : "Skupiny, kterým je umožněno používat klienta."

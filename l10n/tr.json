@@ -3,6 +3,8 @@
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Alınan yönlendirme adresi bağlantı kurmak için kabul edilmiyor. Lütfen istemcinizin BT yöneticisini bilgilendirin.",
     "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kullanıcı, istemci için tanımlanmış grupların üyesi değil. Oturum açma kodu almanıza izin verilmiyor.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Yönlendirme adresi https://websitem.com/yol gibi tam bir adres olmalıdır",
+    "Code Authorization Flow" : "Yetkilendirme akışını kodla",
+    "Code & Implicit Authorization Flow" : "Yetkilendirme akışını kodla ve uygula",
     "OIDC Identity Provider" : "OIDC kimlik hizmeti sağlayıcısı",
     "Nextcloud as OpenID Connect Identity Provider" : "OpenID Connect kimlik hizmeti sağlayıcısı olarak Nextcloud",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : " OpenID Connect Kimlik Sağlayıcısı olarak Nextcloud\n\nBu uygulama ile Nextcloud OpenID Connect kimlik sağlayıcısı olarak kullanılabilir. Diğer hizmetler \ndoğru yapılandırılmışsa, bu hizmetlere Nextcloud oturum açma bilgileriniz ile erişebilirsiniz.\n\nTam belgeleri şu adreste bulabilirsiniz:\n\n- [Kullanıcı belgeleri](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Geliştirici belgeleri](https://github.com/H2CK/oidc/wiki#developer-documentation)",
@@ -34,6 +36,8 @@
     "-- NONE --" : "-- YOK --",
     "Signing Algorithm" : "İmzalama algoritması",
     "Type" : "Tür",
+    "Flows" : "Akışlar",
+    "Flows allowed to be used with the client." : "İstemcinin kullanmasına izin verilecek akışlar",
     "Limited to Groups" : "Şu gruplarla sınırlanmış",
     "Only users in one of the following groups are allowed to use the client." : "Yalnızca aşağıdaki gruplardan birindeki kullanıcıların istemciyi kullanmasına izin verilir.",
     "Groups allowed to use the client." : "İstemciyi kullanmasına izin verilecek gruplar"
