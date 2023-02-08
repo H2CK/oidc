@@ -142,7 +142,7 @@ class SettingsController extends Controller
 			'clientSecret' => $client->getSecret(),
 			'signingAlg' => $client->getSigningAlg(),
 			'type' => $client->getType(),
-			'flowType' => $client-getFlowType(),
+			'flowType' => $client->getFlowType(),
 		];
 
 		return new JSONResponse($result);
