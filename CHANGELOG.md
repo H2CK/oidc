@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2023-02-08
+
+### Changed
+
+- Fixed type in settings controller.
+
 ## [0.4.1] - 2023-02-08
 
 ### Changed
