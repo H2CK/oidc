@@ -34,6 +34,7 @@ OC.L10N.register(
     "Show client secret" : "Erakutsi bezeroaren sekretua",
     "-- NONE --" : "-- BAT ERE EZ --",
     "Signing Algorithm" : "Sinatze algoritmoa",
-    "Type" : "Mota"
+    "Type" : "Mota",
+    "Flows" : "Fluxuak"
 },
 "nplurals=2; plural=(n != 1);");

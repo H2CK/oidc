@@ -32,6 +32,7 @@
     "Show client secret" : "Erakutsi bezeroaren sekretua",
     "-- NONE --" : "-- BAT ERE EZ --",
     "Signing Algorithm" : "Sinatze algoritmoa",
-    "Type" : "Mota"
+    "Type" : "Mota",
+    "Flows" : "Fluxuak"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
