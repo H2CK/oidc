@@ -307,7 +307,7 @@ class LoginRedirectorController extends ApiController
 		}
 		if (!$groupFound) {
 			$params = [
-				'message' => $this->l->t('The user is not member of the groups defined for the client. You are not allowed to retrieve a login token.'),
+				'message' => $this->l->t('The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token.'),
 			];
 			$this->logger->notice('User ' . $this->userSession->getUser()->getUID() . ' is not accepted for client ' . $client_id . ' due to missing group assignment.');
 			return new TemplateResponse('core', '403', $params, 'error');
