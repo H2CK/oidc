@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "此客戶端無權連結，請通知此客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "不接受接收到的重定向 uri 進行連接。 請通知您客戶的管理員。",
-    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "用戶不是為客戶端定義的群組的成員。您無權檢索登錄權杖。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "重導向 URL 必須為完整的 URL，如範例所示：https://yourdomain.com/path",
     "Code Authorization Flow" : "代碼授權流程",
     "Code & Implicit Authorization Flow" : "代碼和隱式授權流程",

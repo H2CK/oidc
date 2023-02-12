@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Twoja aplikacja klienta nie posiada autoryzacji do połączenia. Poinformuj proszę administratora klienta.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Otrzymany identyfikator URI przekierowania nie jest akceptowany do połączenia. Poinformuj administratora swojego klienta.",
-    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Użytkownik nie jest członkiem grup zdefiniowanych dla klienta. Nie masz uprawnień do pobierania tokena logowania.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Adres przekierowania musi być pełnym adresem URL, np.: https://twojadomena.com/sciezka",
     "OIDC Identity Provider" : "Dostawca tożsamości OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud jako dostawca tożsamości OpenID Connect",

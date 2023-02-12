@@ -1,7 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle asiakkaastasi.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
-    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "Käyttäjä ei kuulu asiakkaalle määriteltyihin ryhmiin. Et saa hakea kirjautumistunnusta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
     "Code Authorization Flow" : "Koodin hyväksyntävirta",
     "Code & Implicit Authorization Flow" : "Koodi ja implisiittisen valtuutuksen virtaus",

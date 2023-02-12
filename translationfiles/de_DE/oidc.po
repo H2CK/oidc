@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-02-11 03:17+0000\n"
+"POT-Creation-Date: 2023-02-12 03:17+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: German (Germany) (https://www.transifex.com/nextcloud/teams/64236/de_DE/)\n"
@@ -45,11 +45,9 @@ msgstr ""
 
 #: /app/lib/Controller/LoginRedirectorController.php:310
 msgid ""
-"The user is not member of the groups defined for the client. You are not "
+"The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
-"Der Benutzer ist nicht Mitglied der für den Client definierten Gruppen. Sie "
-"sind nicht berechtigt, ein Login-Token abzurufen."
 
 #: /app/lib/Controller/SettingsController.php:103
 msgid ""

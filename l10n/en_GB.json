@@ -1,7 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Your client is not authorised to connect. Please inform the administrator of your client.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "The received redirect URI is not accepted to connect. Please inform the administrator of your client.",
-    "The user is not member of the groups defined for the client. You are not allowed to retrieve a login token." : "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path",
     "Code Authorization Flow" : "Code Authorisation Flow",
     "Code & Implicit Authorization Flow" : "Code & Implicit Authorisation Flow",
