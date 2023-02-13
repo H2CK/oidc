@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Je client is niet geautoriseerd om te verbinden. Informeer de beheerder van je client.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "De ontvangen redirect URI wordt niet geaccepteerd om verbinding te maken. Informeer de beheerder van uw client.",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "De gebruiker is geen lid van de voor de client gedefinieerde groepen. Het is niet toegestaan een login token op te halen.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Je doorverwijzings-URL moet een volledige URL zijn, bijvoorbeeld: https://jouwdomein.com/pad",
     "Code Authorization Flow" : "Code autorisatiestroom",
     "Code & Implicit Authorization Flow" : "Code en impliciete autorisatiestroom",

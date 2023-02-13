@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ihr Client ist nicht berechtigt, eine Verbindung herzustellen. Bitte informieren Sie den Administrator Ihres Clients.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung akzeptiert. Bitte informieren Sie den Administrator Ihres Clients.",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Der Benutzer ist nicht Mitglied der für den Client definierten Gruppen. Sie sind nicht berechtigt, ein Login-Token abzurufen.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Die Weiterleitungs-URL muss eine vollständige URL sein. Beispiel: https://ihredomain.com/pfad",
     "Code Authorization Flow" : "Code-Autorisierungsablauf",
     "Code & Implicit Authorization Flow" : "Code- und Impliziter-Autorisierungsablauf",

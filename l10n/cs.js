@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Váš klient není autorizován pro připojení se. Informujte správce svého klienta.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené uri přesměrování není přijato pro připojení se. Informujte o tom správce vašeho klienta.",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Uživatel není členem skupin určených pro klienta. Nemáte oprávnění získat přihlašovací token.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL adresu přesměrování je třeba uvádět celou, např. https://yourdomain.com/umisteni",
     "Code Authorization Flow" : "Tok pověřování kódu",
     "Code & Implicit Authorization Flow" : "Kód a tok výslovného pověřování",

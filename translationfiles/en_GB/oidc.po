@@ -47,6 +47,8 @@ msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"The user is not a member of the groups defined for the client. You are not "
+"allowed to retrieve a login token."
 
 #: /app/lib/Controller/SettingsController.php:103
 msgid ""

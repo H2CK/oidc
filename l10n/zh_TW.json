@@ -1,6 +1,7 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "您的客戶端無權連線。請通知您客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "所收到之重新導向 URI 不被連線所接受。請通知您的客戶端管理員。",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "使用者不是客戶端定義的群組成員。您無權擷取登入權杖。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的重新導向 URL 必須為完整的 URL，例如：https://yourdomain.com/path",
     "Code Authorization Flow" : "代碼授權流程",
     "Code & Implicit Authorization Flow" : "代碼與隱含授權流程",

@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ο εφαρμογή σας δεν είναι εξουσιοδοτημένη να συνδεθεί. Ενημερώστε τον διαχειριστή σας.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Το ληφθέν URI ανακατεύθυνσης δεν είναι αποδεκτό για σύνδεση. Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας.",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Ο χρήστης δεν είναι μέλος των ομάδων που έχουν οριστεί για τον πελάτη. Δεν επιτρέπεται η ανάκτηση ενός κουπονιού σύνδεσης.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Η διεύθυνση URL ανακατεύθυνσης πρέπει να είναι μια πλήρη διεύθυνση URL, για παράδειγμα: https://yourdomain.com/path",
     "Code Authorization Flow" : "Ροή εξουσιοδότησης κώδικα",
     "Code & Implicit Authorization Flow" : "Κώδικας & Ροή σιωπηρής εξουσιοδότησης",
