@@ -1,6 +1,7 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "İstemcinizin bağlantı kurma izni yok. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Alınan yönlendirme adresi bağlantı kurmak için kabul edilmiyor. Lütfen istemcinizin BT yöneticisini bilgilendirin.",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kullanıcı, istemci için tanımlanmış grupların üyesi değil. Oturum açma kodu almanıza izin verilmiyor.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Yönlendirme adresi https://websitem.com/yol gibi tam bir adres olmalıdır",
     "Code Authorization Flow" : "Yetkilendirme akışını kodla",
     "Code & Implicit Authorization Flow" : "Yetkilendirme akışını kodla ve uygula",
