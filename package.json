@@ -27,13 +27,12 @@
 		"@babel/eslint-parser": "^7.19.1",
 		"@jridgewell/sourcemap-codec": "^1.4.14",
 		"@nextcloud/axios": "^2.3.0",
-		"@nextcloud/dialogs": "^3.1.2",
+		"@nextcloud/dialogs": "^4.0.1",
 		"@nextcloud/eslint-plugin": "^2.0.0",
 		"@nextcloud/initial-state": "^2.0.0",
 		"@nextcloud/logger": "^2.5.0",
 		"@nextcloud/router": "^2.0.1",
 		"@nextcloud/vue": "^7.6.0",
-		"@vue/compiler-sfc": "^3.2.47",
 		"babel-loader": "^8.2.3",
 		"css-loader": "^6.7.3",
 		"eslint": "^8.34.0",
@@ -51,9 +50,6 @@
 		"sass": "^1.58.3",
 		"sass-loader": "^13.1.0",
 		"style-loader": "^3.3.1",
-		"vue": "^2.7.14",
-		"vue-loader": "^15.10.0",
-		"vue-template-compiler": "^2.7.14",
 		"webpack": "^5.75.0",
 		"webpack-dev-server": "^4.11.1"
 	},
@@ -70,6 +66,7 @@
 		"@nextcloud/eslint-config": "^8.2.1",
 		"@nextcloud/stylelint-config": "^2.1.2",
 		"@nextcloud/webpack-vue-config": "^5.4.0",
+		"@vue/compiler-sfc": "^3.2.47",
 		"webpack-cli": "^4.10.0"
 	}
 }
