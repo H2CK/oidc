@@ -35,6 +35,7 @@ OC.L10N.register(
     "-- NONE --" : "-- BAT ERE EZ --",
     "Signing Algorithm" : "Sinatze algoritmoa",
     "Type" : "Mota",
-    "Flows" : "Fluxuak"
+    "Flows" : "Fluxuak",
+    "Limited to Groups" : "Taldeetara mugatuta"
 },
 "nplurals=2; plural=(n != 1);");

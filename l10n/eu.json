@@ -33,6 +33,7 @@
     "-- NONE --" : "-- BAT ERE EZ --",
     "Signing Algorithm" : "Sinatze algoritmoa",
     "Type" : "Mota",
-    "Flows" : "Fluxuak"
+    "Flows" : "Fluxuak",
+    "Limited to Groups" : "Taldeetara mugatuta"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
