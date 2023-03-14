@@ -110,6 +110,19 @@ class AccessTokenMapper extends QBMapper {
 	}
 
 	/**
+	 * delete all access token from a given user
+	 *
+	 * @param string $id
+	 */
+	public function deleteByUserId(string $id) {
+		$qb = $this->db->getQueryBuilder();
+		$qb
+			->delete($this->tableName)
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($id)));
+		$qb->executeStatement();
+	}
+
+	/**
 	 * delete all expired access tokens
 	 *
 	 */

@@ -84,10 +84,10 @@ class DiscoveryController extends ApiController
         ];
         $responseTypesSupported = [
             'code',
-            // 'code id_token',
+            'code id_token',
             // 'code token',
             // 'code id_token token',
-            // 'id_token',
+            'id_token',
             // 'id_token token'
         ];
         $responseModesSupported = [
@@ -96,7 +96,7 @@ class DiscoveryController extends ApiController
         ];
         $grantTypesSupported = [
             'authorization_code',
-            // 'implicit',
+            'implicit',
         ];
         $acrValuesSupported = [
             '0',
@@ -185,6 +185,7 @@ class DiscoveryController extends ApiController
             // 'require_request_uri_registration' => true,
             // 'op_policy_uri' => ,
             // 'op_tos_uri' => ,
+			'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
 		];
 
 		$this->logger->info('Request to Discovery Endpoint.');
