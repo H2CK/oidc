@@ -7,6 +7,7 @@ OC.L10N.register(
     "Public" : "Publik",
     "Add" : "Masukkan",
     "Settings" : "Setelan",
+    "15 minutes" : "15 menit",
     "30 minutes" : "30 Menit",
     "Delete" : "Hapus",
     "Client Identifier" : "Identifier klien",
