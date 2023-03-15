@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2023-03-15
+
+### Changed
+
+- Added partial support for RP-initiated logout.
+
 ## [0.4.2] - 2023-02-08
 
 ### Changed
