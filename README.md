@@ -33,11 +33,26 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Token: `token`(POST)
 - UserInfo: `userinfo`(GET - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
-- Logout: `logout` (GET - ?refresh_token=xxx)
+- Logout: `logout` (GET)
 
 CORS is enable for all domains on all the above endpoints.
 
 The discovery endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration`.
+
+### Logout Details
+
+To support logout functionality the discovery enpoint contains the attribute `end_session_endpoint`to announce the support for [RP-Initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html). The current implementation only partially supports this specification.
+
+Current limitations:
+
+- Only GET requests to logout endpoint are supported (POST might be added in future)
+- Only the optional attributes `id_token_hint` and `client_id` are supported
+
+Up to now there is NO support for:
+
+- [OpenID Connect Session Management](https://openid.net/specs/openid-connect-session-1_0.html)
+- [OpenID Connect Front-Channel Logout](https://openid.net/specs/openid-connect-frontchannel-1_0.html)
+- [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)
 
 ## Scopes
 
@@ -51,7 +66,7 @@ The discovery endpoint should be made available at the URL: `<Issuer>/.well-know
 
 ## Limitations
 
-Currently it is not yet possible to use an issued Access Token or ID Token to access resources at the Nextcloud instance it self. (Future implementation planned)
+Currently it is not yet possible to use an issued Access Token or ID Token to access resources at the Nextcloud instance it self.
 
 Client authentication to fetch token currently only supports the sending of the client credentials in the body. Basic Auth is currently not supported.
 
