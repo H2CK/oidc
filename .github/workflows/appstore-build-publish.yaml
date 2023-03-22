@@ -10,7 +10,7 @@ on:
     types: [published]
 
 env:
-  PHP_VERSION: 7.4
+  PHP_VERSION: 8.0
 
 jobs:
   build_and_publish:
