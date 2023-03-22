@@ -25,6 +25,8 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+require __DIR__ . '/../../vendor/autoload.php';
+
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
@@ -150,8 +152,10 @@ class LogoutController extends ApiController
 				]
 			];
 
+			$decodedJwt = null;
+
 			try {
-				$decodedStdClass = JWT::decode($jwt, JWK::parseKeySet($jwks));
+				$decodedStdClass = JWT::decode($id_token_hint, JWK::parseKeySet($jwks));
 				$decodedJwt = (array) $decodedStdClass;
 			} catch (InvalidArgumentException $e) {
 				// provided key/key-array is empty or malformed.
@@ -204,28 +208,29 @@ class LogoutController extends ApiController
 				], Http::STATUS_UNAUTHORIZED);
 			}
 
-			$uid = $decodedJwt['preferred_username'];
-			$this->logger->notice('JWT token for uid ' . $uid . ' received.' );
-			// create user session for user with id perform login without pw
-			$user = $this->userManager->get($uid);
-			if (null === $user) {
-				$this->logger->error('Provided user in JWT is unknown.');
-				return new JSONResponse([
-					'error' => 'invalid_user',
-					'error_description' => 'Provided user in JWT is unknown.'
-				], Http::STATUS_UNAUTHORIZED);
+			if ($decodedJwt != null) {
+				$uid = $decodedJwt['preferred_username'];
+				$this->logger->notice('JWT token for uid ' . $uid . ' received.' );
+				// create user session for user with id perform login without pw
+				$user = $this->userManager->get($uid);
+				if (null === $user) {
+					$this->logger->error('Provided user in JWT is unknown.');
+					return new JSONResponse([
+						'error' => 'invalid_user',
+						'error_description' => 'Provided user in JWT is unknown.'
+					], Http::STATUS_UNAUTHORIZED);
+				}
+
+				$userId = $uid;
+
+				if ($client_id !== null && $client_id !== $decodedJwt['aud']) {
+					$this->logger->error('Provided client_id does not match to the one issued the JWT.');
+					return new JSONResponse([
+						'error' => 'invalid_jwt',
+						'error_description' => 'Provided client_id does not match to the one issued the JWT.'
+					], Http::STATUS_UNAUTHORIZED);
+				}
 			}
-
-			$userId = $uid;
-
-			if ($client_id !== null && $client_id !== $decodedJwt['aud']) {
-				$this->logger->error('Provided client_id does not match to the one issued the JWT.');
-				return new JSONResponse([
-					'error' => 'invalid_jwt',
-					'error_description' => 'Provided client_id does not match to the one issued the JWT.'
-				], Http::STATUS_UNAUTHORIZED);
-			}
-
 		}
 
 		if ($this->userSession !== null && $this->userSession->isLoggedIn()) {

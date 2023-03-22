@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.4] - 2023-03-22
+
+### Changed
+
+- Fixed logout support when providing an id_token_hint.
+- Added support for Nextcloud 26
+
 ## [0.4.3] - 2023-03-15
 
 ### Changed
