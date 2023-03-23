@@ -120,8 +120,9 @@ jobs:
         # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
           mv -v ${{ env.APP_NAME }} nextcloud/apps/
-          cd nextcloud/apps/${{ env.APP_NAME }}
-          ls -al
+          cd nextcloud
+          php occ app:enable ${{ env.APP_NAME }}
+          cd apps/${{ env.APP_NAME }}
           make build-test
 
       - name: Sign app
