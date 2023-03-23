@@ -138,6 +138,8 @@ jobs:
           rm -rf CONTRIBUTING.md
           rm -rf .editorconfig
           rm -rf .eslintrc.js
+		  rm -rf .l10nignore
+		  rm -rf tsconfig.json
           rm -rf .git
           rm -rf .github
           rm -rf .gitignore
@@ -157,7 +159,6 @@ jobs:
           rm -rf .tx
           rm -rf .idea
           rm -rf .vscode
-          rm -rf vendor
           rm -rf webpack*.js
           rm -rf translationfiles
           rm -rf docs

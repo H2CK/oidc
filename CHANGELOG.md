@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.5] - 2023-03-23
+
+### Changed
+
+- Fixed packaging to include vendor.
+
 ## [0.4.4] - 2023-03-22
 
 ### Changed

@@ -106,6 +106,8 @@ assemble:
 	--exclude=CONTRIBUTING.md \
 	--exclude=.editorconfig \
 	--exclude=.eslintrc.js \
+	--exclude=.l10nignore \
+	--exclude=tsconfig.json \
 	--exclude=.git \
 	--exclude=.github \
 	--exclude=.gitignore \
@@ -125,7 +127,6 @@ assemble:
 	--exclude=.tx \
 	--exclude=.idea \
 	--exclude=.vscode \
-	--exclude=vendor \
 	--exclude=webpack*.js \
 	--exclude=translationfiles \
 	--exclude=docs \

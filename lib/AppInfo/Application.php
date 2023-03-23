@@ -25,12 +25,24 @@ namespace OCA\OIDCIdentityProvider\AppInfo;
 
 use OCP\AppFramework\App;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Bootstrap\IBootContext;
+use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
-class Application extends App {
+class Application extends App implements IBootstrap {
 	public const APP_ID = 'oidc';
 
 	public function __construct() {
 		parent::__construct(self::APP_ID);
 	}
+
+	public function register(IRegistrationContext $context): void {
+        // Register the composer autoloader for packages shipped by this app
+        require_once __DIR__ . '/../../vendor/autoload.php';
+    }
+
+    public function boot(IBootContext $context): void {
+
+    }
 
 }
