@@ -117,10 +117,10 @@ jobs:
           path: nextcloud
 
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
-        # Try krankerl, fallback to makefile
+        # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
           cd ${{ env.APP_NAME }}
-          krankerl package || make build-test
+          make build-test
 
       - name: Sign app
         if: github.actor == 'H2CK'
