@@ -96,10 +96,10 @@ jobs:
           npm ci
           npm run build
 
-      - name: Install Krankerl
-        run: |
-          wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
-          sudo dpkg -i krankerl_0.13.0_amd64.deb
+    #   - name: Install Krankerl
+    #     run: |
+    #       wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
+    #       sudo dpkg -i krankerl_0.13.0_amd64.deb
 
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
@@ -108,6 +108,7 @@ jobs:
           NCVERSION=${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
           wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
           unzip latest-$NCVERSION.zip
+          pwd
 
       - name: Checkout server master fallback
         uses: actions/checkout@v3
@@ -119,6 +120,7 @@ jobs:
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
+          pwd
           cd ${{ env.APP_NAME }}
           make build-test
 
