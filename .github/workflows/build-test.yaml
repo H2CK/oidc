@@ -86,7 +86,7 @@ jobs:
         if: steps.check_composer.outputs.files_exists == 'true'
         run: |
           cd ${{ env.APP_NAME }}
-          composer install --no-dev
+          composer install
 
       - name: Build ${{ env.APP_NAME }}
         # Skip if no package.json
@@ -119,9 +119,7 @@ jobs:
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
-          pwd
           cd ${{ env.APP_NAME }}
-          ls -al
           make build-test
 
       - name: Sign app
