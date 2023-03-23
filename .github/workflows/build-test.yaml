@@ -108,7 +108,6 @@ jobs:
           NCVERSION=${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
           wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
           unzip latest-$NCVERSION.zip
-          pwd
 
       - name: Checkout server master fallback
         uses: actions/checkout@v3
@@ -120,8 +119,9 @@ jobs:
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
-          pwd
-          cd ${{ env.APP_NAME }}
+          mv -v ${{ env.APP_NAME }} nextcloud/apps/
+          cd nextcloud/apps/${{ env.APP_NAME }}
+          ls -al
           make build-test
 
       - name: Sign app
