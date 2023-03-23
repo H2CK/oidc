@@ -11,7 +11,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IURLGenerator;
 use OCP\IConfig;
 use OCP\IDBConnection;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 
 use OCA\OIDCIdentityProvider\Controller\DiscoveryController;
 
@@ -28,14 +28,14 @@ class DiscoveryControllerTest extends TestCase {
 	private $db;
 	/** @var IConfig */
 	private $config;
-	/** @var ILogger */
+	/** @var LoggerInterface */
 	private $logger;
 
 	public function setUp(): void {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
 		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
 		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-		$this->logger = $this->getMockBuilder(ILogger::class)->getMock();
+		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
 		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
 																						$this->time,
@@ -47,7 +47,8 @@ class DiscoveryControllerTest extends TestCase {
             $this->request,
 			$this->time,
 			$this->throttler,
-			$this->urlGenerator);
+			$this->urlGenerator,
+			$this->logger);
 	}
 
 	public function testDiscoveryResponse() {
@@ -61,10 +62,10 @@ class DiscoveryControllerTest extends TestCase {
         ];
         $responseTypesSupported = [
             'code',
-            // 'code id_token',
+            'code id_token',
             // 'code token',
             // 'code id_token token',
-            // 'id_token',
+            'id_token',
             // 'id_token token'
         ];
         $responseModesSupported = [
@@ -73,7 +74,7 @@ class DiscoveryControllerTest extends TestCase {
         ];
         $grantTypesSupported = [
             'authorization_code',
-            // 'implicit',
+            'implicit',
         ];
         $acrValuesSupported = [
             '0',

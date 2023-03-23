@@ -120,6 +120,7 @@ jobs:
         # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
           cd ${{ env.APP_NAME }}
+          make composer
           make build-test
 
       - name: Sign app

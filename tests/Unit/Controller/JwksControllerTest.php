@@ -11,7 +11,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IURLGenerator;
 use OCP\IConfig;
 use OCP\IDBConnection;
-use OCP\ILogger;
+use Psr\Log\LoggerInterface;
 use OCP\AppFramework\Services\IAppConfig;
 
 
@@ -32,14 +32,14 @@ class JwksControllerTest extends TestCase {
 	private $config;
 	/** @var IAppConfig */
 	private $appConfig;
-	/** @var ILogger */
+	/** @var LoggerInterface */
 	private $logger;
 
 	public function setUp(): void {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
 		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
 		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-		$this->logger = $this->getMockBuilder(ILogger::class)->getMock();
+		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
 		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
 																						$this->time,
@@ -53,7 +53,8 @@ class JwksControllerTest extends TestCase {
 			$this->time,
 			$this->throttler,
 			$this->urlGenerator,
-			$this->appConfig
+			$this->appConfig,
+			$this->logger
 		);
 	}
 
