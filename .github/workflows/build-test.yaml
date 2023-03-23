@@ -119,8 +119,9 @@ jobs:
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         # Try krankerl, fallback to makefile - krankerl package || make build-test
         run: |
+          pwd
           cd ${{ env.APP_NAME }}
-          make composer
+          ls -al
           make build-test
 
       - name: Sign app
