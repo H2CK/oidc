@@ -99,7 +99,7 @@ appstore: build
 
 assemble:
 	mkdir -p $(build_dir)
-	rsync -a \
+	rsync -a -m \
 	--exclude=babel.config.js \
 	--exclude=build \
 	--exclude=composer.* \
@@ -120,7 +120,11 @@ assemble:
 	--exclude=.php_cs.* \
 	--exclude=phpunit*xml \
 	--exclude=.scrutinizer.yml \
-	--exclude=src \
+	--exclude=src/main.js \
+	--exclude=src/redirect.js \
+	--exclude=src/Redirect.vue \
+	--exclude=src/App.vue \
+	--exclude=src/components/OIDCItem.vue\
 	--exclude=.stylelintrc.js \
 	--exclude=tests \
 	--exclude=.travis.yml \
