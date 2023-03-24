@@ -40,6 +40,7 @@ use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
 use OCP\Security\ICrypto;
@@ -126,7 +127,22 @@ class OIDCApiController extends ApiController {
 	}
 
 	/**
-	 * @CORS
+	 * @PublicPage
+	 * @NoCSRFRequired
+	 *
+	 * @return Response
+	 */
+	public function tokenCors(): Response {
+		$response = new Response();
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
+		$response->addHeader('Access-Control-Max-Age', '1728000');
+		$response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
+		$response->addHeader('Access-Control-Allow-Credentials', 'false');
+		return $response;
+	}
+
+	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
 	 * @UseSession

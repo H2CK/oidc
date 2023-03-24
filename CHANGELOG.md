@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.6] - 2023-03-23
+
+### Changed
+
+- Fixed NC26 Support.
+- Fixed packaging to include vendor.
+
 ## [0.4.5] - 2023-03-23
 
 ### Changed

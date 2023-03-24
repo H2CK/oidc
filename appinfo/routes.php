@@ -67,8 +67,8 @@ return [
             'url' => '/authorize',
             'verb' => 'GET',
         ],
-        [
-            'name' => 'LoginRedirect#preflighted_cors',
+		[
+            'name' => 'LoginRedirector#authorizeCors',
             'url' => '/authorize',
             'verb' => 'OPTIONS',
         ],
@@ -82,8 +82,8 @@ return [
             'url' => '/token',
             'verb' => 'POST'
         ],
-        [
-            'name' => 'OIDCApi#preflighted_cors',
+		[
+            'name' => 'OIDCApi#tokenCors',
             'url' => '/token',
             'verb' => 'OPTIONS',
         ],
@@ -93,7 +93,7 @@ return [
             'verb' => 'GET'
         ],
         [
-            'name' => 'UserInfo#preflighted_cors',
+            'name' => 'UserInfo#userInfoCors',
             'url' => '/userinfo',
             'verb' => 'OPTIONS',
         ],
@@ -103,7 +103,7 @@ return [
             'verb' => 'GET'
         ],
         [
-            'name' => 'Discovery#preflighted_cors',
+            'name' => 'Discovery#discoveryCors',
             'url' => '/openid-configuration',
             'verb' => 'OPTIONS',
         ],
@@ -113,7 +113,7 @@ return [
             'verb' => 'GET'
         ],
         [
-            'name' => 'Jwks#preflighted_cors',
+            'name' => 'Jwks#jwksCors',
             'url' => '/jwks',
             'verb' => 'OPTIONS',
         ],
@@ -123,7 +123,7 @@ return [
             'verb' => 'GET'
         ],
         [
-            'name' => 'Logout#preflighted_cors',
+            'name' => 'Logout#logoutCors',
             'url' => '/logout',
             'verb' => 'OPTIONS',
         ],
