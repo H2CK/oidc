@@ -105,7 +105,6 @@ jobs:
 
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         run: |
-          cd ${{ env.APP_NAME }}
           mv -v ${{ env.APP_NAME }} nextcloud/apps/
           cd nextcloud/apps/${{ env.APP_NAME }}
           make build
