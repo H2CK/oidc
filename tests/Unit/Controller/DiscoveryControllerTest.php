@@ -12,6 +12,7 @@ use OCP\IURLGenerator;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
+use OCP\ILogger;
 
 use OCA\OIDCIdentityProvider\Controller\DiscoveryController;
 
@@ -30,16 +31,19 @@ class DiscoveryControllerTest extends TestCase {
 	private $config;
 	/** @var LoggerInterface */
 	private $logger;
+	/** @var ILogger */
+	private $iLogger;
 
 	public function setUp(): void {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
 		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
 		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
 		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+		$this->iLogger = $this->getMockBuilder(ILogger::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
 		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
 																						$this->time,
-																						$this->logger,
+																						$this->iLogger,
 																						$this->config])->getMock();
 		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->controller = new DiscoveryController(
