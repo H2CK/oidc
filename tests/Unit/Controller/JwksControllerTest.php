@@ -47,7 +47,7 @@ class JwksControllerTest extends TestCase {
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
 		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
 																						$this->time,
-																						$this->iLogger,
+																						$this->logger,
 																						$this->config])->getMock();
 		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
