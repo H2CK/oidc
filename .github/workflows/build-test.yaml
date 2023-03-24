@@ -121,6 +121,7 @@ jobs:
         run: |
           mv -v ${{ env.APP_NAME }} nextcloud/apps/
           cd nextcloud
+          php occ maintenance:install
           php occ app:enable ${{ env.APP_NAME }}
           cd apps/${{ env.APP_NAME }}
           make build-test
