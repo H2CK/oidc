@@ -96,11 +96,6 @@ jobs:
           npm ci
           npm run build
 
-    #   - name: Install Krankerl
-    #     run: |
-    #       wget https://github.com/ChristophWurst/krankerl/releases/download/v0.13.0/krankerl_0.13.0_amd64.deb
-    #       sudo dpkg -i krankerl_0.13.0_amd64.deb
-
       - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
         continue-on-error: true
         id: server-checkout
@@ -116,8 +111,7 @@ jobs:
           repository: nextcloud/server
           path: nextcloud
 
-      - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
-        # Try krankerl, fallback to makefile - krankerl package || make build-test
+      - name: Test and Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         run: |
           mv -v ${{ env.APP_NAME }} nextcloud/apps/
           cd nextcloud
@@ -134,9 +128,8 @@ jobs:
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           # Signing
           php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=apps/${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
-          # Rebuilding archive
+          # Building archive
           cd nextcloud/apps/${{ env.APP_NAME }}/build/artifacts
-          ls -al
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}
           cd ../../../../../
           openssl dgst -sha512 -sign ${{ env.APP_NAME }}.key nextcloud/apps/${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}.tar.gz | openssl base64 -A > signature.sha
