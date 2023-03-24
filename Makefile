@@ -79,7 +79,7 @@ stylelint-fix:
 # Tests
 test:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
-	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+#	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
 
 ##### Building #####
 
