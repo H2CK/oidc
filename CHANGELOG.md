@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.7] - 2023-03-26
+
+### Changed
+
+- Fixed logout functionality when id_token_hint is received.
+
 ## [0.4.6] - 2023-03-23
 
 ### Changed

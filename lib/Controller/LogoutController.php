@@ -35,7 +35,9 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Http\JSONResponse;
 use OCP\IUserSession;
+use OCP\IUserManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
@@ -73,6 +75,8 @@ class LogoutController extends ApiController
 	private $time;
 	/** @var IUserSession */
 	private $userSession;
+	/** @var IUserManager */
+	private $userManager;
 	/** @var IAppConfig */
 	private $appConfig;
 	/** @var LoggerInterface */
@@ -87,6 +91,7 @@ class LogoutController extends ApiController
 	 * @param IL10N $l
 	 * @param ITimeFactory $time
 	 * @param IUserSession $userSession
+	 * @param IUserManager $userManager
 	 * @param AccessTokenMapper $accessTokenMapper
 	 * @param IAppConfig $appConfig
 	 * @param LoggerInstance $logger
@@ -100,6 +105,7 @@ class LogoutController extends ApiController
 					IL10N $l,
 					ITimeFactory $time,
 					IUserSession $userSession,
+					IUserManager $userManager,
 					AccessTokenMapper $accessTokenMapper,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
@@ -112,6 +118,7 @@ class LogoutController extends ApiController
 		$this->l = $l;
 		$this->time = $time;
 		$this->userSession = $userSession;
+		$this->userManager = $userManager;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
