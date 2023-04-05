@@ -116,7 +116,26 @@
 				{{ t('oidc', '60 minutes') }}
 			</option>
 		</select>
-		<p>{{ t('oidc', 'Public Key') }}</p>
+		<p style="margin-top: 1.5em;">{{ t('oidc', 'Accepted Logout Redirect Uris') }}</p>
+		<table v-if="logoutRedirectUris.length > 0" class="grid">
+			<tbody v-if="logoutRedirectUris"
+				:key="version">
+				<RedirectItem v-for="redirectUri in logoutRedirectUris"
+					:id="redirectUri.id"
+					:key="redirectUri.id"
+					:redirect-uri="redirectUri.redirectUri"
+					@delete="deleteLogoutRedirectUri" />
+			</tbody>
+		</table>
+		<form @submit.prevent="addLogoutRedirectUri">
+			<input id="redirectUri"
+				v-model="newLogoutRedirectUri.redirectUri"
+				type="url"
+				name="redirectUri"
+				:placeholder="t('oidc', 'Redirection URI')">
+			<input type="submit" class="button" :value="t('oidc', 'Add')">
+		</form>
+		<p style="margin-top: 1.5em;">{{ t('oidc', 'Public Key') }}</p>
 		<code>{{ publicKey }}</code>
 		<br>
 		<form @submit.prevent="regenerateKeys">
@@ -128,12 +147,14 @@
 <script>
 import axios from '@nextcloud/axios'
 import OIDCItem from './components/OIDCItem.vue'
+import RedirectItem from './components/RedirectItem.vue'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'App',
 	components: {
 		OIDCItem,
+		RedirectItem,
 	},
 	props: {
 		clients: {
@@ -152,6 +173,10 @@ export default {
 			type: Array,
 			required: true,
 		},
+		logoutRedirectUris: {
+			type: Array,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -162,6 +187,9 @@ export default {
 				type: 'confidential',
 				errorMsg: '',
 				error: false,
+			},
+			newLogoutRedirectUri: {
+				redirectUri: '',
 			},
 			expTime: this.expireTime,
 			error: false,
@@ -201,6 +229,35 @@ export default {
 					// eslint-disable-next-line vue/no-mutating-props
 					this.clients.push(response.data[index])
 				}
+				this.version += 1
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
+			})
+		},
+		deleteLogoutRedirectUri(id) {
+			axios.delete(generateUrl('apps/oidc/logoutRedirect/{id}', { id }))
+				.then((response) => {
+					// eslint-disable-next-line vue/no-mutating-props
+					this.logoutRedirectUris = response.data
+					this.version += 1
+				}).catch(reason => {
+					this.error = true
+					this.errorMsg = reason
+				})
+		},
+		addLogoutRedirectUri() {
+			this.error = false
+
+			axios.post(
+				generateUrl('apps/oidc/logoutRedirect'),
+				{
+					redirectUri: this.newLogoutRedirectUri.redirectUri,
+				}
+			).then(response => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.logoutRedirectUris = response.data
+				this.newLogoutRedirectUri.redirectUri = ''
 				this.version += 1
 			}).catch(reason => {
 				this.error = true

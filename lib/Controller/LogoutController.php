@@ -48,6 +48,8 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 use Firebase\JWT\JWK;
@@ -67,6 +69,8 @@ class LogoutController extends ApiController
 	private $clientMapper;
 	/** @var AccessTokenMapper */
 	private $accessTokenMapper;
+	/** @var LogoutRedirectUriMapper  */
+	private $logoutRedirectUriMapper;
 	/** @var ISession */
 	private $session;
 	/** @var IL10N */
@@ -93,6 +97,7 @@ class LogoutController extends ApiController
 	 * @param IUserSession $userSession
 	 * @param IUserManager $userManager
 	 * @param AccessTokenMapper $accessTokenMapper
+	 * @param LogoutRedirectUriMapper $logoutRedirectUriMapper
 	 * @param IAppConfig $appConfig
 	 * @param LoggerInstance $logger
 	 */
@@ -107,6 +112,7 @@ class LogoutController extends ApiController
 					IUserSession $userSession,
 					IUserManager $userManager,
 					AccessTokenMapper $accessTokenMapper,
+					LogoutRedirectUriMapper $logoutRedirectUriMapper,
 					IAppConfig $appConfig,
 					LoggerInterface $logger
 					)
@@ -120,6 +126,7 @@ class LogoutController extends ApiController
 		$this->userSession = $userSession;
 		$this->userManager = $userManager;
 		$this->accessTokenMapper = $accessTokenMapper;
+		$this->logoutRedirectUriMapper = $logoutRedirectUriMapper;
 		$this->appConfig = $appConfig;
 		$this->logger = $logger;
 	}
@@ -152,7 +159,8 @@ class LogoutController extends ApiController
 	public function logout(
 					$client_id,		// Optional
 					$refresh_token, // Not standardized - deprecated will not be used any more
-					$id_token_hint  // Recommended to be used
+					$id_token_hint,  // Recommended to be used
+					$post_logout_redirect_uri // Optional url to be redirected to after logout
 					): Response
 	{
 		$userId = null;
@@ -265,12 +273,22 @@ class LogoutController extends ApiController
 
 		$this->logger->debug('Logout for user ' . $userId . ' performed.');
 
-        $logoutRedirectUrl = $this->urlGenerator->linkToRoute(
-            'core.login.showLoginForm',
-            [
-            ]
+		$defaultLogoutRedirectUrl = $this->urlGenerator->linkToRoute(
+						'core.login.showLoginForm',
+						[
+						]
         );
-        return new RedirectResponse($logoutRedirectUrl);
+
+		if ($post_logout_redirect_uri) {
+			$logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
+			foreach ($logoutRedirectUris as $logoutRedirectUri) {
+				if (str_starts_with($post_logout_redirect_uri, $logoutRedirectUri->getRedirectUri())) {
+					return new RedirectResponse($post_logout_redirect_uri);
+				}
+			}
+		}
+
+        return new RedirectResponse($defaultLogoutRedirectUrl);
 
     }
 }

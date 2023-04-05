@@ -42,6 +42,8 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Db\\GroupMapper' => __DIR__ . '/..' . '/../lib/Db/GroupMapper.php',
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUri' => __DIR__ . '/..' . '/../lib/Db/RedirectUri.php',
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => __DIR__ . '/..' . '/../lib/Db/RedirectUriMapper.php',
+		'OCA\\OIDCIdentityProvider\\Db\\LogoutRedirectUri' => __DIR__ . '/..' . '/../lib/Db/LogoutRedirectUri.php',
+        'OCA\\OIDCIdentityProvider\\Db\\LogoutRedirectUriMapper' => __DIR__ . '/..' . '/../lib/Db/LogoutRedirectUriMapper.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/AccessTokenNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/ClientNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/RedirectUriNotFoundException.php',
@@ -54,6 +56,7 @@ class ComposerStaticInitOIDCIdentityProvider
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0006Date20221011082100' => __DIR__ . '/..' . '/../lib/Migration/Version0006Date20221011082100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0007Date20230121172100' => __DIR__ . '/..' . '/../lib/Migration/Version0007Date20230121172100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0008Date20230204190000' => __DIR__ . '/..' . '/../lib/Migration/Version0008Date20230204190000.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => __DIR__ . '/..' . '/../lib/Migration/Version0009Date20230401232100.php',
 		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
     );
 

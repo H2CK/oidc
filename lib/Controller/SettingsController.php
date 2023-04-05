@@ -30,6 +30,8 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCP\AppFramework\Controller;
@@ -53,6 +55,8 @@ class SettingsController extends Controller
 	private $accessTokenMapper;
 	/** @var RedirectUriMapper  */
 	private $redirectUriMapper;
+	/** @var LogoutRedirectUriMapper  */
+	private $logoutRedirectUriMapper;
 	/** @var GroupMapper  */
 	private $groupMapper;
 	/** @var IGroupManager  */
@@ -73,6 +77,7 @@ class SettingsController extends Controller
 					ISecureRandom $secureRandom,
 					AccessTokenMapper $accessTokenMapper,
 					RedirectUriMapper $redirectUriMapper,
+					LogoutRedirectUriMapper $logoutRedirectUriMapper,
 					GroupMapper $groupMapper,
 					IGroupManager $groupManager,
 					IL10N $l,
@@ -85,6 +90,7 @@ class SettingsController extends Controller
 		$this->clientMapper = $clientMapper;
 		$this->accessTokenMapper = $accessTokenMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
+		$this->logoutRedirectUriMapper = $logoutRedirectUriMapper;
 		$this->groupMapper = $groupMapper;
 		$this->groupManager = $groupManager;
 		$this->l = $l;
@@ -260,6 +266,47 @@ class SettingsController extends Controller
 				'clientSecret' => $client->getSecret(),
 				'signingAlg' => $client->getSigningAlg(),
 				'type' => $client->getType(),
+			];
+		}
+		return new JSONResponse($result);
+	}
+
+	public function addLogoutRedirectUri(
+					string $redirectUri
+					): JSONResponse
+	{
+		$this->logger->debug("Adding Logout Redirect Uri " . $redirectUri);
+
+		$logoutRedirectUriObj = new LogoutRedirectUri();
+		$logoutRedirectUriObj->setRedirectUri($redirectUri);
+		$logoutRedirectUriObj = $this->logoutRedirectUriMapper->insert($logoutRedirectUriObj);
+
+		$result = [];
+		$logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
+		foreach ($logoutRedirectUris as $logoutRedirectUri) {
+			$resultLogoutRedirectUris = array(
+				'id' => $logoutRedirectUri->getId(),
+				'redirectUri' => $logoutRedirectUri->getRedirectUri(),
+			);
+			array_push($result, $resultLogoutRedirectUris);
+		}
+		return new JSONResponse($result);
+	}
+
+	public function deleteLogoutRedirectUri(
+					int $id
+					): JSONResponse
+	{
+		$this->logger->debug("Deleting Logout Redirect Uri with id " . $id);
+
+		$this->logoutRedirectUriMapper->deleteOneById($id);
+
+		$result = [];
+		$logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
+		foreach ($logoutRedirectUris as $logoutRedirectUri) {
+			$result[] = [
+				'id' => $logoutRedirectUri->getId(),
+				'redirectUri' => $logoutRedirectUri->getRedirectUri(),
 			];
 		}
 		return new JSONResponse($result);

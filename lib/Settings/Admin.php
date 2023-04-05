@@ -28,6 +28,8 @@ namespace OCA\OIDCIdentityProvider\Settings;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -50,6 +52,9 @@ class Admin implements ISettings {
 	/** @var RedirectUriMapper */
 	private $redirectUriMapper;
 
+	/** @var LogoutRedirectUriMapper */
+	private $logoutRedirectUriMapper;
+
 	/** @var GroupMapper */
 	private $groupMapper;
 
@@ -69,6 +74,7 @@ class Admin implements ISettings {
 					IInitialStateService $initialStateService,
 					ClientMapper $clientMapper,
 					RedirectUriMapper $redirectUriMapper,
+					LogoutRedirectUriMapper $logoutRedirectUriMapper,
 					GroupMapper $groupMapper,
 					IGroupManager $groupManager,
 					IL10N $l,
@@ -79,6 +85,7 @@ class Admin implements ISettings {
 		$this->initialStateService = $initialStateService;
 		$this->clientMapper = $clientMapper;
 		$this->redirectUriMapper = $redirectUriMapper;
+		$this->logoutRedirectUriMapper = $logoutRedirectUriMapper;
 		$this->groupMapper = $groupMapper;
 		$this->groupManager = $groupManager;
 		$this->l = $l;
@@ -132,10 +139,22 @@ class Admin implements ISettings {
 			array_push($availableGroups, $group->getGID());
 		}
 
+		$logoutRedirectUrisResult = [];
+		$logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
+		foreach ($logoutRedirectUris as $logoutRedirectUri) {
+			$logoutRedirectUrisResult[] = [
+				'id' => $logoutRedirectUri->getId(),
+				'redirectUri' => $logoutRedirectUri->getRedirectUri(),
+			];
+		}
+
+		$this->logger->debug("Logout Redirect Uris provided: " . $this->arystr($logoutRedirectUrisResult, true, '|', ','));
+
 		$this->initialStateService->provideInitialState('oidc', 'clients', $result);
 		$this->initialStateService->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue('expire_time'));
 		$this->initialStateService->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
 		$this->initialStateService->provideInitialState('oidc', 'groups', $availableGroups);
+		$this->initialStateService->provideInitialState('oidc', 'logoutRedirectUris', $logoutRedirectUrisResult);
 
 		return new TemplateResponse(
 						'oidc',
@@ -153,5 +172,19 @@ class Admin implements ISettings {
 	public function getPriority(): int
 	{
 		return 150;
+	}
+
+	private function arystr($ary='',$key=false,$rowsep=PHP_EOL,$cellsep=';') { // The two dimensional array, add keys name or not, Row separator, Cell Separator
+		$str='';
+		if (!is_array($ary)) {
+			$str=strval($ary);
+		} else if (count($ary)) {
+			foreach ($ary as $k=>$t) {
+				$str.=($key ? $k.$cellsep : '').(is_array($t) ? implode($cellsep,$t) : $t);
+				end($ary);
+				if ($k !== key($ary)) $str.=$rowsep;
+			}
+		}
+		return $str;
 	}
 }

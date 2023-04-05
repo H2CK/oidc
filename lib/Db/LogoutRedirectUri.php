@@ -1,9 +1,10 @@
+<?php
 /**
  * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
- * @license AGPL-3.0-or-later
+ * @license GNU AGPL version 3 or any later version
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -12,35 +13,32 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+namespace OCA\OIDCIdentityProvider\Db;
 
-import Vue from 'vue'
-import App from './App.vue'
-import { loadState } from '@nextcloud/initial-state'
+use OCP\AppFramework\Db\Entity;
 
-Vue.prototype.t = t
-Vue.prototype.OC = OC
+/**
+ * @method int getId()
+ * @method int getClientId()
+ * @method void setClientId(int $identifier)
+ * @method string getRedirectUri()
+ * @method void setRedirectUri(string $redirectUri)
+ */
+class LogoutRedirectUri extends Entity {
+	/** @var int */
+	public $id;
+	/** @var string */
+	protected $redirectUri;
 
-const clients = loadState('oidc', 'clients')
-const expireTime = loadState('oidc', 'expireTime')
-const publicKey = loadState('oidc', 'publicKey')
-const groups = loadState('oidc', 'groups')
-const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
-
-const View = Vue.extend(App)
-const oidc = new View({
-	propsData: {
-		clients,
-		expireTime,
-		publicKey,
-		groups,
-		logoutRedirectUris,
-	},
-})
-oidc.$mount('#oidc')
+	public function __construct() {
+		$this->addType('id', 'int');
+		$this->addType('redirect_uri', 'string');
+	}
+}

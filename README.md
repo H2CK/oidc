@@ -46,7 +46,10 @@ To support logout functionality the discovery enpoint contains the attribute `en
 Current limitations:
 
 - Only GET requests to logout endpoint are supported (POST might be added in future)
-- Only the optional attributes `id_token_hint` and `client_id` are supported
+- Only the optional attributes `id_token_hint`, `client_id` and `post_logout_redirect_uri` are supported
+
+Remark on `post_logout_redirect_uri`: The passed uris are checked against the list of allowed logout redirect uris from the app configuration. The provided `post_logout_redirect_uri` must start with on of the configured uris.
+If no `post_logout_redirect_uri` is passed or the `post_logout_redirect_uri` does not match any allowed redirect uri there will be a redirect to the login page of the Nextcloud instance.
 
 Up to now there is NO support for:
 

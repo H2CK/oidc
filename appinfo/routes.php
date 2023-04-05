@@ -32,6 +32,16 @@ return [
             'url' => '/clients/redirect/{id}',
             'verb' => 'DELETE'
         ],
+		[
+            'name' => 'Settings#addLogoutRedirectUri',
+            'url' => '/logoutRedirect',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Settings#deleteLogoutRedirectUri',
+            'url' => '/logoutRedirect/{id}',
+            'verb' => 'DELETE'
+        ],
         [
             'name' => 'Settings#addClient',
             'url' => '/clients',

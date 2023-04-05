@@ -27,6 +27,8 @@ return array(
     'OCA\\OIDCIdentityProvider\\Db\\GroupMapper' => $baseDir . '/../lib/Db/GroupMapper.php',
     'OCA\\OIDCIdentityProvider\\Db\\RedirectUri' => $baseDir . '/../lib/Db/RedirectUri.php',
     'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => $baseDir . '/../lib/Db/RedirectUriMapper.php',
+	'OCA\\OIDCIdentityProvider\\Db\\LogoutRedirectUri' => $baseDir . '/../lib/Db/LogoutRedirectUri.php',
+    'OCA\\OIDCIdentityProvider\\Db\\LogoutRedirectUriMapper' => $baseDir . '/../lib/Db/LogoutRedirectUriMapper.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => $baseDir . '/../lib/Exceptions/AccessTokenNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => $baseDir . '/../lib/Exceptions/ClientNotFoundException.php',
 	'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => $baseDir . '/../lib/Exceptions/RedirectUriNotFoundException.php',
@@ -39,5 +41,6 @@ return array(
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0006Date20221011082100' => $baseDir . '/../lib/Migration/Version0006Date20221011082100.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0007Date20230121172100' => $baseDir . '/../lib/Migration/Version0007Date20230121172100.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0008Date20230204190000' => $baseDir . '/../lib/Migration/Version0008Date20230204190000.php',
+	'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => $baseDir . '/../lib/Migration/Version0009Date20230401232100.php',
 	'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
 );

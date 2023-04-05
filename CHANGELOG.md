@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.8] - 2023-04-03
+
+### Changed
+
+- Added support for post_logout_redirect_uri attribut during logout.
+
 ## [0.4.7] - 2023-03-26
 
 ### Changed

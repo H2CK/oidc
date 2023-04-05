@@ -21,7 +21,9 @@
   -->
 <template>
 	<div id="oidc-redirect">
-		<h2>{{ t('oidc', 'OpenID Connect Redirect') }}</h2>
+		<h2 style="text-align: center;">
+			{{ t('oidc', 'OpenID Connect Redirect') }}
+		</h2>
 	</div>
 </template>
 
