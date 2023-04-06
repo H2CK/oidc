@@ -42,7 +42,7 @@ class Version0005Date20221009082100 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		// Remove column redirect uris on table oidc_clients
+		// Remove column redirect URIs on table oidc_clients
 		if ($schema->hasTable('oidc_clients')) {
 			$table = $schema->getTable('oidc_clients');
 			$table->dropColumn('redirect_uri');

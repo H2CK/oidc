@@ -254,7 +254,7 @@ class LoginRedirectorController extends ApiController
 			return new TemplateResponse('core', '403', $params, 'error');
 		}
 
-		// Check if redirect uri is configured for client
+		// Check if redirect URI is configured for client
 		$redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
 		$redirectUriFound = false;
 		foreach ($redirectUris as $i => $redirectUri) {

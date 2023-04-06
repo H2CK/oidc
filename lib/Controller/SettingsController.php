@@ -204,7 +204,7 @@ class SettingsController extends Controller
 					string $redirectUri
 					): JSONResponse
 	{
-		$this->logger->debug("Adding Redirect Uri " . $redirectUri . " for client " . $id);
+		$this->logger->debug("Adding Redirect URI " . $redirectUri . " for client " . $id);
 
 		$redirectUriObj = new RedirectUri();
 		$redirectUriObj->setClientId($id);
@@ -241,7 +241,7 @@ class SettingsController extends Controller
 					int $id
 					): JSONResponse
 	{
-		$this->logger->debug("Deleting Redirect Uri with id " . $id);
+		$this->logger->debug("Deleting Redirect URI with id " . $id);
 
 		$this->redirectUriMapper->deleteOneById($id);
 
@@ -275,7 +275,7 @@ class SettingsController extends Controller
 					string $redirectUri
 					): JSONResponse
 	{
-		$this->logger->debug("Adding Logout Redirect Uri " . $redirectUri);
+		$this->logger->debug("Adding Logout Redirect URI " . $redirectUri);
 
 		$logoutRedirectUriObj = new LogoutRedirectUri();
 		$logoutRedirectUriObj->setRedirectUri($redirectUri);
@@ -297,7 +297,7 @@ class SettingsController extends Controller
 					int $id
 					): JSONResponse
 	{
-		$this->logger->debug("Deleting Logout Redirect Uri with id " . $id);
+		$this->logger->debug("Deleting Logout Redirect URI with id " . $id);
 
 		$this->logoutRedirectUriMapper->deleteOneById($id);
 

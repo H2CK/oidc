@@ -69,7 +69,7 @@ class RedirectUriMapper extends QBMapper {
 	}
 
 	/**
-	 * @param int $id id of the redirect uri
+	 * @param int $id id of the redirect URI
 	 * @return RedirectUri
 	 * @throws RedirectUriNotFoundException
 	 */
@@ -83,7 +83,7 @@ class RedirectUriMapper extends QBMapper {
 		try {
 			$redirectUri = $this->findEntity($qb);
 		} catch (IMapperException $e) {
-			throw new RedirectUriNotFoundException('could not find redirect uri with id '.$id, 0, $e);
+			throw new RedirectUriNotFoundException('could not find redirect URI with id '.$id, 0, $e);
 		}
 		return $redirectUri;
 	}
@@ -103,14 +103,14 @@ class RedirectUriMapper extends QBMapper {
 		try {
 			$redirectUriEntry = $this->findEntity($qb);
 		} catch (IMapperException $e) {
-			throw new RedirectUriTokenNotFoundException('Could not find redirect uri', 0, $e);
+			throw new RedirectUriTokenNotFoundException('Could not find redirect URI', 0, $e);
 		}
 
 		return $redirectUriEntry;
 	}
 
 	/**
-	 * delete all redirect uri from a given client
+	 * delete all redirect URI from a given client
 	 *
 	 * @param int $id
 	 */
@@ -123,7 +123,7 @@ class RedirectUriMapper extends QBMapper {
 	}
 
 	/**
-	 * delete one redirect uri by id
+	 * delete one redirect URI by id
 	 *
 	 * @param int $id
 	 */

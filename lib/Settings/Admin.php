@@ -148,7 +148,7 @@ class Admin implements ISettings {
 			];
 		}
 
-		$this->logger->debug("Logout Redirect Uris provided: " . $this->arystr($logoutRedirectUrisResult, true, '|', ','));
+		$this->logger->debug("Logout Redirect URIs provided: " . $this->arystr($logoutRedirectUrisResult, true, '|', ','));
 
 		$this->initialStateService->provideInitialState('oidc', 'clients', $result);
 		$this->initialStateService->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue('expire_time'));

@@ -116,7 +116,7 @@
 				{{ t('oidc', '60 minutes') }}
 			</option>
 		</select>
-		<p style="margin-top: 1.5em;">{{ t('oidc', 'Accepted Logout Redirect Uris') }}</p>
+		<p style="margin-top: 1.5em;">{{ t('oidc', 'Accepted Logout Redirect URIs') }}</p>
 		<table v-if="logoutRedirectUris.length > 0" class="grid">
 			<tbody v-if="logoutRedirectUris"
 				:key="version">
