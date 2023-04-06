@@ -16,10 +16,10 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-03-28 03:45+0000\n"
+"POT-Creation-Date: 2023-04-06 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: Café Tango, 2023\n"
-"Language-Team: English (United Kingdom) (https://www.transifex.com/nextcloud/teams/64236/en_GB/)\n"
+"Language-Team: English (United Kingdom) (https://app.transifex.com/nextcloud/teams/64236/en_GB/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -50,7 +50,7 @@ msgstr ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 
-#: /app/lib/Controller/SettingsController.php:103
+#: /app/lib/Controller/SettingsController.php:109
 msgid ""
 "Your redirect URL needs to be a full URL for example: "
 "https://yourdomain.com/path"
@@ -59,12 +59,12 @@ msgstr ""
 "https://yourdomain.com/path"
 
 #. TRANSLATORS src/components/OIDCItem.vue:145
-#: /app/lib/Settings/Admin.php:109 /app/specialVueFakeDummyForL10nScript.js:80
+#: /app/lib/Settings/Admin.php:116 /app/specialVueFakeDummyForL10nScript.js:86
 msgid "Code Authorization Flow"
 msgstr "Code Authorisation Flow"
 
 #. TRANSLATORS src/components/OIDCItem.vue:149
-#: /app/lib/Settings/Admin.php:112 /app/specialVueFakeDummyForL10nScript.js:82
+#: /app/lib/Settings/Admin.php:119 /app/specialVueFakeDummyForL10nScript.js:88
 msgid "Code & Implicit Authorization Flow"
 msgstr "Code & Implicit Authorisation Flow"
 
@@ -120,7 +120,7 @@ msgstr "Add client"
 #. TRANSLATORS src/App.vue:60
 #. TRANSLATORS src/components/OIDCItem.vue:27
 #: /app/specialVueFakeDummyForL10nScript.js:8
-#: /app/specialVueFakeDummyForL10nScript.js:46
+#: /app/specialVueFakeDummyForL10nScript.js:52
 msgid "Name"
 msgstr "Surname"
 
@@ -128,8 +128,9 @@ msgstr "Surname"
 #. TRANSLATORS src/components/OIDCItem.vue:31
 #. TRANSLATORS src/components/OIDCItem.vue:45
 #: /app/specialVueFakeDummyForL10nScript.js:10
-#: /app/specialVueFakeDummyForL10nScript.js:48
-#: /app/specialVueFakeDummyForL10nScript.js:52
+#: /app/specialVueFakeDummyForL10nScript.js:42
+#: /app/specialVueFakeDummyForL10nScript.js:54
+#: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Redirection URI"
 msgstr "Redirection URI"
 
@@ -156,7 +157,8 @@ msgstr "Public"
 #. TRANSLATORS src/App.vue:90
 #. TRANSLATORS src/components/OIDCItem.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:20
-#: /app/specialVueFakeDummyForL10nScript.js:54
+#: /app/specialVueFakeDummyForL10nScript.js:44
+#: /app/specialVueFakeDummyForL10nScript.js:60
 msgid "Add"
 msgstr "Add"
 
@@ -204,79 +206,86 @@ msgstr "60 minutes"
 
 #. TRANSLATORS src/App.vue:119
 #: /app/specialVueFakeDummyForL10nScript.js:40
+msgid "Accepted Logout Redirect Uris"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:138
+#: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Public Key"
 msgstr "Public Key"
 
-#. TRANSLATORS src/App.vue:123
-#: /app/specialVueFakeDummyForL10nScript.js:42
+#. TRANSLATORS src/App.vue:142
+#: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Regenerate Keys"
 msgstr "Regenerate Keys"
 
-#. TRANSLATORS src/Redirect.vue:24
-#: /app/specialVueFakeDummyForL10nScript.js:44
+#. TRANSLATORS src/Redirect.vue:25
+#: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "OpenID Connect Redirect"
 msgstr "OpenID Connect Redirect"
 
 #. TRANSLATORS src/components/OIDCItem.vue:37
 #. TRANSLATORS src/components/OIDCItem.vue:104
-#: /app/specialVueFakeDummyForL10nScript.js:50
-#: /app/specialVueFakeDummyForL10nScript.js:78
+#. TRANSLATORS src/components/RedirectItem.vue:28
+#: /app/specialVueFakeDummyForL10nScript.js:56
+#: /app/specialVueFakeDummyForL10nScript.js:84
+#: /app/specialVueFakeDummyForL10nScript.js:90
 msgid "Delete"
 msgstr "Delete"
 
 #. TRANSLATORS src/components/OIDCItem.vue:51
-#: /app/specialVueFakeDummyForL10nScript.js:56
+#: /app/specialVueFakeDummyForL10nScript.js:62
 msgid "Client Identifier"
 msgstr "Client Identifier"
 
 #. TRANSLATORS src/components/OIDCItem.vue:55
-#: /app/specialVueFakeDummyForL10nScript.js:58
+#: /app/specialVueFakeDummyForL10nScript.js:64
 msgid "Secret"
 msgstr "Secret"
 
 #. TRANSLATORS src/components/OIDCItem.vue:57
-#: /app/specialVueFakeDummyForL10nScript.js:60
+#: /app/specialVueFakeDummyForL10nScript.js:66
 msgid "Show client secret"
 msgstr "Show client secret"
 
 #. TRANSLATORS src/components/OIDCItem.vue:60
-#: /app/specialVueFakeDummyForL10nScript.js:62
+#: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "-- NONE --"
 msgstr "-- NONE --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:64
-#: /app/specialVueFakeDummyForL10nScript.js:64
+#: /app/specialVueFakeDummyForL10nScript.js:70
 msgid "Signing Algorithm"
 msgstr "Signing Algorithm"
 
 #. TRANSLATORS src/components/OIDCItem.vue:68
-#: /app/specialVueFakeDummyForL10nScript.js:66
+#: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Type"
 msgstr "Type"
 
 #. TRANSLATORS src/components/OIDCItem.vue:72
-#: /app/specialVueFakeDummyForL10nScript.js:68
+#: /app/specialVueFakeDummyForL10nScript.js:74
 msgid "Flows"
 msgstr "Flows"
 
 #. TRANSLATORS src/components/OIDCItem.vue:77
-#: /app/specialVueFakeDummyForL10nScript.js:70
+#: /app/specialVueFakeDummyForL10nScript.js:76
 msgid "Flows allowed to be used with the client."
 msgstr "Flows allowed to be used with the client."
 
 #. TRANSLATORS src/components/OIDCItem.vue:85
-#: /app/specialVueFakeDummyForL10nScript.js:72
+#: /app/specialVueFakeDummyForL10nScript.js:78
 msgid "Limited to Groups"
 msgstr "Limited to Groups"
 
 #. TRANSLATORS src/components/OIDCItem.vue:88
-#: /app/specialVueFakeDummyForL10nScript.js:74
+#: /app/specialVueFakeDummyForL10nScript.js:80
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
 "Only users in one of the following groups are allowed to use the client."
 
 #. TRANSLATORS src/components/OIDCItem.vue:94
-#: /app/specialVueFakeDummyForL10nScript.js:76
+#: /app/specialVueFakeDummyForL10nScript.js:82
 msgid "Groups allowed to use the client."
 msgstr "Groups allowed to use the client."
