@@ -85,7 +85,7 @@ class GroupMapper extends QBMapper {
 	}
 
 	/**
-	 * delete all redirect uri from a given client
+	 * delete all redirect URI from a given client
 	 *
 	 * @param int $id
 	 */

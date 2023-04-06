@@ -8,3 +8,7 @@ node_modules/
 js/*hot-update.*
 .DS_Store
 .phpunit.result.cache
+
+## VSCode
+.vscode/
+*.code-workspace
