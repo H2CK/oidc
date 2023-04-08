@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 λεπτά",
     "30 minutes" : "30 λεπτά",
     "60 minutes" : "60 λεπτά",
+    "Accepted Logout Redirect URIs" : "Αποδεκτά URI ανακατεύθυνσης αποσύνδεσης",
     "Public Key" : "Δημόσιο κλειδί",
     "Regenerate Keys" : "Αναγέννηση κλειδιών",
     "OpenID Connect Redirect" : "Ανακατεύθυνση OpenID Connect",

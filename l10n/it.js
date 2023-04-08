@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 minuti",
     "30 minutes" : "30 minuti",
     "60 minutes" : "60 minuti",
+    "Accepted Logout Redirect URIs" : "URI di reindirizzamento del logout accettati",
     "Public Key" : "Chiave pubblica",
     "Regenerate Keys" : "Rigenerare le chiavi",
     "OpenID Connect Redirect" : "Reindirizzamento di OpenID Connect",

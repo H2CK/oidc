@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-04-07 03:57+0000\n"
+"POT-Creation-Date: 2023-04-08 03:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: Dutch (https://app.transifex.com/nextcloud/teams/64236/nl/)\n"
@@ -208,7 +208,7 @@ msgstr "60 minuten"
 #. TRANSLATORS src/App.vue:119
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Accepted Logout Redirect URIs"
-msgstr ""
+msgstr "Geaccepteerde URI's voor afmelden"
 
 #. TRANSLATORS src/App.vue:138
 #: /app/specialVueFakeDummyForL10nScript.js:46
