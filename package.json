@@ -35,7 +35,7 @@
 		"@nextcloud/vue": "^7.9.0",
 		"babel-loader": "^8.2.3",
 		"css-loader": "^6.7.3",
-		"eslint": "^8.37.0",
+		"eslint": "^8.38.0",
 		"eslint-config-standard": "^17.0.0",
 		"eslint-plugin-import": "^2.27.5",
 		"eslint-plugin-jsdoc": "^39.9.1",
