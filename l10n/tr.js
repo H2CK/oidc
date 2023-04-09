@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 dakika",
     "30 minutes" : "30 dakika",
     "60 minutes" : "60 dakika",
+    "Accepted Logout Redirect URIs" : "Onaylanmış oturum açma yönlendirmesi adresleri",
     "Public Key" : "Herkese açık anahtar",
     "Regenerate Keys" : "Anahtarları yeniden üret",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",
