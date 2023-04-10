@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15分鐘",
     "30 minutes" : "30分鐘",
     "60 minutes" : "60 分鐘",
+    "Accepted Logout Redirect URIs" : "接受的登出重新導向 URI",
     "Public Key" : "公鑰",
     "Regenerate Keys" : "重新生成密鑰",
     "OpenID Connect Redirect" : "OpenID Connect 重新導向",
