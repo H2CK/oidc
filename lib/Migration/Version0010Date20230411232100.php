@@ -33,7 +33,7 @@ use Psr\Log\LoggerInterface;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
-class Version0009Date20230401232100 extends SimpleMigrationStep {
+class Version0010Date20230411232100 extends SimpleMigrationStep {
 	private LoggerInterface $logger;
 	private IDBConnection $db;
 
@@ -56,8 +56,24 @@ class Version0009Date20230401232100 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
+		// Modify index on client id
 		if ($schema->hasTable('oidc_loredirect_uris')) {
-			$schema->dropTable('oidc_loredirect_uris');
+			$table = $schema->getTable('oidc_loredirect_uris');
+			$table->dropIndex('oidc_loredir_uri_idx');
+		}
+
+		if (!$schema->hasTable('oidc_loredirect_uris')) {
+			$table = $schema->createTable('oidc_loredirect_uris');
+			$table->addColumn('id', 'integer', [
+				'autoincrement' => true,
+				'notnull' => true,
+				'unsigned' => true,
+			]);
+			$table->addColumn('redirect_uri', 'string', [
+				'notnull' => true,
+				'length' => 2000,
+			]);
+			$table->setPrimaryKey(['id']);
 		}
 
 		return $schema;

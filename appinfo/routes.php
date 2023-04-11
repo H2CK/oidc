@@ -137,10 +137,5 @@ return [
             'url' => '/logout',
             'verb' => 'OPTIONS',
         ],
-		// [
-        //     'name' => 'JwtLogin#login',
-        //     'url' => '/login',
-        //     'verb' => 'GET',
-        // ],
     ],
 ];

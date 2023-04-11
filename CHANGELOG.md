@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.9] - 2023-04-11
+
+### Changed
+
+- Fixed MySQL problem with index.
+
 ## [0.4.8] - 2023-04-03
 
 ### Changed

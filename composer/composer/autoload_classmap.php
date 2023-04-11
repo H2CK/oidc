@@ -14,7 +14,6 @@ return array(
     'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => $baseDir . '/../lib/Controller/JwksController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => $baseDir . '/../lib/Controller/LogoutController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\PageController' => $baseDir . '/../lib/Controller/PageController.php',
-	// 'OCA\\OIDCIdentityProvider\\Controller\\JwtLoginController' => $baseDir . '/../lib/Controller/JwtLoginController.php',
 	'OCA\\OIDCIdentityProvider\\Controller\\JwtGenerator' => $baseDir . '/../lib/Controller/JwtGenerator.php',
     'OCA\\OIDCIdentityProvider\\Controller\\SettingsController' => $baseDir . '/../lib/Controller/SettingsController.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
@@ -42,5 +41,6 @@ return array(
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0007Date20230121172100' => $baseDir . '/../lib/Migration/Version0007Date20230121172100.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0008Date20230204190000' => $baseDir . '/../lib/Migration/Version0008Date20230204190000.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => $baseDir . '/../lib/Migration/Version0009Date20230401232100.php',
+	'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => $baseDir . '/../lib/Migration/Version0010Date20230411232100.php',
 	'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
 );
