@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 минута",
     "30 minutes" : "30 минута",
     "60 minutes" : "60 минута",
+    "Accepted Logout Redirect URIs" : "Прихваћени URI преусмеравања одјављивања",
     "Public Key" : "Јавни кључ",
     "Regenerate Keys" : "Регенериши кључеве",
     "OpenID Connect Redirect" : "OpenID Connect преусмеравање",
