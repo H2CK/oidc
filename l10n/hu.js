@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 perc",
     "30 minutes" : "30 perc",
     "60 minutes" : "60 perc",
+    "Accepted Logout Redirect URIs" : "Elfogadott kijelentkezési átirányítási URI-k",
     "Public Key" : "Nyilvános kulcs",
     "Regenerate Keys" : "Kulcsok újbóli előállítása",
     "OpenID Connect Redirect" : "OpenID Connect átirányítások",
