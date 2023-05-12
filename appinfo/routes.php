@@ -103,6 +103,11 @@ return [
             'verb' => 'GET'
         ],
         [
+            'name' => 'UserInfo#getInfo',
+            'url' => '/userinfo',
+            'verb' => 'POST'
+        ],
+        [
             'name' => 'UserInfo#userInfoCors',
             'url' => '/userinfo',
             'verb' => 'OPTIONS',

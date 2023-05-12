@@ -145,7 +145,6 @@ class OIDCApiController extends ApiController {
 	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
-	 * @UseSession
 	 *
 	 * @param string $grant_type
 	 * @param string $code

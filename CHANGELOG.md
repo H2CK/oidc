@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2023-05-12
+
+### Changed
+
+- Support for POST requests to user info endpoint.
+- Removed Nextcloud session for token endpoint
+
 ## [0.4.9] - 2023-04-11
 
 ### Changed

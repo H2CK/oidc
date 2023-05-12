@@ -31,7 +31,7 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Discovery: `openid-configuration` (GET)
 - Authorization: `authorize`(GET)
 - Token: `token`(POST)
-- UserInfo: `userinfo`(GET - Authentication with previously retrieved access token)
+- UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
 - Logout: `logout` (GET)
 
