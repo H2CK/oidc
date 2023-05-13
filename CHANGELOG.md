@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2023-05-13
+
+### Changed
+
+- Fixed user info endpoint for GET.
+
 ## [0.5.0] - 2023-05-12
 
 ### Changed

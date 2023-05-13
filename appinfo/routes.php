@@ -103,7 +103,7 @@ return [
             'verb' => 'GET'
         ],
         [
-            'name' => 'UserInfo#getInfo',
+            'name' => 'UserInfo#getInfoPost',
             'url' => '/userinfo',
             'verb' => 'POST'
         ],

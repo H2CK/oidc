@@ -115,6 +115,17 @@ class UserInfoController extends ApiController
 	 *
 	 * @return JSONResponse
 	 */
+	public function getInfoPost(): JSONResponse
+	{
+		return $this->getInfo();
+	}
+
+	/**
+     * @PublicPage
+	 * @NoCSRFRequired
+	 *
+	 * @return JSONResponse
+	 */
 	public function getInfo(): JSONResponse
 	{
 
