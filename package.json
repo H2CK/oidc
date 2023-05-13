@@ -51,7 +51,7 @@
 		"sass-loader": "^13.2.2",
 		"style-loader": "^3.3.2",
 		"webpack": "^5.82.1",
-		"webpack-dev-server": "^4.13.3"
+		"webpack-dev-server": "^4.15.0"
 	},
 	"browserslist": [
 		"extends @nextcloud/browserslist-config"
