@@ -7,6 +7,7 @@ OC.L10N.register(
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
-    "Public Key" : "Clave pública"
+    "Public Key" : "Clave pública",
+    "Delete" : "Desaniciar"
 },
 "nplurals=2; plural=(n != 1);");
