@@ -16,7 +16,7 @@ OC.L10N.register(
     "60 minutes" : "60 分钟",
     "Public Key" : "公钥",
     "Delete" : "删除",
-    "Client Identifier" : "客户端 ID",
+    "Client Identifier" : "客户端标识",
     "Secret" : "Secret",
     "Show client secret" : "显示客户端 secret",
     "Type" : "类型"
