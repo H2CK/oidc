@@ -7,6 +7,7 @@ $baseDir = $vendorDir;
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+	'OCA\\OIDCIdentityProvider\\AppInfo\\Application' => $baseDir . '/../lib/AppInfo/Application.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LoginRedirectorController' => $baseDir . '/../lib/Controller/LoginRedirectorController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\OIDCApiController' => $baseDir . '/../lib/Controller/OIDCApiController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\UserInfoController' => $baseDir . '/../lib/Controller/UserInfoController.php',
@@ -14,8 +15,13 @@ return array(
     'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => $baseDir . '/../lib/Controller/JwksController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => $baseDir . '/../lib/Controller/LogoutController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\PageController' => $baseDir . '/../lib/Controller/PageController.php',
-	'OCA\\OIDCIdentityProvider\\Controller\\JwtGenerator' => $baseDir . '/../lib/Controller/JwtGenerator.php',
+	'OCA\\OIDCIdentityProvider\\Controller\\CorsController' => $baseDir . '/../lib/Controller/CorsController.php',
+	'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => $baseDir . '/../lib/Util/JwtGenerator.php',
     'OCA\\OIDCIdentityProvider\\Controller\\SettingsController' => $baseDir . '/../lib/Controller/SettingsController.php',
+	'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\JsonResponseMapper' => $baseDir . '/../lib/Http/WellKnown/JsonResponseMapper.php',
+	'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\WebFingerHandler' => $baseDir . '/../lib/Http/WellKnown/WebFingerHandler.php',
+	'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => $baseDir . '/../lib/Util/DiscoveryGenerator.php',
+    'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\OIDCDiscoveryHandler' => $baseDir . '/../lib/Http/WellKnown/OIDCDiscoveryHandler.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => $baseDir . '/../lib/BackgroundJob/CleanupGroups.php',
 	'OCA\\OIDCIdentityProvider\\Db\\AccessToken' => $baseDir . '/../lib/Db/AccessToken.php',

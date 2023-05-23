@@ -23,6 +23,8 @@
  */
 namespace OCA\OIDCIdentityProvider\AppInfo;
 
+use OCA\OIDCIdentityProvider\Http\WellKnown\WebFingerHandler;
+use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Bootstrap\IBootContext;
@@ -39,6 +41,10 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
         // Register the composer autoloader for packages shipped by this app
         require_once __DIR__ . '/../../vendor/autoload.php';
+		// Register WebFingerHandler
+		$context->registerWellKnownHandler(WebFingerHandler::class);
+		// Register OIDCDiscoveryHandler
+		$context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
     }
 
     public function boot(IBootContext $context): void {

@@ -24,7 +24,7 @@ declare(strict_types=1);
  *
  */
 
-namespace OCA\OIDCIdentityProvider\Controller;
+namespace OCA\OIDCIdentityProvider\Util;
 
 use OC\Authentication\Token\IProvider as TokenProvider;
 use OCA\OIDCIdentityProvider\Db\Group;

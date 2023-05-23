@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2023-05-23
+
+### Changed
+
+- Added WebFinger support
+
 ## [0.5.1] - 2023-05-13
 
 ### Changed

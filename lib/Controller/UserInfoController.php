@@ -94,22 +94,6 @@ class UserInfoController extends ApiController
 	}
 
 	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	public function userInfoCors(): Response {
-		$response = new Response();
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
-		$response->addHeader('Access-Control-Max-Age', '1728000');
-		$response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-		$response->addHeader('Access-Control-Allow-Credentials', 'false');
-		return $response;
-	}
-
-	/**
      * @PublicPage
 	 * @NoCSRFRequired
 	 *

@@ -16,7 +16,7 @@ Provided features:
 - Supported signing algorithms RS256 (default) and HS256
 - Group memberships are passed as roles in JWT token.
 - Clients can be assigned to dedicated user groups. Only users in the configured group are allowed to retrieve an access token to fetch the JWT.
-- Discovery endpoint provided
+- Discovery & WebFinger endpoint provided
 - Logout endpoint
 
 Full documentation can be found at:
@@ -28,7 +28,8 @@ Full documentation can be found at:
 
 The following endpoint are available below `index.php/apps/oidc/`:
 
-- Discovery: `openid-configuration` (GET)
+- Discovery: `openid-configuration` (GET) or at `index.php/.well-known/openid-configuration`
+- WebFinger: at `index.php/.well-known/webfinger`
 - Authorization: `authorize`(GET)
 - Token: `token`(POST)
 - UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
@@ -37,7 +38,7 @@ The following endpoint are available below `index.php/apps/oidc/`:
 
 CORS is enable for all domains on all the above endpoints.
 
-The discovery endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration`.
+The discovery and web finger endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration` (or `<Issuer>/index.php/.well-known/openid-configuration`). For web finger there should be a redirect to `<Issuer>/index.php/.well-known/webfinger`.
 
 ### Logout Details
 

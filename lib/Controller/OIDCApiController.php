@@ -37,6 +37,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -124,22 +125,6 @@ class OIDCApiController extends ApiController {
 		$this->appConfig = $appConfig;
 		$this->jwtGenerator = $jwtGenerator;
 		$this->logger = $logger;
-	}
-
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	public function tokenCors(): Response {
-		$response = new Response();
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
-		$response->addHeader('Access-Control-Max-Age', '1728000');
-		$response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-		$response->addHeader('Access-Control-Allow-Credentials', 'false');
-		return $response;
 	}
 
 	/**
