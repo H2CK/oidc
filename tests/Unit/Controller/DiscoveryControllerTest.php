@@ -41,7 +41,7 @@ class DiscoveryControllerTest extends TestCase {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
 		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
 		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-		$this->discoveryGenerator = $this.getMockBuilder(DiscoveryGenerator::class)->getMock();
+		$this->discoveryGenerator = $this->getMockBuilder(DiscoveryGenerator::class)->getMock();
 		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
 		$this->iLogger = $this->getMockBuilder(ILogger::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
