@@ -41,15 +41,17 @@ class DiscoveryControllerTest extends TestCase {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
 		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
 		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-		$this->discoveryGenerator = $this->getMockBuilder(DiscoveryGenerator::class)->getMock();
+		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
 		$this->iLogger = $this->getMockBuilder(ILogger::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
+		$this->discoveryGenerator = $this->getMockBuilder(DiscoveryGenerator::class)->setConstructorArgs([$this->time,
+																										  $this->urlGenerator,
+																										  $this->logger])->getMock();
 		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
 																						$this->time,
 																						$this->iLogger,
 																						$this->config])->getMock();
-		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->controller = new DiscoveryController(
             'oidc',
             $this->request,
