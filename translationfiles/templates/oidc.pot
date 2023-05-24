@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-05-23 01:50+0000\n"
+"POT-Creation-Date: 2023-05-24 01:49+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,19 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:251
+#: /app/lib/Controller/LoginRedirectorController.php:236
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of "
 "your client."
 msgstr ""
 
-#: /app/lib/Controller/LoginRedirectorController.php:268
+#: /app/lib/Controller/LoginRedirectorController.php:253
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
 
-#: /app/lib/Controller/LoginRedirectorController.php:327
+#: /app/lib/Controller/LoginRedirectorController.php:312
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."

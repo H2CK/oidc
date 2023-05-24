@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-05-20 01:47+0000\n"
+"POT-Creation-Date: 2023-05-24 01:49+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: Dutch (https://app.transifex.com/nextcloud/teams/64236/nl/)\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Language: nl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:251
+#: /app/lib/Controller/LoginRedirectorController.php:236
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
@@ -36,7 +36,7 @@ msgstr ""
 "Je client is niet geautoriseerd om te verbinden. Informeer de beheerder van "
 "je client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:268
+#: /app/lib/Controller/LoginRedirectorController.php:253
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
@@ -44,7 +44,7 @@ msgstr ""
 "De ontvangen redirect URI wordt niet geaccepteerd om verbinding te maken. "
 "Informeer de beheerder van uw client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:327
+#: /app/lib/Controller/LoginRedirectorController.php:312
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
