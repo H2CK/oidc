@@ -48,7 +48,7 @@
 		"node-polyfill-webpack-plugin": "^2.0.1",
 		"postcss-html": "^1.5.0",
 		"sass": "^1.62.1",
-		"sass-loader": "^13.3.1",
+		"sass-loader": "^13.3.2",
 		"style-loader": "^3.3.3",
 		"webpack": "^5.86.0",
 		"webpack-dev-server": "^4.15.0"
