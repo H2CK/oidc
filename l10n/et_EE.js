@@ -7,6 +7,7 @@ OC.L10N.register(
     "Public" : "Avalik",
     "Add" : "Lisa",
     "Settings" : "Seaded",
+    "30 minutes" : "30 minutit",
     "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",
     "Secret" : "Salajane",
