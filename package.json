@@ -27,7 +27,7 @@
 		"@babel/eslint-parser": "^7.22.5",
 		"@jridgewell/sourcemap-codec": "^1.4.15",
 		"@nextcloud/axios": "^2.3.0",
-		"@nextcloud/dialogs": "^4.0.1",
+		"@nextcloud/dialogs": "^4.1.0",
 		"@nextcloud/eslint-plugin": "^2.0.0",
 		"@nextcloud/initial-state": "^2.0.0",
 		"@nextcloud/logger": "^2.5.0",
