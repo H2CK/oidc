@@ -96,11 +96,11 @@ jobs:
           npm ci
           npm run build
 
-      - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.info).nextcloud.min-version }}
+      - name: Checkout server ${{ steps.appinfo.outputs.info }}
         continue-on-error: true
         id: server-checkout
         run: |
-          NCVERSION=${{ fromJSON(steps.appinfo.outputs.info).nextcloud.min-version }}
+          NCVERSION=${{ steps.appinfo.outputs.info }}
           wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
           unzip latest-$NCVERSION.zip
 
