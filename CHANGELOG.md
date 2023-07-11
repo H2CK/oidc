@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2023-07-11
+
+### Changed
+
+- Added Nextcloud 27 support
+- Dependency updates
+
 ## [0.6.0] - 2023-05-23
 
 ### Changed
