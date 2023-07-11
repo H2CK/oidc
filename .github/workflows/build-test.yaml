@@ -43,10 +43,10 @@ jobs:
 
       - name: Get appinfo data
         id: appinfo
-        uses: skjnldsv/xpath-action@master
+        uses: mavrosxristoforos/get-xml-info@1.1.1
         with:
-          filename: ${{ env.APP_NAME }}/appinfo/info.xml
-          expression: "//info//dependencies//nextcloud/@min-version"
+          xml-file: ${{ env.APP_NAME }}/appinfo/info.xml
+          xpath: "//info//dependencies//nextcloud/@min-version"
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v2
@@ -96,11 +96,11 @@ jobs:
           npm ci
           npm run build
 
-      - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+      - name: Checkout server ${{ fromJSON(steps.appinfo.outputs.info).nextcloud.min-version }}
         continue-on-error: true
         id: server-checkout
         run: |
-          NCVERSION=${{ fromJSON(steps.appinfo.outputs.result).nextcloud.min-version }}
+          NCVERSION=${{ fromJSON(steps.appinfo.outputs.info).nextcloud.min-version }}
           wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
           unzip latest-$NCVERSION.zip
 
