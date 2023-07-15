@@ -29,7 +29,7 @@
 		"@nextcloud/axios": "^2.4.0",
 		"@nextcloud/dialogs": "^4.1.0",
 		"@nextcloud/eslint-plugin": "^2.0.0",
-		"@nextcloud/initial-state": "^2.0.0",
+		"@nextcloud/initial-state": "^2.1.0",
 		"@nextcloud/logger": "^2.5.0",
 		"@nextcloud/router": "^2.1.2",
 		"@nextcloud/vue": "^7.12.1",
