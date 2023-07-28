@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.2] - 2023-07-28
+
+### Changed
+
+- Fixed expire time problem (now returns integer)
+- Dependency updates
+
 ## [0.6.1] - 2023-07-11
 
 ### Changed
