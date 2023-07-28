@@ -255,7 +255,7 @@ class OIDCApiController extends ApiController {
 			[
 				'access_token' => $newAccessToken,
 				'token_type' => 'Bearer',
-				'expires_in' => $expireTime,
+				'expires_in' => intval($expireTime),
 				'refresh_token' => $newCode,
 				'id_token' => $jwt,
 			]
