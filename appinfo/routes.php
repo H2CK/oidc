@@ -52,6 +52,11 @@ return [
             'url' => '/expire',
             'verb' => 'POST',
         ],
+		[
+            'name' => 'Settings#setIntegrateAvatar',
+            'url' => '/integrateAvatar',
+            'verb' => 'POST',
+        ],
         [
             'name' => 'Settings#regenerateKeys',
             'url' => '/genKeys',

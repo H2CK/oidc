@@ -116,6 +116,26 @@
 				{{ t('oidc', '60 minutes') }}
 			</option>
 		</select>
+
+		<p style="margin-top: 1.5em;">{{ t('oidc', 'Integrate Avatar in user info / id token') }}</p>
+		<select id="integrateAvatar"
+			v-model="intAvatar"
+			:placeholder="t('oidc', 'Method for integration of avatar')"
+			@change="setIntegrateAvatar">
+			<option disabled value="">
+				{{ t('oidc', 'Select how the avatar image should be integrated') }}
+			</option>
+			<option value="none">
+				{{ t('oidc', 'No integration') }}
+			</option>
+			<option value="user_info">
+				{{ t('oidc', 'Add to user info') }}
+			</option>
+			<option value="id_token">
+				{{ t('oidc', 'Add to user info and id token') }}
+			</option>
+		</select>
+
 		<p style="margin-top: 1.5em;">{{ t('oidc', 'Accepted Logout Redirect URIs') }}</p>
 		<table v-if="logoutRedirectUris.length > 0" class="grid">
 			<tbody v-if="logoutRedirectUris"
@@ -177,6 +197,10 @@ export default {
 			type: Array,
 			required: true,
 		},
+		integrateAvatar: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -192,6 +216,7 @@ export default {
 				redirectUri: '',
 			},
 			expTime: this.expireTime,
+			intAvatar: this.integrateAvatar,
 			error: false,
 			errorMsg: '',
 			version: 0,
@@ -305,6 +330,18 @@ export default {
 				this.expTime = response.data.expire_time
 				// eslint-disable-next-line vue/no-mutating-props
 				this.expireTime = response.data.expire_time
+			})
+		},
+		setIntegrateAvatar() {
+			axios.post(
+				generateUrl('apps/oidc/integrateAvatar'),
+				{
+					integrateAvatar: this.intAvatar,
+				}).then((response) => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.intAvatarDataUrl = response.data.integrate_avatar
+				// eslint-disable-next-line vue/no-mutating-props
+				this.integrateAvatarDataUrl = response.data.integrate_avatar
 			})
 		},
 		regenerateKeys() {

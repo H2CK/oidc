@@ -155,6 +155,8 @@ class Admin implements ISettings {
 		$this->initialStateService->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
 		$this->initialStateService->provideInitialState('oidc', 'groups', $availableGroups);
 		$this->initialStateService->provideInitialState('oidc', 'logoutRedirectUris', $logoutRedirectUrisResult);
+		$this->initialStateService->provideInitialState('oidc',
+				'integrateAvatar', $this->appConfig->getAppValue('integrate_avatar'));
 
 		return new TemplateResponse(
 						'oidc',

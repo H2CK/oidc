@@ -32,6 +32,7 @@ const expireTime = loadState('oidc', 'expireTime')
 const publicKey = loadState('oidc', 'publicKey')
 const groups = loadState('oidc', 'groups')
 const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
+const integrateAvatar = loadState('oidc', 'integrateAvatar')
 
 const View = Vue.extend(App)
 const oidc = new View({
@@ -41,6 +42,7 @@ const oidc = new View({
 		publicKey,
 		groups,
 		logoutRedirectUris,
+		integrateAvatar,
 	},
 })
 oidc.$mount('#oidc')
