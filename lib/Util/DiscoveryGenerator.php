@@ -134,6 +134,9 @@ class DiscoveryGenerator
             'website',
             'email',
             'email_verified',
+			'phone_number',
+			'address',
+			'picture',
         ];
 
 		$discoveryPayload = [
