@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.0] - 2023-08-06
+
+### Changed
+
+- Added claims phone_number and address
+- Dependency updates
 
 ## [0.6.2] - 2023-07-28
 

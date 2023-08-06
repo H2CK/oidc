@@ -176,11 +176,33 @@ class UserInfoController extends ApiController
 		$scopeArray = preg_split('/ +/', $accessToken->getScope());
 		if (in_array("profile", $scopeArray)) {
 			$profile = [
-				'name' => $user->getDisplayName(),
 				'updated_at' => $user->getLastLogin(),
 			];
+			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
+				$profile = array_merge($profile,
+						['name' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue()]);
+			} else {
+				$profile = array_merge($profile, ['name' => $user->getDisplayName()]);
+			}
 			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '') {
-				$profile = array_merge($profile, ['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
+				$profile = array_merge($profile,
+						['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
+			}
+			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '') {
+				$profile = array_merge($profile,
+						['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
+			}
+			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '') {
+				$profile = array_merge($profile,
+						['address' =>
+								[ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
+			}
+			if ($this->appConfig->getAppValue('integrate_avatar') == 'user_info' || $this->appConfig->getAppValue('integrate_avatar') == 'id_token') {
+				$avatarImage = $user->getAvatarImage(64);
+				if ($avatarImage !== null) {
+					$profile = array_merge($profile,
+							['picture' => 'data:' . $avatarImage->dataMimeType() . ';base64,' . base64_encode($avatarImage->data())]);
+				}
 			}
 			// Possible further values
 			// 'family_name' => ,

@@ -333,6 +333,19 @@ class SettingsController extends Controller
 		return new JSONResponse($result);
 	}
 
+	public function setIntegrateAvatar(
+					string $integrateAvatar
+					): JSONResponse
+	{
+		if ($integrateAvatar === 'none' || $integrateAvatar === 'user_info' || $integrateAvatar === 'id_token') {
+			$this->appConfig->setAppValue('integrate_avatar', $integrateAvatar);
+		}
+	$result = [
+	'integrate_avatar' => $this->appConfig->getAppValue('integrate_avatar'),
+	];
+	return new JSONResponse($result);
+	}
+
 	public function regenerateKeys(): JSONResponse
 	{
 		$config = array(
