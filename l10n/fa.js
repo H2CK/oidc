@@ -13,6 +13,7 @@ OC.L10N.register(
     "10 minutes" : "۱۰ دقیقه",
     "15 minutes" : "۱۵ دقیقه",
     "30 minutes" : "۳۰ دقیقه",
+    "Public Key" : "کلید عمومی",
     "Delete" : "حذف",
     "Client Identifier" : "شناسه مشتری",
     "Secret" : "راز",
