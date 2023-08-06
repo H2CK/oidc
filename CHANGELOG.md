@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Added claims phone_number and address
+- Added possibility to add claim picture with data url to id token or user info dependent in app settings.
 - Dependency updates
 
 ## [0.6.2] - 2023-07-28
