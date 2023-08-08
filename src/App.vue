@@ -117,7 +117,7 @@
 			</option>
 		</select>
 
-		<p style="margin-top: 1.5em;">{{ t('oidc', 'Integrate Avatar in user info / id token') }}</p>
+		<p style="margin-top: 1.5em;">{{ t('oidc', 'Integrate avatar in user info/ID token') }}</p>
 		<select id="integrateAvatar"
 			v-model="intAvatar"
 			:placeholder="t('oidc', 'Method for integration of avatar')"
@@ -132,7 +132,7 @@
 				{{ t('oidc', 'Add to user info') }}
 			</option>
 			<option value="id_token">
-				{{ t('oidc', 'Add to user info and id token') }}
+				{{ t('oidc', 'Add to user info and ID token') }}
 			</option>
 		</select>
 
