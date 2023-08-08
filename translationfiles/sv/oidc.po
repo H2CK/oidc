@@ -11,17 +11,17 @@
 # Erik Lennartsson, 2022
 # Niklas Andersson <mail.niklasandersson@gmail.com>, 2022
 # Andy Scherzinger <info@andy-scherzinger.de>, 2022
-# Magnus Höglund, 2022
 # H2CK, 2023
+# Magnus Höglund, 2023
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-08-07 02:06+0000\n"
+"POT-Creation-Date: 2023-08-08 02:08+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2023\n"
+"Last-Translator: Magnus Höglund, 2023\n"
 "Language-Team: Swedish (https://app.transifex.com/nextcloud/teams/64236/sv/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -210,32 +210,32 @@ msgstr "60 minuter"
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Integrate Avatar in user info / id token"
-msgstr ""
+msgstr "Integrera Avatar i användarinformation / id-token"
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Method for integration of avatar"
-msgstr ""
+msgstr "Metod för integration av avatar"
 
 #. TRANSLATORS src/App.vue:126
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select how the avatar image should be integrated"
-msgstr ""
+msgstr "Välj hur avatarbilden ska integreras"
 
 #. TRANSLATORS src/App.vue:129
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "No integration"
-msgstr ""
+msgstr "Ingen integration"
 
 #. TRANSLATORS src/App.vue:132
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Add to user info"
-msgstr ""
+msgstr "Lägg till i användarinformation"
 
 #. TRANSLATORS src/App.vue:135
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Add to user info and id token"
-msgstr ""
+msgstr "Lägg till användarinformation och id-token"
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:52

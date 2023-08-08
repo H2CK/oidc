@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-08-07 02:06+0000\n"
+"POT-Creation-Date: 2023-08-08 02:08+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: Italian (https://app.transifex.com/nextcloud/teams/64236/it/)\n"
@@ -206,32 +206,32 @@ msgstr "60 minuti"
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Integrate Avatar in user info / id token"
-msgstr ""
+msgstr "Integrare l'avatar nelle informazioni sull'utente / token id"
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Method for integration of avatar"
-msgstr ""
+msgstr "Metodo per l'integrazione di avatar"
 
 #. TRANSLATORS src/App.vue:126
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select how the avatar image should be integrated"
-msgstr ""
+msgstr "Selezionare come integrare l'immagine dell'avatar"
 
 #. TRANSLATORS src/App.vue:129
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "No integration"
-msgstr ""
+msgstr "Nessuna integrazione"
 
 #. TRANSLATORS src/App.vue:132
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Add to user info"
-msgstr ""
+msgstr "Aggiungere alle informazioni sull'utente"
 
 #. TRANSLATORS src/App.vue:135
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Add to user info and id token"
-msgstr ""
+msgstr "Aggiungere alle informazioni sull'utente e al token id"
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:52

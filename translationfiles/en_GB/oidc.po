@@ -208,32 +208,32 @@ msgstr "60 minutes"
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Integrate Avatar in user info / id token"
-msgstr ""
+msgstr "Integrate Avatar in user info / id token"
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Method for integration of avatar"
-msgstr ""
+msgstr "Method for integration of avatar"
 
 #. TRANSLATORS src/App.vue:126
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select how the avatar image should be integrated"
-msgstr ""
+msgstr "Select how the avatar image should be integrated"
 
 #. TRANSLATORS src/App.vue:129
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "No integration"
-msgstr ""
+msgstr "No integration"
 
 #. TRANSLATORS src/App.vue:132
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Add to user info"
-msgstr ""
+msgstr "Add to user info"
 
 #. TRANSLATORS src/App.vue:135
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Add to user info and id token"
-msgstr ""
+msgstr "Add to user info and id token"
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:52
