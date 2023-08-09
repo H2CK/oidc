@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-08-08 02:08+0000\n"
+"POT-Creation-Date: 2023-08-09 02:28+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
@@ -208,8 +208,8 @@ msgstr "60 minuuttia"
 
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:40
-msgid "Integrate Avatar in user info / id token"
-msgstr "Integroi Avatar käyttäjän tietoihin / id-tokeniin"
+msgid "Integrate avatar in user info/ID token"
+msgstr ""
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
@@ -233,8 +233,8 @@ msgstr "Lisää käyttäjätietoihin"
 
 #. TRANSLATORS src/App.vue:135
 #: /app/specialVueFakeDummyForL10nScript.js:50
-msgid "Add to user info and id token"
-msgstr "Lisää käyttäjätietoihin ja id-tokeniin"
+msgid "Add to user info and ID token"
+msgstr ""
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:52

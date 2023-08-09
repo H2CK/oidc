@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2023-08-08 02:08+0000\n"
+"POT-Creation-Date: 2023-08-09 02:28+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: Mark Ziegler <mark.ziegler@rakekniven.de>, 2023\n"
 "Language-Team: German (Germany) (https://app.transifex.com/nextcloud/teams/64236/de_DE/)\n"
@@ -207,8 +207,8 @@ msgstr "60 Minuten"
 
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:40
-msgid "Integrate Avatar in user info / id token"
-msgstr "Avatar in die Benutzerinformationen/ID-Token einbinden"
+msgid "Integrate avatar in user info/ID token"
+msgstr ""
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
@@ -232,8 +232,8 @@ msgstr "Zur Benutzerinformation hinzufügen"
 
 #. TRANSLATORS src/App.vue:135
 #: /app/specialVueFakeDummyForL10nScript.js:50
-msgid "Add to user info and id token"
-msgstr "Zur Benutzerinformation und dem ID-Token hinzufügen"
+msgid "Add to user info and ID token"
+msgstr ""
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:52
