@@ -47,7 +47,7 @@
 		"linkifyjs": "^4.1.1",
 		"node-polyfill-webpack-plugin": "^2.0.1",
 		"postcss-html": "^1.5.0",
-		"sass": "^1.64.2",
+		"sass": "^1.65.1",
 		"sass-loader": "^13.3.2",
 		"style-loader": "^3.3.3",
 		"webpack": "^5.88.2",
