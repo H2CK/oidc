@@ -13,6 +13,7 @@ OC.L10N.register(
     "10 minutes" : "10 minutter",
     "15 minutes" : "15 minutter",
     "30 minutes" : "30 minutter",
+    "Public Key" : "Offentlig nøkkel",
     "Delete" : "Slett",
     "Client Identifier" : "Klient-identifikator",
     "Secret" : "Hemmelig",
