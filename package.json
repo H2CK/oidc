@@ -24,7 +24,7 @@
 		"stylelint:fix": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue --fix"
 	},
 	"dependencies": {
-		"@babel/eslint-parser": "^7.22.11",
+		"@babel/eslint-parser": "^7.22.15",
 		"@jridgewell/sourcemap-codec": "^1.4.15",
 		"@nextcloud/axios": "^2.4.0",
 		"@nextcloud/dialogs": "^4.1.0",
