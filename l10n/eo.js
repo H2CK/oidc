@@ -5,6 +5,7 @@ OC.L10N.register(
     "Public" : "Publika",
     "Add" : "Aldoni",
     "Settings" : "Agordoj",
+    "30 minutes" : "30 minutoj",
     "Delete" : "Forigi",
     "Secret" : "Sekreta",
     "Type" : "Tipo"
