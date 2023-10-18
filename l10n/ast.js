@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Name" : "Nome",
+    "Add" : "Amestar",
     "Settings" : "Configuración",
     "5 minutes" : "5 minutos",
     "10 minutes" : "10 minutos",
