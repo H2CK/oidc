@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 perc",
     "30 minutes" : "30 perc",
     "60 minutes" : "60 perc",
+    "Integrate avatar in user info/ID token" : "Avatár integrálása a felhasználó infó/ID tokenjébe",
+    "Method for integration of avatar" : "Avatár integráció módja",
     "No integration" : "Nincs integráció",
     "Add to user info" : "Felhasználó információ hozzáadása",
     "Add to user info and ID token" : "Felhasználó információ és ID token hozzáadása",
