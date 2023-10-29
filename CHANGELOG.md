@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.1] - 2023-10-29
+
+### Changed
+
+- Translations update
+- Dependency updates
+
 ## [0.7.0] - 2023-08-06
 
 ### Changed
