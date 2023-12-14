@@ -14,7 +14,7 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
 	]]></description>
-  <version>0.7.1</version>
+  <version>0.7.2</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -39,7 +39,7 @@ Full documentation can be found at:
   <screenshot>https://raw.githubusercontent.com/H2CK/oidc/master/docs/oidc-app.png</screenshot>
   <dependencies>
     <lib>openssl</lib>
-    <nextcloud min-version="23" max-version="27"/>
+    <nextcloud min-version="25" max-version="28"/>
   </dependencies>
 
   <background-jobs>

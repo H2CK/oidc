@@ -38,7 +38,7 @@ jobs:
         uses: mavrosxristoforos/get-xml-info@1.1.1
         with:
           xml-file: ${{ env.APP_NAME }}/appinfo/info.xml
-          xpath: "//info//dependencies//nextcloud/@min-version"
+          xpath: "//info//dependencies//nextcloud/@max-version"
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v2
@@ -47,8 +47,8 @@ jobs:
         continue-on-error: true
         with:
           path: ${{ env.APP_NAME }}
-          fallbackNode: "^14"
-          fallbackNpm: "^6"
+          fallbackNode: "^16"
+          fallbackNpm: "^8"
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         # Skip if no package.json

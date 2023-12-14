@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OC\Security\Bruteforce\Throttler;
+use OC\Security\Bruteforce\Backend\IBackend;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IURLGenerator;
 use OCP\IConfig;
@@ -32,28 +33,31 @@ class DiscoveryControllerTest extends TestCase {
 	private $config;
 	/** @var LoggerInterface */
 	private $logger;
-	/** @var ILogger */
-	private $iLogger;
+	/** @var IBackend */
+	private $throttlerBackend;
 	/** @var DiscoveryGenerator */
 	private $discoveryGenerator;
 
 	public function setUp(): void {
-		$this->markTestSkipped('must be revisited.');
-
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
 		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
 		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
 		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-		$this->iLogger = $this->getMockBuilder(ILogger::class)->getMock();
+		$this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
-		$this->discoveryGenerator = $this->getMockBuilder(DiscoveryGenerator::class)->setConstructorArgs([$this->time,
-																										  $this->urlGenerator,
-																										  $this->logger])->getMock();
-		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->db,
-																						$this->time,
-																						$this->iLogger,
-																						$this->config])->getMock();
+		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
+																						$this->logger,
+																						$this->config,
+																						$this->throttlerBackend])->getMock();
+		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
+		$this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+		$this->discoveryGenerator = new DiscoveryGenerator(
+															$this->time,
+															$this->urlGenerator,
+															$this->logger
+		);
+
 		$this->controller = new DiscoveryController(
             'oidc',
             $this->request,

@@ -1,6 +1,17 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.2] - 2023-12-14
+
+### Changed
+
+- Nextcloud 28 support
+- Nextcloud 23 & 24 support removed
+- Translations update
+- Dependency updates
+- Execute pipeline test on latest version
+- Added tests
+
 ## [0.7.1] - 2023-10-29
 
 ### Changed
