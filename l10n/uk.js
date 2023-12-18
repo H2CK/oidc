@@ -29,7 +29,7 @@ OC.L10N.register(
     "Delete" : "Вилучити",
     "Client Identifier" : "Ідентифікатор клієнта",
     "Secret" : "Секретне",
-    "Show client secret" : "Показати секрет клієнта",
+    "Show client secret" : "Показати ключ клієнта",
     "-- NONE --" : "-- NONE --",
     "Signing Algorithm" : "Алгоритм підписання",
     "Type" : "Тип"
