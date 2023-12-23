@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.3] - 2023-12-23
+
+### Changed
+
+- Dependency updates
+- Fix for claim verified_email
+
 ## [0.7.2] - 2023-12-14
 
 ### Changed

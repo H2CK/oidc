@@ -212,7 +212,7 @@ class JwtGenerator
 			$email = [
 				'email' => $user->getEMailAddress(),
 			];
-			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified()) {
+			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
 				$email = array_merge($email, ['email_verified' => true]);
 			} else {
 				$email = array_merge($email, ['email_verified' => false]);
