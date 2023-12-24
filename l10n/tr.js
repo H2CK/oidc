@@ -36,7 +36,7 @@ OC.L10N.register(
     "Add to user info and ID token" : "Kullanıcı bilgilerine ve kimlik koduna eklensin",
     "Accepted Logout Redirect URIs" : "Onaylanmış oturum açma yönlendirmesi adresleri",
     "Public Key" : "Herkese açık anahtar",
-    "Regenerate Keys" : "Anahtarları yeniden üret",
+    "Regenerate Keys" : "Anahtarları yeniden oluştur",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",
     "Delete" : "Sil",
     "Client Identifier" : "İstemci belirteci",
