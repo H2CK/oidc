@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Dodaj odjemalca",
     "Name" : "Ime",
     "Redirection URI" : "Preusmeritveni naslov URI",
+    "Select Type" : "Izbor vrste",
     "Public" : "Javno",
     "Add" : "Dodaj",
     "Settings" : "Nastavitve",
