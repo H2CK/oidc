@@ -7,17 +7,17 @@
 # Random_R, 2022
 # lollos78, 2022
 # Stefano Gualmo - Agesp, 2022
-# Vincenzo Reale <vinx.reale@gmail.com>, 2022
 # H2CK, 2023
+# Vincenzo Reale <vinx.reale@gmail.com>, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-01-01 02:02+0000\n"
+"POT-Creation-Date: 2024-01-21 02:21+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2023\n"
+"Last-Translator: Vincenzo Reale <vinx.reale@gmail.com>, 2024\n"
 "Language-Team: Italian (https://app.transifex.com/nextcloud/teams/64236/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -39,7 +39,7 @@ msgid ""
 "administrator of your client."
 msgstr ""
 "L'URI di reindirizzamento ricevuto non è accettato per la connessione. "
-"Informare l'amministratore del client."
+"Informa l'amministratore del client."
 
 #: /app/lib/Controller/LoginRedirectorController.php:312
 msgid ""
@@ -136,12 +136,12 @@ msgstr "URI di redirezione"
 #. TRANSLATORS src/App.vue:69
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr "Selezionare l’algoritmo di firma"
+msgstr "Seleziona l’algoritmo di firma"
 
 #. TRANSLATORS src/App.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
-msgstr "Selezionare il tipo"
+msgstr "Seleziona il tipo"
 
 #. TRANSLATORS src/App.vue:84
 #: /app/specialVueFakeDummyForL10nScript.js:16
@@ -206,7 +206,7 @@ msgstr "60 minuti"
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Integrate avatar in user info/ID token"
-msgstr "Integrare l'avatar nel token info/ID dell'utente"
+msgstr "Integra l'avatar nel token info/ID dell'utente"
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:42
@@ -216,7 +216,7 @@ msgstr "Metodo per l'integrazione di avatar"
 #. TRANSLATORS src/App.vue:126
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select how the avatar image should be integrated"
-msgstr "Selezionare come integrare l'immagine dell'avatar"
+msgstr "Seleziona come integrare l'immagine dell'avatar"
 
 #. TRANSLATORS src/App.vue:129
 #: /app/specialVueFakeDummyForL10nScript.js:46
@@ -226,17 +226,17 @@ msgstr "Nessuna integrazione"
 #. TRANSLATORS src/App.vue:132
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Add to user info"
-msgstr "Aggiungere alle informazioni utente"
+msgstr "Aggiungi alle informazioni utente"
 
 #. TRANSLATORS src/App.vue:135
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Add to user info and ID token"
-msgstr "Aggiungere alle informazioni utente e al ID token"
+msgstr "Aggiungi alle informazioni utente e all'ID del token"
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:52
 msgid "Accepted Logout Redirect URIs"
-msgstr "URI di reindirizzamento del logout accettati"
+msgstr "URI di reindirizzamento di uscita accettati"
 
 #. TRANSLATORS src/App.vue:158
 #: /app/specialVueFakeDummyForL10nScript.js:58
@@ -246,7 +246,7 @@ msgstr "Chiave pubblica"
 #. TRANSLATORS src/App.vue:162
 #: /app/specialVueFakeDummyForL10nScript.js:60
 msgid "Regenerate Keys"
-msgstr "Rigenerare le chiavi"
+msgstr "Rigenera le chiavi"
 
 #. TRANSLATORS src/Redirect.vue:25
 #: /app/specialVueFakeDummyForL10nScript.js:62
