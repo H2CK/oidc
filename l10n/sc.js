@@ -8,7 +8,7 @@ OC.L10N.register(
     "Redirection URI" : "URI de torrada a deretare",
     "Public" : "Pùblicu",
     "Add" : "Agiunghe",
-    "Settings" : "Impostatziones",
+    "Settings" : "Cunfiguratzione",
     "5 minutes" : "5 minutos",
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
