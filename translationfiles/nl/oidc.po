@@ -6,7 +6,7 @@
 # Translators:
 # Klaas Swart, 2022
 # Jordy Hoebergen, 2022
-# Toon van Gerwen <translation@vgerwen.nl>, 2022
+# 62bd5b1da39b746abffbed10afdf3f48_dd9a6d2 <cc54ef8159ac0c483e6ec4ac38becdcc_215531>, 2022
 # Nico Vromans, 2022
 # MegaXLR <tedvanriel@gmail.com>, 2022
 # EWouters, 2022
@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-02-11 02:03+0000\n"
+"POT-Creation-Date: 2024-03-03 02:02+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2023\n"
 "Language-Team: Dutch (https://app.transifex.com/nextcloud/teams/64236/nl/)\n"
