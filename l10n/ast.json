@@ -8,6 +8,7 @@
     "30 minutes" : "30 minutos",
     "60 minutes" : "60 minutos",
     "Public Key" : "Clave pública",
-    "Delete" : "Desaniciar"
+    "Delete" : "Desaniciar",
+    "Type" : "Tipu"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

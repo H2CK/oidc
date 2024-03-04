@@ -10,6 +10,7 @@ OC.L10N.register(
     "30 minutes" : "30 minutos",
     "60 minutes" : "60 minutos",
     "Public Key" : "Clave pública",
-    "Delete" : "Desaniciar"
+    "Delete" : "Desaniciar",
+    "Type" : "Tipu"
 },
 "nplurals=2; plural=(n != 1);");
