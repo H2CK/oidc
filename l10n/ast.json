@@ -1,4 +1,5 @@
 { "translations": {
+    "Add client" : "Amestar el veceru",
     "Name" : "Nome",
     "Add" : "Amestar",
     "Settings" : "Configuración",
@@ -9,6 +10,8 @@
     "60 minutes" : "60 minutos",
     "Public Key" : "Clave pública",
     "Delete" : "Desaniciar",
+    "Secret" : "Secretu",
+    "Show client secret" : "Amosar el secretu del veceru",
     "Type" : "Tipu"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

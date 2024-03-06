@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Add client" : "Amestar el veceru",
     "Name" : "Nome",
     "Add" : "Amestar",
     "Settings" : "Configuración",
@@ -11,6 +12,8 @@ OC.L10N.register(
     "60 minutes" : "60 minutos",
     "Public Key" : "Clave pública",
     "Delete" : "Desaniciar",
+    "Secret" : "Secretu",
+    "Show client secret" : "Amosar el secretu del veceru",
     "Type" : "Tipu"
 },
 "nplurals=2; plural=(n != 1);");
