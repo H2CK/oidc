@@ -57,6 +57,11 @@ return [
             'url' => '/integrateAvatar',
             'verb' => 'POST',
         ],
+		[
+            'name' => 'Settings#setOverwriteEmailVerified',
+            'url' => '/overwriteEmailVerified',
+            'verb' => 'POST',
+        ],
         [
             'name' => 'Settings#regenerateKeys',
             'url' => '/genKeys',

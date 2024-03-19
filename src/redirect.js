@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -20,6 +20,7 @@
  *
  */
 
+// eslint-disable-next-line n/no-extraneous-import
 import Vue from 'vue'
 import App from './Redirect.vue'
 

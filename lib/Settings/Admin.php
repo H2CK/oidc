@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -157,6 +157,8 @@ class Admin implements ISettings {
 		$this->initialStateService->provideInitialState('oidc', 'logoutRedirectUris', $logoutRedirectUrisResult);
 		$this->initialStateService->provideInitialState('oidc',
 				'integrateAvatar', $this->appConfig->getAppValue('integrate_avatar'));
+		$this->initialStateService->provideInitialState('oidc',
+				'overwriteEmailVerified', $this->appConfig->getAppValue('overwrite_email_verified'));
 
 		return new TemplateResponse(
 						'oidc',

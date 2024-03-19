@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -209,13 +209,20 @@ class JwtGenerator
 			$jwt_payload = array_merge($jwt_payload, $profile);
 		}
 		if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
+			// Only primary email address is used. Additional emails are not considered.
+			$mail_property = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL);
+
 			$email = [
-				'email' => $user->getEMailAddress(),
+				'email' => $mail_property->getValue(),
 			];
-			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
+			if ($this->appConfig->getAppValue('overwrite_email_verified') == 'true') {
 				$email = array_merge($email, ['email_verified' => true]);
 			} else {
-				$email = array_merge($email, ['email_verified' => false]);
+				if ($mail_property->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
+					$email = array_merge($email, ['email_verified' => true]);
+				} else {
+					$email = array_merge($email, ['email_verified' => false]);
+				}
 			}
 			$jwt_payload = array_merge($jwt_payload, $email);
 		}

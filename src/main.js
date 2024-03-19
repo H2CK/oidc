@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -20,6 +20,7 @@
  *
  */
 
+// eslint-disable-next-line n/no-extraneous-import
 import Vue from 'vue'
 import App from './App.vue'
 import { loadState } from '@nextcloud/initial-state'
@@ -33,6 +34,7 @@ const publicKey = loadState('oidc', 'publicKey')
 const groups = loadState('oidc', 'groups')
 const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
 const integrateAvatar = loadState('oidc', 'integrateAvatar')
+const overwriteEmailVerified = loadState('oidc', 'overwriteEmailVerified')
 
 const View = Vue.extend(App)
 const oidc = new View({
@@ -43,6 +45,7 @@ const oidc = new View({
 		groups,
 		logoutRedirectUris,
 		integrateAvatar,
+		overwriteEmailVerified,
 	},
 })
 oidc.$mount('#oidc')

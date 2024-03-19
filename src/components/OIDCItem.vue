@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+  - @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
   -
   - @author Thorsten Jagel <dev@jagel.net>
   -
@@ -74,6 +74,7 @@
 						<div class="oidc_flow_container">
 							<NcSelect v-bind="flowData.props"
 								v-model="flowData.props.value"
+								:input-label="t('oidc', 'Flows allowed to be used with the client.')"
 								:placeholder="t('oidc', 'Flows allowed to be used with the client.')"
 								:no-wrap="true"
 								class="nc_select"
@@ -84,13 +85,10 @@
 				<tr>
 					<td>{{ t('oidc', 'Limited to Groups') }}</td>
 					<td>
-						<p>
-							{{ t('oidc', 'Only users in one of the following groups are allowed to use the client.') }}
-							<br>
-						</p>
 						<div class="oidc_group_container">
 							<NcSelect v-bind="groupData.props"
 								v-model="groupData.props.value"
+								:input-label="t('oidc', 'Only users in one of the following groups are allowed to use the client.')"
 								:placeholder="t('oidc', 'Groups allowed to use the client.')"
 								:no-wrap="false"
 								class="nc_select"

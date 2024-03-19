@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [0.7.4] - 2024-03-19
+
+### Changed
+
+- Dependency updates
+- Allow overwriting claim verified_email
+
 ## [0.7.3] - 2023-12-23
 
 ### Changed

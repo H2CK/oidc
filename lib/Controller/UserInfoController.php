@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -233,7 +233,7 @@ class UserInfoController extends ApiController
 	}
 
     /**
-     * Get hearder Authorization
+     * Get header Authorization
      */
     private function getAuthorizationHeader()
 	{

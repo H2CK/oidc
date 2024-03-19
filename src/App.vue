@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2022-2023 Thorsten Jagel <dev@jagel.net>
+  - @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
   -
   - @author Thorsten Jagel <dev@jagel.net>
   -
@@ -117,6 +117,24 @@
 			</option>
 		</select>
 
+		<p style="margin-top: 1.5em;">
+			{{ t('oidc', 'Email Verified Flag') }}
+		</p>
+		<select id="overwriteEmailVerified"
+			v-model="owEmailVerified"
+			:placeholder="t('oidc', 'Source for email verified flag in token')"
+			@change="setOverwriteEmailVerified">
+			<option disabled value="">
+				{{ t('oidc', 'Select behaviour for setting email verified flag') }}
+			</option>
+			<option value="false">
+				{{ t('oidc', 'Use Nextcloud account information') }}
+			</option>
+			<option value="true">
+				{{ t('oidc', 'Set to always verified') }}
+			</option>
+		</select>
+
 		<p style="margin-top: 1.5em;">{{ t('oidc', 'Integrate avatar in user info/ID token') }}</p>
 		<select id="integrateAvatar"
 			v-model="intAvatar"
@@ -155,7 +173,9 @@
 				:placeholder="t('oidc', 'Redirection URI')">
 			<input type="submit" class="button" :value="t('oidc', 'Add')">
 		</form>
-		<p style="margin-top: 1.5em;">{{ t('oidc', 'Public Key') }}</p>
+		<p style="margin-top: 1.5em;">
+			{{ t('oidc', 'Public Key') }}
+		</p>
 		<code>{{ publicKey }}</code>
 		<br>
 		<form @submit.prevent="regenerateKeys">
@@ -201,6 +221,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		overwriteEmailVerified: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -217,6 +241,7 @@ export default {
 			},
 			expTime: this.expireTime,
 			intAvatar: this.integrateAvatar,
+			owEmailVerified: this.overwriteEmailVerified,
 			error: false,
 			errorMsg: '',
 			version: 0,
@@ -339,9 +364,21 @@ export default {
 					integrateAvatar: this.intAvatar,
 				}).then((response) => {
 				// eslint-disable-next-line vue/no-mutating-props
-				this.intAvatarDataUrl = response.data.integrate_avatar
+				this.intAvatar = response.data.integrate_avatar
 				// eslint-disable-next-line vue/no-mutating-props
-				this.integrateAvatarDataUrl = response.data.integrate_avatar
+				this.integrateAvatar = response.data.integrate_avatar
+			})
+		},
+		setOverwriteEmailVerified() {
+			axios.post(
+				generateUrl('apps/oidc/overwriteEmailVerified'),
+				{
+					overwriteEmailVerified: this.owEmailVerified,
+				}).then((response) => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.overwriteEmailVerified = response.data.overwrite_email_verified
+				// eslint-disable-next-line vue/no-mutating-props
+				this.owEmailVerified = response.data.overwrite_email_verified
 			})
 		},
 		regenerateKeys() {
