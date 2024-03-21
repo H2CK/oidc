@@ -18,15 +18,16 @@
 # Ldm Public <ldmpub@gmail.com>, 2022
 # Jérémie Tarot <silopolis@gmail.com>, 2023
 # H2CK, 2023
+# Mordecai, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-03-20 02:03+0000\n"
+"POT-Creation-Date: 2024-03-21 02:04+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2023\n"
+"Last-Translator: Mordecai, 2024\n"
 "Language-Team: French (https://app.transifex.com/nextcloud/teams/64236/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -231,12 +232,12 @@ msgstr ""
 #. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Use Nextcloud account information"
-msgstr ""
+msgstr "Utiliser les informations du compte Nextcloud "
 
 #. TRANSLATORS src/App.vue:134
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Set to always verified"
-msgstr ""
+msgstr "Définir à toujours vérifie "
 
 #. TRANSLATORS src/App.vue:138
 #: /app/specialVueFakeDummyForL10nScript.js:50

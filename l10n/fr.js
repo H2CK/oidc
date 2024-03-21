@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
+    "Use Nextcloud account information" : "Utiliser les informations du compte Nextcloud ",
+    "Set to always verified" : "Définir à toujours vérifie ",
     "Integrate avatar in user info/ID token" : "Intégrer l'avatar dans le jeton d'information/identification de l'utilisateur",
     "Method for integration of avatar" : "Méthode d'intégration d'un avatar",
     "Select how the avatar image should be integrated" : "Choisir le mode d'intégration de l'image de l'avatar",
