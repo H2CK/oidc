@@ -26,6 +26,8 @@
     "15 minutes" : "15 minuter",
     "30 minutes" : "30 minuter",
     "60 minutes" : "60 minuter",
+    "Use Nextcloud account information" : "Använd kontoinformation från Nextcloud",
+    "Set to always verified" : "Ställ in på alltid verifierad",
     "Integrate avatar in user info/ID token" : "Integrera avatar i användarinformation/ID-token",
     "Method for integration of avatar" : "Metod för integration av avatar",
     "Select how the avatar image should be integrated" : "Välj hur avatarbilden ska integreras",
