@@ -64,6 +64,7 @@ class ComposerStaticInitOIDCIdentityProvider
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => __DIR__ . '/..' . '/../lib/Migration/Version0009Date20230401232100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => __DIR__ . '/..' . '/../lib/Migration/Version0010Date20230411232100.php',
 		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
+		'OCA\\OIDCIdentityProvider\\BasicAuthBackend' => __DIR__ . '/..' . '/../lib/BasicAuthBackend.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

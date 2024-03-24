@@ -25,7 +25,9 @@ namespace OCA\OIDCIdentityProvider\AppInfo;
 
 use OCA\OIDCIdentityProvider\Http\WellKnown\WebFingerHandler;
 use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
+use OCA\OIDCIdentityProvider\BasicAuthBackend;
 use OCP\AppFramework\App;
+use OC_User;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -33,6 +35,8 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'oidc';
+
+	private $backend;
 
 	public function __construct() {
 		parent::__construct(self::APP_ID);
@@ -45,6 +49,9 @@ class Application extends App implements IBootstrap {
 		$context->registerWellKnownHandler(WebFingerHandler::class);
 		// Register OIDCDiscoveryHandler
 		$context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
+
+		$this->backend = $this->getContainer()->get(BasicAuthBackend::class);
+		OC_User::useBackend($this->backend);
     }
 
     public function boot(IBootContext $context): void {

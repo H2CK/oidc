@@ -14,12 +14,13 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
 	]]></description>
-  <version>0.7.4</version>
+  <version>0.8.0</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
 
   <types>
+	<prelogin/>
     <authentication />
   </types>
 

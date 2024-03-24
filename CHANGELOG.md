@@ -1,6 +1,13 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [0.8.0] - 2024-03-25
+
+### Changed
+
+- Support Basic Authentication for fetching the token using a workaround with a pseudo user backend. (But still this causes an exception of Nextcloud server core in the logs)  
+
 ## [0.7.4] - 2024-03-19
 
 ### Changed

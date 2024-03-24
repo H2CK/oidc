@@ -49,4 +49,5 @@ return array(
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => $baseDir . '/../lib/Migration/Version0009Date20230401232100.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => $baseDir . '/../lib/Migration/Version0010Date20230411232100.php',
 	'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
+	'OCA\\OIDCIdentityProvider\\BasicAuthBackend' => $baseDir . '/../lib/BasicAuthBackend.php',
 );
