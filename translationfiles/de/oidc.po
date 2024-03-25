@@ -9,17 +9,17 @@
 # Joas Schilling, 2022
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2022
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
-# H2CK, 2023
 # Markus Eckstein, 2024
+# H2CK, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-03-20 02:03+0000\n"
+"POT-Creation-Date: 2024-03-25 02:02+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Markus Eckstein, 2024\n"
+"Last-Translator: H2CK, 2024\n"
 "Language-Team: German (https://app.transifex.com/nextcloud/teams/64236/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -209,27 +209,27 @@ msgstr "60 Minuten"
 #. TRANSLATORS src/App.vue:121
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Email Verified Flag"
-msgstr ""
+msgstr "Angabe der E-Mailadressverifizierung im Token"
 
 #. TRANSLATORS src/App.vue:125
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Source for email verified flag in token"
-msgstr ""
+msgstr "Quelle für die Angabe der E-Mailadressverifizierung im Token"
 
 #. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select behaviour for setting email verified flag"
-msgstr ""
+msgstr "Verhalten für die Angabe der E-Mailadressverifizierung"
 
 #. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Use Nextcloud account information"
-msgstr ""
+msgstr "Verwende Nextcloudkonto-Information"
 
 #. TRANSLATORS src/App.vue:134
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Set to always verified"
-msgstr ""
+msgstr "Auf immer überprüft setzen"
 
 #. TRANSLATORS src/App.vue:138
 #: /app/specialVueFakeDummyForL10nScript.js:50
