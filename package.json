@@ -27,7 +27,7 @@
 		"@jridgewell/sourcemap-codec": "^1.4.15",
 		"@nextcloud/axios": "^2.4.0",
 		"@nextcloud/dialogs": "^5.2.0",
-		"@nextcloud/eslint-plugin": "^2.1.0",
+		"@nextcloud/eslint-plugin": "^2.2.0",
 		"@nextcloud/initial-state": "^2.1.0",
 		"@nextcloud/logger": "^2.7.0",
 		"@nextcloud/router": "^3.0.0",
