@@ -29,7 +29,7 @@
     "Email Verified Flag" : "Angabe der E-Mailadressverifizierung im Token",
     "Source for email verified flag in token" : "Quelle für die Angabe der E-Mailadressverifizierung im Token",
     "Select behaviour for setting email verified flag" : "Verhalten für die Angabe der E-Mailadressverifizierung",
-    "Use Nextcloud account information" : "Verwende Nextcloudkonto-Information",
+    "Use Nextcloud account information" : "Nextcloud-Kontoinformation verwenden",
     "Set to always verified" : "Auf immer überprüft setzen",
     "Integrate avatar in user info/ID token" : "Avatar in Benutzer-Info/ID-Token integrieren",
     "Method for integration of avatar" : "Methode für die Einbindung des Avatars",

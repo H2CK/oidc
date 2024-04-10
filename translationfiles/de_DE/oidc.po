@@ -8,18 +8,18 @@
 # Markus Eckstein, 2022
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2022
 # Mario Siegmann <mario_siegmann@web.de>, 2022
-# Mark Ziegler <mark.ziegler@rakekniven.de>, 2023
 # Joachim Sokolowski, 2024
 # H2CK, 2024
+# Mark Ziegler <mark.ziegler@rakekniven.de>, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-03-26 02:03+0000\n"
+"POT-Creation-Date: 2024-04-10 02:06+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2024\n"
+"Last-Translator: Mark Ziegler <mark.ziegler@rakekniven.de>, 2024\n"
 "Language-Team: German (Germany) (https://app.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -224,7 +224,7 @@ msgstr "Verhalten für die Angabe der E-Mailadressverifizierung"
 #. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Use Nextcloud account information"
-msgstr "Verwende Nextcloudkonto-Information"
+msgstr "Nextcloud-Kontoinformation verwenden"
 
 #. TRANSLATORS src/App.vue:134
 #: /app/specialVueFakeDummyForL10nScript.js:48
