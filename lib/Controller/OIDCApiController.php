@@ -221,7 +221,7 @@ class OIDCApiController extends ApiController {
 		$uid = $accessToken->getUserId();
 		$user = $this->userManager->get($uid);
 		$groups = $this->groupManager->getUserGroups($user);
-		$account = $this->accountManager->getAccount($user);
+		// No need to read account: $account = $this->accountManager->getAccount($user);
 
 		// Check if user is in allowed groups for client
 		$clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.1] - 2024-04-16
+
+### Changed
+
+- Added support for Nextcloud 29
+- Updated dependencies
+- Updated translations  
+
 ## [0.8.0] - 2024-03-28
 
 ### Changed
