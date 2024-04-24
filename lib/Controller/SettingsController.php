@@ -359,6 +359,19 @@ class SettingsController extends Controller
 		return new JSONResponse($result);
 	}
 
+	public function setDynamicClientRegistration(
+					string $dynamicClientRegistration
+					): JSONResponse
+	{
+		if ($dynamicClientRegistration === 'true' || $dynamicClientRegistration === 'false') {
+			$this->appConfig->setAppValue('dynamic_client_registration', $dynamicClientRegistration);
+		}
+		$result = [
+			'dynamic_client_registration' => $this->appConfig->getAppValue('dynamic_client_registration'),
+		];
+		return new JSONResponse($result);
+	}
+
 	public function regenerateKeys(): JSONResponse
 	{
 		$config = array(
