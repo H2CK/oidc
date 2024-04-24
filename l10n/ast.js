@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "Amestar el veceru",
     "Name" : "Nome",
     "Redirection URI" : "URI de redireición",
+    "Public" : "Pública",
     "Add" : "Amestar",
     "Settings" : "Configuración",
     "5 minutes" : "5 minutos",
