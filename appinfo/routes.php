@@ -123,16 +123,6 @@ return [
             'verb' => 'OPTIONS',
         ],
         [
-            'name' => 'DynamicRegistration#registerClient',
-            'url' => '/register',
-            'verb' => 'POST'
-        ],
-        [
-            'name' => 'Cors#registerCorsResponse',
-            'url' => '/register',
-            'verb' => 'OPTIONS',
-        ],
-        [
             'name' => 'Discovery#getInfo',
             'url' => '/openid-configuration',
             'verb' => 'GET'

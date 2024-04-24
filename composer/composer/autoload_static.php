@@ -27,7 +27,6 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Controller\\OIDCApiController' => __DIR__ . '/..' . '/../lib/Controller/OIDCApiController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\UserInfoController' => __DIR__ . '/..' . '/../lib/Controller/UserInfoController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\DiscoveryController' => __DIR__ . '/..' . '/../lib/Controller/DiscoveryController.php',
-        'OCA\\OIDCIdentityProvider\\Controller\\DynamicRegistrationController' => __DIR__ . '/..' . '/../lib/Controller/DynamicRegistrationController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => __DIR__ . '/..' . '/../lib/Controller/JwksController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => __DIR__ . '/..' . '/../lib/Controller/LogoutController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\PageController' => __DIR__ . '/..' . '/../lib/Controller/PageController.php',

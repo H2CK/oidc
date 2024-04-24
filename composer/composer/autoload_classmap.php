@@ -12,7 +12,6 @@ return array(
     'OCA\\OIDCIdentityProvider\\Controller\\OIDCApiController' => $baseDir . '/../lib/Controller/OIDCApiController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\UserInfoController' => $baseDir . '/../lib/Controller/UserInfoController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\DiscoveryController' => $baseDir . '/../lib/Controller/DiscoveryController.php',
-    'OCA\\OIDCIdentityProvider\\Controller\\DynamicRegistrationController' => $baseDir . '/../lib/Controller/DynamicRegistrationController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => $baseDir . '/../lib/Controller/JwksController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => $baseDir . '/../lib/Controller/LogoutController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\PageController' => $baseDir . '/../lib/Controller/PageController.php',
