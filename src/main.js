@@ -35,6 +35,7 @@ const groups = loadState('oidc', 'groups')
 const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
 const integrateAvatar = loadState('oidc', 'integrateAvatar')
 const overwriteEmailVerified = loadState('oidc', 'overwriteEmailVerified')
+const dynamicClientRegistration = loadState('oidc', 'dynamicClientRegistration')
 
 const View = Vue.extend(App)
 const oidc = new View({
@@ -46,6 +47,7 @@ const oidc = new View({
 		logoutRedirectUris,
 		integrateAvatar,
 		overwriteEmailVerified,
+		dynamicClientRegistration,
 	},
 })
 oidc.$mount('#oidc')
