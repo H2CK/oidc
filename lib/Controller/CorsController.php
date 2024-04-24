@@ -111,6 +111,16 @@ class CorsController extends ApiController
 		return $this->corsResponse();
 	}
 
+	/**
+	 * @PublicPage
+	 * @NoCSRFRequired
+	 *
+	 * @return Response
+	 */
+	public function registerCorsResponse(): Response {
+		return $this->corsResponse();
+	}
+
 
 	private function corsResponse(): Response {
 		$response = new Response();
