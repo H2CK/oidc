@@ -57,14 +57,9 @@ return [
             'url' => '/integrateAvatar',
             'verb' => 'POST',
         ],
-	[
+		[
             'name' => 'Settings#setOverwriteEmailVerified',
             'url' => '/overwriteEmailVerified',
-            'verb' => 'POST',
-        ],
-	[
-            'name' => 'Settings#setDynamicClientRegistration',
-            'url' => '/dynamicClientRegistration',
             'verb' => 'POST',
         ],
         [
@@ -125,6 +120,16 @@ return [
         [
             'name' => 'Cors#userInfoCorsResponse',
             'url' => '/userinfo',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'DynamicRegistration#registerClient',
+            'url' => '/register',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'Cors#registerCorsResponse',
+            'url' => '/register',
             'verb' => 'OPTIONS',
         ],
         [
