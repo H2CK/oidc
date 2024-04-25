@@ -183,7 +183,7 @@ class DiscoveryGenerator
 		];
 
         if ($this->appConfig->getAppValue('dynamic_client_registration') == 'true') {
-			$discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []),
+			$discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
         }
 
 		$this->logger->info('Request to Discovery Endpoint.');

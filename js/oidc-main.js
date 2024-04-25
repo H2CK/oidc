@@ -1348,6 +1348,10 @@ __webpack_require__.r(__webpack_exports__);
     overwriteEmailVerified: {
       type: String,
       required: true
+    },
+    dynamicClientRegistration: {
+      type: String,
+      required: true
     }
   },
   data() {
@@ -1366,6 +1370,7 @@ __webpack_require__.r(__webpack_exports__);
       expTime: this.expireTime,
       intAvatar: this.integrateAvatar,
       owEmailVerified: this.overwriteEmailVerified,
+      dynClientRegistration: this.dynamicClientRegistration,
       error: false,
       errorMsg: '',
       version: 0
@@ -1487,6 +1492,16 @@ __webpack_require__.r(__webpack_exports__);
         this.overwriteEmailVerified = response.data.overwrite_email_verified;
         // eslint-disable-next-line vue/no-mutating-props
         this.owEmailVerified = response.data.overwrite_email_verified;
+      });
+    },
+    setDynamicClientRegistration() {
+      _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].post((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_3__.generateUrl)('apps/oidc/dynamicClientRegistration'), {
+        dynamicClientRegistration: this.dynClientRegistration
+      }).then(response => {
+        // eslint-disable-next-line vue/no-mutating-props
+        this.dynamicClientRegistration = response.data.dynamic_client_registration;
+        // eslint-disable-next-line vue/no-mutating-props
+        this.dynClientRegistration = response.data.dynamic_client_registration;
       });
     },
     regenerateKeys() {
@@ -1884,6 +1899,45 @@ var render = function render() {
       value: "3600"
     }
   }, [_vm._v("\n\t\t\t\t" + _vm._s(_vm.t("oidc", "60 minutes")) + "\n\t\t\t")])]), _vm._v(" "), _c("p", {
+    staticStyle: {
+      "margin-top": "1.5em"
+    }
+  }, [_vm._v("\n\t\t\t" + _vm._s(_vm.t("oidc", "Dynamic Client Registration")) + "\n\t\t")]), _vm._v(" "), _c("select", {
+    directives: [{
+      name: "model",
+      rawName: "v-model",
+      value: _vm.dynClientRegistration,
+      expression: "dynClientRegistration"
+    }],
+    attrs: {
+      id: "dynamicClientRegistration",
+      placeholder: _vm.t("oidc", "Enable or disable Dynamic Client Registration")
+    },
+    on: {
+      change: [function ($event) {
+        var $$selectedVal = Array.prototype.filter.call($event.target.options, function (o) {
+          return o.selected;
+        }).map(function (o) {
+          var val = "_value" in o ? o._value : o.value;
+          return val;
+        });
+        _vm.dynClientRegistration = $event.target.multiple ? $$selectedVal : $$selectedVal[0];
+      }, _vm.setDynamicClientRegistration]
+    }
+  }, [_c("option", {
+    attrs: {
+      disabled: "",
+      value: ""
+    }
+  }, [_vm._v("\n\t\t\t\t" + _vm._s(_vm.t("oidc", "Select to enable/disable the Dynamic Client Registration")) + "\n\t\t\t")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "false"
+    }
+  }, [_vm._v("\n\t\t\t\t" + _vm._s(_vm.t("oidc", "Disable")) + "\n\t\t\t")]), _vm._v(" "), _c("option", {
+    attrs: {
+      value: "true"
+    }
+  }, [_vm._v("\n\t\t\t\t" + _vm._s(_vm.t("oidc", "Enable")) + "\n\t\t\t")])]), _vm._v(" "), _c("p", {
     staticStyle: {
       "margin-top": "1.5em"
     }
@@ -57525,6 +57579,7 @@ const groups = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_1__.loadStat
 const logoutRedirectUris = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_1__.loadState)('oidc', 'logoutRedirectUris');
 const integrateAvatar = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_1__.loadState)('oidc', 'integrateAvatar');
 const overwriteEmailVerified = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_1__.loadState)('oidc', 'overwriteEmailVerified');
+const dynamicClientRegistration = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_1__.loadState)('oidc', 'dynamicClientRegistration');
 const View = vue__WEBPACK_IMPORTED_MODULE_2__["default"].extend(_App_vue__WEBPACK_IMPORTED_MODULE_0__["default"]);
 const oidc = new View({
   propsData: {
@@ -57534,7 +57589,8 @@ const oidc = new View({
     groups,
     logoutRedirectUris,
     integrateAvatar,
-    overwriteEmailVerified
+    overwriteEmailVerified,
+    dynamicClientRegistration
   }
 });
 oidc.$mount('#oidc');
@@ -57542,4 +57598,4 @@ oidc.$mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=e0d62f2977e7e3733288
+//# sourceMappingURL=oidc-main.js.map?v=537b8a902a8a4e66b41c

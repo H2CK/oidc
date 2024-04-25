@@ -13,6 +13,7 @@ use OCP\IURLGenerator;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\ILogger;
 
 use OCA\OIDCIdentityProvider\Controller\DiscoveryController;
@@ -31,6 +32,8 @@ class DiscoveryControllerTest extends TestCase {
 	private $db;
 	/** @var IConfig */
 	private $config;
+	/** @var IAppConfig */
+	private $appConfig;
 	/** @var LoggerInterface */
 	private $logger;
 	/** @var IBackend */
@@ -55,6 +58,7 @@ class DiscoveryControllerTest extends TestCase {
 		$this->discoveryGenerator = new DiscoveryGenerator(
 															$this->time,
 															$this->urlGenerator,
+															$this->appConfig,
 															$this->logger
 		);
 
@@ -110,7 +114,7 @@ class DiscoveryControllerTest extends TestCase {
         ];
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
-            // 'client_secret_basic',
+            'client_secret_basic',
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];
