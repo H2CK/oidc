@@ -28,7 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
-    "Email Verified Flag" : "Attribut vérifié par courriel",
+    "Email Verified Flag" : "Attribut vérifié par e-mail",
     "Source for email verified flag in token" : "Source de l’attribut vérifié du courriel dans le jeton",
     "Select behaviour for setting email verified flag" : "Sélectionner le comportement à adopter pour définir l’attribut vérifié du courriel",
     "Use Nextcloud account information" : "Utiliser les informations du compte Nextcloud ",
