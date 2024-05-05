@@ -44,6 +44,7 @@ use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use Psr\Log\LoggerInterface;
 
 class UserInfoController extends ApiController
@@ -96,9 +97,11 @@ class UserInfoController extends ApiController
 	/**
      * @PublicPage
 	 * @NoCSRFRequired
+	 * @BruteForceProtection(action=oidc_userinfo)
 	 *
 	 * @return JSONResponse
 	 */
+	#[BruteForceProtection(action: 'oidc_userinfo')]
 	public function getInfoPost(): JSONResponse
 	{
 		return $this->getInfo();
@@ -107,9 +110,11 @@ class UserInfoController extends ApiController
 	/**
      * @PublicPage
 	 * @NoCSRFRequired
+	 * @BruteForceProtection(action=oidc_userinfo)
 	 *
 	 * @return JSONResponse
 	 */
+	#[BruteForceProtection(action: 'oidc_userinfo')]
 	public function getInfo(): JSONResponse
 	{
 
@@ -139,6 +144,15 @@ class UserInfoController extends ApiController
 			return new JSONResponse([
 				'error' => 'invalid_request',
                 'error_description' => 'Could not find client for access token.',
+			], Http::STATUS_BAD_REQUEST);
+		}
+
+		// The client must not be expired
+		if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+			$this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
+			return new JSONResponse([
+				'error' => 'expired_client',
+				'error_description' => 'Client expired.',
 			], Http::STATUS_BAD_REQUEST);
 		}
 

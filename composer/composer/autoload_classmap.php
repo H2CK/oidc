@@ -24,6 +24,7 @@ return array(
 	'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => $baseDir . '/../lib/Util/DiscoveryGenerator.php',
     'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\OIDCDiscoveryHandler' => $baseDir . '/../lib/Http/WellKnown/OIDCDiscoveryHandler.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
+	'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredClients' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredClients.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => $baseDir . '/../lib/BackgroundJob/CleanupGroups.php',
 	'OCA\\OIDCIdentityProvider\\Db\\AccessToken' => $baseDir . '/../lib/Db/AccessToken.php',
     'OCA\\OIDCIdentityProvider\\Db\\AccessTokenMapper' => $baseDir . '/../lib/Db/AccessTokenMapper.php',
@@ -49,6 +50,7 @@ return array(
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0008Date20230204190000' => $baseDir . '/../lib/Migration/Version0008Date20230204190000.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => $baseDir . '/../lib/Migration/Version0009Date20230401232100.php',
 	'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => $baseDir . '/../lib/Migration/Version0010Date20230411232100.php',
+	'OCA\\OIDCIdentityProvider\\Migration\\Version0011Date20240430171900' => $baseDir . '/../lib/Migration/Version0011Date20240430171900.php',
 	'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
 	'OCA\\OIDCIdentityProvider\\BasicAuthBackend' => $baseDir . '/../lib/BasicAuthBackend.php',
 );

@@ -55,6 +55,7 @@ use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
@@ -130,6 +131,7 @@ class OIDCApiController extends ApiController {
 	/**
 	 * @PublicPage
 	 * @NoCSRFRequired
+	 * @BruteForceProtection(action=oidc_token)
 	 *
 	 * @param string $grant_type
 	 * @param string $code
@@ -138,6 +140,7 @@ class OIDCApiController extends ApiController {
 	 * @param string $client_secret
 	 * @return JSONResponse
 	 */
+	#[BruteForceProtection(action: 'oidc_token')]
 	public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
 	{
 		$expireTime = $this->appConfig->getAppValue('expire_time');
@@ -198,6 +201,15 @@ class OIDCApiController extends ApiController {
 					'error_description' => 'Client authentication failed.',
 				], Http::STATUS_BAD_REQUEST);
 			}
+		}
+
+		// The client must not be expired
+		if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+			$this->logger->warning('Client expired. Client id was ' . $client_id . '.');
+			return new JSONResponse([
+				'error' => 'expired_client',
+				'error_description' => 'Client expired.',
+			], Http::STATUS_BAD_REQUEST);
 		}
 
 		// The accessToken must not be expired

@@ -62,6 +62,11 @@ return [
             'url' => '/overwriteEmailVerified',
             'verb' => 'POST',
         ],
+		[
+            'name' => 'Settings#setDynamicClientRegistration',
+            'url' => '/dynamicClientRegistration',
+            'verb' => 'POST',
+        ],
         [
             'name' => 'Settings#regenerateKeys',
             'url' => '/genKeys',

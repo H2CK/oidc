@@ -21,6 +21,7 @@ use OCA\OIDCIdentityProvider\Util\DiscoveryGenerator;
 
 class DiscoveryControllerTest extends TestCase {
 	protected $controller;
+	/** @var IRequest */
 	protected $request;
 	/** @var ITimeFactory */
 	private $time;

@@ -39,7 +39,8 @@ class ComposerStaticInitOIDCIdentityProvider
 		'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => __DIR__ . '/..' . '/../lib/Util/DiscoveryGenerator.php',
         'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\OIDCDiscoveryHandler' => __DIR__ . '/..' . '/../lib/Http/WellKnown/OIDCDiscoveryHandler.php',
 		'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
-        'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupGroups.php',
+        'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredClients' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredClients.php',
+		'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupGroups.php',
 		'OCA\\OIDCIdentityProvider\\Db\\AccessToken' => __DIR__ . '/..' . '/../lib/Db/AccessToken.php',
         'OCA\\OIDCIdentityProvider\\Db\\AccessTokenMapper' => __DIR__ . '/..' . '/../lib/Db/AccessTokenMapper.php',
         'OCA\\OIDCIdentityProvider\\Db\\Client' => __DIR__ . '/..' . '/../lib/Db/Client.php',
@@ -64,6 +65,7 @@ class ComposerStaticInitOIDCIdentityProvider
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0008Date20230204190000' => __DIR__ . '/..' . '/../lib/Migration/Version0008Date20230204190000.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => __DIR__ . '/..' . '/../lib/Migration/Version0009Date20230401232100.php',
 		'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => __DIR__ . '/..' . '/../lib/Migration/Version0010Date20230411232100.php',
+		'OCA\\OIDCIdentityProvider\\Migration\\Version0011Date20240430171900' => __DIR__ . '/..' . '/../lib/Migration/Version0011Date20240430171900.php',
 		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
 		'OCA\\OIDCIdentityProvider\\BasicAuthBackend' => __DIR__ . '/..' . '/../lib/BasicAuthBackend.php',
     );

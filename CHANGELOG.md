@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2024-05-10
+
+### Changed
+
+- Removed support for Nextcloud < 27
+- Added BruteForce and RateLimiting functionality
+- Added dynamic client registration functionalilty
+
 ## [0.8.1] - 2024-04-16
 
 ### Changed

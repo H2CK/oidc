@@ -51,6 +51,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use Psr\Log\LoggerInterface;
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
@@ -135,11 +136,13 @@ class LogoutController extends ApiController
      * @PublicPage
 	 * @NoCSRFRequired
      * @UseSession
+	 * @BruteForceProtection(action=oidc_logout)
 	 *
 	 * @param string $client_id
 	 * @param string $refresh_token
 	 * @return Response
 	 */
+	#[BruteForceProtection(action: 'oidc_logout')]
 	public function logout(
 					$client_id,		// Optional
 					$refresh_token, // Not standardized - deprecated will not be used any more
