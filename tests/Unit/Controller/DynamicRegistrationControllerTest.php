@@ -143,7 +143,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 		// Return max number of clients 1000
 		$this->clientMapper
 			->method('getNumDcrClients')
-			->willReturn(1000);
+			->willReturn(101);
 
         $result = $this->controller->registerClient(['https://test.org/redirect']);
 
@@ -163,7 +163,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 		// Return max number of clients 1000
 		$this->clientMapper
 			->method('getNumDcrClients')
-			->willReturn(2);
+			->willReturn(100);
 
 		$this->clientMapper
 			->method('insert')
@@ -173,11 +173,23 @@ class DynamicRegistrationControllerTest extends TestCase {
 				}
 			);
 
+		$time_stamp = time();
+		$this->time
+			->method('getTime')
+			->willReturn($time_stamp);
+
         $result = $this->controller->registerClient(['https://test.org/redirect'], 'TEST-CLIENT');
 
         $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
 		var_dump($result->getData());
         $this->assertEquals('TEST-CLIENT', $result->getData()['client_name']);
+		$this->assertEquals('https://test.org/redirect', $result->getData()['redirect_uris'][0]);
+		$this->assertEquals('client_secret_post', $result->getData()['token_endpoint_auth_method']);
+		$this->assertEquals('code', $result->getData()['response_types'][0]);
+		$this->assertEquals('authorization_code', $result->getData()['grant_types'][0]);
+		$this->assertEquals('web', $result->getData()['application_type']);
+		$this->assertEquals($time_stamp, $result->getData()['client_id_issued_at']);
+		$this->assertEquals($time_stamp + 3600, $result->getData()['client_secret_expires_at']);
     }
 
 }

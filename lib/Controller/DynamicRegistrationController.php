@@ -113,6 +113,7 @@ class DynamicRegistrationController extends ApiController
 		string $client_name = null,
 		string $id_token_signed_response_alg = 'RS256',
 		array $response_types = ['code'],
+		string $application_type = 'web',
 		): JSONResponse
 	{
 		if ($this->appConfig->getAppValue('dynamic_client_registration', 'false') != 'true') {
@@ -145,6 +146,12 @@ class DynamicRegistrationController extends ApiController
 				'error' => 'no_redirect_uris_provided',
 				'error_description' => 'Dynamic Client Registration requires at least one redirect_uris to be set.',
 			], Http::STATUS_BAD_REQUEST);
+		}
+
+		if ($application_type == 'native') {
+			$application_type = 'native';
+		} else {
+			$application_type = 'web';
 		}
 
 		$this->clientMapper->cleanUp();
@@ -203,6 +210,8 @@ class DynamicRegistrationController extends ApiController
 			'token_endpoint_auth_method' => 'client_secret_post', // Force to use client secret post
 			'response_types' => $response_types_arr,
 			'grant_types' => $grant_types_arr,
+			'id_token_signed_response_alg' => $client->getSigningAlg(),
+			'application_type' => $application_type,
 			'client_id_issued_at' => $client->getIssuedAt(),
 			'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600')
 		];
