@@ -26,6 +26,8 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider;
 
+use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -41,18 +43,28 @@ use Psr\Log\LoggerInterface;
  */
 class BasicAuthBackend extends \OC\User\Backend {
 
+	/** @var IRequest */
+	private $request;
+	/** @var IURLGenerator */
+	private $urlGenerator;
 	/** @var ClientMapper */
 	private $clientMapper;
 	/** @var LoggerInterface */
 	private $logger;
 
 	/**
-	 * Create new instance
-	 *
+	 * @param IRequest $request
+	 * @param IURLGenerator $urlGenerator
+	 * @param ClientMapper $clientMapper
+	 * @param LoggerInterface $loggerInterface
 	 */
 	public function __construct(
+		IRequest $request,
+		IURLGenerator $urlGenerator,
 		ClientMapper $clientMapper,
 		LoggerInterface $logger) {
+		$this->request = $request;
+		$this->urlGenerator = $urlGenerator;
 		$this->clientMapper = $clientMapper;
 		$this->logger = $logger;
 	}
@@ -90,6 +102,12 @@ class BasicAuthBackend extends \OC\User\Backend {
 	 */
 	public function checkPassword($uid, $password) {
 		if (strlen($uid) !== 64 || strlen($password) !== 64) {
+			return false;
+		}
+
+		// Limit access to token endpoint only
+		if (strcmp($this->request->getRequestUri(), $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', [])) !== 0) {
+			$this->logger->warning('OIDCIdentityProvider BasicAuthBackend: RequestUri was: ' . $this->request->getRequestUri() . 'Allowed is only the token endpoint: ' . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []));
 			return false;
 		}
 

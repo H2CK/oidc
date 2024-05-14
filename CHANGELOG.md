@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Removed support for Nextcloud < 27
 - Added BruteForce and RateLimiting functionality
 - Added dynamic client registration functionalilty
+- Limited Basic Authentication to token endpoint only
 
 ## [0.8.1] - 2024-04-16
 

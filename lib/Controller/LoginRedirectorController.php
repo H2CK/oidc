@@ -232,6 +232,8 @@ class LoginRedirectorController extends ApiController
 			$scope = 'openid profile email roles';
 		}
 
+		$this->clientMapper->cleanUp();
+
 		try {
 			$client = $this->clientMapper->getByIdentifier($client_id);
 		} catch (ClientNotFoundException $e) {

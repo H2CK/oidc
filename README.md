@@ -124,7 +124,6 @@ To run the job again if you have errors, however, you may have to remove it from
 ## TODOs / Ideas for extensions
 
 - Support other methods to transport client_credentials (in query / body)
-- Basic Auth support for token endpoint (Basic Auth is currently catched by Nextcloud)
 - GET support for token endpoint
 - Add authentication backend to allow usage of JWT to access resources at Nextcloud server
 - Create unit and integration tests

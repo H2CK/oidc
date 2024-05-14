@@ -25,13 +25,11 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
-use OCA\OIDCIdentityProvider\Util\DiscoveryGenerator;
 use OC\Security\Bruteforce\Throttler;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
@@ -40,10 +38,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
-use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
-use OCA\OIDCIdentityProvider\Db\Group;
-use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -152,6 +147,8 @@ class DynamicRegistrationController extends ApiController
 			], Http::STATUS_BAD_REQUEST);
 		}
 
+		$this->clientMapper->cleanUp();
+
 		if ($this->clientMapper->getNumDcrClients() > 100) {
 			$this->logger->info('Maximum number of dynamic registered clients exceeded.');
 			return new JSONResponse([
@@ -163,7 +160,7 @@ class DynamicRegistrationController extends ApiController
 		$client = new Client();
 		$name = self::NAME_PREFIX . $this->getClientIp();
 		if ($client_name != null) {
-			$name = substr($client_name, 1, 64);
+			$name = substr($client_name, 0, 64);
 		}
 		$client->setName($name);
 		$client->setDcr(true);
