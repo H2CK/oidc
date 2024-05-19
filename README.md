@@ -18,11 +18,23 @@ Provided features:
 - Clients can be assigned to dedicated user groups. Only users in the configured group are allowed to retrieve an access token to fetch the JWT.
 - Discovery & WebFinger endpoint provided
 - Logout endpoint
+- Dynamic Client Registration
 
 Full documentation can be found at:
 
 - [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
+
+## Configuration
+
+It is possible to modify the settings of this application in Nextcloud admin settings in the section security. There you find the an area with the headline 'OpenID Connect clients'.
+
+In this area you can:
+
+- Add/Modify/Remove Clients
+- Add/Modify/Remove Logout URLs
+- Change some overall settings
+- Regenerate your public/private key for signeing the id token.
 
 ## Endpoints
 
@@ -31,10 +43,11 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Discovery: `openid-configuration` (GET) or at `index.php/.well-known/openid-configuration`
 - WebFinger: at `index.php/.well-known/webfinger`
 - Authorization: `authorize`(GET)
-- Token: `token`(POST) - Credentials for authentication can be passed via Authorization header or in body. (Ususally the Authorization header is fetched directly by the Nextcloud server itself and is not passed to the oidc application. To allow the use of this mechanism a pseudo user backend is provided. Nevertheless this causes an exception shown in the logs on each login using the Authorization header.) 
+- Token: `token`(POST) - Credentials for authentication can be passed via Authorization header or in body. (Ususally the Authorization header is fetched directly by the Nextcloud server itself and is not passed to the oidc application. To allow the use of this mechanism a pseudo user backend is provided. Nevertheless this causes an exception shown in the logs on each login using the Authorization header.)
 - UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
 - Logout: `logout` (GET)
+- Dynamic Client Registration: `register` (POST) - Disabled by default. Must be enabled in settings.
 
 CORS is enable for all domains on all the above endpoints.
 
@@ -57,6 +70,13 @@ Up to now there is NO support for:
 - [OpenID Connect Session Management](https://openid.net/specs/openid-connect-session-1_0.html)
 - [OpenID Connect Front-Channel Logout](https://openid.net/specs/openid-connect-frontchannel-1_0.html)
 - [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)
+
+### Dynamic Client Registration Details
+
+It is possible to use the dynamic client registration according to [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html). To use this feature you have to enable it in the settings of this application (see above).
+
+Due to security reasons there is a BruteForce throttleing as well as a limitation of dynamically registered clients to 100. Additionally a dynamically registered client is only valid for 3600 seconds. Both parameters can currently not be changed via the settings.
+The registration endpoint is accessible for everybody without any authentication and authorization. So please enable this feature with the possible thread in mind.
 
 ## Scopes
 
