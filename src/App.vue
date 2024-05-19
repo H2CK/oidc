@@ -118,6 +118,24 @@
 		</select>
 
 		<p style="margin-top: 1.5em;">
+			{{ t('oidc', 'Dynamic Client Registration') }}
+		</p>
+		<select id="dynamicClientRegistration"
+			v-model="dynClientRegistration"
+			:placeholder="t('oidc', 'Enable or disable Dynamic Client Registration')"
+			@change="setDynamicClientRegistration">
+			<option disabled value="">
+				{{ t('oidc', 'Select to enable/disable the Dynamic Client Registration') }}
+			</option>
+			<option value="false">
+				{{ t('oidc', 'Disable') }}
+			</option>
+			<option value="true">
+				{{ t('oidc', 'Enable') }}
+			</option>
+		</select>
+
+		<p style="margin-top: 1.5em;">
 			{{ t('oidc', 'Email Verified Flag') }}
 		</p>
 		<select id="overwriteEmailVerified"
@@ -225,6 +243,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		dynamicClientRegistration: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -242,6 +264,7 @@ export default {
 			expTime: this.expireTime,
 			intAvatar: this.integrateAvatar,
 			owEmailVerified: this.overwriteEmailVerified,
+			dynClientRegistration: this.dynamicClientRegistration,
 			error: false,
 			errorMsg: '',
 			version: 0,
@@ -379,6 +402,18 @@ export default {
 				this.overwriteEmailVerified = response.data.overwrite_email_verified
 				// eslint-disable-next-line vue/no-mutating-props
 				this.owEmailVerified = response.data.overwrite_email_verified
+			})
+		},
+		setDynamicClientRegistration() {
+			axios.post(
+				generateUrl('apps/oidc/dynamicClientRegistration'),
+				{
+					dynamicClientRegistration: this.dynClientRegistration,
+				}).then((response) => {
+				// eslint-disable-next-line vue/no-mutating-props
+				this.dynamicClientRegistration = response.data.dynamic_client_registration
+				// eslint-disable-next-line vue/no-mutating-props
+				this.dynClientRegistration = response.data.dynamic_client_registration
 			})
 		},
 		regenerateKeys() {

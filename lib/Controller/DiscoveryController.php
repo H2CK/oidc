@@ -34,6 +34,8 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use Psr\Log\LoggerInterface;
 
 class DiscoveryController extends ApiController
@@ -70,12 +72,16 @@ class DiscoveryController extends ApiController
 	/**
      * @PublicPage
 	 * @NoCSRFRequired
+	 * @BruteForceProtection(action=oidc_discovery)
+	 * @AnonRateThrottle(limit=1500, period=540)
      *
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration
 	 *
 	 * @return JSONResponse
 	 */
+	#[AnonRateLimit(limit: 1500, period: 540)]
+	#[BruteForceProtection(action: 'oidc_discovery')]
 	public function getInfo(): JSONResponse
 	{
 		return $this->discoveryGenerator->generateDiscovery($this->request);

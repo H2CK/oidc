@@ -28,17 +28,17 @@ use OCP\AppFramework\Db\Entity;
  * @method int getId()
  * @method int getClientId()
  * @method void setClientId(int $clientId)
- * @method int getUserId()
+ * @method string getUserId()
  * @method void setUserId(int $userId)
- * @method int getScope()
+ * @method string getScope()
  * @method void setScope(string $scope)
  * @method string getHashedCode()
  * @method void setHashedCode(string $hashedCode)
  * @method string getAccessToken()
  * @method void setAccessToken(string $accessToken)
- * @method string getCreated()
+ * @method int getCreated()
  * @method void setCreated(int $timestamp)
- * @method string getRefreshed()
+ * @method int getRefreshed()
  * @method void setRefreshed(int $timestamp)
  * @method string getNonce()
  * @method void setNonce(string $nonce)
@@ -49,7 +49,7 @@ class AccessToken extends Entity
 	public $id;
 	/** @var int */
 	protected $clientId;
-	/** @var int */
+	/** @var string */
 	protected $userId;
 	/** @var string */
 	protected $scope;

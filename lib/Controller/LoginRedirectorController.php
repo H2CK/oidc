@@ -55,6 +55,7 @@ use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use Psr\Log\LoggerInterface;
 
 class LoginRedirectorController extends ApiController
@@ -163,6 +164,7 @@ class LoginRedirectorController extends ApiController
 	 * @PublicPage
 	 * @NoCSRFRequired
 	 * @UseSession
+	 * @BruteForceProtection(action=oidc_login)
 	 *
 	 * @param string $client_id
 	 * @param string $state
@@ -172,6 +174,7 @@ class LoginRedirectorController extends ApiController
 	 * @param string $nonce
 	 * @return Response
 	 */
+	#[BruteForceProtection(action: 'oidc_login')]
 	public function authorize(
 					$client_id,
 					$state,
@@ -229,6 +232,8 @@ class LoginRedirectorController extends ApiController
 			$scope = 'openid profile email roles';
 		}
 
+		$this->clientMapper->cleanUp();
+
 		try {
 			$client = $this->clientMapper->getByIdentifier($client_id);
 		} catch (ClientNotFoundException $e) {
@@ -237,6 +242,15 @@ class LoginRedirectorController extends ApiController
 			];
 			$this->logger->notice('Client ' . $client_id . ' is not authorized to connect.');
 			return new TemplateResponse('core', '403', $params, 'error');
+		}
+
+		// The client must not be expired
+		if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+			$this->logger->warning('Client expired. Client id was ' . $client_id . '.');
+			$params = [
+				'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
+			];
+			return new TemplateResponse('core', '400', $params, 'error');
 		}
 
 		// Check if redirect URI is configured for client
@@ -265,11 +279,9 @@ class LoginRedirectorController extends ApiController
 		if (in_array('token', $responseTypeEntries) || in_array('id_token', $responseTypeEntries)) {
 			$implicitFlow = true;
 		}
-		if (in_array('id_token', $responseTypeEntries)) {
-			if (empty($nonce)) {
-				$url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20nonce&state=' . $state;
-				return new RedirectResponse($url);
-			}
+		if (in_array('id_token', $responseTypeEntries) && empty($nonce)) {
+			$url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20nonce&state=' . $state;
+			return new RedirectResponse($url);
 		}
 		if (in_array('token', $responseTypeEntries) && !in_array('id_token', $responseTypeEntries)) {
 			// array_push($responseTypeEntries, 'id_token'); // Add ID token by default

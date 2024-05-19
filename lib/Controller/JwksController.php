@@ -34,6 +34,8 @@ use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use Psr\Log\LoggerInterface;
 
 class JwksController extends ApiController
@@ -70,9 +72,13 @@ class JwksController extends ApiController
 	/**
      * @PublicPage
 	 * @NoCSRFRequired
+	 * @BruteForceProtection(action=oidc_jwks)
+	 * @AnonRateThrottle(limit=1500, period=540)
 	 *
 	 * @return JSONResponse
 	 */
+	#[AnonRateLimit(limit: 1500, period: 540)]
+	#[BruteForceProtection(action: 'oidc_jwks')]
 	public function getKeyInfo(): JSONResponse
 	{
         $keyOps = [

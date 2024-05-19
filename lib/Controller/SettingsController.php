@@ -68,7 +68,7 @@ class SettingsController extends Controller
 	/** @var LoggerInterface */
 	private $logger;
 
-	public const validChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+	public const VALID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 	public function __construct(
 					string $appName,
@@ -111,8 +111,8 @@ class SettingsController extends Controller
 
 		$client = new Client();
 		$client->setName($name);
-		$client->setSecret($this->secureRandom->generate(64, self::validChars));
-		$client->setClientIdentifier($this->secureRandom->generate(64, self::validChars));
+		$client->setSecret($this->secureRandom->generate(64, self::VALID_CHARS));
+		$client->setClientIdentifier($this->secureRandom->generate(64, self::VALID_CHARS));
 		if ($signingAlg === 'HS256') {
 			$client->setSigningAlg('HS256');
 		} else {
@@ -359,6 +359,19 @@ class SettingsController extends Controller
 		return new JSONResponse($result);
 	}
 
+	public function setDynamicClientRegistration(
+					string $dynamicClientRegistration
+					): JSONResponse
+	{
+		if ($dynamicClientRegistration === 'true' || $dynamicClientRegistration === 'false') {
+			$this->appConfig->setAppValue('dynamic_client_registration', $dynamicClientRegistration);
+		}
+		$result = [
+			'dynamic_client_registration' => $this->appConfig->getAppValue('dynamic_client_registration'),
+		];
+		return new JSONResponse($result);
+	}
+
 	public function regenerateKeys(): JSONResponse
 	{
 		$config = array(
@@ -367,7 +380,7 @@ class SettingsController extends Controller
 			"private_key_type" => OPENSSL_KEYTYPE_RSA
 		);
 		$keyPair = openssl_pkey_new($config);
-		$privateKey = NULL;
+		$privateKey = null;
 		openssl_pkey_export($keyPair, $privateKey);
 		$keyDetails = openssl_pkey_get_details($keyPair);
 		$publicKey = $keyDetails['key'];

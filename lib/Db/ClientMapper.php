@@ -30,17 +30,31 @@ use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\AppFramework\Services\IAppConfig;
 
 /**
  * @template-extends QBMapper<Client>
  */
 class ClientMapper extends QBMapper {
+	/** @var ITimeFactory */
+	private $time;
+	/** @var IAppConfig */
+	private $appConfig;
+	/** @var RedirectUriMapper */
+	private $redirectUriMapper;
 
 	/**
 	 * @param IDBConnection $db
 	 */
-	public function __construct(IDBConnection $db) {
+	public function __construct(IDBConnection $db,
+								ITimeFactory $time,
+								IAppConfig $appConfig,
+								RedirectUriMapper $redirectUriMapper) {
 		parent::__construct($db, 'oidc_clients');
+		$this->time = $time;
+		$this->appConfig = $appConfig;
+		$this->redirectUriMapper = $redirectUriMapper;
 	}
 
 	/**
@@ -93,5 +107,57 @@ class ClientMapper extends QBMapper {
 			->from($this->tableName);
 
 		return $this->findEntities($qb);
+	}
+
+	/**
+	 * @return int Number of DCR clients
+	 */
+	public function getNumDcrClients(): int {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb
+			->select('*')
+			->from($this->tableName)
+			// ->select($qb->createFunction('COUNT(`id`)'))
+			->where($qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)));
+
+		return $qb->executeQuery()->rowCount();
+	}
+
+	/**
+	 * delete all expired clients
+	 *
+	 */
+	public function cleanUp() {
+		$qb = $this->db->getQueryBuilder();
+		$timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('client_expire_time', '3600');
+
+		$where = $qb->expr()->andX(
+			$qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),
+			$qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
+		);
+
+		$qb
+			->select('*')
+			->from($this->tableName)
+			->where($where);
+
+		$entities = $this->findEntities($qb);
+
+		foreach ($entities as $entity) {
+			// Delete the corresponding redirect uris
+			$this->redirectUriMapper->deleteByClientId($entity->getId());
+		}
+
+		$qb = $this->db->getQueryBuilder();
+		// issued_at < $timeLimit
+		$where = $qb->expr()->andX(
+			$qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),
+			$qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
+		);
+		$qb
+			->delete($this->tableName)
+			->where($where);
+		$qb->executeStatement();
 	}
 }

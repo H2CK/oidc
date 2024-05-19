@@ -29,6 +29,7 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\IRequest;
 use OCP\IUserSession;
 use OCP\IL10N;
@@ -67,9 +68,11 @@ class PageController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
      * @UseSession
+	 * @BruteForceProtection(action=oidc_page)
 	 *
 	 * Render default template
 	 */
+	#[BruteForceProtection(action: 'oidc_page')]
 	public function index()
 	{
         $client_id = $this->session->get('client_id');

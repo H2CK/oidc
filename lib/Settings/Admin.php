@@ -159,6 +159,8 @@ class Admin implements ISettings {
 				'integrateAvatar', $this->appConfig->getAppValue('integrate_avatar'));
 		$this->initialStateService->provideInitialState('oidc',
 				'overwriteEmailVerified', $this->appConfig->getAppValue('overwrite_email_verified'));
+		$this->initialStateService->provideInitialState('oidc',
+				'dynamicClientRegistration', $this->appConfig->getAppValue('dynamic_client_registration'));
 
 		return new TemplateResponse(
 						'oidc',

@@ -40,6 +40,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setType(string $type)
  * @method string getFlowType()
  * @method void setFlowType(string $flowType)
+ * @method string isDcr()
+ * @method void setDcr(boolean $dcr)
+ * @method int getIssuedAt()
+ * @method void setIssuedAt(int $issuedAt)
  */
 class Client extends Entity {
 	/** @var int */
@@ -58,6 +62,10 @@ class Client extends Entity {
 	protected $type;
 	/** @var string */
 	protected $flowType;
+	/** @var boolean */
+	protected $dcr;
+	/** @var int */
+	protected $issuedAt;
 
 	public function __construct() {
 		$this->addType('id', 'int');
@@ -68,5 +76,7 @@ class Client extends Entity {
 		$this->addType('signing_alg', 'string');
 		$this->addType('type', 'string');
 		$this->addType('flow_type', 'string');
+		$this->addType('dcr', 'boolean');
+		$this->addType('issued_at', 'int');
 	}
 }

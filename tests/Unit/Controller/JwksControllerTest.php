@@ -20,6 +20,7 @@ use OCA\OIDCIdentityProvider\Controller\JwksController;
 
 class JwksControllerTest extends TestCase {
 	protected $controller;
+	/** @var IRequest */
 	protected $request;
 	/** @var ITimeFactory */
 	private $time;

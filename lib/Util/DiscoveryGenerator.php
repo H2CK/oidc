@@ -31,6 +31,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IURLGenerator;
+use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class DiscoveryGenerator
@@ -39,16 +40,20 @@ class DiscoveryGenerator
 	private $time;
     /** @var IURLGenerator */
 	private $urlGenerator;
+    /** @var IAppConfig */
+	private $appConfig;
 	/** @var LoggerInterface */
 	private $logger;
 
 	public function __construct(
 					ITimeFactory $time,
 					IURLGenerator $urlGenerator,
+                    IAppConfig $appConfig,
 					LoggerInterface $logger
 	) {
 		$this->time = $time;
         $this->urlGenerator = $urlGenerator;
+        $this->appConfig = $appConfig;
 		$this->logger = $logger;
 	}
 
@@ -100,7 +105,7 @@ class DiscoveryGenerator
         ];
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
-            // 'client_secret_basic',
+            'client_secret_basic',
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];
@@ -176,6 +181,10 @@ class DiscoveryGenerator
             // 'op_tos_uri' => ,
 			'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
 		];
+
+        if ($this->appConfig->getAppValue('dynamic_client_registration') == 'true') {
+			$discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
+        }
 
 		$this->logger->info('Request to Discovery Endpoint.');
 
