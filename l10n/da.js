@@ -13,6 +13,8 @@ OC.L10N.register(
     "10 minutes" : "10 minutter",
     "15 minutes" : "15 minutter",
     "30 minutes" : "30 minutter",
+    "Disable" : "Deaktiver",
+    "Enable" : "Aktiver",
     "Public Key" : "Offentlig nøgle",
     "Delete" : "Slet",
     "Client Identifier" : "Klient ID",

@@ -26,6 +26,8 @@
     "15 minutes" : "15 minuuttia",
     "30 minutes" : "30 minuuttia",
     "60 minutes" : "60 minuuttia",
+    "Disable" : "Poista käytöstä",
+    "Enable" : "Käytä",
     "Email Verified Flag" : "Sähköpostivarmennettu attribuutti",
     "Source for email verified flag in token" : "Sähköpostin todennetun attribuutin lähde tokenissa",
     "Select behaviour for setting email verified flag" : "Valitse käyttäytyminen sähköpostin todennetun attribuutin asettamista varten",

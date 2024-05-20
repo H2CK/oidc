@@ -12,6 +12,8 @@ OC.L10N.register(
     "5 minutes" : "5 минути",
     "15 minutes" : "15 минути",
     "30 minutes" : "30 минути",
+    "Disable" : "Оневозможи",
+    "Enable" : "Овозможи",
     "Delete" : "Избриши",
     "Client Identifier" : "Идентификатор на клиент",
     "Secret" : "Тајна",

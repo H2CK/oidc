@@ -26,6 +26,8 @@
     "15 minutes" : "15 dakika",
     "30 minutes" : "30 dakika",
     "60 minutes" : "60 dakika",
+    "Disable" : "Devre dışı bırak",
+    "Enable" : "Etkinleştir",
     "Email Verified Flag" : "E-posta doğrulandı işareti",
     "Source for email verified flag in token" : "Kod içindeki e-posta doğrulandı işaretinin kaynağı",
     "Select behaviour for setting email verified flag" : "E-posta doğrulandı işareti için davranışı seçin",

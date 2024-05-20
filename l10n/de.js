@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 Minuten",
     "30 minutes" : "30 Minuten",
     "60 minutes" : "60 Minuten",
+    "Disable" : "Deaktivieren",
+    "Enable" : "Aktivieren",
     "Email Verified Flag" : "Angabe der E-Mailadressverifizierung im Token",
     "Source for email verified flag in token" : "Quelle für die Angabe der E-Mailadressverifizierung im Token",
     "Select behaviour for setting email verified flag" : "Verhalten für die Angabe der E-Mailadressverifizierung",

@@ -26,6 +26,8 @@
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
+    "Disable" : "Désactiver",
+    "Enable" : "Activer",
     "Email Verified Flag" : "Attribut vérifié par e-mail",
     "Source for email verified flag in token" : "Source de l’attribut vérifié par e-mail dans le jeton",
     "Select behaviour for setting email verified flag" : "Sélectionner le comportement à adopter pour l'activation de l'indicateur de vérification de l'e-mail",

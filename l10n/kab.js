@@ -7,6 +7,7 @@ OC.L10N.register(
     "5 minutes" : "5 n tesdatin",
     "10 minutes" : "10 n tesdatin",
     "30 minutes" : "30 n tesdatin",
+    "Disable" : "Désactiver",
     "Delete" : "Kkes",
     "Type" : "Anaw"
 },

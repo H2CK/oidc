@@ -26,6 +26,8 @@
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
     "60 minutes" : "60 minutos",
+    "Disable" : "Desativar",
+    "Enable" : "Activar",
     "Email Verified Flag" : "Sinalizador verificado por e-mail",
     "Source for email verified flag in token" : "Fonte do sinalizador verificado por e-mail no token",
     "Select behaviour for setting email verified flag" : "Selecione o comportamento para definir o sinalizador de e-mail verificado",

@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 minuten",
     "30 minutes" : "30 minuten",
     "60 minutes" : "60 minuten",
+    "Disable" : "Uitschakelen",
     "Email Verified Flag" : "E-mail geverifieerd kenmerk",
     "Source for email verified flag in token" : "Bron voor attribuut e-mail geverifieerd in token",
     "Select behaviour for setting email verified flag" : "Selecteer gedrag voor het instellen van het kenmerk Geverifieerd e-mail",

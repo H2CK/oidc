@@ -26,6 +26,8 @@
     "15 minutes" : "۱۵ دقیقه",
     "30 minutes" : "۳۰ دقیقه",
     "60 minutes" : "60 minutes",
+    "Disable" : "غیرفعال کردن",
+    "Enable" : "فعالسازی",
     "Integrate avatar in user info/ID token" : "Integrate avatar in user info/ID token",
     "Method for integration of avatar" : "Method for integration of avatar",
     "Select how the avatar image should be integrated" : "Select how the avatar image should be integrated",

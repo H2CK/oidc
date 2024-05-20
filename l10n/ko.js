@@ -13,6 +13,8 @@ OC.L10N.register(
     "10 minutes" : "10분",
     "15 minutes" : "15분",
     "30 minutes" : "30분",
+    "Disable" : "사용 안함",
+    "Enable" : "활성화",
     "Delete" : "삭제",
     "Client Identifier" : "클라이언트 식별자",
     "Secret" : "비밀",

@@ -11,6 +11,8 @@ OC.L10N.register(
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
+    "Disable" : "Deshabilitar",
+    "Enable" : "Activar",
     "Delete" : "Eliminar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",

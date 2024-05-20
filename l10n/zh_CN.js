@@ -14,6 +14,8 @@ OC.L10N.register(
     "15 minutes" : "15分钟 ",
     "30 minutes" : "30分钟",
     "60 minutes" : "60分钟",
+    "Disable" : "禁用",
+    "Enable" : "开启",
     "Public Key" : "公钥",
     "Delete" : "删除",
     "Client Identifier" : "客户端标识",

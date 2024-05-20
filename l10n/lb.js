@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Numm",
     "Add" : "Derbäimaachen",
     "Settings" : "Astellungen",
+    "Disable" : "Ofschalten",
     "Delete" : "Läschen",
     "Type" : "Typ"
 },

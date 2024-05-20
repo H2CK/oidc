@@ -13,6 +13,7 @@ OC.L10N.register(
     "10 minutes" : "10 דקות",
     "15 minutes" : "15 דקות",
     "30 minutes" : "30 דקות",
+    "Disable" : "השבתה",
     "Public Key" : "מפתח ציבורי",
     "Delete" : "מחיקה",
     "Client Identifier" : "זיהוי לקו",

@@ -26,6 +26,8 @@
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
     "60 minutes" : "60 minutos",
+    "Disable" : "Deshabilitar",
+    "Enable" : "Habilitar",
     "Accepted Logout Redirect URIs" : "URIs de Redirección Aceptadas para Cerrar Sesión",
     "Public Key" : "Clave pública",
     "Regenerate Keys" : "Regenerar Claves",

@@ -26,6 +26,8 @@
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
+    "Disable" : "Disable",
+    "Enable" : "Enable",
     "Email Verified Flag" : "Email Verified Flag",
     "Source for email verified flag in token" : "Source for email verified flag in token",
     "Select behaviour for setting email verified flag" : "Select behaviour for setting email verified flag",

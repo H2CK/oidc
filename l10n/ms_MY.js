@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Nama",
     "Add" : "Tambah",
     "Settings" : "Tetapan",
+    "Disable" : "Nyahaktif",
     "Delete" : "Padam",
     "Type" : "Jenis"
 },

@@ -12,6 +12,7 @@ OC.L10N.register(
     "10 minutes" : "විනාඩි 10 යි",
     "15 minutes" : "විනාඩි 15 යි",
     "30 minutes" : "විනාඩි 30 යි",
+    "Disable" : "අබල කරන්න",
     "Client Identifier" : "අනුග්‍රාහක හඳුන්වනය",
     "Secret" : "රහස",
     "Show client secret" : "අනුග්‍රාහකයේ රහස්‍යතාව පෙන්වන්න"

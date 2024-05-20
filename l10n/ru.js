@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 минут",
     "30 minutes" : "30 минут",
     "60 minutes" : "60 минут",
+    "Disable" : "Отключить",
+    "Enable" : "Включить",
     "Accepted Logout Redirect URIs" : "Разрешенные URI перенаправления при выходе из системы",
     "Public Key" : "Открытый ключ",
     "Regenerate Keys" : "Пересоздать ключи",

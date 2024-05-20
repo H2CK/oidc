@@ -5,6 +5,7 @@ OC.L10N.register(
     "Public" : "Public",
     "Add" : "Adder",
     "Settings" : "Configurationes",
+    "Disable" : "Disactivar",
     "Delete" : "Deler",
     "Type" : "Typo"
 },

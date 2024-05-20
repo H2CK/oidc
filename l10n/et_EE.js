@@ -8,6 +8,7 @@ OC.L10N.register(
     "Add" : "Lisa",
     "Settings" : "Seaded",
     "30 minutes" : "30 minutit",
+    "Disable" : "Lülita välja",
     "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",
     "Secret" : "Salajane",

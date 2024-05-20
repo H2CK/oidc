@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Ainm",
     "Settings" : "Roghainnean",
     "30 minutes" : "Leth-uair a thìde",
+    "Disable" : "Cuir à comas",
     "Delete" : "Sguab às",
     "Type" : "Seòrsa"
 },

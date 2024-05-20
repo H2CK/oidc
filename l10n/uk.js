@@ -23,6 +23,8 @@ OC.L10N.register(
     "15 minutes" : "15 хвилин",
     "30 minutes" : "30 хвилин",
     "60 minutes" : "60 хвилин",
+    "Disable" : "Вимкнути",
+    "Enable" : "Увімкнути",
     "Public Key" : "Відкритий ключ",
     "Regenerate Keys" : "Відновити ключі",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",

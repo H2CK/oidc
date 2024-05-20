@@ -25,6 +25,8 @@ OC.L10N.register(
     "15 minutes" : "15 minut",
     "30 minutes" : "30 minut",
     "60 minutes" : "60 minut",
+    "Disable" : "Wyłącz",
+    "Enable" : "Włącz",
     "Public Key" : "Klucz publiczny",
     "Regenerate Keys" : "Wygeneruj ponownie klucze",
     "OpenID Connect Redirect" : "Przekierowanie OpenID Connect",

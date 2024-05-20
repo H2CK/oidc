@@ -12,6 +12,8 @@ OC.L10N.register(
     "5 minutes" : "5 minutes",
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
+    "Disable" : "Disable",
+    "Enable" : "Enable",
     "Delete" : "Delete",
     "Client Identifier" : "Client Identifier",
     "Secret" : "Secret",

@@ -13,6 +13,8 @@ OC.L10N.register(
     "10 minutes" : "10分",
     "15 minutes" : "15分",
     "30 minutes" : "30分",
+    "Disable" : "無効",
+    "Enable" : "有効にする",
     "Public Key" : "公開鍵",
     "Delete" : "削除",
     "Client Identifier" : "クライアントID",

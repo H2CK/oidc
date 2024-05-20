@@ -26,6 +26,8 @@
     "15 minutes" : "15 minutter",
     "30 minutes" : "30 minutter",
     "60 minutes" : "60 minutter",
+    "Disable" : "Deaktiver",
+    "Enable" : "Aktiver",
     "Email Verified Flag" : "E-post bekreftet flagg",
     "Source for email verified flag in token" : "Kilde for e-postbekreftet flagg i token",
     "Select behaviour for setting email verified flag" : "Velg atferd for å angi bekreftet flagg for e-post",

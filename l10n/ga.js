@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 nóiméad",
     "30 minutes" : "30 nóiméad",
     "60 minutes" : "60 nóiméad",
+    "Disable" : "Díchumasaigh",
+    "Enable" : "Cumasaigh",
     "Email Verified Flag" : "Bratach Deimhnithe Ríomhphoist",
     "Source for email verified flag in token" : "Foinse don bhratach ríomhphoist fíoraithe sa chomhartha",
     "Select behaviour for setting email verified flag" : "Roghnaigh iompraíocht chun bratach fíoraithe ríomhphoist a shocrú",

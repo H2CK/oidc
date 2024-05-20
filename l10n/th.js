@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add" : "เพิ่ม",
     "Settings" : "การตั้งค่า",
     "30 minutes" : "30 นาที",
+    "Disable" : "ปิดใช้งาน",
     "Delete" : "ลบ",
     "Type" : "ประเภท"
 },

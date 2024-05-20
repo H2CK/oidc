@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 minuti",
     "30 minutes" : "30 minuti",
     "60 minutes" : "60 minuti",
+    "Disable" : "Disabilita",
     "Email Verified Flag" : "Attributo e-mail verificato",
     "Source for email verified flag in token" : "Fonte per l'attributo e-mail verificato nel token",
     "Select behaviour for setting email verified flag" : "Selezionare il comportamento per l'impostazione dell'attributo verificato dell'e-mail",

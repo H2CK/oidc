@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "ឈ្មោះ",
     "Add" : "បញ្ចូល",
     "Settings" : "ការកំណត់",
+    "Disable" : "បិទ",
     "Delete" : "លុប",
     "Type" : "ប្រភេទ"
 },

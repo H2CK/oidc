@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "﻿ಹೆಸರು",
     "Add" : "﻿ಸೇರಿಸಿ",
     "Settings" : "ಆಯ್ಕೆ",
+    "Disable" : "﻿ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
     "Delete" : "﻿ಅಳಿಸಿ",
     "Type" : "Type"
 },

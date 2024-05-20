@@ -11,6 +11,8 @@ OC.L10N.register(
     "5 minutes" : "5 minūtes",
     "15 minutes" : "15 minūtes",
     "30 minutes" : "30 minūtes",
+    "Disable" : "Deaktivēt",
+    "Enable" : "Iespējot",
     "Delete" : "Dzēst",
     "Client Identifier" : "Klienta identifikators",
     "Secret" : "Noslēpums",

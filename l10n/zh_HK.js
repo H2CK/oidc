@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 分鐘",
     "30 minutes" : "30 分鐘",
     "60 minutes" : "60 分鐘",
+    "Disable" : "停用",
+    "Enable" : "啟用",
     "Email Verified Flag" : "電子郵件已驗證標誌",
     "Source for email verified flag in token" : "在權杖中電子郵件已驗證旗標的來源",
     "Select behaviour for setting email verified flag" : "選取設定電子郵件驗證旗標的行為",

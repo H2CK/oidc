@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Ady",
     "Settings" : "Sazlamalar",
     "30 minutes" : "30 minut",
+    "Disable" : "Öçürmek",
     "Delete" : "Pozmak",
     "Type" : "Görnüşi"
 },

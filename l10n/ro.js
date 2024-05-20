@@ -9,6 +9,8 @@ OC.L10N.register(
     "10 minutes" : "10 minute",
     "15 minutes" : "15 minute",
     "30 minutes" : "30 de minute",
+    "Disable" : "Dezactivează",
+    "Enable" : "Activare",
     "Delete" : "Șterge",
     "Secret" : "Secret",
     "Type" : "Tip"

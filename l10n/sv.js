@@ -28,6 +28,8 @@ OC.L10N.register(
     "15 minutes" : "15 minuter",
     "30 minutes" : "30 minuter",
     "60 minutes" : "60 minuter",
+    "Disable" : "Inaktivera",
+    "Enable" : "Aktivera",
     "Email Verified Flag" : "E-post verifierad attribut",
     "Source for email verified flag in token" : "Källa för e-post verifierat attribut i token",
     "Select behaviour for setting email verified flag" : "Välj beteende för att ange verifierat e-post attribut",

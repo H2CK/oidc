@@ -25,6 +25,8 @@ OC.L10N.register(
     "15 minutes" : "15 minút",
     "30 minutes" : "30 minút",
     "60 minutes" : "60 minút",
+    "Disable" : "Zakázať",
+    "Enable" : "Povoliť",
     "Public Key" : "Verejný kľúč",
     "Regenerate Keys" : "Znova vytvoriť kľúče",
     "OpenID Connect Redirect" : "Presmerovanie OpenID Connect",

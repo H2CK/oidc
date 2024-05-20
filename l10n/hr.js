@@ -13,6 +13,8 @@ OC.L10N.register(
     "10 minutes" : "10 minuta",
     "15 minutes" : "15 minuta",
     "30 minutes" : "30 minuta",
+    "Disable" : "Onemogući",
+    "Enable" : "Omogućite",
     "Public Key" : "Javni ključ",
     "Delete" : "Izbriši",
     "Client Identifier" : "Identifikator klijenta",

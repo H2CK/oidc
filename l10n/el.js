@@ -28,6 +28,7 @@ OC.L10N.register(
     "15 minutes" : "15 λεπτά",
     "30 minutes" : "30 λεπτά",
     "60 minutes" : "60 λεπτά",
+    "Disable" : "Απενεργοποίηση",
     "Email Verified Flag" : "Χαρακτηριστικό επαληθευμένο email",
     "Source for email verified flag in token" : "Πηγή για το επαληθευμένο χαρακτηριστικό email στο token",
     "Select behaviour for setting email verified flag" : "Επιλογή συμπεριφοράς για τη ρύθμιση του χαρακτηριστικού email που έχει επαληθευτεί",

@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Enw",
     "Add" : "Ychwanegu",
     "Settings" : "Gosodiadau",
+    "Disable" : "Analluogi",
     "Delete" : "Dileu",
     "Type" : "Math"
 },

@@ -13,6 +13,7 @@ OC.L10N.register(
     "10 minutes" : "10 mínútur",
     "15 minutes" : "15 mínútur",
     "30 minutes" : "30 mínútur",
+    "Disable" : "Gera óvirkt",
     "Delete" : "Eyða",
     "Client Identifier" : "Biðlaraauðkenni",
     "Secret" : "Leyni",

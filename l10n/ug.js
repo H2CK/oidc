@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "ئاتى",
     "Add" : "قوش",
     "Settings" : "تەڭشەكلەر",
+    "Disable" : "چەكلە",
     "Delete" : "ئۆچۈر",
     "Type" : "Type"
 },
