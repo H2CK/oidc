@@ -7,6 +7,7 @@ OC.L10N.register(
     "Add" : "Voeg by",
     "Settings" : "Instellings",
     "30 minutes" : "30 minute",
+    "Disable" : "Deaktiveer",
     "Delete" : "Skrap",
     "Client Identifier" : "Kliëntidentifiseerder",
     "Secret" : "Geheim",

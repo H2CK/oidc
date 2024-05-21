@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Níl do chliant údaraithe chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
+    "Your client is expired. Please inform the administrator of your client." : "Tá do chliant imithe in éag. Cuir do chliant ar an eolas do riarthóir le do thoil.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Ní ghlactar leis an URI atreoraithe faighte chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Níl an t-úsáideoir ina bhall de na grúpaí sainithe don chliant. Níl cead agat chomhartha logála isteach a fháil.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ní mór do URL athsheolaidh a bheith ina URL iomlán mar shampla: https://yourdomain.com/path",
@@ -26,6 +27,9 @@
     "15 minutes" : "15 nóiméad",
     "30 minutes" : "30 nóiméad",
     "60 minutes" : "60 nóiméad",
+    "Dynamic Client Registration" : "Clárú Cliant Dinimiciúla",
+    "Enable or disable Dynamic Client Registration" : "Cumasaigh nó díchumasaigh Clárú Dinimiciúla Cliant",
+    "Select to enable/disable the Dynamic Client Registration" : "Roghnaigh chun an Clárú Dinimiciúla Cliant a chumasú/a dhíchumasú",
     "Disable" : "Díchumasaigh",
     "Enable" : "Cumasaigh",
     "Email Verified Flag" : "Bratach Deimhnithe Ríomhphoist",

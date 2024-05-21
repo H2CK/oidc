@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "此客戶端無權連結，請通知此客戶端的管理員。",
+    "Your client is expired. Please inform the administrator of your client." : "您的客戶端已過期，請通知此客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "不接受接收到的重定向 uri 進行連接。 請通知您客戶的管理員。",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "用戶不是為客戶端定義的群組的成員。您無權檢索登錄權杖。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "重導向 URL 必須為完整的 URL，如範例所示：https://yourdomain.com/path",
@@ -26,6 +27,9 @@
     "15 minutes" : "15 分鐘",
     "30 minutes" : "30 分鐘",
     "60 minutes" : "60 分鐘",
+    "Dynamic Client Registration" : "動態客戶註冊",
+    "Enable or disable Dynamic Client Registration" : "啟用或停用動態客戶註冊",
+    "Select to enable/disable the Dynamic Client Registration" : "選擇啟用或停用動態客戶註冊",
     "Disable" : "停用",
     "Enable" : "啟用",
     "Email Verified Flag" : "電子郵件已驗證標誌",

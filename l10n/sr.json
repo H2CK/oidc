@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашем клијенту није одобрено повезивање. Обавестите администратора који је Ваш клијент.",
+    "Your client is expired. Please inform the administrator of your client." : "Истекло је важење клијента. Обавестите администратора вашег клијента.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Примљени URI преисмеравања не дозвољава повезивање. Молимо вас да обавестите администратора свог клијента.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Корисник није члан група дефнинсаних за клијента. Немате дозволу да примите жетон за пријаву.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Адреса за преусмеравање мора бити пуна адреса, нпр: https://yourdomain.com/path",
@@ -26,6 +27,9 @@
     "15 minutes" : "15 минута",
     "30 minutes" : "30 минута",
     "60 minutes" : "60 минута",
+    "Dynamic Client Registration" : "Динамичка регистрација клијента",
+    "Enable or disable Dynamic Client Registration" : "Укључује или искључује динамичку регистрацију клијента",
+    "Select to enable/disable the Dynamic Client Registration" : "Изаберите да укључите/искључите динамичку регистрацију клијента",
     "Disable" : "Искључи",
     "Enable" : "Укључи",
     "Email Verified Flag" : "Заставица потврђеног и-мејла",

@@ -14,6 +14,8 @@ OC.L10N.register(
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
     "60 minutes" : "60 minutos",
+    "Disable" : "Desactivar",
+    "Enable" : "Activar",
     "Public Key" : "Clave pública",
     "Delete" : "Desaniciar",
     "Client Identifier" : "Identificador del veceru",

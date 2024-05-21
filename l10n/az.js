@@ -5,6 +5,7 @@ OC.L10N.register(
     "Public" : "İctimai",
     "Add" : "Əlavə etmək",
     "Settings" : "Quraşdırmalar",
+    "Disable" : "Dayandır",
     "Delete" : "Sil",
     "Type" : "Type"
 },
