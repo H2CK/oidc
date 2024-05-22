@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Votre client n'est pas autoriser à se connecter. Veuillez informer l'administrateur de votre client.",
+    "Your client is expired. Please inform the administrator of your client." : "Votre client a expiré. Veuillez informer l'administrateur de votre client.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "L'URI de redirection reçu n'est pas accepté pour se connecter. Veuillez informer l'administrateur de votre client.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utilisateur n'est pas membre des groupes définis pour le client. Vous n'êtes pas autorisé à récupérer un jeton de connexion.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Votre adresse de redirection doit être une URL complète, par exemple: https://example.com/chemin",
@@ -26,6 +27,9 @@
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
+    "Dynamic Client Registration" : "Enregistrement dynamique des clients",
+    "Enable or disable Dynamic Client Registration" : "Activer ou désactiver l'enregistrement dynamique des clients",
+    "Select to enable/disable the Dynamic Client Registration" : "Sélectionnez cette option pour activer/désactiver l'enregistrement dynamique des clients.",
     "Disable" : "Désactiver",
     "Enable" : "Activer",
     "Email Verified Flag" : "Attribut vérifié par e-mail",

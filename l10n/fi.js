@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle asiakkaastasi.",
+    "Your client is expired. Please inform the administrator of your client." : "Asiakkaasi on vanhentunut. Ilmoita asiakkaasi ylläpitäjälle.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Käyttäjä ei kuulu asiakkaalle määritettyihin ryhmiin. Et saa hakea kirjautumistunnusta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
@@ -28,6 +29,9 @@ OC.L10N.register(
     "15 minutes" : "15 minuuttia",
     "30 minutes" : "30 minuuttia",
     "60 minutes" : "60 minuuttia",
+    "Dynamic Client Registration" : "Dynaaminen asiakkaan rekisteröinti",
+    "Enable or disable Dynamic Client Registration" : "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä",
+    "Select to enable/disable the Dynamic Client Registration" : "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä",
     "Disable" : "Poista käytöstä",
     "Enable" : "Käytä",
     "Email Verified Flag" : "Sähköpostivarmennettu attribuutti",

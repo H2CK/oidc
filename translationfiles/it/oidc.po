@@ -7,17 +7,17 @@
 # Random_R, 2022
 # lollos78, 2022
 # Stefano Gualmo - Agesp, 2022
-# H2CK, 2024
 # Vincenzo Reale <vinx.reale@gmail.com>, 2024
+# H2CK, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-05-20 01:57+0000\n"
+"POT-Creation-Date: 2024-05-22 01:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Vincenzo Reale <vinx.reale@gmail.com>, 2024\n"
+"Last-Translator: H2CK, 2024\n"
 "Language-Team: Italian (https://app.transifex.com/nextcloud/teams/64236/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -37,6 +37,8 @@ msgstr ""
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
 msgstr ""
+"Il vostro cliente è scaduto. Si prega di informare l'amministratore del "
+"cliente."
 
 #: /app/lib/Controller/LoginRedirectorController.php:267
 msgid ""
@@ -212,17 +214,18 @@ msgstr "60 minuti"
 #. TRANSLATORS src/App.vue:121
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Dynamic Client Registration"
-msgstr ""
+msgstr "Registrazione dinamica del cliente"
 
 #. TRANSLATORS src/App.vue:125
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Enable or disable Dynamic Client Registration"
-msgstr ""
+msgstr "Abilitare o disabilitare la registrazione dinamica del cliente"
 
 #. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr ""
+"Selezionare per abilitare/disabilitare la registrazione dinamica del cliente"
 
 #. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:46
@@ -232,7 +235,7 @@ msgstr "Disabilita"
 #. TRANSLATORS src/App.vue:134
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Enable"
-msgstr ""
+msgstr "Abilita"
 
 #. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:50

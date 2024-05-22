@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "O seu cliente não está autorizado a conectar-se. Por favor, informe o administrador do seu cliente.",
+    "Your client is expired. Please inform the administrator of your client." : "O seu cliente expirou. Por favor, informe o administrador do seu cliente.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "O URI redireccionado recebido não é aceite para ligação. Por favor, informe o administrador do seu cliente.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "O utilizador não é um membro dos grupos definidos para o cliente. Não está autorizado a recuperar um código de acesso.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "O seu URL de redirecionamento precisa ser um URL completo, por exemplo: https://seudominio.com/caminho",
@@ -26,6 +27,9 @@
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
     "60 minutes" : "60 minutos",
+    "Dynamic Client Registration" : "Registo dinâmico de clientes",
+    "Enable or disable Dynamic Client Registration" : "Ativar ou desativar o registo dinâmico de clientes",
+    "Select to enable/disable the Dynamic Client Registration" : "Seleccione para ativar/desativar o registo dinâmico de clientes",
     "Disable" : "Desativar",
     "Enable" : "Activar",
     "Email Verified Flag" : "Sinalizador verificado por e-mail",

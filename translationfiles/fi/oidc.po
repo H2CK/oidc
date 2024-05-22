@@ -10,18 +10,18 @@
 # 72d686daabd2f7212739b412929536be_e195df1 <a6caa6e567bfabba50a29e9a037273fb_1019631>, 2022
 # Robin Lahtinen <robin.lahtinen@gmail.com>, 2022
 # Jiri Grönroos <jiri.gronroos@iki.fi>, 2022
-# H2CK, 2024
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2024
 # Developer From Jokela Offical Channel <developerfromjokela@gmail.com>, 2024
+# H2CK, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-05-20 01:57+0000\n"
+"POT-Creation-Date: 2024-05-22 01:57+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Developer From Jokela Offical Channel <developerfromjokela@gmail.com>, 2024\n"
+"Last-Translator: H2CK, 2024\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -40,7 +40,7 @@ msgstr ""
 #: /app/lib/Controller/LoginRedirectorController.php:251
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
-msgstr ""
+msgstr "Asiakkaasi on vanhentunut. Ilmoita asiakkaasi ylläpitäjälle."
 
 #: /app/lib/Controller/LoginRedirectorController.php:267
 msgid ""
@@ -217,17 +217,17 @@ msgstr "60 minuuttia"
 #. TRANSLATORS src/App.vue:121
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Dynamic Client Registration"
-msgstr ""
+msgstr "Dynaaminen asiakkaan rekisteröinti"
 
 #. TRANSLATORS src/App.vue:125
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Enable or disable Dynamic Client Registration"
-msgstr ""
+msgstr "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä"
 
 #. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select to enable/disable the Dynamic Client Registration"
-msgstr ""
+msgstr "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä"
 
 #. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:46

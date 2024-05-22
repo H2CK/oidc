@@ -1,5 +1,6 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Je client is niet geautoriseerd om te verbinden. Informeer de beheerder van je client.",
+    "Your client is expired. Please inform the administrator of your client." : "Je client is verlopen. Informeer de beheerder van je client.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "De ontvangen redirect URI wordt niet geaccepteerd om verbinding te maken. Informeer de beheerder van uw client.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "De gebruiker is geen lid van de voor de client gedefinieerde groepen. Het is niet toegestaan een login token op te halen.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Je doorverwijzings-URL moet een volledige URL zijn, bijvoorbeeld: https://jouwdomein.com/pad",
@@ -26,7 +27,11 @@
     "15 minutes" : "15 minuten",
     "30 minutes" : "30 minuten",
     "60 minutes" : "60 minuten",
+    "Dynamic Client Registration" : "Dynamische klantregistratie",
+    "Enable or disable Dynamic Client Registration" : "Dynamische klantregistratie in- of uitschakelen",
+    "Select to enable/disable the Dynamic Client Registration" : "Selecteer om de Dynamische klantregistratie in/uit te schakelen",
     "Disable" : "Uitschakelen",
+    "Enable" : "Inschakelen",
     "Email Verified Flag" : "E-mail geverifieerd kenmerk",
     "Source for email verified flag in token" : "Bron voor attribuut e-mail geverifieerd in token",
     "Select behaviour for setting email verified flag" : "Selecteer gedrag voor het instellen van het kenmerk Geverifieerd e-mail",

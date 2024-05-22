@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "您的客戶端無權連線。請通知您客戶端的管理員。",
+    "Your client is expired. Please inform the administrator of your client." : "您的客戶端已過期。請通知您客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "所收到之重新導向 URI 不被連線所接受。請通知您的客戶端管理員。",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "使用者不是客戶端定義的群組成員。您無權擷取登入權杖。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的重新導向 URL 必須為完整的 URL，例如：https://yourdomain.com/path",
@@ -28,6 +29,9 @@ OC.L10N.register(
     "15 minutes" : "15分鐘",
     "30 minutes" : "30分鐘",
     "60 minutes" : "60 分鐘",
+    "Dynamic Client Registration" : "動態客戶端註冊",
+    "Enable or disable Dynamic Client Registration" : "啟用或停用動態客戶端註冊",
+    "Select to enable/disable the Dynamic Client Registration" : "選取以啟用/停用動態客戶端註冊",
     "Disable" : "停用",
     "Enable" : "啟用",
     "Email Verified Flag" : "電子郵件驗證旗標",
