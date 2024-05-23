@@ -31,7 +31,7 @@ OC.L10N.register(
     "60 minutes" : "60 Minuten",
     "Dynamic Client Registration" : "Dynamische Client-Registrierung",
     "Enable or disable Dynamic Client Registration" : "Aktivieren oder deaktivieren der dynamischen Client-Registrierung",
-    "Select to enable/disable the Dynamic Client Registration" : "Auswahl zum Aktivieren/Deaktivieren der dynamischen Client-Registrierung",
+    "Select to enable/disable the Dynamic Client Registration" : "Auswählen zum Aktivieren/Deaktivieren der dynamischen Client-Registrierung",
     "Disable" : "Deaktivieren",
     "Enable" : "Aktivieren",
     "Email Verified Flag" : "Angabe der E-Mailadressverifizierung im Token",
