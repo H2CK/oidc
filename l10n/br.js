@@ -9,6 +9,8 @@ OC.L10N.register(
     "Public" : "Publik",
     "Add" : "Ouzhpennañ",
     "Settings" : "Arventennoù",
+    "Disable" : "Disaotreañ",
+    "Enable" : "Aotreañ",
     "Delete" : "Lemel",
     "Client Identifier" : "Anavezer Kliant",
     "Secret" : "Sekret",

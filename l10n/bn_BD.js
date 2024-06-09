@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "নাম",
     "Add" : "যোগ করুন",
     "Settings" : "সেটিংস",
+    "Disable" : "নিষ্ক্রিয়",
     "Delete" : "মুছে",
     "Type" : "ধরণ"
 },

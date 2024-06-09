@@ -5,6 +5,7 @@ OC.L10N.register(
     "Public" : "Javno",
     "Add" : "Dodaj",
     "Settings" : "Podešavanje",
+    "Disable" : "Onemogući",
     "Delete" : "Obriši",
     "Secret" : "Tajna",
     "Type" : "Type"
