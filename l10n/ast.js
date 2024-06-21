@@ -21,6 +21,7 @@ OC.L10N.register(
     "Client Identifier" : "Identificador del veceru",
     "Secret" : "Secretu",
     "Show client secret" : "Amosar el secretu del veceru",
-    "Type" : "Tipu"
+    "Type" : "Tipu",
+    "Flows" : "Fluxos"
 },
 "nplurals=2; plural=(n != 1);");
