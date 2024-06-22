@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add client" : "클라이언트 추가",
     "Name" : "이름",
     "Redirection URI" : "전환될 URI",
+    "Select Type" : "유형 선택",
     "Public" : "공개",
     "Add" : "추가",
     "Settings" : "설정",
