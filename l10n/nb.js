@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient er ikke autorisert til å koble til. Vennligst informer din klients administrator.",
+    "Your client is expired. Please inform the administrator of your client." : "Klienten din er utløpt. Vennligst informer administratoren av klienten din.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den mottatte omdirigerings-URIen godtas ikke for tilkobling. Vennligst informer administratoren for din klient.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Brukeren er ikke medlem av gruppene som er definert for klienten. Du har ikke lov til å hente et påloggingstoken.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL for videresending må være en fullstendig URL. For eksempel https://yourdomain.com/path",
@@ -28,6 +29,9 @@ OC.L10N.register(
     "15 minutes" : "15 minutter",
     "30 minutes" : "30 minutter",
     "60 minutes" : "60 minutter",
+    "Dynamic Client Registration" : "Dynamisk klientregistrering",
+    "Enable or disable Dynamic Client Registration" : "Aktiver eller deaktiver dynamisk klientregistrering",
+    "Select to enable/disable the Dynamic Client Registration" : "Velg for å aktivere/deaktivere dynamisk klientregistrering",
     "Disable" : "Deaktiver",
     "Enable" : "Aktiver",
     "Email Verified Flag" : "E-post bekreftet flagg",
