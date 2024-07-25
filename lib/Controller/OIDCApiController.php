@@ -56,6 +56,8 @@ use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
@@ -141,6 +143,8 @@ class OIDCApiController extends ApiController {
 	 * @return JSONResponse
 	 */
 	#[BruteForceProtection(action: 'oidc_token')]
+	#[PublicPage]
+	#[NoCSRFRequired]
 	public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
 	{
 		$expireTime = $this->appConfig->getAppValue('expire_time');
@@ -263,7 +267,7 @@ class OIDCApiController extends ApiController {
 
 		$this->logger->info('Returned token for user ' . $uid);
 
-		return new JSONResponse(
+		$response = new JSONResponse(
 			[
 				'access_token' => $newAccessToken,
 				'token_type' => 'Bearer',
@@ -272,5 +276,9 @@ class OIDCApiController extends ApiController {
 				'id_token' => $jwt,
 			]
 		);
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
+
+		return $response;
 	}
 }

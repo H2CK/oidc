@@ -60,6 +60,9 @@ use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\ExpiredException;
 use DomainException;
 use InvalidArgumentException;
+use OCP\AppFramework\Http\Attribute\UseSession;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use UnexpectedValueException;
 
 class LogoutController extends ApiController
@@ -143,6 +146,9 @@ class LogoutController extends ApiController
 	 * @return Response
 	 */
 	#[BruteForceProtection(action: 'oidc_logout')]
+	#[NoCSRFRequired]
+	#[UseSession]
+	#[PublicPage]
 	public function logout(
 					$client_id,		// Optional
 					$refresh_token, // Not standardized - deprecated will not be used any more

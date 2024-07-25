@@ -36,6 +36,9 @@ use OCP\IL10N;
 use OCP\ISession;
 use OCP\Util;
 use OC_App;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Utility\ITimeFactory;
 
 class PageController extends Controller {
@@ -73,6 +76,9 @@ class PageController extends Controller {
 	 * Render default template
 	 */
 	#[BruteForceProtection(action: 'oidc_page')]
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[UseSession]
 	public function index()
 	{
         $client_id = $this->session->get('client_id');
@@ -89,6 +95,10 @@ class PageController extends Controller {
             'scope' => $scope
         ];
 
-		return new TemplateResponse('oidc', 'main', $parameters);
+		$response = new TemplateResponse('oidc', 'main', $parameters);
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+
+		return $response;
 	}
 }

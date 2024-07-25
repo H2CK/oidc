@@ -36,6 +36,9 @@ use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\CORS;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class JwksController extends ApiController
@@ -71,6 +74,7 @@ class JwksController extends ApiController
 
 	/**
      * @PublicPage
+	 * @CORS
 	 * @NoCSRFRequired
 	 * @BruteForceProtection(action=oidc_jwks)
 	 * @AnonRateThrottle(limit=1500, period=540)
@@ -79,6 +83,9 @@ class JwksController extends ApiController
 	 */
 	#[AnonRateLimit(limit: 1500, period: 540)]
 	#[BruteForceProtection(action: 'oidc_jwks')]
+	#[NoCSRFRequired]
+	#[CORS]
+	#[PublicPage]
 	public function getKeyInfo(): JSONResponse
 	{
         $keyOps = [
@@ -112,7 +119,11 @@ class JwksController extends ApiController
 
 		$this->logger->info('Request to JWKS Endpoint.');
 
-		return new JSONResponse($jwkPayload);
+		$response = new JSONResponse($jwkPayload);
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+
+		return $response;
 	}
 
 

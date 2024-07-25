@@ -49,7 +49,7 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Logout: `logout` (GET)
 - Dynamic Client Registration: `register` (POST) - Disabled by default. Must be enabled in settings.
 
-CORS is enable for all domains on all the above endpoints.
+CORS is enabled for all domains on all the above endpoints. Except the webfinger endpoint for which the CORS settings cannot be controlled by the oidc app.
 
 The discovery and web finger endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration` (or `<Issuer>/index.php/.well-known/openid-configuration`). For web finger there should be a redirect to `<Issuer>/index.php/.well-known/webfinger`.
 

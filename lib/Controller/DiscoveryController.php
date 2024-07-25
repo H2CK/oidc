@@ -36,6 +36,9 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\CORS;
 use Psr\Log\LoggerInterface;
 
 class DiscoveryController extends ApiController
@@ -71,6 +74,7 @@ class DiscoveryController extends ApiController
 
 	/**
      * @PublicPage
+	 * @CORS
 	 * @NoCSRFRequired
 	 * @BruteForceProtection(action=oidc_discovery)
 	 * @AnonRateThrottle(limit=1500, period=540)
@@ -82,6 +86,9 @@ class DiscoveryController extends ApiController
 	 */
 	#[AnonRateLimit(limit: 1500, period: 540)]
 	#[BruteForceProtection(action: 'oidc_discovery')]
+	#[NoCSRFRequired]
+	#[PublicPage]
+	#[CORS]
 	public function getInfo(): JSONResponse
 	{
 		return $this->discoveryGenerator->generateDiscovery($this->request);

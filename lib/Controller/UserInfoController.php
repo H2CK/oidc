@@ -45,6 +45,8 @@ use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class UserInfoController extends ApiController
@@ -102,6 +104,8 @@ class UserInfoController extends ApiController
 	 * @return JSONResponse
 	 */
 	#[BruteForceProtection(action: 'oidc_userinfo')]
+	#[PublicPage]
+	#[NoCSRFRequired]
 	public function getInfoPost(): JSONResponse
 	{
 		return $this->getInfo();
@@ -115,6 +119,8 @@ class UserInfoController extends ApiController
 	 * @return JSONResponse
 	 */
 	#[BruteForceProtection(action: 'oidc_userinfo')]
+	#[PublicPage]
+	#[NoCSRFRequired]
 	public function getInfo(): JSONResponse
 	{
 
@@ -243,7 +249,11 @@ class UserInfoController extends ApiController
 			$userInfoPayload = array_merge($userInfoPayload, $email);
 		}
 		$this->logger->debug('Returned user info for user ' . $uid);
-		return new JSONResponse($userInfoPayload);
+		$response = new JSONResponse($userInfoPayload);
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+
+		return $response;
 	}
 
     /**

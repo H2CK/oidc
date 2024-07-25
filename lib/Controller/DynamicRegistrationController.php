@@ -42,6 +42,8 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class DynamicRegistrationController extends ApiController
@@ -108,6 +110,8 @@ class DynamicRegistrationController extends ApiController
 	 */
 	#[AnonRateLimit(limit: 10, period: 60)]
 	#[BruteForceProtection(action: 'oidc_dcr')]
+	#[NoCSRFRequired]
+	#[PublicPage]
 	public function registerClient(
 		array $redirect_uris = null,
 		string $client_name = null,
@@ -216,7 +220,11 @@ class DynamicRegistrationController extends ApiController
 			'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600')
 		];
 
-		return new JSONResponse($jsonResponse, Http::STATUS_CREATED);
+		$response = new JSONResponse($jsonResponse, Http::STATUS_CREATED);
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'POST');
+
+		return $response;
 	}
 
 	private function getClientIp() {

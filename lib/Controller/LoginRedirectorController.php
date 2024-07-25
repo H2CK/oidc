@@ -56,6 +56,10 @@ use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
+use OCP\AppFramework\Http\Attribute\UseSession;
 use Psr\Log\LoggerInterface;
 
 class LoginRedirectorController extends ApiController
@@ -175,6 +179,9 @@ class LoginRedirectorController extends ApiController
 	 * @return Response
 	 */
 	#[BruteForceProtection(action: 'oidc_login')]
+	#[NoCSRFRequired]
+	#[UseSession]
+	#[PublicPage]
 	public function authorize(
 					$client_id,
 					$state,

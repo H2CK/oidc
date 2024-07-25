@@ -32,6 +32,7 @@ use OCP\Http\WellKnown\IRequestContext;
 use OCP\Http\WellKnown\IResponse;
 use OCA\OIDCIdentityProvider\Util\DiscoveryGenerator;
 use OCA\OIDCIdentityProvider\Http\WellKnown\JsonResponseMapper;
+use OCP\AppFramework\Http\Attribute\CORS;
 
 class OIDCDiscoveryHandler implements IHandler {
 	/** @var DiscoveryGenerator */
@@ -51,6 +52,7 @@ class OIDCDiscoveryHandler implements IHandler {
 	 *
 	 * @return IResponse|null
 	 */
+	#[CORS]
 	public function handle(
 		string $service,
 		IRequestContext $context,

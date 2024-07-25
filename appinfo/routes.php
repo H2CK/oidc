@@ -142,6 +142,11 @@ return [
             'url' => '/openid-configuration',
             'verb' => 'GET'
         ],
+		[
+            'name' => 'Discovery#preflighted_cors',
+            'url' => '/openid-configuration',
+            'verb' => 'OPTIONS',
+        ],
         [
             'name' => 'Cors#discoveryCorsResponse',
             'url' => '/openid-configuration',
@@ -151,6 +156,11 @@ return [
             'name' => 'Jwks#getKeyInfo',
             'url' => '/jwks',
             'verb' => 'GET'
+        ],
+		[
+            'name' => 'Jwks#preflighted_cors',
+            'url' => '/jwks',
+            'verb' => 'OPTIONS',
         ],
         [
             'name' => 'Cors#jwksCorsResponse',

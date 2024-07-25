@@ -188,7 +188,11 @@ class DiscoveryGenerator
 
 		$this->logger->info('Request to Discovery Endpoint.');
 
-		return new JSONResponse($discoveryPayload);
+		$response = new JSONResponse($discoveryPayload);
+		$response->addHeader('Access-Control-Allow-Origin', '*');
+		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+
+		return $response;
 	}
 
 }
