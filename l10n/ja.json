@@ -18,6 +18,8 @@
     "Client Identifier" : "クライアントID",
     "Secret" : "シークレットキー",
     "Show client secret" : "クライアントシークレットキーを表示",
-    "Type" : "タイプ"
+    "Signing Algorithm" : "署名アルゴリズム",
+    "Type" : "タイプ",
+    "Flows" : "フロー"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

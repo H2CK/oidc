@@ -20,6 +20,8 @@ OC.L10N.register(
     "Client Identifier" : "クライアントID",
     "Secret" : "シークレットキー",
     "Show client secret" : "クライアントシークレットキーを表示",
-    "Type" : "タイプ"
+    "Signing Algorithm" : "署名アルゴリズム",
+    "Type" : "タイプ",
+    "Flows" : "フロー"
 },
 "nplurals=1; plural=0;");

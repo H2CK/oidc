@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-07-23 02:04+0000\n"
+"POT-Creation-Date: 2024-07-26 02:04+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2024\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
@@ -29,7 +29,7 @@ msgstr ""
 "Language: fi_FI\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:241
+#: /app/lib/Controller/LoginRedirectorController.php:248
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
@@ -37,12 +37,12 @@ msgstr ""
 "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle "
 "asiakkaastasi."
 
-#: /app/lib/Controller/LoginRedirectorController.php:251
+#: /app/lib/Controller/LoginRedirectorController.php:258
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
 msgstr "Asiakkaasi on vanhentunut. Ilmoita asiakkaasi ylläpitäjälle."
 
-#: /app/lib/Controller/LoginRedirectorController.php:267
+#: /app/lib/Controller/LoginRedirectorController.php:274
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
@@ -50,7 +50,7 @@ msgstr ""
 "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden "
 "muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle."
 
-#: /app/lib/Controller/LoginRedirectorController.php:324
+#: /app/lib/Controller/LoginRedirectorController.php:331
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
