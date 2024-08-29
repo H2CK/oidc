@@ -45,34 +45,34 @@ use OCP\AppFramework\Db\Entity;
  */
 class AccessToken extends Entity
 {
-	/** @var int */
-	public $id;
-	/** @var int */
-	protected $clientId;
-	/** @var string */
-	protected $userId;
-	/** @var string */
-	protected $scope;
-	/** @var string */
-	protected $hashedCode;
-	/** @var string */
-	protected $accessToken;
-	/** @var int */
-	protected $created;
-	/** @var int */
-	protected $refreshed;
-	/** @var string */
-	protected $nonce;
+    /** @var int */
+    public $id;
+    /** @var int */
+    protected $clientId;
+    /** @var string */
+    protected $userId;
+    /** @var string */
+    protected $scope;
+    /** @var string */
+    protected $hashedCode;
+    /** @var string */
+    protected $accessToken;
+    /** @var int */
+    protected $created;
+    /** @var int */
+    protected $refreshed;
+    /** @var string */
+    protected $nonce;
 
-	public function __construct() {
-		$this->addType('id', 'int');
-		$this->addType('clientId', 'int');
-		$this->addType('userId', 'string');
-		$this->addType('scope', 'string');
-		$this->addType('hashedCode', 'string');
-		$this->addType('accessToken', 'string');
-		$this->addType('created', 'int');
-		$this->addType('refreshed', 'int');
-		$this->addType('nonce', 'string');
-	}
+    public function __construct() {
+        $this->addType('id', 'int');
+        $this->addType('clientId', 'int');
+        $this->addType('userId', 'string');
+        $this->addType('scope', 'string');
+        $this->addType('hashedCode', 'string');
+        $this->addType('accessToken', 'string');
+        $this->addType('created', 'int');
+        $this->addType('refreshed', 'int');
+        $this->addType('nonce', 'string');
+    }
 }

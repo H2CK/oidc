@@ -33,20 +33,20 @@ use OCP\Http\WellKnown\IResponse;
  * Maps a JSON Response to an IResponse
  */
 class JsonResponseMapper implements IResponse {
-	/** @var JSONResponse|null */
-	private JSONResponse $response;
+    /** @var JSONResponse|null */
+    private JSONResponse $response;
 
-	/**
-	 * Creates a JsonResponseMapper
-	 */
-	public function __construct(JSONResponse $response) {
-		$this->response = $response;
-	}
+    /**
+     * Creates a JsonResponseMapper
+     */
+    public function __construct(JSONResponse $response) {
+        $this->response = $response;
+    }
 
-	/**
-	 * Converts the JsonResponseMapper back to JSONResponse
-	 */
-	public function toHttpResponse(): Response {
-		return $this->response;
-	}
+    /**
+     * Converts the JsonResponseMapper back to JSONResponse
+     */
+    public function toHttpResponse(): Response {
+        return $this->response;
+    }
 }

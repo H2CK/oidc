@@ -38,77 +38,77 @@ use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 
 class Version0003Date20220927082100 extends SimpleMigrationStep {
-	private LoggerInterface $logger;
-	private ClientMapper $clientMapper;
-	private RedirectUriMapper $redirectUriMapper;
-	private IDBConnection $db;
+    private LoggerInterface $logger;
+    private ClientMapper $clientMapper;
+    private RedirectUriMapper $redirectUriMapper;
+    private IDBConnection $db;
 
-	public function __construct(IDBConnection $db,
-								ClientMapper $clientMapper,
-								RedirectUriMapper $redirectUriMapper,
-								LoggerInterface $logger) {
-		$this->db = $db;
-		$this->logger = $logger;
-		$this->clientMapper = $clientMapper;
-		$this->redirectUriMapper = $redirectUriMapper;
-	}
+    public function __construct(IDBConnection $db,
+                                ClientMapper $clientMapper,
+                                RedirectUriMapper $redirectUriMapper,
+                                LoggerInterface $logger) {
+        $this->db = $db;
+        $this->logger = $logger;
+        $this->clientMapper = $clientMapper;
+        $this->redirectUriMapper = $redirectUriMapper;
+    }
 
-	/**
-	 * @param IOutput $output
-	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
-	 * @param array $options
-	 * @return null|ISchemaWrapper
-	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
-		/** @var ISchemaWrapper $schema */
-		$schema = $schemaClosure();
+    /**
+     * @param IOutput $output
+     * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
+     * @param array $options
+     * @return null|ISchemaWrapper
+     */
+    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
+        /** @var ISchemaWrapper $schema */
+        $schema = $schemaClosure();
 
-		if ($schema->hasTable('oidc_redirect_uris')) {
-			$schema->dropTable('oidc_redirect_uris');
-		}
+        if ($schema->hasTable('oidc_redirect_uris')) {
+            $schema->dropTable('oidc_redirect_uris');
+        }
 
-		if (!$schema->hasTable('oidc_redirect_uris')) {
-			$table = $schema->createTable('oidc_redirect_uris');
-			$table->addColumn('id', 'integer', [
-				'autoincrement' => true,
-				'notnull' => true,
-				'unsigned' => true,
-			]);
-			$table->addColumn('client_id', 'integer', [
-				'notnull' => true,
-			]);
-			$table->addColumn('redirect_uri', 'string', [
-				'notnull' => true,
-				'length' => 2000,
-			]);
-			$table->setPrimaryKey(['id']);
-			$table->addUniqueIndex(['client_id'], 'oidc_redir_id_idx');
-		}
+        if (!$schema->hasTable('oidc_redirect_uris')) {
+            $table = $schema->createTable('oidc_redirect_uris');
+            $table->addColumn('id', 'integer', [
+                'autoincrement' => true,
+                'notnull' => true,
+                'unsigned' => true,
+            ]);
+            $table->addColumn('client_id', 'integer', [
+                'notnull' => true,
+            ]);
+            $table->addColumn('redirect_uri', 'string', [
+                'notnull' => true,
+                'length' => 2000,
+            ]);
+            $table->setPrimaryKey(['id']);
+            $table->addUniqueIndex(['client_id'], 'oidc_redir_id_idx');
+        }
 
-		return $schema;
-	}
+        return $schema;
+    }
 
-	/**
-	 * @param IOutput $output
-	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
-	 * @param array $options
-	 * @return null|ISchemaWrapper
-	 */
-	public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
-		/** @var ISchemaWrapper $schema */
-		$schema = $schemaClosure();
+    /**
+     * @param IOutput $output
+     * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
+     * @param array $options
+     * @return null|ISchemaWrapper
+     */
+    public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
+        /** @var ISchemaWrapper $schema */
+        $schema = $schemaClosure();
 
-		$clients = $this->clientMapper->getClients();
+        $clients = $this->clientMapper->getClients();
 
-		foreach($clients as $i => $client) {
-			$redirectUri = new RedirectUri();
-			$redirectUri->setClientId($client->getId());
-			$redirectUri->setRedirectUri($client->getRedirectUri());
+        foreach($clients as $client) {
+            $redirectUri = new RedirectUri();
+            $redirectUri->setClientId($client->getId());
+            $redirectUri->setRedirectUri($client->getRedirectUri());
 
-			$this->redirectUriMapper->insert($redirectUri);
-		}
+            $this->redirectUriMapper->insert($redirectUri);
+        }
 
-		return $schema;
+        return $schema;
 
- 	}
+     }
 }

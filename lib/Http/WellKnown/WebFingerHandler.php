@@ -34,56 +34,56 @@ use OCP\Http\WellKnown\JrdResponse;
 use OCP\IURLGenerator;
 
 class WebFingerHandler implements IHandler {
-	private IURLGenerator $urlGenerator;
+    private IURLGenerator $urlGenerator;
 
-	public function __construct(
-		IURLGenerator $urlGenerator
-	) {
-		$this->urlGenerator = $urlGenerator;
-	}
+    public function __construct(
+        IURLGenerator $urlGenerator
+    ) {
+        $this->urlGenerator = $urlGenerator;
+    }
 
-	/**
-	 * WebFingerHandler for OIDC request
-	 * @see https://docs.joinmastodon.org/spec/webfinger/
-	 *
-	 * @param string $service
-	 * @param IRequestContext $context
-	 * @param IResponse|null $previousResponse
-	 *
-	 * @return IResponse|null
-	 */
-	public function handle(
-		string $service,
-		IRequestContext $context,
-		?IResponse $previousResponse
-	): ?IResponse {
-		if ($service !== 'webfinger') {
+    /**
+     * WebFingerHandler for OIDC request
+     * @see https://docs.joinmastodon.org/spec/webfinger/
+     *
+     * @param string $service
+     * @param IRequestContext $context
+     * @param IResponse|null $previousResponse
+     *
+     * @return IResponse|null
+     */
+    public function handle(
+        string $service,
+        IRequestContext $context,
+        ?IResponse $previousResponse
+    ): ?IResponse {
+        if ($service !== 'webfinger') {
             // Not relevant to this handler
             return $previousResponse;
         }
 
-		$subject = $context->getHttpRequest()->getParam('resource') ?? '';
-		if (strpos($subject, 'acct:') === 0) {
-			$subject = substr($subject, 5);
-		}
+        $subject = $context->getHttpRequest()->getParam('resource') ?? '';
+        if (strpos($subject, 'acct:') === 0) {
+            $subject = substr($subject, 5);
+        }
 
-		$issuer = $context->getHttpRequest()->getServerProtocol()
-			. '://'
-			. $context->getHttpRequest()->getServerHost()
-			. $this->urlGenerator->getWebroot();
+        $issuer = $context->getHttpRequest()->getServerProtocol()
+            . '://'
+            . $context->getHttpRequest()->getServerHost()
+            . $this->urlGenerator->getWebroot();
 
-		$response = new JrdResponse($subject);
+        $response = new JrdResponse($subject);
 
-		$response->addLink(
-			'http://openid.net/specs/connect/1.0/issuer',
-			null,
-			$issuer,
-			null,
-			null,
-			[]
-		);
+        $response->addLink(
+            'http://openid.net/specs/connect/1.0/issuer',
+            null,
+            $issuer,
+            null,
+            null,
+            []
+        );
 
-		return $response;
-	}
+        return $response;
+    }
 
 }

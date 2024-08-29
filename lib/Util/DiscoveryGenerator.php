@@ -36,35 +36,35 @@ use Psr\Log\LoggerInterface;
 
 class DiscoveryGenerator
 {
-	/** @var ITimeFactory */
-	private $time;
+    /** @var ITimeFactory */
+    private $time;
     /** @var IURLGenerator */
-	private $urlGenerator;
+    private $urlGenerator;
     /** @var IAppConfig */
-	private $appConfig;
-	/** @var LoggerInterface */
-	private $logger;
+    private $appConfig;
+    /** @var LoggerInterface */
+    private $logger;
 
-	public function __construct(
-					ITimeFactory $time,
-					IURLGenerator $urlGenerator,
+    public function __construct(
+                    ITimeFactory $time,
+                    IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
-					LoggerInterface $logger
-	) {
-		$this->time = $time;
+                    LoggerInterface $logger
+    ) {
+        $this->time = $time;
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
-		$this->logger = $logger;
-	}
+        $this->logger = $logger;
+    }
 
-	/**
+    /**
      * Generates the responsefor the discovery endpoint
-	 *
-	 * @return JSONResponse
-	 */
-	public function generateDiscovery(IRequest $request): JSONResponse
-	{
-		$host = $request->getServerProtocol() . '://' . $request->getServerHost();
+     *
+     * @return JSONResponse
+     */
+    public function generateDiscovery(IRequest $request): JSONResponse
+    {
+        $host = $request->getServerProtocol() . '://' . $request->getServerHost();
         $issuer = $host . $this->urlGenerator->getWebroot();
         $scopesSupported = [
             'openid',
@@ -122,32 +122,32 @@ class DiscoveryGenerator
         ];
         $claimsSupported = [
             'iss',
-			'sub',
-			'aud',
-			'exp',
-			'auth_time',
-			'iat',
-			'acr',
-			'azp',
-			'preferred_username',
-			'scope',
-			'nbf',
-			'jti',
+            'sub',
+            'aud',
+            'exp',
+            'auth_time',
+            'iat',
+            'acr',
+            'azp',
+            'preferred_username',
+            'scope',
+            'nbf',
+            'jti',
             'roles',
             'name',
             'updated_at',
             'website',
             'email',
             'email_verified',
-			'phone_number',
-			'address',
-			'picture',
+            'phone_number',
+            'address',
+            'picture',
         ];
 
-		$discoveryPayload = [
-			'issuer' => $issuer,
-			'authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
-			'token_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
+        $discoveryPayload = [
+            'issuer' => $issuer,
+            'authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
+            'token_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
             'userinfo_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []),
             'jwks_uri' => $host . $this->urlGenerator->linkToRoute('oidc.Jwks.getKeyInfo', []),
             'scopes_supported' => $scopesSupported,
@@ -179,20 +179,20 @@ class DiscoveryGenerator
             // 'require_request_uri_registration' => true,
             // 'op_policy_uri' => ,
             // 'op_tos_uri' => ,
-			'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
-		];
+            'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
+        ];
 
         if ($this->appConfig->getAppValue('dynamic_client_registration') == 'true') {
-			$discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
+            $discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
         }
 
-		$this->logger->info('Request to Discovery Endpoint.');
+        $this->logger->info('Request to Discovery Endpoint.');
 
-		$response = new JSONResponse($discoveryPayload);
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+        $response = new JSONResponse($discoveryPayload);
+        $response->addHeader('Access-Control-Allow-Origin', '*');
+        $response->addHeader('Access-Control-Allow-Methods', 'GET');
 
-		return $response;
-	}
+        return $response;
+    }
 
 }

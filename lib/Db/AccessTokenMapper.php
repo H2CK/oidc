@@ -37,102 +37,102 @@ use OCP\AppFramework\Services\IAppConfig;
  * @template-extends QBMapper<AccessToken>
  */
 class AccessTokenMapper extends QBMapper {
-	/** @var ITimeFactory */
-	private $time;
-	/** @var IAppConfig */
-	private $appConfig;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var IAppConfig */
+    private $appConfig;
 
-	/**
-	 * @param IDBConnection $db
-	 */
-	public function __construct(IDBConnection $db,
-								ITimeFactory $time,
-								IAppConfig $appConfig) {
-		parent::__construct($db, 'oidc_access_tokens');
-		$this->time = $time;
-		$this->appConfig = $appConfig;
-	}
+    /**
+     * @param IDBConnection $db
+     */
+    public function __construct(IDBConnection $db,
+                                ITimeFactory $time,
+                                IAppConfig $appConfig) {
+        parent::__construct($db, 'oidc_access_tokens');
+        $this->time = $time;
+        $this->appConfig = $appConfig;
+    }
 
-	/**
-	 * @param string $code
-	 * @return AccessToken
-	 * @throws AccessTokenNotFoundException
-	 */
-	public function getByCode(string $code): AccessToken {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('hashed_code', $qb->createNamedParameter(hash('sha512', $code))));
+    /**
+     * @param string $code
+     * @return AccessToken
+     * @throws AccessTokenNotFoundException
+     */
+    public function getByCode(string $code): AccessToken {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('hashed_code', $qb->createNamedParameter(hash('sha512', $code))));
 
-		try {
-			$token = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new AccessTokenNotFoundException('Could not find access token', 0, $e);
-		}
+        try {
+            $token = $this->findEntity($qb);
+        } catch (IMapperException $e) {
+            throw new AccessTokenNotFoundException('Could not find access token', 0, $e);
+        }
 
-		return $token;
-	}
+        return $token;
+    }
 
-	/**
-	 * @param string $code
-	 * @return AccessToken
-	 * @throws AccessTokenNotFoundException
-	 */
-	public function getByAccessToken(string $accessToken): AccessToken {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('access_token', $qb->createNamedParameter($accessToken)));
+    /**
+     * @param string $code
+     * @return AccessToken
+     * @throws AccessTokenNotFoundException
+     */
+    public function getByAccessToken(string $accessToken): AccessToken {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('access_token', $qb->createNamedParameter($accessToken)));
 
-		try {
-			$token = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new AccessTokenNotFoundException('Could not find access token', 0, $e);
-		}
+        try {
+            $token = $this->findEntity($qb);
+        } catch (IMapperException $e) {
+            throw new AccessTokenNotFoundException('Could not find access token', 0, $e);
+        }
 
-		return $token;
-	}
+        return $token;
+    }
 
 
-	/**
-	 * delete all access token from a given client
-	 *
-	 * @param int $id
-	 */
-	public function deleteByClientId(int $id) {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->delete($this->tableName)
-			->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-		$qb->executeStatement();
-	}
+    /**
+     * delete all access token from a given client
+     *
+     * @param int $id
+     */
+    public function deleteByClientId(int $id) {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+        $qb->executeStatement();
+    }
 
-	/**
-	 * delete all access token from a given user
-	 *
-	 * @param string $id
-	 */
-	public function deleteByUserId(string $id) {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->delete($this->tableName)
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($id)));
-		$qb->executeStatement();
-	}
+    /**
+     * delete all access token from a given user
+     *
+     * @param string $id
+     */
+    public function deleteByUserId(string $id) {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($id)));
+        $qb->executeStatement();
+    }
 
-	/**
-	 * delete all expired access tokens
-	 *
-	 */
-	public function cleanUp() {
-		$qb = $this->db->getQueryBuilder();
-		$timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('expire_time');
-		// refreshed < $timeLimit
-		$qb
-			->delete($this->tableName)
-			->where($qb->expr()->lt('refreshed', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)));
-		$qb->executeStatement();
-	}
+    /**
+     * delete all expired access tokens
+     *
+     */
+    public function cleanUp() {
+        $qb = $this->db->getQueryBuilder();
+        $timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('expire_time');
+        // refreshed < $timeLimit
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->lt('refreshed', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)));
+        $qb->executeStatement();
+    }
 }

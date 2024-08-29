@@ -51,216 +51,216 @@ use Psr\Log\LoggerInterface;
 
 class UserInfoController extends ApiController
 {
-	/** @var AccessTokenMapper */
-	private $accessTokenMapper;
-	/** @var ClientMapper */
-	private $clientMapper;
-	/** @var ITimeFactory */
-	private $time;
-	/** @var Throttler */
-	private $throttler;
-	/** @var IUserManager */
-	private $userManager;
-	/** @var IGroupManager */
-	private $groupManager;
-	/** @var IAccountManager */
-	private $accountManager;
+    /** @var AccessTokenMapper */
+    private $accessTokenMapper;
+    /** @var ClientMapper */
+    private $clientMapper;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var Throttler */
+    private $throttler;
+    /** @var IUserManager */
+    private $userManager;
+    /** @var IGroupManager */
+    private $groupManager;
+    /** @var IAccountManager */
+    private $accountManager;
     /** @var IAppConfig */
-	private $appConfig;
-	/** @var LoggerInterface */
-	private $logger;
+    private $appConfig;
+    /** @var LoggerInterface */
+    private $logger;
 
-	public function __construct(
-					string $appName,
-					IRequest $request,
-					AccessTokenMapper $accessTokenMapper,
-					ClientMapper $clientMapper,
-					ITimeFactory $time,
-					Throttler $throttler,
-					IUserManager $userManager,
-					IGroupManager $groupManager,
-					IAccountManager $accountManager,
-					IAppConfig $appConfig,
-					LoggerInterface $logger
-					)
-	{
-		parent::__construct($appName, $request);
-		$this->accessTokenMapper = $accessTokenMapper;
-		$this->clientMapper = $clientMapper;
-		$this->time = $time;
-		$this->throttler = $throttler;
-		$this->userManager = $userManager;
-		$this->groupManager = $groupManager;
-		$this->accountManager = $accountManager;
+    public function __construct(
+                    string $appName,
+                    IRequest $request,
+                    AccessTokenMapper $accessTokenMapper,
+                    ClientMapper $clientMapper,
+                    ITimeFactory $time,
+                    Throttler $throttler,
+                    IUserManager $userManager,
+                    IGroupManager $groupManager,
+                    IAccountManager $accountManager,
+                    IAppConfig $appConfig,
+                    LoggerInterface $logger
+                    )
+    {
+        parent::__construct($appName, $request);
+        $this->accessTokenMapper = $accessTokenMapper;
+        $this->clientMapper = $clientMapper;
+        $this->time = $time;
+        $this->throttler = $throttler;
+        $this->userManager = $userManager;
+        $this->groupManager = $groupManager;
+        $this->accountManager = $accountManager;
         $this->appConfig = $appConfig;
-		$this->logger = $logger;
-	}
+        $this->logger = $logger;
+    }
 
-	/**
+    /**
      * @PublicPage
-	 * @NoCSRFRequired
-	 * @BruteForceProtection(action=oidc_userinfo)
-	 *
-	 * @return JSONResponse
-	 */
-	#[BruteForceProtection(action: 'oidc_userinfo')]
-	#[PublicPage]
-	#[NoCSRFRequired]
-	public function getInfoPost(): JSONResponse
-	{
-		return $this->getInfo();
-	}
+     * @NoCSRFRequired
+     * @BruteForceProtection(action=oidc_userinfo)
+     *
+     * @return JSONResponse
+     */
+    #[BruteForceProtection(action: 'oidc_userinfo')]
+    #[PublicPage]
+    #[NoCSRFRequired]
+    public function getInfoPost(): JSONResponse
+    {
+        return $this->getInfo();
+    }
 
-	/**
+    /**
      * @PublicPage
-	 * @NoCSRFRequired
-	 * @BruteForceProtection(action=oidc_userinfo)
-	 *
-	 * @return JSONResponse
-	 */
-	#[BruteForceProtection(action: 'oidc_userinfo')]
-	#[PublicPage]
-	#[NoCSRFRequired]
-	public function getInfo(): JSONResponse
-	{
+     * @NoCSRFRequired
+     * @BruteForceProtection(action=oidc_userinfo)
+     *
+     * @return JSONResponse
+     */
+    #[BruteForceProtection(action: 'oidc_userinfo')]
+    #[PublicPage]
+    #[NoCSRFRequired]
+    public function getInfo(): JSONResponse
+    {
 
         $accessTokenCode = $this->getBearerToken();
         if ($accessTokenCode == null) {
-			$this->logger->notice('No bearer token found in request.');
+            $this->logger->notice('No bearer token found in request.');
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'No bearer token found in request.'
             ], Http::STATUS_BAD_REQUEST);
-		}
+        }
 
         try {
-			$accessToken = $this->accessTokenMapper->getByAccessToken($accessTokenCode);
-		} catch (AccessTokenNotFoundException $e) {
-			$this->logger->notice('Could not find provided bearer token.');
-			return new JSONResponse([
-				'error' => 'invalid_request',
+            $accessToken = $this->accessTokenMapper->getByAccessToken($accessTokenCode);
+        } catch (AccessTokenNotFoundException $e) {
+            $this->logger->notice('Could not find provided bearer token.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
                 'error_description' => 'Could not find provided bearer token.',
-			], Http::STATUS_BAD_REQUEST);
-		}
+            ], Http::STATUS_BAD_REQUEST);
+        }
 
-		try {
-			$client = $this->clientMapper->getByUid($accessToken->getClientId());
-		} catch (ClientNotFoundException $e) {
-			$this->logger->error('Could not find client for access token.');
-			return new JSONResponse([
-				'error' => 'invalid_request',
+        try {
+            $client = $this->clientMapper->getByUid($accessToken->getClientId());
+        } catch (ClientNotFoundException $e) {
+            $this->logger->error('Could not find client for access token.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
                 'error_description' => 'Could not find client for access token.',
-			], Http::STATUS_BAD_REQUEST);
-		}
+            ], Http::STATUS_BAD_REQUEST);
+        }
 
-		// The client must not be expired
-		if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
-			$this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
-			return new JSONResponse([
-				'error' => 'expired_client',
-				'error_description' => 'Client expired.',
-			], Http::STATUS_BAD_REQUEST);
-		}
+        // The client must not be expired
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+            $this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
+            return new JSONResponse([
+                'error' => 'expired_client',
+                'error_description' => 'Client expired.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
 
-		// The accessToken must not be expired
-		if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue('expire_time') ) {
-			$this->accessTokenMapper->delete($accessToken);
-			$this->logger->notice('Access token already expired.');
-			return new JSONResponse([
-				'error' => 'invalid_grant',
+        // The accessToken must not be expired
+        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue('expire_time') ) {
+            $this->accessTokenMapper->delete($accessToken);
+            $this->logger->notice('Access token already expired.');
+            return new JSONResponse([
+                'error' => 'invalid_grant',
                 'error_description' => 'Access token already expired.',
-			], Http::STATUS_BAD_REQUEST);
-		}
+            ], Http::STATUS_BAD_REQUEST);
+        }
 
-		$uid = $accessToken->getUserId();
-		$user = $this->userManager->get($uid);
-		$groups = $this->groupManager->getUserGroups($user);
-		$account = $this->accountManager->getAccount($user);
+        $uid = $accessToken->getUserId();
+        $user = $this->userManager->get($uid);
+        $groups = $this->groupManager->getUserGroups($user);
+        $account = $this->accountManager->getAccount($user);
 
-		$userInfoPayload = [
-			'sub' => $uid,
-			'preferred_username' => $uid,
+        $userInfoPayload = [
+            'sub' => $uid,
+            'preferred_username' => $uid,
 
-		];
+        ];
 
-		$roles = [];
-		foreach ($groups as $group) {
-			array_push($roles, $group->getGID());
-		}
-		$rolesPayload = [
-			'roles' => $roles
-		];
-		$userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
+        $roles = [];
+        foreach ($groups as $group) {
+            array_push($roles, $group->getGID());
+        }
+        $rolesPayload = [
+            'roles' => $roles
+        ];
+        $userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
 
-		// Check for scopes
-		$scopeArray = preg_split('/ +/', $accessToken->getScope());
-		if (in_array("profile", $scopeArray)) {
-			$profile = [
-				'updated_at' => $user->getLastLogin(),
-			];
-			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
-				$profile = array_merge($profile,
-						['name' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue()]);
-			} else {
-				$profile = array_merge($profile, ['name' => $user->getDisplayName()]);
-			}
-			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '') {
-				$profile = array_merge($profile,
-						['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
-			}
-			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '') {
-				$profile = array_merge($profile,
-						['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
-			}
-			if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '') {
-				$profile = array_merge($profile,
-						['address' =>
-								[ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
-			}
-			if ($this->appConfig->getAppValue('integrate_avatar') == 'user_info' || $this->appConfig->getAppValue('integrate_avatar') == 'id_token') {
-				$avatarImage = $user->getAvatarImage(64);
-				if ($avatarImage !== null) {
-					$profile = array_merge($profile,
-							['picture' => 'data:' . $avatarImage->dataMimeType() . ';base64,' . base64_encode($avatarImage->data())]);
-				}
-			}
-			// Possible further values
-			// 'family_name' => ,
-			// 'given_name' => ,
-			// 'middle_name' => ,
-			// 'nickname' => ,
-			// 'profile' => ,
-			// 'picture' => ,
-			// 'gender' => ,
-			// 'birthdate' => ,
-			// 'zoneinfo' => ,
-			// 'locale' => ,
-			$userInfoPayload = array_merge($userInfoPayload, $profile);
-		}
-		if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
-			$email = [
-				'email' => $user->getEMailAddress(),
-			];
+        // Check for scopes
+        $scopeArray = preg_split('/ +/', $accessToken->getScope());
+        if (in_array("profile", $scopeArray)) {
+            $profile = [
+                'updated_at' => $user->getLastLogin(),
+            ];
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
+                $profile = array_merge($profile,
+                        ['name' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue()]);
+            } else {
+                $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
+            }
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '') {
+                $profile = array_merge($profile,
+                        ['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
+            }
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '') {
+                $profile = array_merge($profile,
+                        ['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
+            }
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '') {
+                $profile = array_merge($profile,
+                        ['address' =>
+                                [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
+            }
+            if ($this->appConfig->getAppValue('integrate_avatar') == 'user_info' || $this->appConfig->getAppValue('integrate_avatar') == 'id_token') {
+                $avatarImage = $user->getAvatarImage(64);
+                if ($avatarImage !== null) {
+                    $profile = array_merge($profile,
+                            ['picture' => 'data:' . $avatarImage->dataMimeType() . ';base64,' . base64_encode($avatarImage->data())]);
+                }
+            }
+            // Possible further values
+            // 'family_name' => ,
+            // 'given_name' => ,
+            // 'middle_name' => ,
+            // 'nickname' => ,
+            // 'profile' => ,
+            // 'picture' => ,
+            // 'gender' => ,
+            // 'birthdate' => ,
+            // 'zoneinfo' => ,
+            // 'locale' => ,
+            $userInfoPayload = array_merge($userInfoPayload, $profile);
+        }
+        if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
+            $email = [
+                'email' => $user->getEMailAddress(),
+            ];
             if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified()) {
-				$email = array_merge($email, ['email_verified' => true]);
-			} else {
+                $email = array_merge($email, ['email_verified' => true]);
+            } else {
                 $email = array_merge($email, ['email_verified' => false]);
             }
-			$userInfoPayload = array_merge($userInfoPayload, $email);
-		}
-		$this->logger->debug('Returned user info for user ' . $uid);
-		$response = new JSONResponse($userInfoPayload);
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+            $userInfoPayload = array_merge($userInfoPayload, $email);
+        }
+        $this->logger->debug('Returned user info for user ' . $uid);
+        $response = new JSONResponse($userInfoPayload);
+        $response->addHeader('Access-Control-Allow-Origin', '*');
+        $response->addHeader('Access-Control-Allow-Methods', 'GET');
 
-		return $response;
-	}
+        return $response;
+    }
 
     /**
      * Get header Authorization
      */
     private function getAuthorizationHeader()
-	{
+    {
         $headers = null;
         if (isset($_SERVER['Authorization'])) {
             $headers = trim($_SERVER["Authorization"]);
@@ -269,8 +269,8 @@ class UserInfoController extends ApiController
         } elseif (function_exists('apache_request_headers')) {
             $requestHeaders = apache_request_headers();
             // Server-side fix for bug in old Android versions
-			// (a nice side-effect of this fix means we don't care
-			// about capitalization for Authorization)
+            // (a nice side-effect of this fix means we don't care
+            // about capitalization for Authorization)
             $requestHeaders = array_combine(array_map('ucwords', array_keys($requestHeaders)), array_values($requestHeaders));
             if (isset($requestHeaders['Authorization'])) {
                 $headers = trim($requestHeaders['Authorization']);
@@ -283,13 +283,11 @@ class UserInfoController extends ApiController
      * get access token from header
      */
     private function getBearerToken()
-	{
+    {
         $headers = $this->getAuthorizationHeader();
         // HEADER: Get the access token from the header
-        if (!empty($headers)) {
-            if (preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
+        if (!empty($headers) && preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
                 return $matches[1];
-            }
         }
         return null;
     }

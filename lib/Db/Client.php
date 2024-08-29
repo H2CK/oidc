@@ -46,37 +46,37 @@ use OCP\AppFramework\Db\Entity;
  * @method void setIssuedAt(int $issuedAt)
  */
 class Client extends Entity {
-	/** @var int */
-	public $id;
-	/** @var string */
-	protected $name;
-	/** @var string */
-	protected $redirectUri;
-	/** @var string */
-	protected $clientIdentifier;
-	/** @var string */
-	protected $secret;
-	/** @var string */
-	protected $signingAlg;
-	/** @var string */
-	protected $type;
-	/** @var string */
-	protected $flowType;
-	/** @var boolean */
-	protected $dcr;
-	/** @var int */
-	protected $issuedAt;
+    /** @var int */
+    public $id;
+    /** @var string */
+    protected $name;
+    /** @var string */
+    protected $redirectUri;
+    /** @var string */
+    protected $clientIdentifier;
+    /** @var string */
+    protected $secret;
+    /** @var string */
+    protected $signingAlg;
+    /** @var string */
+    protected $type;
+    /** @var string */
+    protected $flowType;
+    /** @var boolean */
+    protected $dcr;
+    /** @var int */
+    protected $issuedAt;
 
-	public function __construct() {
-		$this->addType('id', 'int');
-		$this->addType('name', 'string');
-		$this->addType('redirect_uri', 'string');
-		$this->addType('client_identifier', 'string');
-		$this->addType('secret', 'string');
-		$this->addType('signing_alg', 'string');
-		$this->addType('type', 'string');
-		$this->addType('flow_type', 'string');
-		$this->addType('dcr', 'boolean');
-		$this->addType('issued_at', 'int');
-	}
+    public function __construct() {
+        $this->addType('id', 'int');
+        $this->addType('name', 'string');
+        $this->addType('redirect_uri', 'string');
+        $this->addType('client_identifier', 'string');
+        $this->addType('secret', 'string');
+        $this->addType('signing_alg', 'string');
+        $this->addType('type', 'string');
+        $this->addType('flow_type', 'string');
+        $this->addType('dcr', 'boolean');
+        $this->addType('issued_at', 'int');
+    }
 }

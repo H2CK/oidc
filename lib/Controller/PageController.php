@@ -25,17 +25,13 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
-use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\IRequest;
 use OCP\IUserSession;
 use OCP\IL10N;
 use OCP\ISession;
-use OCP\Util;
-use OC_App;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\UseSession;
@@ -43,49 +39,49 @@ use OCP\AppFramework\Utility\ITimeFactory;
 
 class PageController extends Controller {
     /** @var ISession */
-	private $session;
-	/** @var IL10N */
-	private $l;
-	/** @var ITimeFactory */
-	private $time;
-	/** @var IUserSession */
-	private $userSession;
+    private $session;
+    /** @var IL10N */
+    private $l;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var IUserSession */
+    private $userSession;
 
-	public function __construct(
-					string $appName,
-					IRequest $request,
-					ISession $session,
-					IL10N $l,
-					ITimeFactory $time,
-					IUserSession $userSession
-					)
-	{
-		parent::__construct($appName, $request);
+    public function __construct(
+                    string $appName,
+                    IRequest $request,
+                    ISession $session,
+                    IL10N $l,
+                    ITimeFactory $time,
+                    IUserSession $userSession
+                    )
+    {
+        parent::__construct($appName, $request);
         $this->session = $session;
         $this->l = $l;
         $this->time = $time;
         $this->userSession = $userSession;
-	}
+    }
 
-	/**
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
+    /**
+     * @NoAdminRequired
+     * @NoCSRFRequired
      * @UseSession
-	 * @BruteForceProtection(action=oidc_page)
-	 *
-	 * Render default template
-	 */
-	#[BruteForceProtection(action: 'oidc_page')]
-	#[NoAdminRequired]
-	#[NoCSRFRequired]
-	#[UseSession]
-	public function index()
-	{
+     * @BruteForceProtection(action=oidc_page)
+     *
+     * Render default template
+     */
+    #[BruteForceProtection(action: 'oidc_page')]
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    #[UseSession]
+    public function index()
+    {
         $client_id = $this->session->get('client_id');
-		$state = $this->session->get('state');
-		$response_type = $this->session->get('response_type');
-		$redirect_uri = $this->session->get('redirect_uri');
-		$scope = $this->session->get('scope');
+        $state = $this->session->get('state');
+        $response_type = $this->session->get('response_type');
+        $redirect_uri = $this->session->get('redirect_uri');
+        $scope = $this->session->get('scope');
 
         $parameters = [
             'client_id' => $client_id,
@@ -95,10 +91,10 @@ class PageController extends Controller {
             'scope' => $scope
         ];
 
-		$response = new TemplateResponse('oidc', 'main', $parameters);
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+        $response = new TemplateResponse('oidc', 'main', $parameters);
+        $response->addHeader('Access-Control-Allow-Origin', '*');
+        $response->addHeader('Access-Control-Allow-Methods', 'GET');
 
-		return $response;
-	}
+        return $response;
+    }
 }

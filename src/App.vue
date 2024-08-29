@@ -20,11 +20,8 @@
   -
   -->
 <template>
-	<div id="oidc" class="section">
-		<h2>{{ t('oidc', 'OpenID Connect clients') }}</h2>
-		<p class="settings-hint">
-			{{ t('oidc', 'OpenID Connect allows to authenticate at external services with {instanceName} user accounts.', { instanceName: OC.theme.name}) }}
-		</p>
+	<NcSettingsSection :name="t('oidc', 'OpenID Connect clients')"
+		:description="t('oidc', 'OpenID Connect allows to authenticate at external services with {instanceName} user accounts.', { instanceName: OC.theme.name})">
 		<span v-if="error" class="msg error">{{ errorMsg }}</span>
 		<table v-if="clients.length > 0" class="grid">
 			<thead>
@@ -199,7 +196,7 @@
 		<form @submit.prevent="regenerateKeys">
 			<input type="submit" class="button" :value="t('oidc', 'Regenerate Keys')">
 		</form>
-	</div>
+	</NcSettingsSection>
 </template>
 
 <script>
@@ -207,12 +204,14 @@ import axios from '@nextcloud/axios'
 import OIDCItem from './components/OIDCItem.vue'
 import RedirectItem from './components/RedirectItem.vue'
 import { generateUrl } from '@nextcloud/router'
+import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
 
 export default {
 	name: 'App',
 	components: {
 		OIDCItem,
 		RedirectItem,
+		NcSettingsSection,
 	},
 	props: {
 		clients: {

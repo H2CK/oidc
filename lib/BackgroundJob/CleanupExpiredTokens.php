@@ -33,29 +33,29 @@ use OCP\IConfig;
 class CleanupExpiredTokens extends TimedJob {
 
     /** @var AccessTokenMapper */
-	private $accessTokenMapper;
-	/** @var IConfig */
-	private $settings;
+    private $accessTokenMapper;
+    /** @var IConfig */
+    private $settings;
 
-	/**
-	 * @param ITimeFactory $time
-	 * @param AccessTokenMapper $accessTokenMapper
-	 */
-	public function __construct(ITimeFactory $time,
-								AccessTokenMapper $accessTokenMapper,
-								IConfig $settings) {
-		parent::__construct($time);
-		$this->accessTokenMapper = $accessTokenMapper;
-		$this->settings = $settings;
+    /**
+     * @param ITimeFactory $time
+     * @param AccessTokenMapper $accessTokenMapper
+     */
+    public function __construct(ITimeFactory $time,
+                                AccessTokenMapper $accessTokenMapper,
+                                IConfig $settings) {
+        parent::__construct($time);
+        $this->accessTokenMapper = $accessTokenMapper;
+        $this->settings = $settings;
 
-		// Run four times a day
-		$this->setInterval(6 * 60 * 60);
-		$this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
-	}
+        // Run four times a day
+        $this->setInterval(6 * 60 * 60);
+        $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
+    }
 
-	protected function run($argument): void {
-		// Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
-		// if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
+    protected function run($argument): void {
+        // Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
+        // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
         $this->accessTokenMapper->cleanUp();
-	}
+    }
 }

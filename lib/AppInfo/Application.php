@@ -34,28 +34,28 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
 class Application extends App implements IBootstrap {
-	public const APP_ID = 'oidc';
+    public const APP_ID = 'oidc';
 
-	private $backend;
+    private $backend;
 
-	public function __construct() {
-		parent::__construct(self::APP_ID);
-	}
+    public function __construct() {
+        parent::__construct(self::APP_ID);
+    }
 
-	public function register(IRegistrationContext $context): void {
+    public function register(IRegistrationContext $context): void {
         // Register the composer autoloader for packages shipped by this app
         require_once __DIR__ . '/../../vendor/autoload.php';
-		// Register WebFingerHandler
-		$context->registerWellKnownHandler(WebFingerHandler::class);
-		// Register OIDCDiscoveryHandler
-		$context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
+        // Register WebFingerHandler
+        $context->registerWellKnownHandler(WebFingerHandler::class);
+        // Register OIDCDiscoveryHandler
+        $context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
 
-		$this->backend = $this->getContainer()->get(BasicAuthBackend::class);
-		OC_User::useBackend($this->backend);
+        $this->backend = $this->getContainer()->get(BasicAuthBackend::class);
+        OC_User::useBackend($this->backend);
     }
 
     public function boot(IBootContext $context): void {
-
+        // Currently not needed
     }
 
 }

@@ -43,55 +43,55 @@ use Psr\Log\LoggerInterface;
 
 class DiscoveryController extends ApiController
 {
-	/** @var ITimeFactory */
-	private $time;
-	/** @var Throttler */
-	private $throttler;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var Throttler */
+    private $throttler;
     /** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var DiscoveryGenerator */
-	private $discoveryGenerator;
-	/** @var LoggerInterface */
-	private $logger;
+    private $urlGenerator;
+    /** @var DiscoveryGenerator */
+    private $discoveryGenerator;
+    /** @var LoggerInterface */
+    private $logger;
 
-	public function __construct(
-					string $appName,
-					IRequest $request,
-					ITimeFactory $time,
-					Throttler $throttler,
-					IURLGenerator $urlGenerator,
-					DiscoveryGenerator $discoveryGenerator,
-					LoggerInterface $logger
-					)
-	{
-		parent::__construct($appName, $request);
-		$this->time = $time;
-		$this->throttler = $throttler;
+    public function __construct(
+                    string $appName,
+                    IRequest $request,
+                    ITimeFactory $time,
+                    Throttler $throttler,
+                    IURLGenerator $urlGenerator,
+                    DiscoveryGenerator $discoveryGenerator,
+                    LoggerInterface $logger
+                    )
+    {
+        parent::__construct($appName, $request);
+        $this->time = $time;
+        $this->throttler = $throttler;
         $this->urlGenerator = $urlGenerator;
-		$this->discoveryGenerator = $discoveryGenerator;
-		$this->logger = $logger;
-	}
+        $this->discoveryGenerator = $discoveryGenerator;
+        $this->logger = $logger;
+    }
 
-	/**
+    /**
      * @PublicPage
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @BruteForceProtection(action=oidc_discovery)
-	 * @AnonRateThrottle(limit=1500, period=540)
+     * @CORS
+     * @NoCSRFRequired
+     * @BruteForceProtection(action=oidc_discovery)
+     * @AnonRateThrottle(limit=1500, period=540)
      *
      * Must be proviced at path:
      * <issuer>//.well-known/openid-configuration
-	 *
-	 * @return JSONResponse
-	 */
-	#[AnonRateLimit(limit: 1500, period: 540)]
-	#[BruteForceProtection(action: 'oidc_discovery')]
-	#[NoCSRFRequired]
-	#[PublicPage]
-	#[CORS]
-	public function getInfo(): JSONResponse
-	{
-		return $this->discoveryGenerator->generateDiscovery($this->request);
-	}
+     *
+     * @return JSONResponse
+     */
+    #[AnonRateLimit(limit: 1500, period: 540)]
+    #[BruteForceProtection(action: 'oidc_discovery')]
+    #[NoCSRFRequired]
+    #[PublicPage]
+    #[CORS]
+    public function getInfo(): JSONResponse
+    {
+        return $this->discoveryGenerator->generateDiscovery($this->request);
+    }
 
 }

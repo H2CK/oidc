@@ -33,29 +33,29 @@ use OCP\IConfig;
 class CleanupExpiredClients extends TimedJob {
 
     /** @var ClientMapper */
-	private $clientMapper;
-	/** @var IConfig */
-	private $settings;
+    private $clientMapper;
+    /** @var IConfig */
+    private $settings;
 
-	/**
-	 * @param ITimeFactory $time
-	 * @param ClientMapper $clientMapper
-	 */
-	public function __construct(ITimeFactory $time,
-								ClientMapper $clientMapper,
-								IConfig $settings) {
-		parent::__construct($time);
-		$this->clientMapper = $clientMapper;
-		$this->settings = $settings;
+    /**
+     * @param ITimeFactory $time
+     * @param ClientMapper $clientMapper
+     */
+    public function __construct(ITimeFactory $time,
+                                ClientMapper $clientMapper,
+                                IConfig $settings) {
+        parent::__construct($time);
+        $this->clientMapper = $clientMapper;
+        $this->settings = $settings;
 
-		// Run each hour
-		$this->setInterval(1 * 60 * 60);
-		$this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
-	}
+        // Run each hour
+        $this->setInterval(1 * 60 * 60);
+        $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
+    }
 
-	protected function run($argument): void {
-		// Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
-		// if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
+    protected function run($argument): void {
+        // Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
+        // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
         $this->clientMapper->cleanUp();
-	}
+    }
 }

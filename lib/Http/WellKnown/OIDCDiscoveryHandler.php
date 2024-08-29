@@ -35,35 +35,35 @@ use OCA\OIDCIdentityProvider\Http\WellKnown\JsonResponseMapper;
 use OCP\AppFramework\Http\Attribute\CORS;
 
 class OIDCDiscoveryHandler implements IHandler {
-	/** @var DiscoveryGenerator */
-	private $discoveryGenerator;
+    /** @var DiscoveryGenerator */
+    private $discoveryGenerator;
 
-	public function __construct(
-		DiscoveryGenerator $discoveryGenerator
-	) {
-		$this->discoveryGenerator = $discoveryGenerator;
-	}
+    public function __construct(
+        DiscoveryGenerator $discoveryGenerator
+    ) {
+        $this->discoveryGenerator = $discoveryGenerator;
+    }
 
-	/**
-	 * Handle well-known request for openid-configuration
-	 * @param string $service
-	 * @param IRequestContext $context
-	 * @param IResponse|null $previousResponse
-	 *
-	 * @return IResponse|null
-	 */
-	#[CORS]
-	public function handle(
-		string $service,
-		IRequestContext $context,
-		?IResponse $previousResponse
-	): ?IResponse {
-		if ($service !== 'openid-configuration') {
+    /**
+     * Handle well-known request for openid-configuration
+     * @param string $service
+     * @param IRequestContext $context
+     * @param IResponse|null $previousResponse
+     *
+     * @return IResponse|null
+     */
+    #[CORS]
+    public function handle(
+        string $service,
+        IRequestContext $context,
+        ?IResponse $previousResponse
+    ): ?IResponse {
+        if ($service !== 'openid-configuration') {
             // Not relevant to this handler
             return $previousResponse;
         }
 
-		return new JsonResponseMapper($this->discoveryGenerator->generateDiscovery($context->getHttpRequest()));
-	}
+        return new JsonResponseMapper($this->discoveryGenerator->generateDiscovery($context->getHttpRequest()));
+    }
 
 }

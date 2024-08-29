@@ -38,92 +38,92 @@ use OCP\IGroupManager;
  */
 class GroupMapper extends QBMapper {
 
-	/** @var IGroupManager */
-	private $groupManager;
+    /** @var IGroupManager */
+    private $groupManager;
 
-	/**
-	 * @param IDBConnection $db
-	 * @param IGroupManager $groupManager
-	 */
-	public function __construct(IDBConnection $db, IGroupManager $groupManager) {
-		parent::__construct($db, 'oidc_group_map');
-		$this->groupManager = $groupManager;
-	}
+    /**
+     * @param IDBConnection $db
+     * @param IGroupManager $groupManager
+     */
+    public function __construct(IDBConnection $db, IGroupManager $groupManager) {
+        parent::__construct($db, 'oidc_group_map');
+        $this->groupManager = $groupManager;
+    }
 
-	/**
-	 * @param int $id
-	 * @return Group
-	 * @throws ClientNotFoundException
-	 */
-	public function getByIdentifier(string $id): Group {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($id)));
+    /**
+     * @param int $id
+     * @return Group
+     * @throws ClientNotFoundException
+     */
+    public function getByIdentifier(string $id): Group {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id)));
 
-		try {
-			$client = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new ClientNotFoundException('could not find group mapping '.$id, 0, $e);
-		}
-		return $client;
-	}
+        try {
+            $client = $this->findEntity($qb);
+        } catch (IMapperException $e) {
+            throw new ClientNotFoundException('could not find group mapping '.$id, 0, $e);
+        }
+        return $client;
+    }
 
-	/**
-	 * @param int $clientId
-	 * @return Groups[]
-	 */
-	public function getGroupsByClientId(int $clientId): array {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
+    /**
+     * @param int $clientId
+     * @return Groups[]
+     */
+    public function getGroupsByClientId(int $clientId): array {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
 
-		return $this->findEntities($qb);
-	}
+        return $this->findEntities($qb);
+    }
 
-	/**
-	 * delete all redirect URI from a given client
-	 *
-	 * @param int $id
-	 */
-	public function deleteByClientId(int $id) {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->delete($this->tableName)
-			->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-		$qb->executeStatement();
-	}
+    /**
+     * delete all redirect URI from a given client
+     *
+     * @param int $id
+     */
+    public function deleteByClientId(int $id) {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+        $qb->executeStatement();
+    }
 
-	/**
-	 * delete mapping entry by id
-	 *
-	 * @param int $id
-	 */
-	public function deleteById(int $id) {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->delete($this->tableName)
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-		$qb->executeStatement();
-	}
+    /**
+     * delete mapping entry by id
+     *
+     * @param int $id
+     */
+    public function deleteById(int $id) {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+        $qb->executeStatement();
+    }
 
-	/**
-	 * delete all groups that do not exist any more
-	 *
-	 */
-	public function cleanUp() {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName);
-		$usedGroups = $this->findEntities($qb);
-		foreach ($usedGroups as $i => $group) {
-			if (!$this->groupManager->groupExists($group->getGroupId())) {
-				$this->deleteById($group->getId());
-			}
-		}
-	}
+    /**
+     * delete all groups that do not exist any more
+     *
+     */
+    public function cleanUp() {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName);
+        $usedGroups = $this->findEntities($qb);
+        foreach ($usedGroups as $i => $group) {
+            if (!$this->groupManager->groupExists($group->getGroupId())) {
+                $this->deleteById($group->getId());
+            }
+        }
+    }
 }

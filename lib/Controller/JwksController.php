@@ -43,51 +43,51 @@ use Psr\Log\LoggerInterface;
 
 class JwksController extends ApiController
 {
-	/** @var ITimeFactory */
-	private $time;
-	/** @var Throttler */
-	private $throttler;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var Throttler */
+    private $throttler;
     /** @var IURLGenerator */
-	private $urlGenerator;
+    private $urlGenerator;
     /** @var IAppConfig */
-	private $appConfig;
-	/** @var LoggerInterface */
-	private $logger;
+    private $appConfig;
+    /** @var LoggerInterface */
+    private $logger;
 
-	public function __construct(
-					string $appName,
-					IRequest $request,
-					ITimeFactory $time,
-					Throttler $throttler,
-					IURLGenerator $urlGenerator,
-					IAppConfig $appConfig,
-					LoggerInterface $logger
-					)
-	{
-		parent::__construct($appName, $request);
-		$this->time = $time;
-		$this->throttler = $throttler;
+    public function __construct(
+                    string $appName,
+                    IRequest $request,
+                    ITimeFactory $time,
+                    Throttler $throttler,
+                    IURLGenerator $urlGenerator,
+                    IAppConfig $appConfig,
+                    LoggerInterface $logger
+                    )
+    {
+        parent::__construct($appName, $request);
+        $this->time = $time;
+        $this->throttler = $throttler;
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
-		$this->logger = $logger;
-	}
+        $this->logger = $logger;
+    }
 
-	/**
+    /**
      * @PublicPage
-	 * @CORS
-	 * @NoCSRFRequired
-	 * @BruteForceProtection(action=oidc_jwks)
-	 * @AnonRateThrottle(limit=1500, period=540)
-	 *
-	 * @return JSONResponse
-	 */
-	#[AnonRateLimit(limit: 1500, period: 540)]
-	#[BruteForceProtection(action: 'oidc_jwks')]
-	#[NoCSRFRequired]
-	#[CORS]
-	#[PublicPage]
-	public function getKeyInfo(): JSONResponse
-	{
+     * @CORS
+     * @NoCSRFRequired
+     * @BruteForceProtection(action=oidc_jwks)
+     * @AnonRateThrottle(limit=1500, period=540)
+     *
+     * @return JSONResponse
+     */
+    #[AnonRateLimit(limit: 1500, period: 540)]
+    #[BruteForceProtection(action: 'oidc_jwks')]
+    #[NoCSRFRequired]
+    #[CORS]
+    #[PublicPage]
+    public function getKeyInfo(): JSONResponse
+    {
         $keyOps = [
             // 'sign',       // (compute digital signature or MAC)
             'verify',     // (verify digital signature or MAC)
@@ -113,18 +113,18 @@ class JwksController extends ApiController
             $oidcKey
         ];
 
-		$jwkPayload = [
-			'keys' => $keys,
-		];
+        $jwkPayload = [
+            'keys' => $keys,
+        ];
 
-		$this->logger->info('Request to JWKS Endpoint.');
+        $this->logger->info('Request to JWKS Endpoint.');
 
-		$response = new JSONResponse($jwkPayload);
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'GET');
+        $response = new JSONResponse($jwkPayload);
+        $response->addHeader('Access-Control-Allow-Origin', '*');
+        $response->addHeader('Access-Control-Allow-Methods', 'GET');
 
-		return $response;
-	}
+        return $response;
+    }
 
 
 }

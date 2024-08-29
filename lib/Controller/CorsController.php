@@ -36,116 +36,116 @@ use Psr\Log\LoggerInterface;
 
 class CorsController extends ApiController
 {
-	/** @var Throttler */
-	private $throttler;
-	/** @var LoggerInterface */
-	private $logger;
+    /** @var Throttler */
+    private $throttler;
+    /** @var LoggerInterface */
+    private $logger;
 
-	public function __construct(
-					string $appName,
-					IRequest $request,
-					Throttler $throttler,
-					LoggerInterface $logger
-					)
-	{
-		parent::__construct($appName, $request);
-		$this->throttler = $throttler;
-		$this->logger = $logger;
-	}
+    public function __construct(
+                    string $appName,
+                    IRequest $request,
+                    Throttler $throttler,
+                    LoggerInterface $logger
+                    )
+    {
+        parent::__construct($appName, $request);
+        $this->throttler = $throttler;
+        $this->logger = $logger;
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function discoveryCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function discoveryCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function jwksCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function jwksCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function userInfoCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function userInfoCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function logoutCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function logoutCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function tokenCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function tokenCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function authorizeCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function authorizeCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
-	/**
-	 * @PublicPage
-	 * @NoCSRFRequired
-	 *
-	 * @return Response
-	 */
-	#[NoCSRFRequired]
-	#[PublicPage]
-	public function registerCorsResponse(): Response {
-		return $this->corsResponse();
-	}
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function registerCorsResponse(): Response {
+        return $this->corsResponse();
+    }
 
 
-	private function corsResponse(): Response {
-		$response = new Response();
-		$response->addHeader('Access-Control-Allow-Origin', '*');
-		$response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
-		// $response->addHeader('Access-Control-Max-Age', '1728000');
-		// $response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-		// $response->addHeader('Access-Control-Allow-Credentials', 'false');
-		return $response;
-	}
+    private function corsResponse(): Response {
+        $response = new Response();
+        $response->addHeader('Access-Control-Allow-Origin', '*');
+        $response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
+        // $response->addHeader('Access-Control-Max-Age', '1728000');
+        // $response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
+        // $response->addHeader('Access-Control-Allow-Credentials', 'false');
+        return $response;
+    }
 
 }

@@ -32,23 +32,23 @@ use OCP\Migration\SimpleMigrationStep;
 
 class Version0008Date20230204190000 extends SimpleMigrationStep {
 
-	/**
-	 * @param IOutput $output
-	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
-	 * @param array $options
-	 * @return null|ISchemaWrapper
-	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
-		/** @var ISchemaWrapper $schema */
-		$schema = $schemaClosure();
+    /**
+     * @param IOutput $output
+     * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
+     * @param array $options
+     * @return null|ISchemaWrapper
+     */
+    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
+        /** @var ISchemaWrapper $schema */
+        $schema = $schemaClosure();
 
-		$table = $schema->getTable('oidc_clients');
-		$table->addColumn('flow_type', 'string', [
-			'notnull' => false,
-			'default' => 'code',
-			'length' => 16,
-		]);
+        $table = $schema->getTable('oidc_clients');
+        $table->addColumn('flow_type', 'string', [
+            'notnull' => false,
+            'default' => 'code',
+            'length' => 16,
+        ]);
 
-		return $schema;
-	}
+        return $schema;
+    }
 }

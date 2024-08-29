@@ -32,22 +32,22 @@ use OCP\Migration\SimpleMigrationStep;
 
 class Version0005Date20221009082100 extends SimpleMigrationStep {
 
-	/**
-	 * @param IOutput $output
-	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
-	 * @param array $options
-	 * @return null|ISchemaWrapper
-	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
-		/** @var ISchemaWrapper $schema */
-		$schema = $schemaClosure();
+    /**
+     * @param IOutput $output
+     * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
+     * @param array $options
+     * @return null|ISchemaWrapper
+     */
+    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
+        /** @var ISchemaWrapper $schema */
+        $schema = $schemaClosure();
 
-		// Remove column redirect URIs on table oidc_clients
-		if ($schema->hasTable('oidc_clients')) {
-			$table = $schema->getTable('oidc_clients');
-			$table->dropColumn('redirect_uri');
-		}
+        // Remove column redirect URIs on table oidc_clients
+        if ($schema->hasTable('oidc_clients')) {
+            $table = $schema->getTable('oidc_clients');
+            $table->dropColumn('redirect_uri');
+        }
 
-		return $schema;
-	}
+        return $schema;
+    }
 }

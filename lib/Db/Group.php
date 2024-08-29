@@ -33,16 +33,16 @@ use OCP\AppFramework\Db\Entity;
  */
 class Group extends Entity
 {
-	/** @var int */
-	public $id;
-	/** @var int */
-	protected $clientId;
-	/** @var string */
-	protected $groupId;
+    /** @var int */
+    public $id;
+    /** @var int */
+    protected $clientId;
+    /** @var string */
+    protected $groupId;
 
-	public function __construct() {
-		$this->addType('id', 'int');
-		$this->addType('client_id', 'int');
-		$this->addType('group_id', 'string');
-	}
+    public function __construct() {
+        $this->addType('id', 'int');
+        $this->addType('client_id', 'int');
+        $this->addType('group_id', 'string');
+    }
 }

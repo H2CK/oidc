@@ -37,127 +37,127 @@ use OCP\AppFramework\Services\IAppConfig;
  * @template-extends QBMapper<Client>
  */
 class ClientMapper extends QBMapper {
-	/** @var ITimeFactory */
-	private $time;
-	/** @var IAppConfig */
-	private $appConfig;
-	/** @var RedirectUriMapper */
-	private $redirectUriMapper;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var IAppConfig */
+    private $appConfig;
+    /** @var RedirectUriMapper */
+    private $redirectUriMapper;
 
-	/**
-	 * @param IDBConnection $db
-	 */
-	public function __construct(IDBConnection $db,
-								ITimeFactory $time,
-								IAppConfig $appConfig,
-								RedirectUriMapper $redirectUriMapper) {
-		parent::__construct($db, 'oidc_clients');
-		$this->time = $time;
-		$this->appConfig = $appConfig;
-		$this->redirectUriMapper = $redirectUriMapper;
-	}
+    /**
+     * @param IDBConnection $db
+     */
+    public function __construct(IDBConnection $db,
+                                ITimeFactory $time,
+                                IAppConfig $appConfig,
+                                RedirectUriMapper $redirectUriMapper) {
+        parent::__construct($db, 'oidc_clients');
+        $this->time = $time;
+        $this->appConfig = $appConfig;
+        $this->redirectUriMapper = $redirectUriMapper;
+    }
 
-	/**
-	 * @param string $clientIdentifier
-	 * @return Client
-	 * @throws ClientNotFoundException
-	 */
-	public function getByIdentifier(string $clientIdentifier): Client {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('client_identifier', $qb->createNamedParameter($clientIdentifier)));
+    /**
+     * @param string $clientIdentifier
+     * @return Client
+     * @throws ClientNotFoundException
+     */
+    public function getByIdentifier(string $clientIdentifier): Client {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('client_identifier', $qb->createNamedParameter($clientIdentifier)));
 
-		try {
-			$client = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new ClientNotFoundException('could not find client '.$clientIdentifier, 0, $e);
-		}
-		return $client;
-	}
+        try {
+            $client = $this->findEntity($qb);
+        } catch (IMapperException $e) {
+            throw new ClientNotFoundException('could not find client '.$clientIdentifier, 0, $e);
+        }
+        return $client;
+    }
 
-	/**
-	 * @param int $id internal id of the client
-	 * @return Client
-	 * @throws ClientNotFoundException
-	 */
-	public function getByUid(int $id): Client {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+    /**
+     * @param int $id internal id of the client
+     * @return Client
+     * @throws ClientNotFoundException
+     */
+    public function getByUid(int $id): Client {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
 
-		try {
-			$client = $this->findEntity($qb);
-		} catch (IMapperException $e) {
-			throw new ClientNotFoundException('could not find client with id '.$id, 0, $e);
-		}
-		return $client;
-	}
+        try {
+            $client = $this->findEntity($qb);
+        } catch (IMapperException $e) {
+            throw new ClientNotFoundException('could not find client with id '.$id, 0, $e);
+        }
+        return $client;
+    }
 
-	/**
-	 * @return Client[]
-	 */
-	public function getClients(): array {
-		$qb = $this->db->getQueryBuilder();
-		$qb
-			->select('*')
-			->from($this->tableName);
+    /**
+     * @return Client[]
+     */
+    public function getClients(): array {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName);
 
-		return $this->findEntities($qb);
-	}
+        return $this->findEntities($qb);
+    }
 
-	/**
-	 * @return int Number of DCR clients
-	 */
-	public function getNumDcrClients(): int {
-		$qb = $this->db->getQueryBuilder();
+    /**
+     * @return int Number of DCR clients
+     */
+    public function getNumDcrClients(): int {
+        $qb = $this->db->getQueryBuilder();
 
-		$qb
-			->select('*')
-			->from($this->tableName)
-			// ->select($qb->createFunction('COUNT(`id`)'))
-			->where($qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)));
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            // ->select($qb->createFunction('COUNT(`id`)'))
+            ->where($qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)));
 
-		return $qb->executeQuery()->rowCount();
-	}
+        return $qb->executeQuery()->rowCount();
+    }
 
-	/**
-	 * delete all expired clients
-	 *
-	 */
-	public function cleanUp() {
-		$qb = $this->db->getQueryBuilder();
-		$timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('client_expire_time', '3600');
+    /**
+     * delete all expired clients
+     *
+     */
+    public function cleanUp() {
+        $qb = $this->db->getQueryBuilder();
+        $timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('client_expire_time', '3600');
 
-		$where = $qb->expr()->andX(
-			$qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),
-			$qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
-		);
+        $where = $qb->expr()->andX(
+            $qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),
+            $qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
+        );
 
-		$qb
-			->select('*')
-			->from($this->tableName)
-			->where($where);
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($where);
 
-		$entities = $this->findEntities($qb);
+        $entities = $this->findEntities($qb);
 
-		foreach ($entities as $entity) {
-			// Delete the corresponding redirect uris
-			$this->redirectUriMapper->deleteByClientId($entity->getId());
-		}
+        foreach ($entities as $entity) {
+            // Delete the corresponding redirect uris
+            $this->redirectUriMapper->deleteByClientId($entity->getId());
+        }
 
-		$qb = $this->db->getQueryBuilder();
-		// issued_at < $timeLimit
-		$where = $qb->expr()->andX(
-			$qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),
-			$qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
-		);
-		$qb
-			->delete($this->tableName)
-			->where($where);
-		$qb->executeStatement();
-	}
+        $qb = $this->db->getQueryBuilder();
+        // issued_at < $timeLimit
+        $where = $qb->expr()->andX(
+            $qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),
+            $qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL))
+        );
+        $qb
+            ->delete($this->tableName)
+            ->where($where);
+        $qb->executeStatement();
+    }
 }

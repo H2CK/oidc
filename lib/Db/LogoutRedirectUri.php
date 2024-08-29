@@ -32,13 +32,13 @@ use OCP\AppFramework\Db\Entity;
  * @method void setRedirectUri(string $redirectUri)
  */
 class LogoutRedirectUri extends Entity {
-	/** @var int */
-	public $id;
-	/** @var string */
-	protected $redirectUri;
+    /** @var int */
+    public $id;
+    /** @var string */
+    protected $redirectUri;
 
-	public function __construct() {
-		$this->addType('id', 'int');
-		$this->addType('redirect_uri', 'string');
-	}
+    public function __construct() {
+        $this->addType('id', 'int');
+        $this->addType('redirect_uri', 'string');
+    }
 }

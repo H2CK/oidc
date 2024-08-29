@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.3] - 2024-08-29
+
+### Changed
+
+- Added support for Nextcloud 30
+- Removed support for Nextcloud 27
+- Updated dependencies
+- Updated translations
+- Code cleanup and replacement of deprecated Nextcloud functions
+
 ## [0.9.2] - 2024-07-25
 
 ### Changed
