@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-08-15 02:19+0000\n"
+"POT-Creation-Date: 2024-08-30 04:19+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2024\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
@@ -67,13 +67,13 @@ msgstr ""
 "esimerkiksi: https://yourdomain.com/path"
 
 #. TRANSLATORS src/components/OIDCItem.vue:143
-#: /app/lib/Settings/Admin.php:116
+#: /app/lib/Settings/Admin.php:117
 #: /app/specialVueFakeDummyForL10nScript.js:120
 msgid "Code Authorization Flow"
 msgstr "Koodin hyväksyntävirta"
 
 #. TRANSLATORS src/components/OIDCItem.vue:147
-#: /app/lib/Settings/Admin.php:119
+#: /app/lib/Settings/Admin.php:120
 #: /app/specialVueFakeDummyForL10nScript.js:122
 msgid "Code & Implicit Authorization Flow"
 msgstr "Koodi ja implisiittisen valtuutuksen virtaus"
@@ -108,12 +108,12 @@ msgstr ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
-#. TRANSLATORS src/App.vue:24
+#. TRANSLATORS src/App.vue:23
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
 msgstr "OpenID Connect -asiakkaat"
 
-#. TRANSLATORS src/App.vue:26
+#. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:4
 msgid ""
 "OpenID Connect allows to authenticate at external services with "
@@ -122,19 +122,19 @@ msgstr ""
 "OpenID Connect mahdollistaa tunnistautumisen ulkoisiin palveluihin "
 "{instanceName}-käyttäjätunnuksilla."
 
-#. TRANSLATORS src/App.vue:53
+#. TRANSLATORS src/App.vue:50
 #: /app/specialVueFakeDummyForL10nScript.js:6
 msgid "Add client"
 msgstr "Lisää asiakas"
 
-#. TRANSLATORS src/App.vue:60
+#. TRANSLATORS src/App.vue:57
 #. TRANSLATORS src/components/OIDCItem.vue:27
 #: /app/specialVueFakeDummyForL10nScript.js:8
 #: /app/specialVueFakeDummyForL10nScript.js:84
 msgid "Name"
 msgstr "Nimi"
 
-#. TRANSLATORS src/App.vue:65
+#. TRANSLATORS src/App.vue:62
 #. TRANSLATORS src/components/OIDCItem.vue:31
 #. TRANSLATORS src/components/OIDCItem.vue:45
 #: /app/specialVueFakeDummyForL10nScript.js:10
@@ -144,27 +144,27 @@ msgstr "Nimi"
 msgid "Redirection URI"
 msgstr "Uudelleenohjaus URI"
 
-#. TRANSLATORS src/App.vue:69
+#. TRANSLATORS src/App.vue:66
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
 msgstr "Valitse allekirjoitusalgoritmi"
 
-#. TRANSLATORS src/App.vue:81
+#. TRANSLATORS src/App.vue:78
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
 msgstr "Valitse tyyppi"
 
-#. TRANSLATORS src/App.vue:84
+#. TRANSLATORS src/App.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "Confidential"
 msgstr "Luottamuksellinen"
 
-#. TRANSLATORS src/App.vue:87
+#. TRANSLATORS src/App.vue:84
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
 msgstr "Julkinen"
 
-#. TRANSLATORS src/App.vue:90
+#. TRANSLATORS src/App.vue:87
 #. TRANSLATORS src/components/OIDCItem.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:20
 #: /app/specialVueFakeDummyForL10nScript.js:76
@@ -172,140 +172,140 @@ msgstr "Julkinen"
 msgid "Add"
 msgstr "Lisä"
 
-#. TRANSLATORS src/App.vue:94
+#. TRANSLATORS src/App.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:22
 msgid "Settings"
 msgstr "Asetukset"
 
+#. TRANSLATORS src/App.vue:92
 #. TRANSLATORS src/App.vue:95
-#. TRANSLATORS src/App.vue:98
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
 msgstr "Tokenin viimeinen voimassaoloaika"
 
-#. TRANSLATORS src/App.vue:101
+#. TRANSLATORS src/App.vue:98
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
 msgstr "Valitse Tokenin viimeinen voimassaoloaika"
 
-#. TRANSLATORS src/App.vue:104
+#. TRANSLATORS src/App.vue:101
 #: /app/specialVueFakeDummyForL10nScript.js:30
 msgid "5 minutes"
 msgstr "5 minuuttia"
 
-#. TRANSLATORS src/App.vue:107
+#. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:32
 msgid "10 minutes"
 msgstr "10 minuuttia"
 
-#. TRANSLATORS src/App.vue:110
+#. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:34
 msgid "15 minutes"
 msgstr "15 minuuttia"
 
-#. TRANSLATORS src/App.vue:113
+#. TRANSLATORS src/App.vue:110
 #: /app/specialVueFakeDummyForL10nScript.js:36
 msgid "30 minutes"
 msgstr "30 minuuttia"
 
-#. TRANSLATORS src/App.vue:116
+#. TRANSLATORS src/App.vue:113
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
 msgstr "60 minuuttia"
 
-#. TRANSLATORS src/App.vue:121
+#. TRANSLATORS src/App.vue:118
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Dynamic Client Registration"
 msgstr "Dynaaminen asiakkaan rekisteröinti"
 
-#. TRANSLATORS src/App.vue:125
+#. TRANSLATORS src/App.vue:122
 #: /app/specialVueFakeDummyForL10nScript.js:42
 msgid "Enable or disable Dynamic Client Registration"
 msgstr "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä"
 
-#. TRANSLATORS src/App.vue:128
+#. TRANSLATORS src/App.vue:125
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä"
 
-#. TRANSLATORS src/App.vue:131
+#. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:46
 msgid "Disable"
 msgstr "Poista käytöstä"
 
-#. TRANSLATORS src/App.vue:134
+#. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Enable"
 msgstr "Käytä"
 
-#. TRANSLATORS src/App.vue:139
+#. TRANSLATORS src/App.vue:136
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Email Verified Flag"
 msgstr "Sähköpostivarmennettu attribuutti"
 
-#. TRANSLATORS src/App.vue:143
+#. TRANSLATORS src/App.vue:140
 #: /app/specialVueFakeDummyForL10nScript.js:52
 msgid "Source for email verified flag in token"
 msgstr "Sähköpostin todennetun attribuutin lähde tokenissa"
 
-#. TRANSLATORS src/App.vue:146
+#. TRANSLATORS src/App.vue:143
 #: /app/specialVueFakeDummyForL10nScript.js:54
 msgid "Select behaviour for setting email verified flag"
 msgstr ""
 "Valitse käyttäytyminen sähköpostin todennetun attribuutin asettamista varten"
 
-#. TRANSLATORS src/App.vue:149
+#. TRANSLATORS src/App.vue:146
 #: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "Use Nextcloud account information"
 msgstr "Käytä Nextcloud-tilin tietoja"
 
-#. TRANSLATORS src/App.vue:152
+#. TRANSLATORS src/App.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Set to always verified"
 msgstr "Asetetaan aina tarkistetuksi"
 
-#. TRANSLATORS src/App.vue:156
+#. TRANSLATORS src/App.vue:153
 #: /app/specialVueFakeDummyForL10nScript.js:60
 msgid "Integrate avatar in user info/ID token"
 msgstr "Avatarin sisällyttäminen käyttäjän tietoihin/tunnisteeseen"
 
-#. TRANSLATORS src/App.vue:159
+#. TRANSLATORS src/App.vue:156
 #: /app/specialVueFakeDummyForL10nScript.js:62
 msgid "Method for integration of avatar"
 msgstr "Menetelmä avatarin integroimiseksi"
 
-#. TRANSLATORS src/App.vue:162
+#. TRANSLATORS src/App.vue:159
 #: /app/specialVueFakeDummyForL10nScript.js:64
 msgid "Select how the avatar image should be integrated"
 msgstr "Valitse, miten avatar-kuva integroidaan"
 
-#. TRANSLATORS src/App.vue:165
+#. TRANSLATORS src/App.vue:162
 #: /app/specialVueFakeDummyForL10nScript.js:66
 msgid "No integration"
 msgstr "Ei integrointia"
 
-#. TRANSLATORS src/App.vue:168
+#. TRANSLATORS src/App.vue:165
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Add to user info"
 msgstr "Lisää käyttäjätietoihin"
 
-#. TRANSLATORS src/App.vue:171
+#. TRANSLATORS src/App.vue:168
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid "Add to user info and ID token"
 msgstr "Lisää käyttäjätietoihin ja ID-tunnisteeseen"
 
-#. TRANSLATORS src/App.vue:175
+#. TRANSLATORS src/App.vue:172
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Accepted Logout Redirect URIs"
 msgstr "Hyväksytyt uloskirjautumisen uudelleenohjauksen URI"
 
-#. TRANSLATORS src/App.vue:195
+#. TRANSLATORS src/App.vue:192
 #: /app/specialVueFakeDummyForL10nScript.js:78
 msgid "Public Key"
 msgstr "Julkinen avain"
 
-#. TRANSLATORS src/App.vue:200
+#. TRANSLATORS src/App.vue:197
 #: /app/specialVueFakeDummyForL10nScript.js:80
 msgid "Regenerate Keys"
 msgstr "Uudelleen avaimet"
