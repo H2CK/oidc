@@ -30,6 +30,7 @@ OC.L10N.register(
     "60 minutes" : "60 минут",
     "Disable" : "Отключить",
     "Enable" : "Включить",
+    "Use Nextcloud account information" : "Используйте информацию об учетной записи Nextcloud",
     "Accepted Logout Redirect URIs" : "Разрешенные URI перенаправления при выходе из системы",
     "Public Key" : "Открытый ключ",
     "Regenerate Keys" : "Пересоздать ключи",
