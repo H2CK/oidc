@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.4] - 2024-09-11
+
+### Changed
+
+- Fixed bug for lost session data in case of client authentication uses BasicAuth
+- Updated dependencies
+- Updated translations
+
 ## [0.9.3] - 2024-08-29
 
 ### Changed

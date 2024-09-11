@@ -193,13 +193,13 @@ class LoginRedirectorController extends ApiController
         {
         if (!$this->userSession->isLoggedIn()) {
             // Not authenticated yet
-            // Store things in user session to be available after login
-            $this->session->set('client_id', $client_id);
-            $this->session->set('state', $state);
-            $this->session->set('response_type', $response_type);
-            $this->session->set('redirect_uri', $redirect_uri);
-            $this->session->set('scope', $scope);
-            $this->session->set('nonce', $nonce);
+            // Store oidc attributes in user session to be available after login
+            $this->session->set('oidc_client_id', $client_id);
+            $this->session->set('oidc_state', $state);
+            $this->session->set('oidc_response_type', $response_type);
+            $this->session->set('oidc_redirect_uri', $redirect_uri);
+            $this->session->set('oidc_scope', $scope);
+            $this->session->set('oidc_nonce', $nonce);
 
             $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', []);
 
@@ -216,22 +216,22 @@ class LoginRedirectorController extends ApiController
         }
 
         if (empty($client_id)) {
-            $client_id = $this->session->get('client_id');
+            $client_id = $this->session->get('oidc_client_id');
         }
         if (empty($state)) {
-            $state = $this->session->get('state');
+            $state = $this->session->get('oidc_state');
         }
         if (empty($response_type)) {
-            $response_type = $this->session->get('response_type');
+            $response_type = $this->session->get('oidc_response_type');
         }
         if (empty($redirect_uri)) {
-            $redirect_uri = $this->session->get('redirect_uri');
+            $redirect_uri = $this->session->get('oidc_redirect_uri');
         }
         if (empty($scope)) {
-            $scope = $this->session->get('scope');
+            $scope = $this->session->get('oidc_scope');
         }
         if (empty($nonce)) {
-            $nonce = $this->session->get('nonce');
+            $nonce = $this->session->get('oidc_nonce');
         }
 
         // Set default scope if scope is not set at all
