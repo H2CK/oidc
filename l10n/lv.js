@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tavam pārvirzīšanas URL ir jābūt pilnam URL, piemēram https://yourdomain.com/path",
     "Add client" : "Pievienot klientu",
-    "Name" : "Vārds",
+    "Name" : "Nosaukums",
     "Redirection URI" : "Pārvirzāmais URI",
     "Public" : "Publiska",
     "Add" : "Pievienot",
