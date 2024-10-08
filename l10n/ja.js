@@ -2,7 +2,12 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "このクライアント(認証依頼元)は認証されていないので接続できません。クライアント側の管理者に問い合わせてください。",
+    "Your client is expired. Please inform the administrator of your client." : "クライアントの有効期限が切れています。クライアントの管理者にお知らせください。",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "受信したリダイレクトURIは接続の許可がされていません。クライアントの管理者にお知らせください。",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "ユーザがクライアントに定義されたグループのメンバーではありません。ログイントークンの取得が許可されていません。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "リダイレクトURLは、完全なURL（例えばhttps://yourdomain.com/path）である必要があります。",
+    "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "NextcloudをOpenID Connectのアイデンティティプロバイダとして使用する\n\nこのアプリを使えば、NextcloudをOpenID Connectのアイデンティティプロバイダとして使うことができます。\n他のサービスが正しく設定されていれば、Nextcloudのログインを使用してそれらのサービスにアクセスできます。\n\n完全なドキュメントは以下を参照してください：\n\n- [ユーザードキュメント](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [開発者向けドキュメント](https://github.com/H2CK/oidc/wiki#developer-documentation)",
+    "OpenID Connect clients" : "OpenID Connect クライアント",
     "Add client" : "クライアントの追加",
     "Name" : "名前",
     "Redirection URI" : "リダイレクトURI",
@@ -13,8 +18,13 @@ OC.L10N.register(
     "10 minutes" : "10分",
     "15 minutes" : "15分",
     "30 minutes" : "30分",
+    "60 minutes" : "60分",
+    "Dynamic Client Registration" : "動的クライアント登録",
+    "Enable or disable Dynamic Client Registration" : "動的クライアント登録を有効または無効にする",
+    "Select to enable/disable the Dynamic Client Registration" : "動的クライアント登録の有効／無効を選択します。",
     "Disable" : "無効",
     "Enable" : "有効にする",
+    "Email Verified Flag" : "Eメール認証済みフラグ",
     "Public Key" : "公開鍵",
     "Delete" : "削除",
     "Client Identifier" : "クライアントID",
@@ -22,6 +32,8 @@ OC.L10N.register(
     "Show client secret" : "クライアントシークレットキーを表示",
     "Signing Algorithm" : "署名アルゴリズム",
     "Type" : "タイプ",
-    "Flows" : "フロー"
+    "Flows" : "フロー",
+    "Limited to Groups" : "グループに制限",
+    "Only users in one of the following groups are allowed to use the client." : "クライアントを使用できるのは、次のいずれかのグループに所属するユーザーだけです。"
 },
 "nplurals=1; plural=0;");
