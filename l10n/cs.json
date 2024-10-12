@@ -28,6 +28,8 @@
     "60 minutes" : "60 minut",
     "Disable" : "Vypnout",
     "Enable" : "Povolit",
+    "Email Verified Flag" : "Příznak ověřeného e-mailu",
+    "Use Nextcloud account information" : "Použít údaje Nextcloud účtu",
     "Integrate avatar in user info/ID token" : "Začlenit zástupný obrázek do informací o uživateli / identif. tokenu",
     "Method for integration of avatar" : "Způsob začlenění alternativního obrázku",
     "Select how the avatar image should be integrated" : "Vyberte jak má být alternativní obrázek začleněn",
