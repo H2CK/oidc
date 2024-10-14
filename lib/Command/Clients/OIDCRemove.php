@@ -46,19 +46,17 @@ class OIDCRemove extends Command {
       $name = $input->getArgument("name");
       // get database connection
       $query = $this->connection->getQueryBuilder();
-      // get object id of client
       $query->select('*')
         ->from('oidc_clients')
         ->where($query->expr()->eq('name', $query->createNamedParameter($name)));
-
+      
       $res = $query->executeQuery();
 
+      // remove client if any
       if($client = $res->fetchOne()) {
         $res = $this->settingsController->deleteClient($client);
-        // output created client infos
         $output->writeln('<info>Client `' . $name . '` removed.</info>');
       } else {
-        // output created client infos
         $output->writeln('<comment>Client `' . $name . '` not found.</comment>');
       }
 
