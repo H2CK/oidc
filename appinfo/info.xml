@@ -20,8 +20,8 @@ Full documentation can be found at:
   <namespace>OIDCIdentityProvider</namespace>
 
   <types>
-	<prelogin/>
-    <authentication />
+    <prelogin/>
+    <authentication/>
   </types>
 
   <documentation>
@@ -43,10 +43,16 @@ Full documentation can be found at:
     <nextcloud min-version="28" max-version="30"/>
   </dependencies>
 
+  <commands>
+    <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCList</command>
+    <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCCreate</command>
+    <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCRemove</command>
+  </commands>
+
   <background-jobs>
     <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens</job>
-	<job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredClients</job>
-	<job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupGroups</job>
+    <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredClients</job>
+    <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupGroups</job>
   </background-jobs>
 
   <repair-steps>
@@ -54,6 +60,7 @@ Full documentation can be found at:
       <step>OCA\OIDCIdentityProvider\Migration\CreateKeys</step>
     </install>
   </repair-steps>
+
 
   <settings>
     <admin>OCA\OIDCIdentityProvider\Settings\Admin</admin>
