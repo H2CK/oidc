@@ -37,17 +37,10 @@ class OIDCList extends Command {
       $query = $this->connection->getQueryBuilder();
       $query->select('*')->from('oidc_clients')->executeQuery();
       $result = $query->executeQuery();
-
-      // fetch all clients from database
+      // fetch all clients
       $clients = $result->fetchAll();
-
-      // output clients in a formatted manner
-      if (empty($clients)) {
-        $output->writeln('<comment>No clients found.</comment>');
-      } else {
-        $output->writeln('<info>Clients:</info> ' . json_encode($clients, JSON_PRETTY_PRINT));
-      }
-
+      // output pretty json
+      $output->writeln(json_encode($clients, JSON_PRETTY_PRINT));
       return 0;
   }
 
