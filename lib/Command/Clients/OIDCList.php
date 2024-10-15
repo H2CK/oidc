@@ -2,28 +2,25 @@
 
 namespace OCA\OIDCIdentityProvider\Command\Clients;
 
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
+
 use OCP\AppFramework\Services\IAppConfig;
-use OCP\IDBConnection;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class OIDCList extends Command {
   /** @var IAppConfig */
   private $appconf;
-  /** @var IDBConnection */
-  private $connection;
 
   public function __construct(
     IAppConfig $appconf,
-    IDBConnection $connection
+    ClientMapper $mapper
   ) {
       parent::__construct();
       $this->appconf = $appconf;
-      $this->connection = $connection;
+      $this->mapper = $mapper;
   }
 
   protected function configure(): void {
@@ -33,14 +30,17 @@ class OIDCList extends Command {
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int {
-      // get database connection
-      $query = $this->connection->getQueryBuilder();
-      $query->select('*')->from('oidc_clients')->executeQuery();
-      $result = $query->executeQuery();
-      // fetch all clients
-      $clients = $result->fetchAll();
-      // output pretty json
-      $output->writeln(json_encode($clients, JSON_PRETTY_PRINT));
+      try {
+        // get client objects
+        $clients = $this->mapper->getClients();
+        // output pretty json
+        $output->writeln(json_encode($clients, JSON_PRETTY_PRINT));
+        return Command::SUCCESS;
+      } catch (Exception $e) {
+        // handle any errors and output a message
+        $output->writeln("<error>Error: {$e->getMessage()}</error>");
+        return Command::FAILURE;
+      }
       return 0;
   }
 

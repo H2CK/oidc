@@ -24,6 +24,8 @@ namespace OCA\OIDCIdentityProvider\Db;
 
 use OCP\AppFramework\Db\Entity;
 
+use JsonSerializable;
+
 /**
  * @method int getId()
  * @method string getClientIdentifier()
@@ -45,13 +47,12 @@ use OCP\AppFramework\Db\Entity;
  * @method int getIssuedAt()
  * @method void setIssuedAt(int $issuedAt)
  */
-class Client extends Entity {
-    /** @var int */
+class Client extends Entity implements JsonSerializable {
     public $id;
     /** @var string */
     protected $name;
-    /** @var string */
-    protected $redirectUri;
+    /** @var string[] */
+    protected $redirectUris;
     /** @var string */
     protected $clientIdentifier;
     /** @var string */
@@ -62,15 +63,28 @@ class Client extends Entity {
     protected $type;
     /** @var string */
     protected $flowType;
-    /** @var boolean */
+    /** @var bool */
     protected $dcr;
     /** @var int */
-    protected $issuedAt;
+    protected $issuedAt = 0;
 
-    public function __construct() {
+    public function __construct(
+        $name = '',
+        $redirectUris = [],
+        $algorithm = 'RSA256',
+        $type = 'confidential',
+        $flowType = 'code',
+        $dcr = false
+    ) {
+        $this->setName($name);
+        $this->redirectUris = $redirectUris;
+        $this->setSigningAlg($algorithm == 'RSA256' ? 'RSA256' : 'HS256');
+        $this->setType($type == 'public' ? 'public' : 'confidential');
+        $this->setFlowType($flowType);
+        $this->setDcr($dcr);
+
         $this->addType('id', 'int');
         $this->addType('name', 'string');
-        $this->addType('redirect_uri', 'string');
         $this->addType('client_identifier', 'string');
         $this->addType('secret', 'string');
         $this->addType('signing_alg', 'string');
@@ -78,5 +92,23 @@ class Client extends Entity {
         $this->addType('flow_type', 'string');
         $this->addType('dcr', 'boolean');
         $this->addType('issued_at', 'int');
+    }
+
+    /**
+     * Implement JsonSerializable interface
+     * @return array An associative array representing the Client object
+     */
+    public function jsonSerialize() {
+        return [
+            'name' => $this->name,
+            'redirect_uris' => $this->getRedirectUris(),
+            'jwt_alg' => $this->signingAlg,
+            'type' => $this->type,
+            'client_id' => $this->clientIdentifier,
+            'client_secret' => $this->secret,
+            'flow_type' => $this->flowType,
+            'dcr' => $this->dcr,
+            'issued_at' => $this->issuedAt
+        ];
     }
 }

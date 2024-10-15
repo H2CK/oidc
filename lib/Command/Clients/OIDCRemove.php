@@ -9,26 +9,21 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use OCP\AppFramework\Services\IAppConfig;
-use OCP\IDBConnection;
 use OCA\OIDCIdentityProvider\Db\Client;
-use OCA\OIDCIdentityProvider\Controller\SettingsController;
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
 
 class OIDCRemove extends Command {
 
   /** @var IAppConfig */
   private $appconf;
-  /** @var IDBConnection */
-  private $connection;
 
   public function __construct(
     IAppConfig $appconf,
-    IDBConnection $connection,
-    SettingsController $settingsController
+    ClientMapper $mapper
   ) {
       parent::__construct();
       $this->appconf = $appconf;
-      $this->connection = $connection;
-      $this->settingsController = $settingsController;
+      $this->mapper = $mapper;
   }
 
   protected function configure(): void {
@@ -36,31 +31,25 @@ class OIDCRemove extends Command {
       ->setName('oidc:remove')
       ->setDescription('Remove an oidc client')
       ->addArgument(
-        'name',
+        'client_id',
         InputArgument::REQUIRED, 
-        'The name of the client to remove'
+        'The identifier of the client to remove'
       );
   }
 
   protected function execute(InputInterface $input, OutputInterface $output): int {
-      $name = $input->getArgument("name");
-      // get database connection
-      $query = $this->connection->getQueryBuilder();
-      $query->select('*')
-        ->from('oidc_clients')
-        ->where($query->expr()->eq('name', $query->createNamedParameter($name)));
-      
-      $res = $query->executeQuery();
-
-      // remove client if any
-      if($client = $res->fetchOne()) {
-        $res = $this->settingsController->deleteClient($client);
-        $output->writeln('<info>Client `' . $name . '` removed.</info>');
-      } else {
-        $output->writeln('<comment>Client `' . $name . '` not found.</comment>');
-      }
-
-      return 0;
+    // retrieve client identifier
+    $client_id = $input->getArgument("client_id");
+    // remove client
+    try {
+      if ($this->mapper->deleteByIdentifier($client_id))
+        $output->writeln("<info>Client `{$client_id}` removed.</info>");
+      else
+        $output->writeln("<comment>Client `{$client_id}` not found.</comment>");
+      return Command::SUCCESS;
+    } catch (\Exception $e) {
+      $output->writeln("<error>Error: {$e->getMessage()}.</error>");      
+      return Command::FAILURE;
+    }
   }
-
 }

@@ -24,6 +24,8 @@ namespace OCA\OIDCIdentityProvider\Db;
 
 use OCP\AppFramework\Db\Entity;
 
+use JsonSerializable;
+
 /**
  * @method int getId()
  * @method int getClientId()
@@ -31,7 +33,7 @@ use OCP\AppFramework\Db\Entity;
  * @method string getRedirectUri()
  * @method void setRedirectUri(string $redirectUri)
  */
-class RedirectUri extends Entity {
+class RedirectUri extends Entity implements JsonSerializable {
     /** @var int */
     public $id;
     /** @var int */
@@ -43,5 +45,13 @@ class RedirectUri extends Entity {
         $this->addType('id', 'int');
         $this->addType('client_id', 'int');
         $this->addType('redirect_uri', 'string');
+    }
+
+    /**
+     * Implement JsonSerializable interface
+     * @return array An associative array representing the Client object
+     */
+    public function jsonSerialize() {
+        return $this->redirectUri;
     }
 }
