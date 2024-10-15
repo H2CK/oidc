@@ -34,7 +34,7 @@ class OIDCList extends Command {
         // get client objects
         $clients = $this->mapper->getClients();
         // output pretty json
-        $output->writeln(json_encode($clients, JSON_PRETTY_PRINT));
+        $output->writeln(json_encode($clients, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));
         return Command::SUCCESS;
       } catch (Exception $e) {
         // handle any errors and output a message

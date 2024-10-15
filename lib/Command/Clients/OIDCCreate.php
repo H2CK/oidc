@@ -70,7 +70,7 @@ class OIDCCreate extends Command {
           // insert new client into database
           $client = $this->mapper->insert($client);
           // print client as pretty json
-          $output->writeln(json_encode($client, JSON_PRETTY_PRINT));
+          $output->writeln(json_encode($client, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
           return Command::SUCCESS;
       } catch (\Exception $e) {
           // handle any errors and output a message
