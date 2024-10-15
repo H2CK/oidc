@@ -109,26 +109,17 @@ class SettingsController extends Controller
             return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
         }
 
-        $client = new Client();
-        $client->setName($name);
-        $client->setSecret($this->secureRandom->generate(64, self::VALID_CHARS));
-        $client->setClientIdentifier($this->secureRandom->generate(64, self::VALID_CHARS));
-        if ($signingAlg === 'HS256') {
-            $client->setSigningAlg('HS256');
-        } else {
-            $client->setSigningAlg('RS256');
-        }
-        if ($type === 'public') {
-            $client->setType($type);
-        } else {
-            $client->setType('confidential');
-        }
-        $client->setFlowType('code');
+        $client = new Client(
+            $name,
+            [ $redirectUri ]
+            $signingAlg,
+            $type
+        );
+
         $client = $this->clientMapper->insert($client);
-        $redirectUriObj = new RedirectUri();
-        $redirectUriObj->setClientId($client->getId());
-        $redirectUriObj->setRedirectUri($redirectUri);
-        $redirectUriObj = $this->redirectUriMapper->insert($redirectUriObj);
+
+        // @TODO: use standardized serialization
+        // return new JSONResponse($client); 
 
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
         $resultRedirectUris = [];
@@ -140,7 +131,7 @@ class SettingsController extends Controller
             ];
         }
 
-        $result = [
+        return new JSONResponse([
             'id' => $client->getId(),
             'name' => $client->getName(),
             'redirectUris' => $resultRedirectUris,
@@ -149,9 +140,7 @@ class SettingsController extends Controller
             'signingAlg' => $client->getSigningAlg(),
             'type' => $client->getType(),
             'flowType' => $client->getFlowType(),
-        ];
-
-        return new JSONResponse($result);
+        ]);
     }
 
     public function updateClient(

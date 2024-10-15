@@ -78,7 +78,7 @@ class ClientMapper extends QBMapper {
 
         $entity = parent::insert($entity);
 
-        // handle multiple redirect uris
+        // insert related redirect uris
         $uris = $entity->getRedirectUris();
         if(!empty($uris)) {
             foreach ($uris as $uri) {
