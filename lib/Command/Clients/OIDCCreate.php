@@ -50,6 +50,13 @@ class OIDCCreate extends Command {
         'RSA256'
       )
       ->addOption(
+        'flow', 
+        'f', 
+        InputOption::VALUE_REQUIRED, 
+        'The flow type to use for authentication', 
+        'code'
+      )
+      ->addOption(
         'type', 
         't', 
         InputOption::VALUE_REQUIRED, 
@@ -65,7 +72,8 @@ class OIDCCreate extends Command {
             $input->getArgument('name'),
             $input->getArgument('redirect_uris'),
             $input->getOption('algorithm'),
-            $input->getOption('type')
+            $input->getOption('type'),
+            $input->getOption('flow')
           );
           // insert new client into database
           $client = $this->mapper->insert($client);
