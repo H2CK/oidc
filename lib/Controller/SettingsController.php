@@ -111,7 +111,7 @@ class SettingsController extends Controller
 
         $client = new Client(
             $name,
-            [ $redirectUri ]
+            [ $redirectUri ],
             $signingAlg,
             $type
         );
