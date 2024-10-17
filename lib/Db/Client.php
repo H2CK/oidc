@@ -94,6 +94,14 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('issued_at', 'int');
     }
 
+    public function getRedirectUris(): array {
+        return $this->redirectUris;
+    }
+
+    public function setRedirectUris(array $uris): void {
+        $this->redirectUris = $uris;
+    }
+
     /**
      * Implement JsonSerializable interface
      * @return array An associative array representing the Client object
