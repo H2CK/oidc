@@ -84,7 +84,8 @@ class DynamicRegistrationControllerTest extends TestCase {
 		$this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([$this->db,
                                                                                               $this->time,
                                                                                               $this->appConfig,
-                                                                                              $this->redirectUriMapper])->getMock();
+                                                                                              $this->redirectUriMapper,
+                                                                                              $this->secureRandom])->getMock();
 
 
         $this->controller = new DynamicRegistrationController(
