@@ -82,6 +82,7 @@ class Client extends Entity implements JsonSerializable {
         $this->setType($type == 'public' ? 'public' : 'confidential');
         $this->setFlowType($flowType);
         $this->setDcr($dcr);
+        $this->setIssuedAt(time());
 
         $this->addType('id', 'int');
         $this->addType('name', 'string');
@@ -106,17 +107,17 @@ class Client extends Entity implements JsonSerializable {
      * Implement JsonSerializable interface
      * @return array An associative array representing the Client object
      */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return [
-            'name' => $this->name,
+            'name' => $this->getName(),
             'redirect_uris' => $this->getRedirectUris(),
-            'jwt_alg' => $this->signingAlg,
-            'type' => $this->type,
-            'client_id' => $this->clientIdentifier,
-            'client_secret' => $this->secret,
-            'flow_type' => $this->flowType,
-            'dcr' => $this->dcr,
-            'issued_at' => $this->issuedAt
+            'jwt_alg' => $this->getSigningAlg(),
+            'type' => $this->getType(),
+            'client_id' => $this->getClientIdentifier(),
+            'client_secret' => $this->getSecret(),
+            'flow_type' => $this->getFlowType(),
+            'dcr' => $this->getDcr(),
+            'issued_at' => $this->getIssuedAt()
         ];
     }
 }

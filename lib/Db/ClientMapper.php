@@ -74,8 +74,6 @@ class ClientMapper extends QBMapper {
         if(!$entity->getSecret())
             $entity->setSecret($this->secureRandom->generate(64, self::ALNUM));
 
-        $entity->setIssuedAt($this->time->getTime());
-
         $entity = parent::insert($entity);
 
         // insert related redirect uris
