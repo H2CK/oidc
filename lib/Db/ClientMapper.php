@@ -25,13 +25,16 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Db;
 
+use OCP\AppFramework\Db\Entity;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
-use OCP\DB\QueryBuilder\IQueryBuilder;
-use OCP\IDBConnection;
-use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\DB\QueryBuilder\IQueryBuilder;
+use OCP\Security\ISecureRandom;
+use OCP\IDBConnection;
 
 /**
  * @template-extends QBMapper<Client>
@@ -43,18 +46,64 @@ class ClientMapper extends QBMapper {
     private $appConfig;
     /** @var RedirectUriMapper */
     private $redirectUriMapper;
+    /** @var ISecureRandom */
+    private $secureRandom;
+
+    public const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     /**
      * @param IDBConnection $db
      */
-    public function __construct(IDBConnection $db,
-                                ITimeFactory $time,
-                                IAppConfig $appConfig,
-                                RedirectUriMapper $redirectUriMapper) {
+    public function __construct(
+        IDBConnection $db,
+        ITimeFactory $time,
+        IAppConfig $appConfig,
+        RedirectUriMapper $redirectUriMapper,
+        ISecureRandom $secureRandom,
+    ) {
         parent::__construct($db, 'oidc_clients');
         $this->time = $time;
         $this->appConfig = $appConfig;
         $this->redirectUriMapper = $redirectUriMapper;
+        $this->secureRandom = $secureRandom;
+    }
+
+    public function insert(Entity $entity): Entity {
+        if(!$entity->getClientIdentifier())
+            $entity->setClientIdentifier($this->secureRandom->generate(64, self::ALNUM));
+        if(!$entity->getSecret())
+            $entity->setSecret($this->secureRandom->generate(64, self::ALNUM));
+
+        $entity = parent::insert($entity);
+
+        // insert related redirect uris
+        $uris = $entity->getRedirectUris();
+        if(!empty($uris)) {
+            foreach ($uris as $uri) {
+                $redirectUri = new RedirectUri();
+                $redirectUri->setClientId($entity->getId());
+                $redirectUri->setRedirectUri($uri);
+                $this->redirectUriMapper->insert($redirectUri);
+            }
+        }
+
+        return $entity;
+    }
+
+    public function delete(Entity $entity): Entity {
+        // remove redirect uris first        
+        $uris = $this->redirectUriMapper->getByClientId($entity->getId());
+        foreach ($uris as $uri)
+            $this->redirectUriMapper->delete($uri);
+        // remove the client
+        $entity = parent::delete($entity);
+        return $entity;
+    }
+
+    protected function mapRowToEntity(array $row): Entity {
+        $entity = parent::mapRowToEntity($row);
+        $entity->setRedirectUris($this->redirectUriMapper->getByClientId($entity->getId()));
+        return $entity;
     }
 
     /**
@@ -62,7 +111,7 @@ class ClientMapper extends QBMapper {
      * @return Client
      * @throws ClientNotFoundException
      */
-    public function getByIdentifier(string $clientIdentifier): Client {
+    public function getByIdentifier(string $clientIdentifier): ?Client {
         $qb = $this->db->getQueryBuilder();
         $qb
             ->select('*')
@@ -70,11 +119,10 @@ class ClientMapper extends QBMapper {
             ->where($qb->expr()->eq('client_identifier', $qb->createNamedParameter($clientIdentifier)));
 
         try {
-            $client = $this->findEntity($qb);
+            return $this->findEntity($qb);
         } catch (IMapperException $e) {
-            throw new ClientNotFoundException('could not find client '.$clientIdentifier, 0, $e);
+            throw new ClientNotFoundException('could not find client with client_id '. $clientIdentifier, 0, null);
         }
-        return $client;
     }
 
     /**
@@ -90,11 +138,10 @@ class ClientMapper extends QBMapper {
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
 
         try {
-            $client = $this->findEntity($qb);
+            return $this->findEntity($qb);
         } catch (IMapperException $e) {
-            throw new ClientNotFoundException('could not find client with id '.$id, 0, $e);
+            throw new ClientNotFoundException('could not find client with id '.$id, 0, null);
         }
-        return $client;
     }
 
     /**
@@ -122,6 +169,22 @@ class ClientMapper extends QBMapper {
             ->where($qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)));
 
         return $qb->executeQuery()->rowCount();
+    }
+
+
+    /**
+     * Deletes a client by its identifier.
+     *
+     * @param string $clientIdentifier
+     * @throws ClientNotFoundException
+     */
+    public function deleteByIdentifier(string $clientIdentifier): bool {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->eq('client_identifier', $qb->createNamedParameter($clientIdentifier)));
+
+        return boolval($qb->execute());
     }
 
     /**

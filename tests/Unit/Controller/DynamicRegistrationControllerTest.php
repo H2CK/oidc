@@ -1,5 +1,6 @@
 <?php
 
+
 namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 
 use PHPUnit\Framework\TestCase;
@@ -84,7 +85,8 @@ class DynamicRegistrationControllerTest extends TestCase {
 		$this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([$this->db,
                                                                                               $this->time,
                                                                                               $this->appConfig,
-                                                                                              $this->redirectUriMapper])->getMock();
+                                                                                              $this->redirectUriMapper,
+                                                                                              $this->secureRandom])->getMock();
 
 
         $this->controller = new DynamicRegistrationController(
@@ -173,23 +175,21 @@ class DynamicRegistrationControllerTest extends TestCase {
 				}
 			);
 
-		$time_stamp = time();
-		$this->time
-			->method('getTime')
-			->willReturn($time_stamp);
-
+        $ts = time();
         $result = $this->controller->registerClient(['https://test.org/redirect'], 'TEST-CLIENT');
-
         $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
-		var_dump($result->getData());
-        $this->assertEquals('TEST-CLIENT', $result->getData()['client_name']);
-		$this->assertEquals('https://test.org/redirect', $result->getData()['redirect_uris'][0]);
-		$this->assertEquals('client_secret_post', $result->getData()['token_endpoint_auth_method']);
-		$this->assertEquals('code', $result->getData()['response_types'][0]);
-		$this->assertEquals('authorization_code', $result->getData()['grant_types'][0]);
-		$this->assertEquals('web', $result->getData()['application_type']);
-		$this->assertEquals($time_stamp, $result->getData()['client_id_issued_at']);
-		$this->assertEquals($time_stamp + 3600, $result->getData()['client_secret_expires_at']);
+
+        $client = $result->getData();
+        var_dump($client);
+        
+        $this->assertEquals('TEST-CLIENT', $client['client_name']);
+        $this->assertEquals('https://test.org/redirect', $client['redirect_uris'][0]);
+        $this->assertEquals('client_secret_post', $client['token_endpoint_auth_method']);
+        $this->assertEquals('code', $client['response_types'][0]);
+        $this->assertEquals('authorization_code', $client['grant_types'][0]);
+        $this->assertEquals('web', $client['application_type']);
+        $this->assertEquals($ts, $client['client_id_issued_at']);
+        $this->assertEquals($ts + 3600, $client['client_secret_expires_at']);
     }
 
 }

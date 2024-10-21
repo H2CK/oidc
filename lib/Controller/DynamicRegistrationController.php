@@ -168,22 +168,18 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        $client = new Client();
         $name = self::NAME_PREFIX . $this->getClientIp();
         if ($client_name != null) {
             $name = substr($client_name, 0, 64);
         }
-        $client->setName($name);
-        $client->setDcr(true);
-        $client->setClientIdentifier($this->secureRandom->generate(64, self::VALID_CHARS));
-        $client->setSecret($this->secureRandom->generate(64, self::VALID_CHARS));
-        $client->setType('confidential');
 
-        if ($id_token_signed_response_alg === 'RS256') {
-            $client->setSigningAlg('RS256');
-        } else {
-            $client->setSigningAlg('HS256');
-        }
+        $client = new Client(
+            $name,
+            $redirect_uris,
+            $id_token_signed_response_alg,
+        );
+
+        $client->setDcr(true);
         $response_types_arr = array();
         array_push($response_types_arr, 'code');
         $grant_types_arr = array();
@@ -195,16 +191,8 @@ class DynamicRegistrationController extends ApiController
             array_push($response_types_arr, 'id_token');
             array_push($grant_types_arr, 'implicit');
         }
-        $client->setIssuedAt($this->time->getTime());
 
         $client = $this->clientMapper->insert($client);
-
-        foreach ($redirect_uris as $redirectUri) {
-            $redirectUriObj = new RedirectUri();
-            $redirectUriObj->setClientId($client->getId());
-            $redirectUriObj->setRedirectUri($redirectUri);
-            $redirectUriObj = $this->redirectUriMapper->insert($redirectUriObj);
-        }
 
         $jsonResponse = [
             'client_name' => $client->getName(),
