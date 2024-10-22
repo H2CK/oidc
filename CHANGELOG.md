@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2024-10-22
+
+### Changed
+
+- Added CLI commands to manage clients (thanks to @opsocket)
+- Updated dependencies
+- Updated translations
+
 ## [0.9.4] - 2024-09-11
 
 ### Changed

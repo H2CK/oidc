@@ -34,33 +34,33 @@ class OIDCCreate extends Command {
       ->setDescription('Create oidc client')
       ->addArgument(
         'name',
-        InputArgument::REQUIRED, 
+        InputArgument::REQUIRED,
         'The name of the client'
       )
       ->addArgument(
         'redirect_uris',
-        InputArgument::REQUIRED | InputArgument::IS_ARRAY, 
+        InputArgument::REQUIRED | InputArgument::IS_ARRAY,
         'An array of redirect uris'
       )
       ->addOption(
-        'algorithm', 
-        'a', 
-        InputOption::VALUE_REQUIRED, 
-        'The signing algorithm to use', 
-        'RSA256'
+        'algorithm',
+        'a',
+        InputOption::VALUE_REQUIRED,
+        'The signing algorithm to use. Can be ´RS256´ or ´HS256´.',
+        'RS256'
       )
       ->addOption(
-        'flow', 
-        'f', 
-        InputOption::VALUE_REQUIRED, 
-        'The flow type to use for authentication', 
+        'flow',
+        'f',
+        InputOption::VALUE_REQUIRED,
+        'The flow type to use for authentication. Can be ´code´ or ´code id_token´.',
         'code'
       )
       ->addOption(
-        'type', 
-        't', 
-        InputOption::VALUE_REQUIRED, 
-        'The type of the client', 
+        'type',
+        't',
+        InputOption::VALUE_REQUIRED,
+        'The type of the client. Can be ´public´ or ´confidential´.',
         'confidential'
       );
   }

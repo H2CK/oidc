@@ -229,9 +229,7 @@ var options = {};
 
 options.styleTagTransform = (_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default());
 options.setAttributes = (_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default());
-
-      options.insert = _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default().bind(null, "head");
-    
+options.insert = _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default().bind(null, "head");
 options.domAPI = (_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default());
 options.insertStyleElement = (_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default());
 
@@ -9735,6 +9733,8 @@ function b(n) {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
+// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+(() => {
 /*!*************************!*\
   !*** ./src/redirect.js ***!
   \*************************/
@@ -9773,6 +9773,8 @@ const oidc = new View({
   propsData: {}
 });
 oidc.$mount('#oidc-redirect');
+})();
+
 /******/ })()
 ;
-//# sourceMappingURL=oidc-redirect.js.map?v=22b01c3c42d16ceb60f1
+//# sourceMappingURL=oidc-redirect.js.map?v=ed569423f9515641c782

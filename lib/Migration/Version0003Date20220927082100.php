@@ -101,11 +101,11 @@ class Version0003Date20220927082100 extends SimpleMigrationStep {
         $clients = $this->clientMapper->getClients();
 
         foreach($clients as $client) {
-            foreach ($client->redirectUris as $uri) {
+            foreach ($client->getRedirectUris() as $uri) {
                 $redirectUri = new RedirectUri();
                 $redirectUri->setClientId($client->getId());
                 $redirectUri->setRedirectUri($uri);
-                $this->redirectUriMapper->insert($redirectUri);   
+                $this->redirectUriMapper->insert($redirectUri);
             }
         }
 

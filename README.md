@@ -19,6 +19,7 @@ Provided features:
 - Discovery & WebFinger endpoint provided
 - Logout endpoint
 - Dynamic Client Registration
+- Administration of clients via CLI
 
 Full documentation can be found at:
 
@@ -35,6 +36,20 @@ In this area you can:
 - Add/Modify/Remove Logout URLs
 - Change some overall settings
 - Regenerate your public/private key for signeing the id token.
+
+It is also possible to configure the clients via the cli. The following commands are available:
+
+```
+$ php occ
+...
+ oidc
+  oidc:create                            Create oidc client
+  oidc:list                              List oidc clients
+  oidc:remove                            Remove an oidc client
+...
+```
+
+Use the option `--help` to retrieve more information on how to use the commands.
 
 ## Endpoints
 
