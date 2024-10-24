@@ -1,6 +1,6 @@
 { "translations": {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "الجهاز العميل ليس مُخوّلاً بالتوصيل. رجاءً، أبلغ مشرفك.",
-    "Your client is expired. Please inform the administrator of your client." : "انت صلاحية الجهاز العميل عندك. رجاءً، قم بتبليغ المشرف على هذا الجهاز العميل.",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "الجهاز العميل ليس مُخوّلاً بالتوصيل. رجاءً، أبلغ مسؤول النظام.",
+    "Your client is expired. Please inform the administrator of your client." : "انتهت صلاحية الجهاز العميل عندك. يرجى إبلاغ مسؤول النظام عن هذا الجهاز العميل.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "لم يتم قبول URI لإعادة التوجيه المتلقاة للاتصال. يرجى إبلاغ المسؤول عن العميل الخاص بك.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "المستخدم ليس عضوًا في المجموعات المحددة للعميل. لا يُسمح لك باسترداد رمز تسجيل الدخول.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "عنوان URL المُعاد توجيهه يجب أن يكون عنواناً كاملاً كما في المثال التالي:  https://yourdomain.com/path",
