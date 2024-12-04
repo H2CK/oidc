@@ -27,6 +27,7 @@ OC.L10N.register(
     "60 minutes" : "60 minutu",
     "Disable" : "Desaktibatu",
     "Enable" : "Aktibatu",
+    "No integration" : "Integraziorik ez",
     "Public Key" : "Gako publikoa",
     "Regenerate Keys" : "Berriro sortu gakoak",
     "OpenID Connect Redirect" : "OpenID Connect birbideraketa",
