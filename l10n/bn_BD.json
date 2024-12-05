@@ -1,9 +1,0 @@
-{ "translations": {
-    "Name" : "নাম",
-    "Add" : "যোগ করুন",
-    "Settings" : "সেটিংস",
-    "Disable" : "নিষ্ক্রিয়",
-    "Delete" : "মুছে",
-    "Type" : "ধরণ"
-},"pluralForm" :"nplurals=2; plural=(n != 1);"
-}
