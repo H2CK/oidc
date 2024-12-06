@@ -1,0 +1,10 @@
+{ "translations": {
+    "Add client" : "Tambah klien",
+    "Redirection URI" : "URI Pengalihan",
+    "Add" : "Tambah",
+    "Disable" : "Nonaktifkan",
+    "Enable" : "Aktifkan",
+    "Client Identifier" : "Identifier klien",
+    "Type" : "tipe"
+},"pluralForm" :"nplurals=1; plural=0;"
+}

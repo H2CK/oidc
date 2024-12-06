@@ -1,0 +1,7 @@
+{ "translations": {
+    "Add client" : "კლიენტის დამატება",
+    "Redirection URI" : "გადამისამართების URI",
+    "Disable" : "გამორთვა",
+    "Client Identifier" : "კლიენტის იდენტიფიკატორი"
+},"pluralForm" :"nplurals=2; plural=(n!=1);"
+}

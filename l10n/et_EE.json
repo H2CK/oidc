@@ -1,0 +1,7 @@
+{ "translations": {
+    "Add client" : "Lisa klient",
+    "Redirection URI" : "Suunamise URI",
+    "Disable" : "Lülita välja",
+    "Client Identifier" : "Kliendi identifikaator"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

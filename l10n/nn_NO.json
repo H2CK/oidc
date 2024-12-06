@@ -1,0 +1,7 @@
+{ "translations": {
+    "Settings" : "Innstillingar",
+    "Disable" : "Slå av",
+    "Enable" : "SLå på",
+    "Type" : "Skriv"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

@@ -1,0 +1,26 @@
+{ "translations": {
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Otrzymany identyfikator URI przekierowania nie jest akceptowany do połączenia. Poinformuj administratora swojego klienta.",
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Adres przekierowania musi być pełnym adresem URL, np.: https://twojadomena.com/sciezka",
+    "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud jako dostawca tożsamości OpenID Connect",
+    "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect umożliwia uwierzytelnianie w usługach zewnętrznych za pomocą kont użytkowników {instanceName}.",
+    "Add client" : "Dodaj klienta",
+    "Redirection URI" : "URI przekierowania",
+    "Select Type" : "Wybierz rodzaj",
+    "Add" : "Dodaj",
+    "Settings" : "Ustawienia",
+    "Token Expire Time" : "Czas wygaśnięcia tokena",
+    "30 minutes" : "30 minut",
+    "60 minutes" : "60 minut",
+    "Disable" : "Wyłącz",
+    "Enable" : "Włącz",
+    "Public Key" : "Klucz publiczny",
+    "Regenerate Keys" : "Wygeneruj ponownie klucze",
+    "OpenID Connect Redirect" : "Przekierowanie OpenID Connect",
+    "Client Identifier" : "Identyfikator Klienta",
+    "Show client secret" : "Pokaż tajny klucz klienta",
+    "Type" : "Rodzaj",
+    "Limited to Groups" : "Ograniczone dla grup",
+    "Only users in one of the following groups are allowed to use the client." : "Z klienta mogą korzystać tylko użytkownicy należący do jednej z poniższych grup.",
+    "Groups allowed to use the client." : "Grupy mogą korzystać z klienta."
+},"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
+}

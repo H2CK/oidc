@@ -1,0 +1,28 @@
+{ "translations": {
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Il tuo URL di redirezione deve essere un URL completo, ad esempio: https://tuodominio.com/percorso",
+    "Code Authorization Flow" : "Flusso di autorizzazione del codice",
+    "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud come fornitore di identità OpenID Connect",
+    "Add client" : "Aggiungi client",
+    "Redirection URI" : "URI di redirezione",
+    "Select Type" : "Seleziona il tipo",
+    "Add" : "Aggiungi",
+    "Dynamic Client Registration" : "Registrazione dinamica del cliente",
+    "Enable or disable Dynamic Client Registration" : "Abilitare o disabilitare la registrazione dinamica del cliente",
+    "Select to enable/disable the Dynamic Client Registration" : "Selezionare per abilitare/disabilitare la registrazione dinamica del cliente",
+    "Disable" : "Disabilita",
+    "Enable" : "Abilita",
+    "Select behaviour for setting email verified flag" : "Selezionare il comportamento per l'impostazione dell'attributo verificato dell'e-mail",
+    "Use Nextcloud account information" : "Utilizzare le informazioni dell'account Nextcloud",
+    "Integrate avatar in user info/ID token" : "Integra l'avatar nel token info/ID dell'utente",
+    "Add to user info and ID token" : "Aggiungi alle informazioni utente e all'ID del token",
+    "Public Key" : "Chiave pubblica",
+    "Regenerate Keys" : "Rigenera le chiavi",
+    "OpenID Connect Redirect" : "Reindirizzamento di OpenID Connect",
+    "Client Identifier" : "Identificatore client",
+    "Type" : "Tipo",
+    "Flows allowed to be used with the client." : "Flussi che possono essere utilizzati con il client.",
+    "Limited to Groups" : "Limitato ai gruppi",
+    "Only users in one of the following groups are allowed to use the client." : "Solo gli utenti di uno dei seguenti gruppi possono utilizzare il client.",
+    "Groups allowed to use the client." : "Gruppi autorizzati a utilizzare il client."
+},"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
+}

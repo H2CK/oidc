@@ -1,0 +1,27 @@
+OC.L10N.register(
+    "oidc",
+    {
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Pripojenie po presmerovaní URI nebolo prijaté. Prosím informujte administrátora vášho klienta.",
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vaša URL pre presmerovanie musí byť úplná. Napríklad: https://yourdomain.com/path",
+    "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud ako OpenID Connect Identity Provider",
+    "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect umožňuje autentifikáciu v externých službách pomocou užívateľských účtov {instanceName}.",
+    "Add client" : "Pridať klienta",
+    "Redirection URI" : "URI presmerovania",
+    "Select Type" : "Vyberte Typ",
+    "Add" : "Pridať",
+    "Settings" : "Nastavenia",
+    "Token Expire Time" : "Čas expirácie tokenu",
+    "5 minutes" : "5 minút",
+    "15 minutes" : "15 minút",
+    "30 minutes" : "30 minút",
+    "60 minutes" : "60 minút",
+    "Disable" : "Zakázať",
+    "Enable" : "Povoliť",
+    "Public Key" : "Verejný kľúč",
+    "Regenerate Keys" : "Znova vytvoriť kľúče",
+    "OpenID Connect Redirect" : "Presmerovanie OpenID Connect",
+    "Client Identifier" : "Identifikátor klienta",
+    "Show client secret" : "Zobraziť tajomstvo klienta",
+    "Type" : "Typ"
+},
+"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");
