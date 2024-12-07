@@ -4,19 +4,23 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# Paúl Sanz <registro@polkillas.net>, 2024
 # Miguel de Dios Matias <tres.14159@gmail.com>, 2024
+# Víctor Rodríguez Bouza, 2024
+# Next Cloud <nextcloud.translator.es@cgj.es>, 2024
 # Andy Scherzinger <info@andy-scherzinger.de>, 2024
+# Álvaro Fernández <bosscyril+transifex@gmail.com>, 2024
 # H2CK, 2024
+# Javier San Juan <sanjuan.javier@gmail.com>, 2024
+# Paúl Sanz <registro@polkillas.net>, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-12-06 02:30+0000\n"
+"POT-Creation-Date: 2024-12-07 02:19+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2024\n"
+"Last-Translator: Paúl Sanz <registro@polkillas.net>, 2024\n"
 "Language-Team: Spanish (https://app.transifex.com/nextcloud/teams/64236/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -29,49 +33,58 @@ msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
 msgstr ""
+"Tu cliente no está autorizado a conectarse. Por favor, informa de tu cliente"
+" al administrador."
 
 #: /app/lib/Controller/LoginRedirectorController.php:258
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
 msgstr ""
+"Su cliente ha caducado. Por favor, informe al administrador de su cliente."
 
 #: /app/lib/Controller/LoginRedirectorController.php:274
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"El URI de redirección recibido no es aceptado para conectarse. Por favor, "
+"informe al administrador de su cliente."
 
 #: /app/lib/Controller/LoginRedirectorController.php:331
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"El usuario no es miembro de los grupos definidos para el cliente. No se le "
+"permite recuperar un token de inicio de sesión."
 
 #: /app/lib/Controller/SettingsController.php:109
 msgid ""
 "Your redirect URL needs to be a full URL for example: "
 "https://yourdomain.com/path"
 msgstr ""
+"Tu URL de redirección debe ser una URL completa, por ejemplo: "
+"https://tudominio.com/ruta"
 
 #. TRANSLATORS src/components/OIDCItem.vue:143
 #: /app/lib/Settings/Admin.php:117
 #: /app/specialVueFakeDummyForL10nScript.js:120
 msgid "Code Authorization Flow"
-msgstr ""
+msgstr "Flujo de autorización de código"
 
 #. TRANSLATORS src/components/OIDCItem.vue:147
 #: /app/lib/Settings/Admin.php:120
 #: /app/specialVueFakeDummyForL10nScript.js:122
 msgid "Code & Implicit Authorization Flow"
-msgstr ""
+msgstr "Flujo de autorización de códigos y implícito"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
-msgstr ""
+msgstr "Proveedor de identidades OIDC"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
-msgstr ""
+msgstr "Nextcloud como proveedor de identidades de OpenID Connect"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:4
 msgid ""
@@ -85,11 +98,19 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
+"Nextcloud como proveedor de identidad de OpenID Connect\n"
+"\n"
+"Con esta aplicación puedes utilizar Nextcloud como proveedor de identidad de OpenID Connect. Si otros servicios\\nestán configurados correctamente, podrás acceder a esos servicios con tu login de Nextcloud.\n"
+"\n"
+"La documentación completa se puede encontrar en:\n"
+"\n"
+"- [Documentación del usuario](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- Documentación para desarrolladores](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:23
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr ""
+msgstr "Clientes de OpenID Connect"
 
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -97,6 +118,8 @@ msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
 msgstr ""
+"OpenID Connect permite autenticarse en servicios externos con cuentas de "
+"usuario de {instanceName}."
 
 #. TRANSLATORS src/App.vue:50
 #: /app/specialVueFakeDummyForL10nScript.js:6
@@ -108,7 +131,7 @@ msgstr "Añadir cliente"
 #: /app/specialVueFakeDummyForL10nScript.js:8
 #: /app/specialVueFakeDummyForL10nScript.js:84
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #. TRANSLATORS src/App.vue:62
 #. TRANSLATORS src/components/OIDCItem.vue:31
@@ -123,22 +146,22 @@ msgstr "URI de redirección"
 #. TRANSLATORS src/App.vue:66
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr ""
+msgstr "Seleccione el algoritmo de firma"
 
 #. TRANSLATORS src/App.vue:78
 #: /app/specialVueFakeDummyForL10nScript.js:14
 msgid "Select Type"
-msgstr ""
+msgstr "Seleccione el tipo"
 
 #. TRANSLATORS src/App.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "Confidential"
-msgstr ""
+msgstr "Confidencial"
 
 #. TRANSLATORS src/App.vue:84
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
-msgstr ""
+msgstr "Público"
 
 #. TRANSLATORS src/App.vue:87
 #. TRANSLATORS src/components/OIDCItem.vue:46
@@ -146,54 +169,54 @@ msgstr ""
 #: /app/specialVueFakeDummyForL10nScript.js:76
 #: /app/specialVueFakeDummyForL10nScript.js:92
 msgid "Add"
-msgstr ""
+msgstr "Añadir"
 
 #. TRANSLATORS src/App.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:22
 msgid "Settings"
-msgstr ""
+msgstr "Ajustes"
 
 #. TRANSLATORS src/App.vue:92
 #. TRANSLATORS src/App.vue:95
 #: /app/specialVueFakeDummyForL10nScript.js:24
 #: /app/specialVueFakeDummyForL10nScript.js:26
 msgid "Token Expire Time"
-msgstr ""
+msgstr "Hora de caducidad de la ficha"
 
 #. TRANSLATORS src/App.vue:98
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
-msgstr ""
+msgstr "Seleccione la hora de caducidad de la ficha"
 
 #. TRANSLATORS src/App.vue:101
 #: /app/specialVueFakeDummyForL10nScript.js:30
 msgid "5 minutes"
-msgstr ""
+msgstr "5 minutos"
 
 #. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:32
 msgid "10 minutes"
-msgstr ""
+msgstr "10 minutos"
 
 #. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:34
 msgid "15 minutes"
-msgstr ""
+msgstr "15 minutos"
 
 #. TRANSLATORS src/App.vue:110
 #: /app/specialVueFakeDummyForL10nScript.js:36
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minutos"
 
 #. TRANSLATORS src/App.vue:113
 #: /app/specialVueFakeDummyForL10nScript.js:38
 msgid "60 minutes"
-msgstr ""
+msgstr "60 minutos"
 
 #. TRANSLATORS src/App.vue:118
 #: /app/specialVueFakeDummyForL10nScript.js:40
 msgid "Dynamic Client Registration"
-msgstr ""
+msgstr "Registro dinámico de clientes"
 
 #. TRANSLATORS src/App.vue:122
 #: /app/specialVueFakeDummyForL10nScript.js:42
@@ -204,6 +227,8 @@ msgstr "Activar o desactivar el registro dinámico de clientes"
 #: /app/specialVueFakeDummyForL10nScript.js:44
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr ""
+"Seleccione esta opción para activar/desactivar el registro dinámico de "
+"clientes"
 
 #. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:46
@@ -213,72 +238,74 @@ msgstr "Desactivar"
 #. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:48
 msgid "Enable"
-msgstr ""
+msgstr "Activar"
 
 #. TRANSLATORS src/App.vue:136
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Email Verified Flag"
-msgstr ""
+msgstr "Indicador de correo electrónico verificado"
 
 #. TRANSLATORS src/App.vue:140
 #: /app/specialVueFakeDummyForL10nScript.js:52
 msgid "Source for email verified flag in token"
-msgstr ""
+msgstr "Fuente para el indicador de correo electrónico verificado en el token"
 
 #. TRANSLATORS src/App.vue:143
 #: /app/specialVueFakeDummyForL10nScript.js:54
 msgid "Select behaviour for setting email verified flag"
 msgstr ""
+"Seleccione el comportamiento para establecer el indicador de correo "
+"electrónico verificado"
 
 #. TRANSLATORS src/App.vue:146
 #: /app/specialVueFakeDummyForL10nScript.js:56
 msgid "Use Nextcloud account information"
-msgstr ""
+msgstr "Utiliza la información de la cuenta Nextcloud"
 
 #. TRANSLATORS src/App.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Set to always verified"
-msgstr ""
+msgstr "Siempre verificado"
 
 #. TRANSLATORS src/App.vue:153
 #: /app/specialVueFakeDummyForL10nScript.js:60
 msgid "Integrate avatar in user info/ID token"
-msgstr ""
+msgstr "Integrar el avatar en el identificación del usuario/ID token"
 
 #. TRANSLATORS src/App.vue:156
 #: /app/specialVueFakeDummyForL10nScript.js:62
 msgid "Method for integration of avatar"
-msgstr ""
+msgstr "Método de integración del avatar"
 
 #. TRANSLATORS src/App.vue:159
 #: /app/specialVueFakeDummyForL10nScript.js:64
 msgid "Select how the avatar image should be integrated"
-msgstr ""
+msgstr "Seleccione cómo debe integrarse la imagen del avatar"
 
 #. TRANSLATORS src/App.vue:162
 #: /app/specialVueFakeDummyForL10nScript.js:66
 msgid "No integration"
-msgstr ""
+msgstr "No integración"
 
 #. TRANSLATORS src/App.vue:165
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Add to user info"
-msgstr ""
+msgstr "Añadir a la información del usuario"
 
 #. TRANSLATORS src/App.vue:168
 #: /app/specialVueFakeDummyForL10nScript.js:70
 msgid "Add to user info and ID token"
-msgstr ""
+msgstr "Añadir a la información del usuario y ID token"
 
 #. TRANSLATORS src/App.vue:172
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Accepted Logout Redirect URIs"
-msgstr ""
+msgstr "URI de redireccionamiento de cierre de sesión aceptados"
 
 #. TRANSLATORS src/App.vue:192
 #: /app/specialVueFakeDummyForL10nScript.js:78
 msgid "Public Key"
-msgstr ""
+msgstr "Clave pública"
 
 #. TRANSLATORS src/App.vue:197
 #: /app/specialVueFakeDummyForL10nScript.js:80
@@ -288,7 +315,7 @@ msgstr "Regenerar claves"
 #. TRANSLATORS src/Redirect.vue:25
 #: /app/specialVueFakeDummyForL10nScript.js:82
 msgid "OpenID Connect Redirect"
-msgstr ""
+msgstr "Redirección de OpenID Connect"
 
 #. TRANSLATORS src/components/OIDCItem.vue:37
 #. TRANSLATORS src/components/OIDCItem.vue:102
@@ -297,53 +324,53 @@ msgstr ""
 #: /app/specialVueFakeDummyForL10nScript.js:118
 #: /app/specialVueFakeDummyForL10nScript.js:124
 msgid "Delete"
-msgstr ""
+msgstr "Eliminar"
 
 #. TRANSLATORS src/components/OIDCItem.vue:51
 #: /app/specialVueFakeDummyForL10nScript.js:94
 msgid "Client Identifier"
-msgstr ""
+msgstr "Identificador de cliente"
 
 #. TRANSLATORS src/components/OIDCItem.vue:55
 #: /app/specialVueFakeDummyForL10nScript.js:96
 msgid "Secret"
-msgstr ""
+msgstr "Secreto"
 
 #. TRANSLATORS src/components/OIDCItem.vue:57
 #: /app/specialVueFakeDummyForL10nScript.js:98
 msgid "Show client secret"
-msgstr ""
+msgstr "Mostrar secreto del cliente"
 
 #. TRANSLATORS src/components/OIDCItem.vue:60
 #: /app/specialVueFakeDummyForL10nScript.js:100
 msgid "-- NONE --"
-msgstr ""
+msgstr "-- NADA --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:64
 #: /app/specialVueFakeDummyForL10nScript.js:102
 msgid "Signing Algorithm"
-msgstr ""
+msgstr "Algoritmo de firma"
 
 #. TRANSLATORS src/components/OIDCItem.vue:68
 #: /app/specialVueFakeDummyForL10nScript.js:104
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:106
 msgid "Flows"
-msgstr ""
+msgstr "Flujos"
 
 #. TRANSLATORS src/components/OIDCItem.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:108
 #: /app/specialVueFakeDummyForL10nScript.js:110
 msgid "Flows allowed to be used with the client."
-msgstr ""
+msgstr "Flujos que se pueden utilizar con el cliente."
 
 #. TRANSLATORS src/components/OIDCItem.vue:86
 #: /app/specialVueFakeDummyForL10nScript.js:112
 msgid "Limited to Groups"
-msgstr ""
+msgstr "Limitado a grupos"
 
 #. TRANSLATORS src/components/OIDCItem.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:114
@@ -356,4 +383,4 @@ msgstr ""
 #. TRANSLATORS src/components/OIDCItem.vue:92
 #: /app/specialVueFakeDummyForL10nScript.js:116
 msgid "Groups allowed to use the client."
-msgstr ""
+msgstr "Grupos autorizados a utilizar el cliente."

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Name" : "Name",
     "Add" : "Add",
     "Settings" : "Sozlamalar",
     "30 minutes" : "30 minutes",

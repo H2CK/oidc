@@ -1,7 +1,9 @@
 { "translations": {
+    "Name" : "Ady",
     "Settings" : "Sazlamalar",
     "30 minutes" : "30 minut",
     "Disable" : "Öçürmek",
+    "Delete" : "Pozmak",
     "Type" : "Görnüşi"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

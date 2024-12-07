@@ -1,7 +1,9 @@
 { "translations": {
+    "Name" : "Numm",
     "Add" : "Dobäisetzen",
     "Settings" : "Astellungen",
     "Disable" : "Ofschalten",
+    "Delete" : "Läschen",
     "Type" : "Typ"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

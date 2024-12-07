@@ -1,0 +1,8 @@
+{ "translations": {
+    "Name" : "Ad",
+    "Public" : "İctimai",
+    "Settings" : "Quraşdırmalar",
+    "Disable" : "Dayandır",
+    "Delete" : "Sil"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

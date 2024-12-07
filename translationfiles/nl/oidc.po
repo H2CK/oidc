@@ -8,18 +8,20 @@
 # MegaXLR <tedvanriel@gmail.com>, 2024
 # Klaas Swart, 2024
 # Nico Vromans, 2024
-# EWouters, 2024
-# André Koot <meneer@tken.net>, 2024
+# Jordy Hoebergen, 2024
 # H2CK, 2024
+# 62bd5b1da39b746abffbed10afdf3f48_dd9a6d2 <cc54ef8159ac0c483e6ec4ac38becdcc_215531>, 2024
+# André Koot <meneer@tken.net>, 2024
+# EWouters, 2024
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-12-06 02:30+0000\n"
+"POT-Creation-Date: 2024-12-07 02:19+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: H2CK, 2024\n"
+"Last-Translator: EWouters, 2024\n"
 "Language-Team: Dutch (https://app.transifex.com/nextcloud/teams/64236/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -32,23 +34,29 @@ msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
 msgstr ""
+"Je client is niet geautoriseerd om te verbinden. Informeer de beheerder van "
+"je client."
 
 #: /app/lib/Controller/LoginRedirectorController.php:258
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
-msgstr ""
+msgstr "Je client is verlopen. Informeer de beheerder van je client."
 
 #: /app/lib/Controller/LoginRedirectorController.php:274
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
 msgstr ""
+"De ontvangen redirect URI wordt niet geaccepteerd om verbinding te maken. "
+"Informeer de beheerder van uw client."
 
 #: /app/lib/Controller/LoginRedirectorController.php:331
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
 msgstr ""
+"De gebruiker is geen lid van de voor de client gedefinieerde groepen. Het is"
+" niet toegestaan een login token op te halen."
 
 #: /app/lib/Controller/SettingsController.php:109
 msgid ""
@@ -72,7 +80,7 @@ msgstr "Code en impliciete autorisatiestroom"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
-msgstr ""
+msgstr "OIDC Identity Provider"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:3
 msgid "Nextcloud as OpenID Connect Identity Provider"
@@ -90,11 +98,19 @@ msgid ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 msgstr ""
+"Nextcloud als OpenID Connect Identity Provider\n"
+"\n"
+"Met deze app kun je Nextcloud gebruiken als OpenID Connect Identity Provider. Als andere diensten\\ncorrect zijn geconfigureerd, hebt u toegang tot die diensten met uw Nextcloud-login.\n"
+"\n"
+"Volledige documentatie is te vinden op:\n"
+"\n"
+"- [Gebruikersdocumentatie](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
+"- Ontwikkelaarsdocumentatie](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:23
 #: /app/specialVueFakeDummyForL10nScript.js:2
 msgid "OpenID Connect clients"
-msgstr ""
+msgstr "OpenID Connect-clients"
 
 #. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:4
@@ -115,7 +131,7 @@ msgstr "Voeg client toe"
 #: /app/specialVueFakeDummyForL10nScript.js:8
 #: /app/specialVueFakeDummyForL10nScript.js:84
 msgid "Name"
-msgstr ""
+msgstr "Naam"
 
 #. TRANSLATORS src/App.vue:62
 #. TRANSLATORS src/components/OIDCItem.vue:31
@@ -130,7 +146,7 @@ msgstr "Omeiding URI"
 #. TRANSLATORS src/App.vue:66
 #: /app/specialVueFakeDummyForL10nScript.js:12
 msgid "Select Signing Algorithm"
-msgstr ""
+msgstr "Selecteer een algoritme voor ondertekening"
 
 #. TRANSLATORS src/App.vue:78
 #: /app/specialVueFakeDummyForL10nScript.js:14
@@ -140,12 +156,12 @@ msgstr "Selecteer type"
 #. TRANSLATORS src/App.vue:81
 #: /app/specialVueFakeDummyForL10nScript.js:16
 msgid "Confidential"
-msgstr ""
+msgstr "Vertrouwelijk"
 
 #. TRANSLATORS src/App.vue:84
 #: /app/specialVueFakeDummyForL10nScript.js:18
 msgid "Public"
-msgstr ""
+msgstr "Openbaar"
 
 #. TRANSLATORS src/App.vue:87
 #. TRANSLATORS src/components/OIDCItem.vue:46
@@ -170,22 +186,22 @@ msgstr "Token Vervaltijd"
 #. TRANSLATORS src/App.vue:98
 #: /app/specialVueFakeDummyForL10nScript.js:28
 msgid "Select Token Expire Time"
-msgstr ""
+msgstr "Selecteer Token Vervaltijd"
 
 #. TRANSLATORS src/App.vue:101
 #: /app/specialVueFakeDummyForL10nScript.js:30
 msgid "5 minutes"
-msgstr ""
+msgstr "5 minuten"
 
 #. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:32
 msgid "10 minutes"
-msgstr ""
+msgstr "10 minuten"
 
 #. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:34
 msgid "15 minutes"
-msgstr ""
+msgstr "15 minuten"
 
 #. TRANSLATORS src/App.vue:110
 #: /app/specialVueFakeDummyForL10nScript.js:36
@@ -225,7 +241,7 @@ msgstr "Inschakelen"
 #. TRANSLATORS src/App.vue:136
 #: /app/specialVueFakeDummyForL10nScript.js:50
 msgid "Email Verified Flag"
-msgstr ""
+msgstr "E-mail geverifieerd kenmerk"
 
 #. TRANSLATORS src/App.vue:140
 #: /app/specialVueFakeDummyForL10nScript.js:52
@@ -246,7 +262,7 @@ msgstr "Accountgegevens van Nextcloud gebruiken"
 #. TRANSLATORS src/App.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:58
 msgid "Set to always verified"
-msgstr ""
+msgstr "Ingesteld op altijd geverifieerd"
 
 #. TRANSLATORS src/App.vue:153
 #: /app/specialVueFakeDummyForL10nScript.js:60
@@ -261,7 +277,7 @@ msgstr "Methode voor integratie van avatar"
 #. TRANSLATORS src/App.vue:159
 #: /app/specialVueFakeDummyForL10nScript.js:64
 msgid "Select how the avatar image should be integrated"
-msgstr ""
+msgstr "Selecteer hoe de avatarafbeelding moet worden geïntegreerd"
 
 #. TRANSLATORS src/App.vue:162
 #: /app/specialVueFakeDummyForL10nScript.js:66
@@ -271,7 +287,7 @@ msgstr "Geen integratie"
 #. TRANSLATORS src/App.vue:165
 #: /app/specialVueFakeDummyForL10nScript.js:68
 msgid "Add to user info"
-msgstr ""
+msgstr "Toevoegen aan gebruikersinfo"
 
 #. TRANSLATORS src/App.vue:168
 #: /app/specialVueFakeDummyForL10nScript.js:70
@@ -281,7 +297,7 @@ msgstr "Toevoegen aan gebruikersinfo en ID-token"
 #. TRANSLATORS src/App.vue:172
 #: /app/specialVueFakeDummyForL10nScript.js:72
 msgid "Accepted Logout Redirect URIs"
-msgstr ""
+msgstr "Geaccepteerde URI's voor afmelden"
 
 #. TRANSLATORS src/App.vue:192
 #: /app/specialVueFakeDummyForL10nScript.js:78
@@ -305,7 +321,7 @@ msgstr "OpenID Connect omleiden"
 #: /app/specialVueFakeDummyForL10nScript.js:118
 #: /app/specialVueFakeDummyForL10nScript.js:124
 msgid "Delete"
-msgstr ""
+msgstr "Verwijder"
 
 #. TRANSLATORS src/components/OIDCItem.vue:51
 #: /app/specialVueFakeDummyForL10nScript.js:94
@@ -315,7 +331,7 @@ msgstr "Client identificatie"
 #. TRANSLATORS src/components/OIDCItem.vue:55
 #: /app/specialVueFakeDummyForL10nScript.js:96
 msgid "Secret"
-msgstr ""
+msgstr "Vertrouwelijk"
 
 #. TRANSLATORS src/components/OIDCItem.vue:57
 #: /app/specialVueFakeDummyForL10nScript.js:98
@@ -325,12 +341,12 @@ msgstr "Tonen client secret"
 #. TRANSLATORS src/components/OIDCItem.vue:60
 #: /app/specialVueFakeDummyForL10nScript.js:100
 msgid "-- NONE --"
-msgstr ""
+msgstr "-- GEEN --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:64
 #: /app/specialVueFakeDummyForL10nScript.js:102
 msgid "Signing Algorithm"
-msgstr ""
+msgstr "Ondertekenend algoritme"
 
 #. TRANSLATORS src/components/OIDCItem.vue:68
 #: /app/specialVueFakeDummyForL10nScript.js:104
@@ -340,7 +356,7 @@ msgstr "Type"
 #. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:106
 msgid "Flows"
-msgstr ""
+msgstr "Stromen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:108
