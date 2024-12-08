@@ -27,6 +27,7 @@ OC.L10N.register(
     "5 minutes" : "5 minuten",
     "10 minutes" : "10 minuten",
     "15 minutes" : "15 minuten",
+    "30 minutes" : "30 minuten",
     "60 minutes" : "60 minuten",
     "Dynamic Client Registration" : "Dynamische klantregistratie",
     "Enable or disable Dynamic Client Registration" : "Dynamische klantregistratie in- of uitschakelen",
