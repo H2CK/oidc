@@ -108,6 +108,7 @@ class JwtGenerator
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
+		$quota = $user->getQuota();
 
         $jwt_payload = [
             'iss' => $issuer,
@@ -206,6 +207,10 @@ class JwtGenerator
             // 'birthdate' => ,
             // 'zoneinfo' => ,
             // 'locale' => ,
+			if ($quota != 'none') {
+                $profile = array_merge($profile,
+						['quota' => $quota]);
+            }
             $jwt_payload = array_merge($jwt_payload, $profile);
         }
         if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {

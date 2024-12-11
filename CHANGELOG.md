@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2024-12-11
+
+### Changed
+
+- Added support to provide quota in JWT
+- Updated dependencies
+- Updated translations
+
 ## [1.0.0] - 2024-10-22
 
 ### Changed
