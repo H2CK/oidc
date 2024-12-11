@@ -176,6 +176,7 @@ class UserInfoController extends ApiController
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
+		$quota = $user->getQuota();
 
         $userInfoPayload = [
             'sub' => $uid,
@@ -235,6 +236,10 @@ class UserInfoController extends ApiController
             // 'birthdate' => ,
             // 'zoneinfo' => ,
             // 'locale' => ,
+			if ($quota != 'none') {
+                $profile = array_merge($profile,
+						['quota' => $quota]);
+            }
             $userInfoPayload = array_merge($userInfoPayload, $profile);
         }
         if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
