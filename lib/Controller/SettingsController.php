@@ -197,7 +197,7 @@ class SettingsController extends Controller
 
         $redirectUriObj = new RedirectUri();
         $redirectUriObj->setClientId($id);
-        $redirectUriObj->setRedirectUri($redirectUri);
+        $redirectUriObj->setRedirectUri(trim($redirectUri));
         $redirectUriObj = $this->redirectUriMapper->insert($redirectUriObj);
         $clients = $this->clientMapper->getClients();
 
@@ -267,7 +267,7 @@ class SettingsController extends Controller
         $this->logger->debug("Adding Logout Redirect URI " . $redirectUri);
 
         $logoutRedirectUriObj = new LogoutRedirectUri();
-        $logoutRedirectUriObj->setRedirectUri($redirectUri);
+        $logoutRedirectUriObj->setRedirectUri(trim($redirectUri));
         $logoutRedirectUriObj = $this->logoutRedirectUriMapper->insert($logoutRedirectUriObj);
 
         $result = [];
