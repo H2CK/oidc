@@ -6,7 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Added support to provide claims family_name, given_name and middle_name JWT and userinfo endpoint
+- Added support to provide claims family_name, given_name and middle_name JWT and userinfo endpoint (thanks to @ThoFrank)
+- Added trimming of whitespaces to redirect and logout URIs on creation (thanks to @jannisko)
 - Updated dependencies
 - Updated translations
 
