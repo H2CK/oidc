@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2024-12-25
+
+### Changed
+
+- Added support to provide claims family_name, given_name and middle_name JWT and userinfo endpoint
+- Updated dependencies
+- Updated translations
+
 ## [1.1.0] - 2024-12-11
 
 ### Changed

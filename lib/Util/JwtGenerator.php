@@ -30,19 +30,21 @@ use OC\Authentication\Token\IProvider as TokenProvider;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
-use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Security\ICrypto;
-use OCP\Security\ISecureRandom;
+use OCA\DAV\CardDAV\Converter;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IGroup;
 use OCP\IGroupManager;
+use OCP\Server;
+use OCP\IURLGenerator;
+use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\AppFramework\Services\IAppConfig;
+use OCP\Security\ICrypto;
+use OCP\Security\ISecureRandom;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
-use OCP\IURLGenerator;
-use OCP\AppFramework\Services\IAppConfig;
 use Psr\Log\LoggerInterface;
 
 class JwtGenerator
@@ -67,6 +69,8 @@ class JwtGenerator
     private $appConfig;
     /** @var LoggerInterface */
     private $logger;
+    /** @var Converter */
+    private $converter;
 
     public function __construct(
                     ICrypto $crypto,
@@ -90,6 +94,7 @@ class JwtGenerator
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
         $this->logger = $logger;
+        $this->converter = Server::get(Converter::class);
     }
 
     /**
@@ -171,8 +176,14 @@ class JwtGenerator
                 'updated_at' => $user->getLastLogin(),
             ];
             if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
-                $profile = array_merge($profile,
-                        ['name' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue()]);
+                $displayName = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
+                $names = $this->converter->splitFullName($displayName);
+                $profile = array_merge($profile, [
+                    'name' => $displayName,
+                    'family_name' => $names[0],
+                    'given_name' => $names[1],
+                    'middle_name' => $names[2]
+                ]);
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
@@ -197,9 +208,6 @@ class JwtGenerator
                 }
             }
             // Possible further values currently not provided by Nextcloud
-            // 'family_name' => ,
-            // 'given_name' => ,
-            // 'middle_name' => ,
             // 'nickname' => ,
             // 'profile' => ,
             // 'picture' => , usually contains a URL linking to picture for download
