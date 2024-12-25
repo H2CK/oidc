@@ -30,6 +30,7 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\DAV\CardDAV\Converter;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -40,6 +41,7 @@ use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IGroup;
 use OCP\IGroupManager;
+use OCP\Server;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
@@ -69,6 +71,8 @@ class UserInfoController extends ApiController
     private $appConfig;
     /** @var LoggerInterface */
     private $logger;
+    /** @var Converter */
+    private $converter;
 
     public function __construct(
                     string $appName,
@@ -94,6 +98,7 @@ class UserInfoController extends ApiController
         $this->accountManager = $accountManager;
         $this->appConfig = $appConfig;
         $this->logger = $logger;
+        $this->converter = Server::get(Converter::class);
     }
 
     /**
@@ -200,8 +205,14 @@ class UserInfoController extends ApiController
                 'updated_at' => $user->getLastLogin(),
             ];
             if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
-                $profile = array_merge($profile,
-                        ['name' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue()]);
+                $displayName = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
+                $names = $this->converter->splitFullName($displayName);
+                $profile = array_merge($profile, [
+                    'name' => $displayName,
+                    'family_name' => $names[0],
+                    'given_name' => $names[1],
+                    'middle_name' => $names[2]
+                ]);
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
@@ -226,9 +237,6 @@ class UserInfoController extends ApiController
                 }
             }
             // Possible further values
-            // 'family_name' => ,
-            // 'given_name' => ,
-            // 'middle_name' => ,
             // 'nickname' => ,
             // 'profile' => ,
             // 'picture' => ,
