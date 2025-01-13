@@ -15,7 +15,7 @@ OC.L10N.register(
     "30 minutes" : "30 minučių",
     "60 minutes" : "60 minučių",
     "Disable" : "Išjungti",
-    "Enable" : "Aktyvuoti",
+    "Enable" : "Įjungti",
     "Public Key" : "Viešasis raktas",
     "Delete" : "Ištrinti",
     "Client Identifier" : "Kliento identifikatorius",
