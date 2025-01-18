@@ -8,7 +8,7 @@
 # Developer From Jokela Offical Channel <developerfromjokela@gmail.com>, 2024
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2024
 # 72d686daabd2f7212739b412929536be_e195df1 <a6caa6e567bfabba50a29e9a037273fb_1019631>, 2024
-# teemue, 2024
+# Teemu, 2024
 # H2CK, 2024
 # Jiri Grönroos <jiri.gronroos@iki.fi>, 2024
 # Robin Lahtinen <robin.lahtinen@gmail.com>, 2024
@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2024-12-28 02:18+0000\n"
+"POT-Creation-Date: 2025-01-18 02:17+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: Robin Lahtinen <robin.lahtinen@gmail.com>, 2024\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
