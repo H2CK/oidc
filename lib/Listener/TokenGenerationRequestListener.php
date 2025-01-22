@@ -16,7 +16,6 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 
@@ -26,7 +25,6 @@ use Psr\Log\LoggerInterface;
 class TokenGenerationRequestListener implements IEventListener {
 
 	public function __construct(
-		private IUserSession $userSession,
 		private LoggerInterface $logger,
 		private ISecureRandom $random,
 		private ITimeFactory $time,
@@ -40,13 +38,9 @@ class TokenGenerationRequestListener implements IEventListener {
 			return;
 		}
 
-		if (!$this->userSession->isLoggedIn()) {
-			return;
-		}
-
 		$clientId = $event->getClientId();
 		$userId = $event->getUserId();
-		$this->logger->debug('[TokenGenerationRequestListener Listener] received token request for user: ' . $userId . ' and client ID: ' . $clientId);
+		$this->logger->debug('[TokenGenerationRequestListener] received token request event for user: ' . $userId . ' and client ID: ' . $clientId);
 
 		// generate a new access token for the client
 		$expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');

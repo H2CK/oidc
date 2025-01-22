@@ -217,7 +217,7 @@ class OIDCApiController extends ApiController {
         }
 
         // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime ) {
+        if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime) {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired. Client id was ' . $client_id . '.');
             return new JSONResponse([

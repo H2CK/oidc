@@ -23,12 +23,15 @@
  */
 namespace OCA\OIDCIdentityProvider\AppInfo;
 
+use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
+use OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent;
 use OCA\OIDCIdentityProvider\Http\WellKnown\WebFingerHandler;
 use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
 use OCA\OIDCIdentityProvider\BasicAuthBackend;
+use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
+use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
 use OCP\AppFramework\App;
 use OC_User;
-use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -51,6 +54,9 @@ class Application extends App implements IBootstrap {
         $context->registerWellKnownHandler(WebFingerHandler::class);
         // Register OIDCDiscoveryHandler
         $context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
+
+		$context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
+		$context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
 
         $this->backend = $this->getContainer()->get(BasicAuthBackend::class);
         OC_User::useBackend($this->backend);
