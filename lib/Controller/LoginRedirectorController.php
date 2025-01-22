@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
@@ -236,7 +237,7 @@ class LoginRedirectorController extends ApiController
 
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
-            $scope = 'openid profile email roles';
+            $scope = Application::DEFAULT_SCOPE;
         }
 
         $this->clientMapper->cleanUp();

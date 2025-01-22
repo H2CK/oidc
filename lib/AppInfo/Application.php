@@ -36,6 +36,8 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 class Application extends App implements IBootstrap {
     public const APP_ID = 'oidc';
 
+	public const DEFAULT_SCOPE = 'openid profile email roles';
+
     private $backend;
 
     public function __construct() {
