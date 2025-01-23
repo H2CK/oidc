@@ -39,7 +39,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 class Application extends App implements IBootstrap {
     public const APP_ID = 'oidc';
 
-	public const DEFAULT_SCOPE = 'openid profile email roles';
+    public const DEFAULT_SCOPE = 'openid profile email roles';
 
     private $backend;
 
@@ -55,8 +55,8 @@ class Application extends App implements IBootstrap {
         // Register OIDCDiscoveryHandler
         $context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
 
-		$context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
-		$context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
+        $context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
+        $context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
 
         $this->backend = $this->getContainer()->get(BasicAuthBackend::class);
         OC_User::useBackend($this->backend);
