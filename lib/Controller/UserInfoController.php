@@ -189,18 +189,28 @@ class UserInfoController extends ApiController
 
         ];
 
+        // Check for scopes
+        $scopeArray = preg_split('/ +/', $accessToken->getScope());
+
         $roles = [];
         foreach ($groups as $group) {
             array_push($roles, $group->getGID());
         }
-        $rolesPayload = [
-            'roles' => $roles,
-            'groups' => $roles
-        ];
-        $userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
 
-        // Check for scopes
-        $scopeArray = preg_split('/ +/', $accessToken->getScope());
+        if (in_array("roles", $scopeArray)) {
+            $rolesPayload = [
+                'roles' => $roles
+            ];
+            $userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
+        }
+
+        if (in_array("groups", $scopeArray)) {
+            $groupsPayload = [
+                'groups' => $roles
+            ];
+            $userInfoPayload = array_merge($userInfoPayload, $groupsPayload);
+        }
+
         if (in_array("profile", $scopeArray)) {
             $profile = [
                 'updated_at' => $user->getLastLogin(),
