@@ -16,6 +16,7 @@ use OCP\EventDispatcher\Event;
 class TokenValidationRequestEvent extends Event {
 
 	private ?bool $isValid = null;
+	private ?string $userId = null;
 
 	public function __construct(
 		private string $accessToken,
@@ -23,15 +24,23 @@ class TokenValidationRequestEvent extends Event {
 		parent::__construct();
 	}
 
-	public function getIsValid(): ?bool {
-		return $this->isValid;
-	}
-
 	public function getAccessToken(): string {
 		return $this->accessToken;
 	}
 
+	public function getIsValid(): ?bool {
+		return $this->isValid;
+	}
+
 	public function setIsValid(bool $isValid): void {
 		$this->isValid = $isValid;
+	}
+
+	public function getUserId(): ?string {
+		return $this->userId;
+	}
+
+	public function setUserId(string $userId): void {
+		$this->userId = $userId;
 	}
 }
