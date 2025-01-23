@@ -11,7 +11,7 @@ namespace OCA\OIDCIdentityProvider\Event;
 use OCP\EventDispatcher\Event;
 
 /**
- * This event is emitted by other apps that need an access token from one of our Oidc clients
+ * This event is emitted by other apps that want to know if an access token is valid
  */
 class TokenValidationRequestEvent extends Event {
 
