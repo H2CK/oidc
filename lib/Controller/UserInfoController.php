@@ -194,7 +194,8 @@ class UserInfoController extends ApiController
             array_push($roles, $group->getGID());
         }
         $rolesPayload = [
-            'roles' => $roles
+            'roles' => $roles,
+            'groups' => $roles
         ];
         $userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
 
