@@ -11,7 +11,9 @@ namespace OCA\OIDCIdentityProvider\Listener;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
+use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
@@ -30,6 +32,7 @@ class TokenGenerationRequestListener implements IEventListener {
 		private ITimeFactory $time,
 		private IAppConfig $appConfig,
 		private AccessTokenMapper $accessTokenMapper,
+		private ClientMapper $clientMapper,
 	) {
 	}
 
@@ -38,16 +41,29 @@ class TokenGenerationRequestListener implements IEventListener {
 			return;
 		}
 
-		$clientId = $event->getClientId();
+		$clientIdentifier = $event->getClientIdentifier();
 		$userId = $event->getUserId();
-		$this->logger->debug('[TokenGenerationRequestListener] received token request event for user: ' . $userId . ' and client ID: ' . $clientId);
+		$this->logger->debug('[TokenGenerationRequestListener] received token request event for user: ' . $userId . ' and client identifier: ' . $clientIdentifier);
+
+		// get client from identifier
+		try {
+			$client = $this->clientMapper->getByIdentifier($clientIdentifier);
+		} catch (ClientNotFoundException) {
+			$this->logger->debug('[TokenGenerationRequestListener] Client ' . $clientIdentifier . ' not found');
+			return;
+		}
+		// check client expiration
+		if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', '3600'))) {
+			$this->logger->warning('[TokenGenerationRequestListener] Client ' . $client->getId() . ' has expired');
+			return;
+		}
 
 		// generate a new access token for the client
 		$expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');
 		$accessTokenString = $this->random->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
 		$code = $this->random->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
 		$accessToken = new AccessToken();
-		$accessToken->setClientId($clientId);
+		$accessToken->setClientId($client->getId());
 		$accessToken->setUserId($userId);
 		$accessToken->setAccessToken($accessTokenString);
 		$accessToken->setHashedCode(hash('sha512', $code));

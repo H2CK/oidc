@@ -18,14 +18,14 @@ class TokenGenerationRequestEvent extends Event {
 	private ?string $accessToken = null;
 
 	public function __construct(
-		private int $clientId,
+		private string $clientIdentifier,
 		private string $userId,
 	) {
 		parent::__construct();
 	}
 
-	public function getClientId(): int {
-		return $this->clientId;
+	public function getClientIdentifier(): string {
+		return $this->clientIdentifier;
 	}
 
 	public function getUserId(): string {
