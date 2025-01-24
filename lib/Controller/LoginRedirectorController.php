@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
@@ -236,7 +237,7 @@ class LoginRedirectorController extends ApiController
 
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
-            $scope = 'openid profile email roles';
+            $scope = Application::DEFAULT_SCOPE;
         }
 
         $this->clientMapper->cleanUp();
@@ -252,7 +253,7 @@ class LoginRedirectorController extends ApiController
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', '3600'))) {
             $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
             $params = [
                 'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),

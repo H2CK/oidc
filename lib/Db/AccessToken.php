@@ -29,7 +29,7 @@ use OCP\AppFramework\Db\Entity;
  * @method int getClientId()
  * @method void setClientId(int $clientId)
  * @method string getUserId()
- * @method void setUserId(int $userId)
+ * @method void setUserId(string $userId)
  * @method string getScope()
  * @method void setScope(string $scope)
  * @method string getHashedCode()
