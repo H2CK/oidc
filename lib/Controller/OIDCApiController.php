@@ -147,7 +147,7 @@ class OIDCApiController extends ApiController {
     #[NoCSRFRequired]
     public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
     {
-        $expireTime = $this->appConfig->getAppValue('expire_time');
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');
         // We only handle two types
         if ($grant_type !== 'authorization_code' && $grant_type !== 'refresh_token') {
             $this->logger->notice('Invalid grant_type provided. Must be authorization_code or refresh_token for client id ' . $client_id . '.');
@@ -208,7 +208,7 @@ class OIDCApiController extends ApiController {
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', '3600'))) {
             $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
             return new JSONResponse([
                 'error' => 'expired_client',
@@ -217,7 +217,7 @@ class OIDCApiController extends ApiController {
         }
 
         // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime ) {
+        if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime) {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired. Client id was ' . $client_id . '.');
             return new JSONResponse([
@@ -271,7 +271,7 @@ class OIDCApiController extends ApiController {
             [
                 'access_token' => $newAccessToken,
                 'token_type' => 'Bearer',
-                'expires_in' => intval($expireTime),
+                'expires_in' => $expireTime,
                 'refresh_token' => $newCode,
                 'id_token' => $jwt,
             ]
