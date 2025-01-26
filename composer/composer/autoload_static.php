@@ -7,14 +7,14 @@ namespace Composer\Autoload;
 class ComposerStaticInitOIDCIdentityProvider
 {
     public static $prefixLengthsPsr4 = array (
-        'O' => 
+        'O' =>
         array (
             'OCA\\OIDCIdentityProvider\\' => 25,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'OCA\\OIDCIdentityProvider\\' => 
+        'OCA\\OIDCIdentityProvider\\' =>
         array (
             0 => __DIR__ . '/..' . '/../lib',
         ),
@@ -71,6 +71,10 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
         'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => __DIR__ . '/..' . '/../lib/Util/DiscoveryGenerator.php',
         'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => __DIR__ . '/..' . '/../lib/Util/JwtGenerator.php',
+		'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenGenerationRequestEvent.php',
+		'OCA\\OIDCIdentityProvider\\Event\\TokenValidationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenValidationRequestEvent.php',
+		'OCA\\OIDCIdentityProvider\\Listener\\TokenGenerationRequestListener' => __DIR__ . '/..' . '/../lib/Listener/TokenGenerationRequestListener.php',
+		'OCA\\OIDCIdentityProvider\\Listener\\TokenValidationRequestListener' => __DIR__ . '/..' . '/../lib/Listener/TokenValidationRequestListener.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

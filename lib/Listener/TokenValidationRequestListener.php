@@ -22,37 +22,37 @@ use Psr\Log\LoggerInterface;
  */
 class TokenValidationRequestListener implements IEventListener {
 
-	public function __construct(
-		private LoggerInterface $logger,
-		private ITimeFactory $time,
-		private IAppConfig $appConfig,
-		private AccessTokenMapper $accessTokenMapper,
-	) {
-	}
+    public function __construct(
+        private LoggerInterface $logger,
+        private ITimeFactory $time,
+        private IAppConfig $appConfig,
+        private AccessTokenMapper $accessTokenMapper,
+    ) {
+    }
 
-	public function handle(Event $event): void {
-		if (!$event instanceof TokenValidationRequestEvent) {
-			return;
-		}
+    public function handle(Event $event): void {
+        if (!$event instanceof TokenValidationRequestEvent) {
+            return;
+        }
 
-		$accessTokenString = $event->getAccessToken();
-		$this->logger->debug('[TokenValidationRequestListener] received an access token validation request event');
+        $accessTokenString = $event->getAccessToken();
+        $this->logger->debug('[TokenValidationRequestListener] received an access token validation request event');
 
-		$expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');
 
-		try {
-			$accessToken = $this->accessTokenMapper->getByAccessToken($accessTokenString);
-			$hasExpired = $this->time->getTime() > $accessToken->getRefreshed() + $expireTime;
-			// cleanup expired access token
-			if ($hasExpired) {
-				$this->accessTokenMapper->delete($accessToken);
-				$event->setIsValid(false);
-			} else {
-				$event->setIsValid(true);
-				$event->setUserId($accessToken->getUserId());
-			}
-		} catch (AccessTokenNotFoundException $e) {
-			$event->setIsValid(false);
-		}
-	}
+        try {
+            $accessToken = $this->accessTokenMapper->getByAccessToken($accessTokenString);
+            $hasExpired = $this->time->getTime() > $accessToken->getRefreshed() + $expireTime;
+            // cleanup expired access token
+            if ($hasExpired) {
+                $this->accessTokenMapper->delete($accessToken);
+                $event->setIsValid(false);
+            } else {
+                $event->setIsValid(true);
+                $event->setUserId($accessToken->getUserId());
+            }
+        } catch (AccessTokenNotFoundException $e) {
+            $event->setIsValid(false);
+        }
+    }
 }

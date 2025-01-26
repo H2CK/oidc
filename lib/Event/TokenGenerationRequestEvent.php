@@ -15,28 +15,28 @@ use OCP\EventDispatcher\Event;
  */
 class TokenGenerationRequestEvent extends Event {
 
-	private ?string $accessToken = null;
+    private ?string $accessToken = null;
 
-	public function __construct(
-		private string $clientIdentifier,
-		private string $userId,
-	) {
-		parent::__construct();
-	}
+    public function __construct(
+        private string $clientIdentifier,
+        private string $userId,
+    ) {
+        parent::__construct();
+    }
 
-	public function getClientIdentifier(): string {
-		return $this->clientIdentifier;
-	}
+    public function getClientIdentifier(): string {
+        return $this->clientIdentifier;
+    }
 
-	public function getUserId(): string {
-		return $this->userId;
-	}
+    public function getUserId(): string {
+        return $this->userId;
+    }
 
-	public function getAccessToken(): ?string {
-		return $this->accessToken;
-	}
+    public function getAccessToken(): ?string {
+        return $this->accessToken;
+    }
 
-	public function setAccessToken(string $accessToken): void {
-		$this->accessToken = $accessToken;
-	}
+    public function setAccessToken(string $accessToken): void {
+        $this->accessToken = $accessToken;
+    }
 }

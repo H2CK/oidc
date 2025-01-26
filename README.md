@@ -103,9 +103,9 @@ The registration endpoint is accessible for everybody without any authentication
 | roles | Adds the groups of the user in the claim `roles`. |
 | groups | Adds the groups of the user in the claim `groups`. |
 
-## Limitations
+## Access Token generation and validation via events by other Nextcloud apps
 
-Currently it is not yet possible to use an issued Access Token or ID Token to access resources at the Nextcloud instance it self.
+The app provides the events TokenValidationRequestEvent and TokenGenerationRequestEvent, which allow that other apps could request the generation of an access token as well as perform a validation of received access tokens. This way it will be possible that other Nextcloud apps could make use of access tokens. Further details can be found here: [#515](https://github.com/H2CK/oidc/pull/515)
 
 ## Development
 
@@ -155,10 +155,3 @@ Execute `make test` to run phpunit tests.
 Execute  `php -dxdebug.remote_host=localhost -f cron.php`
 
 To run the job again if you have errors, however, you may have to remove it from the oc_jobs table and disable/reenable the app.
-
-## TODOs / Ideas for extensions
-
-- Support other methods to transport client_credentials (in query / body)
-- GET support for token endpoint
-- Add authentication backend to allow usage of JWT to access resources at Nextcloud server
-- Create unit and integration tests

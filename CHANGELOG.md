@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2025-01-26
+
+### Changed
+
+- Handle access token generation and validation requests via events (thanks to @julien-nc)
+- Return user group array from the /userinfo endpoint and guard groups and roles claim behind authorized scope (thanks to @jannisko)
+- Added support for Nextcloud 31
+- Updated dependencies
+- Updated translations
+
 ## [1.2.0] - 2024-12-25
 
 ### Changed

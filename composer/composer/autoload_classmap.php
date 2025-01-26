@@ -56,4 +56,8 @@ return array(
     'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
     'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => $baseDir . '/../lib/Util/DiscoveryGenerator.php',
     'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => $baseDir . '/../lib/Util/JwtGenerator.php',
+	'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => $baseDir . '/../lib/Event/TokenGenerationRequestEvent.php',
+	'OCA\\OIDCIdentityProvider\\Event\\TokenValidationRequestEvent' => $baseDir . '/../lib/Event/TokenValidationRequestEvent.php',
+	'OCA\\OIDCIdentityProvider\\Listener\\TokenGenerationRequestListener' => $baseDir . '/../lib/Listener/TokenGenerationRequestListener.php',
+	'OCA\\OIDCIdentityProvider\\Listener\\TokenValidationRequestListener' => $baseDir . '/../lib/Listener/TokenValidationRequestListener.php',
 );
