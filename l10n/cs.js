@@ -51,7 +51,7 @@ OC.L10N.register(
     "OpenID Connect Redirect" : "Přesměrování OpenID Connect",
     "Delete" : "Smazat",
     "Client Identifier" : "Identifikátor klienta",
-    "Secret" : "Soukromý",
+    "Secret" : "Tajemství",
     "Show client secret" : "Zobrazit klientské tajemství",
     "-- NONE --" : "-- ŽÁDNÉ --",
     "Signing Algorithm" : "Algoritmus podepisování",
