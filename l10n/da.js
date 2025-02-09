@@ -5,7 +5,7 @@ OC.L10N.register(
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigerings-URL skal være en fuld URL, for eksempel: https://yourdomain.com/path",
     "Add client" : "Tilføj klient",
     "Name" : "Navn",
-    "Redirection URI" : "Viderestilling URI",
+    "Redirection URI" : "Viderestillings URI",
     "Public" : "Offentlig",
     "Add" : "Tilføj",
     "Settings" : "Indstillinger",
@@ -18,7 +18,7 @@ OC.L10N.register(
     "Delete" : "Slet",
     "Client Identifier" : "Klient ID",
     "Secret" : "Hemmelighed",
-    "Show client secret" : "Vis klient hemmelighed",
+    "Show client secret" : "Vis klienthemmelighed",
     "Type" : "Type"
 },
 "nplurals=2; plural=(n != 1);");
