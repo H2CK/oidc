@@ -14,10 +14,12 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IURLGenerator;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 
@@ -32,7 +34,9 @@ class TokenGenerationRequestListener implements IEventListener {
         private ITimeFactory $time,
         private IAppConfig $appConfig,
         private AccessTokenMapper $accessTokenMapper,
+        private JwtGenerator $jwtGenerator,
         private ClientMapper $clientMapper,
+        private IUrlGenerator $urlGenerator,
     ) {
     }
 
@@ -71,8 +75,16 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime() + $expireTime);
         $accessToken->setNonce('');
-        $this->accessTokenMapper->insert($accessToken);
+        $accessToken = $this->accessTokenMapper->insert($accessToken);
+
+        $instanceUrl = $this->urlGenerator->getBaseUrl();
+        $protocol = parse_url($instanceUrl, PHP_URL_SCHEME);
+        $host = parse_url($instanceUrl, PHP_URL_HOST);
+        $idToken = $this->jwtGenerator->generateIdToken($accessToken, $client, $protocol, $host, false);
 
         $event->setAccessToken($accessToken->getAccessToken());
+        $event->setExpiresIn($expireTime);
+        $event->setRefreshToken($code);
+        $event->setIdToken($idToken);
     }
 }

@@ -372,7 +372,9 @@ class LoginRedirectorController extends ApiController
             $url = $url . '&access_token=' . $accessTokenCode;
         }
         if (in_array('id_token', $responseTypeEntries)) {
-            $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request, in_array('token', $responseTypeEntries));
+            $jwt = $this->jwtGenerator->generateIdToken(
+                $accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), in_array('token', $responseTypeEntries)
+            );
             $url = $url . '&id_token=' . $jwt;
         }
         if (in_array('id_token', $responseTypeEntries) || in_array('token', $responseTypeEntries)) {

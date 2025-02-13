@@ -11,11 +11,14 @@ namespace OCA\OIDCIdentityProvider\Event;
 use OCP\EventDispatcher\Event;
 
 /**
- * This event is emitted by other apps that need an access token from one of our Oidc clients
+ * This event is emitted by other apps that need an access+id token from one of our Oidc clients
  */
 class TokenGenerationRequestEvent extends Event {
 
     private ?string $accessToken = null;
+    private ?string $idToken = null;
+    private ?string $refreshToken = null;
+    private ?int $expiresIn = null;
 
     public function __construct(
         private string $clientIdentifier,
@@ -38,5 +41,29 @@ class TokenGenerationRequestEvent extends Event {
 
     public function setAccessToken(string $accessToken): void {
         $this->accessToken = $accessToken;
+    }
+
+    public function getIdToken(): ?string {
+        return $this->idToken;
+    }
+
+    public function setIdToken(?string $idToken): void {
+        $this->idToken = $idToken;
+    }
+
+    public function getRefreshToken(): ?string {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): void {
+        $this->refreshToken = $refreshToken;
+    }
+
+    public function getExpiresIn(): ?int {
+        return $this->expiresIn;
+    }
+
+    public function setExpiresIn(?int $expiresIn): void {
+        $this->expiresIn = $expiresIn;
     }
 }
