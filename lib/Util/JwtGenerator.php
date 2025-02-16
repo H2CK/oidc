@@ -31,6 +31,7 @@ use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\DAV\CardDAV\Converter;
+use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -97,17 +98,20 @@ class JwtGenerator
         $this->converter = Server::get(Converter::class);
     }
 
-    /**
-     * Generate JWT Token
-     *
-     * @param AccessToken $accessToken
-     * @param Client $client
-     * @return string
-     */
-    public function generateIdToken(AccessToken $accessToken, Client $client, IRequest $request, bool $atHash): string
-    {
-        $expireTime = $this->appConfig->getAppValue('expire_time');
-        $issuer = $request->getServerProtocol() . '://' . $request->getServerHost() . $this->urlGenerator->getWebroot();
+	/**
+	 * Generate JWT Token
+	 *
+	 * @param AccessToken $accessToken
+	 * @param Client $client
+	 * @param string $issuerProtocol
+	 * @param string $issuerHost
+	 * @param bool $atHash
+	 * @return string
+	 * @throws PropertyDoesNotExistException
+	 */
+    public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash): string {
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time');
+        $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $nonce = $accessToken->getNonce();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
