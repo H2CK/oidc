@@ -4,7 +4,7 @@
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 # 
 # Translators:
-# lollos78, 2024
+# Lollo, 2024
 # Random_R, 2024
 # H2CK, 2024
 # Vincenzo Reale <vinx.reale@gmail.com>, 2024
@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-01-26 02:25+0000\n"
+"POT-Creation-Date: 2025-02-16 02:47+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: Stefano Gualmo - Agesp, 2024\n"
 "Language-Team: Italian (https://app.transifex.com/nextcloud/teams/64236/it/)\n"
