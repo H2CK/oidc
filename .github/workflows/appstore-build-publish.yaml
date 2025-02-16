@@ -94,7 +94,7 @@ jobs:
         run: |
           NCVERSION=${{ steps.appinfo.outputs.info }}
           wget --quiet https://download.nextcloud.com/server/releases/latest.zip
-          unzip latest-$NCVERSION.zip
+          unzip latest.zip
 
       - name: Checkout server master fallback
         uses: actions/checkout@v3

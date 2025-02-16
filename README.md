@@ -103,9 +103,9 @@ The registration endpoint is accessible for everybody without any authentication
 | roles | Adds the groups of the user in the claim `roles`. |
 | groups | Adds the groups of the user in the claim `groups`. |
 
-## Access Token generation and validation via events by other Nextcloud apps
+## Access Token & ID token generation and validation via events by other Nextcloud apps
 
-The app provides the events TokenValidationRequestEvent and TokenGenerationRequestEvent, which allow that other apps could request the generation of an access token as well as perform a validation of received access tokens. This way it will be possible that other Nextcloud apps could make use of access tokens. Further details can be found here: [#515](https://github.com/H2CK/oidc/pull/515)
+The app provides the events TokenValidationRequestEvent and TokenGenerationRequestEvent, which allow that other apps could request the generation of an access and id token as well as perform a validation of received access or id tokens. This way it will be possible that other Nextcloud apps could make use of access & id tokens. Further details can be found here: [#515](https://github.com/H2CK/oidc/pull/515) and [#521](https://github.com/H2CK/oidc/pull/521)
 
 ## Development
 

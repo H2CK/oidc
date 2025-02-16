@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2025-02-16
+
+### Changed
+
+- Enhancement to support event based generation and validation of id tokens (thanks to @julien-nc)
+- Updated dependencies
+- Updated translations
+
 ## [1.3.0] - 2025-01-26
 
 ### Changed
