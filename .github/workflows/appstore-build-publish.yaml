@@ -10,7 +10,7 @@ on:
     types: [published]
 
 env:
-  PHP_VERSION: 8.2
+  PHP_VERSION: 8.3
 
 jobs:
   build_and_publish:
@@ -93,7 +93,7 @@ jobs:
         id: server-checkout
         run: |
           NCVERSION=${{ steps.appinfo.outputs.info }}
-          wget --quiet https://download.nextcloud.com/server/releases/latest-$NCVERSION.zip
+          wget --quiet https://download.nextcloud.com/server/releases/latest.zip
           unzip latest-$NCVERSION.zip
 
       - name: Checkout server master fallback
