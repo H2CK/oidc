@@ -1,6 +1,6 @@
 { "translations": {
     "Name" : "Nombre",
-    "Settings" : "Configurazión",
+    "Settings" : "Configuración",
     "Delete" : "Borrar"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
