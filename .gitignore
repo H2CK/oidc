@@ -12,3 +12,5 @@ js/*hot-update.*
 ## VSCode
 .vscode/
 *.code-workspace
+js/oidc-main.js.LICENSE.txt
+js/oidc-redirect.js.LICENSE.txt
