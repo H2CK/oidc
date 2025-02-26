@@ -7,6 +7,8 @@ use PHPUnit\Framework\TestCase;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OC\Security\Bruteforce\Throttler;
+use OC\Security\Ip\BruteforceAllowList;
+use OC\Security\Ip\Factory;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IURLGenerator;
 use OCP\IConfig;
@@ -38,6 +40,8 @@ class JwksControllerTest extends TestCase {
 	private $logger;
 	/** @var IBackend */
 	private $throttlerBackend;
+	/** @var BruteforceAllowList */
+	private $bruteforceAllowList;
 
 	public function setUp(): void {
 		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
@@ -46,10 +50,12 @@ class JwksControllerTest extends TestCase {
 		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
 		$this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
+		$this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
 		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
 																						$this->logger,
 																						$this->config,
-																						$this->throttlerBackend])->getMock();
+																						$this->throttlerBackend,
+																						$this->bruteforceAllowList])->getMock();
 		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
 		$this->controller = new JwksController(

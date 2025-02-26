@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OC\Security\Bruteforce\Throttler;
+use OC\Security\Ip\BruteforceAllowList;
+use OC\Security\Ip\Factory;
 use OC\Security\Bruteforce\Backend\IBackend;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -54,6 +56,8 @@ class DynamicRegistrationControllerTest extends TestCase {
     protected $db;
     /** @var LoggerInterface */
     protected $logger;
+	/** @var BruteforceAllowList */
+	private $bruteforceAllowList;
 
     public function setUp(): void {
 		parent::setUp();
@@ -66,7 +70,8 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
 		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
 		$this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-        $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([$this->db,
+		$this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
+		$this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([$this->db,
                                                                                                         $this->time,
                                                                                                         $this->appConfig])->getMock();
         $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([$this->db,
@@ -80,7 +85,8 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
                                                                                         $this->logger,
                                                                                         $this->config,
-                                                                                        $this->throttlerBackend])->getMock();
+                                                                                        $this->throttlerBackend,
+																						$this->bruteforceAllowList])->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
 		$this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([$this->db,
                                                                                               $this->time,
@@ -181,7 +187,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $client = $result->getData();
         var_dump($client);
-        
+
         $this->assertEquals('TEST-CLIENT', $client['client_name']);
         $this->assertEquals('https://test.org/redirect', $client['redirect_uris'][0]);
         $this->assertEquals('client_secret_post', $client['token_endpoint_auth_method']);
