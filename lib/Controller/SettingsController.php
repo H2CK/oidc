@@ -119,7 +119,7 @@ class SettingsController extends Controller
         $client = $this->clientMapper->insert($client);
 
         // @TODO: use standardized serialization
-        // return new JSONResponse($client); 
+        // return new JSONResponse($client);
 
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
         $resultRedirectUris = [];
@@ -318,6 +318,31 @@ class SettingsController extends Controller
         $this->appConfig->setAppValue('expire_time', $finalExpireTime);
         $result = [
             'expire_time' => $expireTime,
+        ];
+        return new JSONResponse($result);
+    }
+
+    public function setRefreshTokenExpireTime(string $refreshExpireTime): JSONResponse {
+        if ($refreshExpireTime === 'never') {
+            $this->appConfig->setAppValue('refresh_expire_time', 'never');
+            return new JSONResponse([
+                'refresh_expire_time' => $refreshExpireTime,
+            ]);
+        }
+
+        $options = [
+            'options' => [
+                'default' => 900,
+                'min_range' => 60,
+                'max_range' => 86400,
+            ],
+            'flags' => FILTER_FLAG_ALLOW_OCTAL,
+        ];
+        $finalExpireTime = filter_var($refreshExpireTime, FILTER_VALIDATE_INT, $options);
+        $finalExpireTime = strval($finalExpireTime);
+        $this->appConfig->setAppValue('refresh_expire_time', $finalExpireTime);
+        $result = [
+            'refresh_expire_time' => $refreshExpireTime,
         ];
         return new JSONResponse($result);
     }

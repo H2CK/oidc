@@ -114,6 +114,40 @@
 			</option>
 		</select>
 
+		<p>{{ t('oidc', 'Refresh Token Expire Time') }}</p>
+		<select id="refreshExpireTime"
+			v-model="refreshExpTime"
+			:placeholder="t('oidc', 'Refresh Token Expire Time')"
+			@change="setRefreshExpireTime">
+			<option disabled value="">
+				{{ t('oidc', 'Select Refresh Token Expire Time') }}
+			</option>
+			<option value="300">
+				{{ t('oidc', '5 minutes') }}
+			</option>
+			<option value="600">
+				{{ t('oidc', '10 minutes') }}
+			</option>
+			<option value="900">
+				{{ t('oidc', '15 minutes') }}
+			</option>
+			<option value="1800">
+				{{ t('oidc', '30 minutes') }}
+			</option>
+			<option value="3600">
+				{{ t('oidc', '60 minutes') }}
+			</option>
+			<option value="43200">
+				{{ t('oidc', '12 hours') }}
+			</option>
+			<option value="86400">
+				{{ t('oidc', '1 day') }}
+			</option>
+			<option value="never">
+				{{ t('oidc', 'Never') }}
+			</option>
+		</select>
+
 		<p style="margin-top: 1.5em;">
 			{{ t('oidc', 'Dynamic Client Registration') }}
 		</p>
@@ -222,6 +256,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		refreshExpireTime: {
+			type: String,
+			required: true,
+		},
 		publicKey: {
 			type: String,
 			required: true,
@@ -261,6 +299,7 @@ export default {
 				redirectUri: '',
 			},
 			expTime: this.expireTime,
+			refreshExpTime: this.refreshExpireTime,
 			intAvatar: this.integrateAvatar,
 			owEmailVerified: this.overwriteEmailVerified,
 			dynClientRegistration: this.dynamicClientRegistration,
@@ -377,6 +416,15 @@ export default {
 				this.expTime = response.data.expire_time
 				// eslint-disable-next-line vue/no-mutating-props
 				this.expireTime = response.data.expire_time
+			})
+		},
+		setRefreshExpireTime() {
+			axios.post(
+				generateUrl('apps/oidc/refreshExpire'),
+				{
+					refreshExpireTime: this.refreshExpTime,
+				}).then((response) => {
+				this.refreshExpTime = response.data.refresh_expire_time
 			})
 		},
 		setIntegrateAvatar() {

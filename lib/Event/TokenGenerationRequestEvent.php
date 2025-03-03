@@ -19,6 +19,7 @@ class TokenGenerationRequestEvent extends Event {
     private ?string $idToken = null;
     private ?string $refreshToken = null;
     private ?int $expiresIn = null;
+    private ?int $refreshExpiresIn = null;
 
     public function __construct(
         private string $clientIdentifier,
@@ -65,5 +66,13 @@ class TokenGenerationRequestEvent extends Event {
 
     public function setExpiresIn(?int $expiresIn): void {
         $this->expiresIn = $expiresIn;
+    }
+
+    public function getRefreshExpiresIn(): ?int {
+        return $this->refreshExpiresIn;
+    }
+
+    public function setRefreshExpiresIn(?int $refreshExpiresIn): void {
+        $this->refreshExpiresIn = $refreshExpiresIn;
     }
 }
