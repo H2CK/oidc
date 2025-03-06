@@ -289,7 +289,7 @@ class OIDCApiController extends ApiController {
             'refresh_token' => $newCode,
             'id_token' => $jwt,
         ];
-        if ($grant_type === 'refresh_token' && $refreshExpireTime !== 'never') {
+        if ($refreshExpireTime !== 'never') {
             $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
         }
         $response = new JSONResponse($responseData);
