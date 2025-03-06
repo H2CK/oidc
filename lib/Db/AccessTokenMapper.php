@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Db;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
@@ -127,9 +128,16 @@ class AccessTokenMapper extends QBMapper {
      *
      */
     public function cleanUp() {
-        $qb = $this->db->getQueryBuilder();
-        $timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('expire_time');
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time');
+        $refreshExpireTime = $this->appConfig->getAppValue('refresh_expire_time', Application::DEFAULT_REFRESH_EXPIRE_TIME);
+        if ($refreshExpireTime !== 'never') {
+            // keep the token until its refresh token has expired
+            $expireTime = max($expireTime, (int)$refreshExpireTime);
+        }
+        $timeLimit = $this->time->getTime() - $expireTime;
+
         // refreshed < $timeLimit
+        $qb = $this->db->getQueryBuilder();
         $qb
             ->delete($this->tableName)
             ->where($qb->expr()->lt('refreshed', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)));
