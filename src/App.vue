@@ -143,6 +143,9 @@
 			<option value="86400">
 				{{ t('oidc', '1 day') }}
 			</option>
+			<option value="604800">
+				{{ t('oidc', '7 days') }}
+			</option>
 			<option value="never">
 				{{ t('oidc', 'Never') }}
 			</option>

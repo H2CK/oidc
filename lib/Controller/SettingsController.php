@@ -334,7 +334,7 @@ class SettingsController extends Controller
             'options' => [
                 'default' => 900,
                 'min_range' => 60,
-                'max_range' => 86400,
+                'max_range' => 604800,
             ],
             'flags' => FILTER_FLAG_ALLOW_OCTAL,
         ];
