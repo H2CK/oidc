@@ -52,6 +52,11 @@ return [
             'url' => '/expire',
             'verb' => 'POST',
         ],
+        [
+            'name' => 'Settings#setRefreshTokenExpireTime',
+            'url' => '/refreshExpire',
+            'verb' => 'POST',
+        ],
 		[
             'name' => 'Settings#setIntegrateAvatar',
             'url' => '/integrateAvatar',

@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Settings;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
@@ -153,6 +154,9 @@ class Admin implements ISettings {
 
         $this->initialState->provideInitialState('oidc', 'clients', $result);
         $this->initialState->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue('expire_time'));
+        $this->initialState->provideInitialState('oidc',
+            'refreshExpireTime', $this->appConfig->getAppValue('refresh_expire_time', Application::DEFAULT_REFRESH_EXPIRE_TIME)
+        );
         $this->initialState->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
         $this->initialState->provideInitialState('oidc', 'groups', $availableGroups);
         $this->initialState->provideInitialState('oidc', 'logoutRedirectUris', $logoutRedirectUrisResult);

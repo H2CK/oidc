@@ -29,6 +29,7 @@ use OC\Authentication\Exceptions\ExpiredTokenException;
 use OC\Authentication\Exceptions\InvalidTokenException;
 use OC\Authentication\Token\IProvider as TokenProvider;
 use OC\Security\Bruteforce\Throttler;
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
@@ -148,6 +149,7 @@ class OIDCApiController extends ApiController {
     public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
     {
         $expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');
+        $refreshExpireTime = $this->appConfig->getAppValue('refresh_expire_time', Application::DEFAULT_REFRESH_EXPIRE_TIME);
         // We only handle two types
         if ($grant_type !== 'authorization_code' && $grant_type !== 'refresh_token') {
             $this->logger->notice('Invalid grant_type provided. Must be authorization_code or refresh_token for client id ' . $client_id . '.');
@@ -216,14 +218,27 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime) {
-            $this->accessTokenMapper->delete($accessToken);
-            $this->logger->notice('Access token already expired. Client id was ' . $client_id . '.');
-            return new JSONResponse([
-                'error' => 'invalid_grant',
-                'error_description' => 'Access token already expired.',
-            ], Http::STATUS_BAD_REQUEST);
+        if ($grant_type === 'authorization_code') {
+            // The accessToken must not be expired
+            if ($this->time->getTime() > $accessToken->getRefreshed() + $expireTime) {
+                $this->accessTokenMapper->delete($accessToken);
+                $this->logger->notice('Access token already expired. Client id was ' . $client_id . '.');
+                return new JSONResponse([
+                    'error' => 'invalid_grant',
+                    'error_description' => 'Access token already expired.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+        } elseif ($refreshExpireTime !== 'never') {
+            // The refresh token must not be expired
+            $refreshExpireTime = (int)$refreshExpireTime;
+            if ($this->time->getTime() > $accessToken->getRefreshed() + $refreshExpireTime) {
+                $this->accessTokenMapper->delete($accessToken);
+                $this->logger->notice('Refresh token is expired. Client id: ' . $client_id . '.');
+                return new JSONResponse([
+                    'error' => 'invalid_grant',
+                    'error_description' => 'Refresh token is expired.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
         }
 
         $newAccessToken = $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
@@ -267,15 +282,17 @@ class OIDCApiController extends ApiController {
 
         $this->logger->info('Returned token for user ' . $uid);
 
-        $response = new JSONResponse(
-            [
-                'access_token' => $newAccessToken,
-                'token_type' => 'Bearer',
-                'expires_in' => $expireTime,
-                'refresh_token' => $newCode,
-                'id_token' => $jwt,
-            ]
-        );
+        $responseData = [
+            'access_token' => $newAccessToken,
+            'token_type' => 'Bearer',
+            'expires_in' => $expireTime,
+            'refresh_token' => $newCode,
+            'id_token' => $jwt,
+        ];
+        if ($refreshExpireTime !== 'never') {
+            $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+        }
+        $response = new JSONResponse($responseData);
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 

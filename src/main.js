@@ -30,6 +30,7 @@ Vue.prototype.OC = OC
 
 const clients = loadState('oidc', 'clients')
 const expireTime = loadState('oidc', 'expireTime')
+const refreshExpireTime = loadState('oidc', 'refreshExpireTime')
 const publicKey = loadState('oidc', 'publicKey')
 const groups = loadState('oidc', 'groups')
 const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
@@ -42,6 +43,7 @@ const oidc = new View({
 	propsData: {
 		clients,
 		expireTime,
+		refreshExpireTime,
 		publicKey,
 		groups,
 		logoutRedirectUris,
