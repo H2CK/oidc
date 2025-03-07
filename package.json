@@ -35,7 +35,7 @@
 		"json5": "^2.2.3",
 		"linkifyjs": "^4.2.0",
 		"postcss-html": "^1.8.0",
-		"sass": "^1.85.0",
+		"sass": "^1.85.1",
 		"webpack": "^5.98.0"
 	},
 	"browserslist": [
