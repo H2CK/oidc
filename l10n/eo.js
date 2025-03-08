@@ -5,6 +5,7 @@ OC.L10N.register(
     "Public" : "Publika",
     "Settings" : "Agordoj",
     "30 minutes" : "30 minutoj",
+    "Never" : "Neniam",
     "Disable" : "Malŝalti",
     "Enable" : "Ŝalti",
     "Delete" : "Forigi",

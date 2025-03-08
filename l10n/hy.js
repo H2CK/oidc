@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Name" : "Անուն",
     "Settings" : "Կարգավորումներ",
+    "Never" : "Երբեք",
     "Delete" : "հեռացնել",
     "Type" : "Տիպ"
 },

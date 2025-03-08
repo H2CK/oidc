@@ -11,17 +11,17 @@
 # Joachim Sokolowski, 2024
 # H2CK, 2024
 # Joas Schilling, 2024
-# Markus Eckstein, 2024
 # Martin Wilichowski, 2025
+# Markus Eckstein, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-02-27 02:24+0000\n"
+"POT-Creation-Date: 2025-03-08 02:20+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Martin Wilichowski, 2025\n"
+"Last-Translator: Markus Eckstein, 2025\n"
 "Language-Team: German (https://app.transifex.com/nextcloud/teams/64236/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -68,13 +68,13 @@ msgstr ""
 "Die Weiterleitungs-URL muss eine vollständige URL sein. Beispiel: "
 "https://deinedomain.com/pfad"
 
-#: /app/lib/Settings/Admin.php:117
-#: /app/specialVueFakeDummyForL10nScript.js:392
+#: /app/lib/Settings/Admin.php:118
+#: /app/specialVueFakeDummyForL10nScript.js:430
 msgid "Code Authorization Flow"
 msgstr "Code-Autorisierungsablauf"
 
-#: /app/lib/Settings/Admin.php:120
-#: /app/specialVueFakeDummyForL10nScript.js:396
+#: /app/lib/Settings/Admin.php:121
+#: /app/specialVueFakeDummyForL10nScript.js:434
 msgid "Code & Implicit Authorization Flow"
 msgstr "Code- und Impliziter-Autorisierungsablauf"
 
@@ -108,12 +108,12 @@ msgstr ""
 "- [Entwicklerdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
 #. TRANSLATORS src/App.vue:2
-#: /app/specialVueFakeDummyForL10nScript.js:265
+#: /app/specialVueFakeDummyForL10nScript.js:279
 msgid "OpenID Connect clients"
 msgstr "OpenID Connect-Clients"
 
 #. TRANSLATORS src/App.vue:3
-#: /app/specialVueFakeDummyForL10nScript.js:267
+#: /app/specialVueFakeDummyForL10nScript.js:281
 msgid ""
 "OpenID Connect allows to authenticate at external services with "
 "{instanceName} user accounts."
@@ -122,255 +122,294 @@ msgstr ""
 "{instanceName} Benutzerkonten."
 
 #. TRANSLATORS src/App.vue:29
-#: /app/specialVueFakeDummyForL10nScript.js:269
+#: /app/specialVueFakeDummyForL10nScript.js:283
 msgid "Add client"
 msgstr "Client hinzufügen"
 
 #. TRANSLATORS src/App.vue:36
 #. TRANSLATORS src/components/OIDCItem.vue:6
-#: /app/specialVueFakeDummyForL10nScript.js:271
-#: /app/specialVueFakeDummyForL10nScript.js:448
+#: /app/specialVueFakeDummyForL10nScript.js:285
+#: /app/specialVueFakeDummyForL10nScript.js:486
 msgid "Name"
 msgstr "Name"
 
 #. TRANSLATORS src/App.vue:41
 #. TRANSLATORS src/components/OIDCItem.vue:10
 #. TRANSLATORS src/components/OIDCItem.vue:24
-#: /app/specialVueFakeDummyForL10nScript.js:273
-#: /app/specialVueFakeDummyForL10nScript.js:337
-#: /app/specialVueFakeDummyForL10nScript.js:450
-#: /app/specialVueFakeDummyForL10nScript.js:454
+#: /app/specialVueFakeDummyForL10nScript.js:287
+#: /app/specialVueFakeDummyForL10nScript.js:375
+#: /app/specialVueFakeDummyForL10nScript.js:488
+#: /app/specialVueFakeDummyForL10nScript.js:492
 msgid "Redirection URI"
 msgstr "Weiterleitungs-URI"
 
 #. TRANSLATORS src/App.vue:45
-#: /app/specialVueFakeDummyForL10nScript.js:275
+#: /app/specialVueFakeDummyForL10nScript.js:289
 msgid "Select Signing Algorithm"
 msgstr "Signieralgorithmus auswählen"
 
 #. TRANSLATORS src/App.vue:57
-#: /app/specialVueFakeDummyForL10nScript.js:277
+#: /app/specialVueFakeDummyForL10nScript.js:291
 msgid "Select Type"
 msgstr "Typ auswählen"
 
 #. TRANSLATORS src/App.vue:60
-#: /app/specialVueFakeDummyForL10nScript.js:279
+#: /app/specialVueFakeDummyForL10nScript.js:293
 msgid "Confidential"
 msgstr "Vertraulich"
 
 #. TRANSLATORS src/App.vue:63
-#: /app/specialVueFakeDummyForL10nScript.js:281
+#: /app/specialVueFakeDummyForL10nScript.js:295
 msgid "Public"
 msgstr "Öffentlich"
 
 #. TRANSLATORS src/App.vue:66
 #. TRANSLATORS src/components/OIDCItem.vue:25
-#: /app/specialVueFakeDummyForL10nScript.js:283
-#: /app/specialVueFakeDummyForL10nScript.js:339
-#: /app/specialVueFakeDummyForL10nScript.js:456
+#: /app/specialVueFakeDummyForL10nScript.js:297
+#: /app/specialVueFakeDummyForL10nScript.js:377
+#: /app/specialVueFakeDummyForL10nScript.js:494
 msgid "Add"
 msgstr "Hinzufügen"
 
 #. TRANSLATORS src/App.vue:70
-#: /app/specialVueFakeDummyForL10nScript.js:285
+#: /app/specialVueFakeDummyForL10nScript.js:299
 msgid "Settings"
 msgstr "Einstellungen"
 
 #. TRANSLATORS src/App.vue:71
 #. TRANSLATORS src/App.vue:74
-#: /app/specialVueFakeDummyForL10nScript.js:287
-#: /app/specialVueFakeDummyForL10nScript.js:289
+#: /app/specialVueFakeDummyForL10nScript.js:301
+#: /app/specialVueFakeDummyForL10nScript.js:303
 msgid "Token Expire Time"
 msgstr "Ablaufzeit des Tokens"
 
 #. TRANSLATORS src/App.vue:77
-#: /app/specialVueFakeDummyForL10nScript.js:291
+#: /app/specialVueFakeDummyForL10nScript.js:305
 msgid "Select Token Expire Time"
 msgstr "Ablaufzeit des Tokens auswählen"
 
 #. TRANSLATORS src/App.vue:80
-#: /app/specialVueFakeDummyForL10nScript.js:293
+#: /app/specialVueFakeDummyForL10nScript.js:307
+#: /app/specialVueFakeDummyForL10nScript.js:323
 msgid "5 minutes"
 msgstr "5 Minuten"
 
 #. TRANSLATORS src/App.vue:83
-#: /app/specialVueFakeDummyForL10nScript.js:295
+#: /app/specialVueFakeDummyForL10nScript.js:309
+#: /app/specialVueFakeDummyForL10nScript.js:325
 msgid "10 minutes"
 msgstr "10 Minuten"
 
 #. TRANSLATORS src/App.vue:86
-#: /app/specialVueFakeDummyForL10nScript.js:297
+#: /app/specialVueFakeDummyForL10nScript.js:311
+#: /app/specialVueFakeDummyForL10nScript.js:327
 msgid "15 minutes"
 msgstr "15 Minuten"
 
 #. TRANSLATORS src/App.vue:89
-#: /app/specialVueFakeDummyForL10nScript.js:299
+#: /app/specialVueFakeDummyForL10nScript.js:313
+#: /app/specialVueFakeDummyForL10nScript.js:329
 msgid "30 minutes"
 msgstr "30 Minuten"
 
 #. TRANSLATORS src/App.vue:92
-#: /app/specialVueFakeDummyForL10nScript.js:301
+#: /app/specialVueFakeDummyForL10nScript.js:315
+#: /app/specialVueFakeDummyForL10nScript.js:331
 msgid "60 minutes"
 msgstr "60 Minuten"
 
-#. TRANSLATORS src/App.vue:97
-#: /app/specialVueFakeDummyForL10nScript.js:303
+#. TRANSLATORS src/App.vue:96
+#. TRANSLATORS src/App.vue:99
+#: /app/specialVueFakeDummyForL10nScript.js:317
+#: /app/specialVueFakeDummyForL10nScript.js:319
+msgid "Refresh Token Expire Time"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:102
+#: /app/specialVueFakeDummyForL10nScript.js:321
+msgid "Select Refresh Token Expire Time"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:120
+#: /app/specialVueFakeDummyForL10nScript.js:333
+msgid "12 hours"
+msgstr ""
+"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
+" (de_DE)."
+
+#. TRANSLATORS src/App.vue:123
+#: /app/specialVueFakeDummyForL10nScript.js:335
+msgid "1 day"
+msgstr "1 Tag"
+
+#. TRANSLATORS src/App.vue:126
+#: /app/specialVueFakeDummyForL10nScript.js:337
+msgid "7 days"
+msgstr "7 Tage"
+
+#. TRANSLATORS src/App.vue:129
+#: /app/specialVueFakeDummyForL10nScript.js:339
+msgid "Never"
+msgstr "Niemals"
+
+#. TRANSLATORS src/App.vue:134
+#: /app/specialVueFakeDummyForL10nScript.js:341
 msgid "Dynamic Client Registration"
 msgstr "Dynamische Client-Registrierung"
 
-#. TRANSLATORS src/App.vue:101
-#: /app/specialVueFakeDummyForL10nScript.js:305
+#. TRANSLATORS src/App.vue:138
+#: /app/specialVueFakeDummyForL10nScript.js:343
 msgid "Enable or disable Dynamic Client Registration"
 msgstr "Aktivieren oder deaktivieren der dynamischen Client-Registrierung"
 
-#. TRANSLATORS src/App.vue:104
-#: /app/specialVueFakeDummyForL10nScript.js:307
+#. TRANSLATORS src/App.vue:141
+#: /app/specialVueFakeDummyForL10nScript.js:345
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr ""
 "Auswahl zum Aktivieren/Deaktivieren der dynamischen Client-Registrierung"
 
-#. TRANSLATORS src/App.vue:107
-#: /app/specialVueFakeDummyForL10nScript.js:309
+#. TRANSLATORS src/App.vue:144
+#: /app/specialVueFakeDummyForL10nScript.js:347
 msgid "Disable"
 msgstr "Deaktivieren"
 
-#. TRANSLATORS src/App.vue:110
-#: /app/specialVueFakeDummyForL10nScript.js:311
+#. TRANSLATORS src/App.vue:147
+#: /app/specialVueFakeDummyForL10nScript.js:349
 msgid "Enable"
 msgstr "Aktivieren"
 
-#. TRANSLATORS src/App.vue:115
-#: /app/specialVueFakeDummyForL10nScript.js:313
+#. TRANSLATORS src/App.vue:152
+#: /app/specialVueFakeDummyForL10nScript.js:351
 msgid "Email Verified Flag"
 msgstr "Angabe der E-Mailadressverifizierung im Token"
 
-#. TRANSLATORS src/App.vue:119
-#: /app/specialVueFakeDummyForL10nScript.js:315
+#. TRANSLATORS src/App.vue:156
+#: /app/specialVueFakeDummyForL10nScript.js:353
 msgid "Source for email verified flag in token"
 msgstr "Quelle für die Angabe der E-Mailadressverifizierung im Token"
 
-#. TRANSLATORS src/App.vue:122
-#: /app/specialVueFakeDummyForL10nScript.js:317
+#. TRANSLATORS src/App.vue:159
+#: /app/specialVueFakeDummyForL10nScript.js:355
 msgid "Select behaviour for setting email verified flag"
 msgstr "Verhalten für die Angabe der E-Mailadressverifizierung"
 
-#. TRANSLATORS src/App.vue:125
-#: /app/specialVueFakeDummyForL10nScript.js:319
+#. TRANSLATORS src/App.vue:162
+#: /app/specialVueFakeDummyForL10nScript.js:357
 msgid "Use Nextcloud account information"
 msgstr "Verwende Nextcloudkonto-Information"
 
-#. TRANSLATORS src/App.vue:128
-#: /app/specialVueFakeDummyForL10nScript.js:321
+#. TRANSLATORS src/App.vue:165
+#: /app/specialVueFakeDummyForL10nScript.js:359
 msgid "Set to always verified"
 msgstr "Auf immer überprüft setzen"
 
-#. TRANSLATORS src/App.vue:132
-#: /app/specialVueFakeDummyForL10nScript.js:323
+#. TRANSLATORS src/App.vue:169
+#: /app/specialVueFakeDummyForL10nScript.js:361
 msgid "Integrate avatar in user info/ID token"
 msgstr "Avatar in Benutzer-Info/ID-Token integrieren"
 
-#. TRANSLATORS src/App.vue:135
-#: /app/specialVueFakeDummyForL10nScript.js:325
+#. TRANSLATORS src/App.vue:172
+#: /app/specialVueFakeDummyForL10nScript.js:363
 msgid "Method for integration of avatar"
 msgstr "Methode für die Einbindung des Avatars"
 
-#. TRANSLATORS src/App.vue:138
-#: /app/specialVueFakeDummyForL10nScript.js:327
+#. TRANSLATORS src/App.vue:175
+#: /app/specialVueFakeDummyForL10nScript.js:365
 msgid "Select how the avatar image should be integrated"
 msgstr "Auswählen, wie das Avatar-Bild eingebunden wird"
 
-#. TRANSLATORS src/App.vue:141
-#: /app/specialVueFakeDummyForL10nScript.js:329
+#. TRANSLATORS src/App.vue:178
+#: /app/specialVueFakeDummyForL10nScript.js:367
 msgid "No integration"
 msgstr "Keine Einbindung"
 
-#. TRANSLATORS src/App.vue:144
-#: /app/specialVueFakeDummyForL10nScript.js:331
+#. TRANSLATORS src/App.vue:181
+#: /app/specialVueFakeDummyForL10nScript.js:369
 msgid "Add to user info"
 msgstr "Zur Benutzerinformation hinzufügen"
 
-#. TRANSLATORS src/App.vue:147
-#: /app/specialVueFakeDummyForL10nScript.js:333
+#. TRANSLATORS src/App.vue:184
+#: /app/specialVueFakeDummyForL10nScript.js:371
 msgid "Add to user info and ID token"
 msgstr "Zur Benutzerinformation und dem ID-Token hinzufügen"
 
-#. TRANSLATORS src/App.vue:151
-#: /app/specialVueFakeDummyForL10nScript.js:335
+#. TRANSLATORS src/App.vue:188
+#: /app/specialVueFakeDummyForL10nScript.js:373
 msgid "Accepted Logout Redirect URIs"
 msgstr "Akzeptierte Logout Weiterleitungs-URIs"
 
-#. TRANSLATORS src/App.vue:171
-#: /app/specialVueFakeDummyForL10nScript.js:341
+#. TRANSLATORS src/App.vue:208
+#: /app/specialVueFakeDummyForL10nScript.js:379
 msgid "Public Key"
 msgstr "Öffentlicher Schlüssel"
 
-#. TRANSLATORS src/App.vue:176
-#: /app/specialVueFakeDummyForL10nScript.js:343
+#. TRANSLATORS src/App.vue:213
+#: /app/specialVueFakeDummyForL10nScript.js:381
 msgid "Regenerate Keys"
 msgstr "Schlüssel neu erzeugen"
 
 #. TRANSLATORS src/Redirect.vue:4
-#: /app/specialVueFakeDummyForL10nScript.js:355
+#: /app/specialVueFakeDummyForL10nScript.js:393
 msgid "OpenID Connect Redirect"
 msgstr "OpenID Connect Weiterleitung"
 
 #. TRANSLATORS src/components/OIDCItem.vue:16
 #. TRANSLATORS src/components/OIDCItem.vue:81
 #. TRANSLATORS src/components/RedirectItem.vue:7
-#: /app/specialVueFakeDummyForL10nScript.js:452
-#: /app/specialVueFakeDummyForL10nScript.js:482
-#: /app/specialVueFakeDummyForL10nScript.js:504
+#: /app/specialVueFakeDummyForL10nScript.js:490
+#: /app/specialVueFakeDummyForL10nScript.js:520
+#: /app/specialVueFakeDummyForL10nScript.js:542
 msgid "Delete"
 msgstr "Löschen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:30
-#: /app/specialVueFakeDummyForL10nScript.js:458
+#: /app/specialVueFakeDummyForL10nScript.js:496
 msgid "Client Identifier"
 msgstr "Client-Identifikationsmerkmal"
 
 #. TRANSLATORS src/components/OIDCItem.vue:34
-#: /app/specialVueFakeDummyForL10nScript.js:460
+#: /app/specialVueFakeDummyForL10nScript.js:498
 msgid "Secret"
 msgstr "Geheimer Schlüssel"
 
 #. TRANSLATORS src/components/OIDCItem.vue:36
-#: /app/specialVueFakeDummyForL10nScript.js:462
+#: /app/specialVueFakeDummyForL10nScript.js:500
 msgid "Show client secret"
 msgstr "Geheime Zeichenkette des Clients anzeigen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:39
-#: /app/specialVueFakeDummyForL10nScript.js:464
+#: /app/specialVueFakeDummyForL10nScript.js:502
 msgid "-- NONE --"
 msgstr "-- KEINER --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:43
-#: /app/specialVueFakeDummyForL10nScript.js:466
+#: /app/specialVueFakeDummyForL10nScript.js:504
 msgid "Signing Algorithm"
 msgstr "Signieralgorithmus"
 
 #. TRANSLATORS src/components/OIDCItem.vue:47
-#: /app/specialVueFakeDummyForL10nScript.js:468
+#: /app/specialVueFakeDummyForL10nScript.js:506
 msgid "Type"
 msgstr "Typ"
 
 #. TRANSLATORS src/components/OIDCItem.vue:51
-#: /app/specialVueFakeDummyForL10nScript.js:470
+#: /app/specialVueFakeDummyForL10nScript.js:508
 msgid "Flows"
 msgstr "Abläufe"
 
 #. TRANSLATORS src/components/OIDCItem.vue:56
-#: /app/specialVueFakeDummyForL10nScript.js:472
-#: /app/specialVueFakeDummyForL10nScript.js:474
+#: /app/specialVueFakeDummyForL10nScript.js:510
+#: /app/specialVueFakeDummyForL10nScript.js:512
 msgid "Flows allowed to be used with the client."
 msgstr "Abläufe, die vom Client unterstützt werden."
 
 #. TRANSLATORS src/components/OIDCItem.vue:65
-#: /app/specialVueFakeDummyForL10nScript.js:476
+#: /app/specialVueFakeDummyForL10nScript.js:514
 msgid "Limited to Groups"
 msgstr "Beschränkt auf Gruppen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:70
-#: /app/specialVueFakeDummyForL10nScript.js:478
+#: /app/specialVueFakeDummyForL10nScript.js:516
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
@@ -378,6 +417,6 @@ msgstr ""
 "verwenden."
 
 #. TRANSLATORS src/components/OIDCItem.vue:71
-#: /app/specialVueFakeDummyForL10nScript.js:480
+#: /app/specialVueFakeDummyForL10nScript.js:518
 msgid "Groups allowed to use the client."
 msgstr "Gruppen, die den Client benutzen dürfen."

@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Public" : "Public",
     "Settings" : "Configurationes",
+    "Never" : "Nunquam",
     "Disable" : "Disactivar",
     "Delete" : "Deler",
     "Type" : "Typo"

@@ -8,6 +8,7 @@ OC.L10N.register(
     "Redirection URI" : "Adhent URL",
     "Public" : "Publik",
     "Settings" : "Arventennoù",
+    "Never" : "James",
     "Disable" : "Diweredekaat",
     "Enable" : "Aotreañ",
     "Delete" : "Lemel",

@@ -5,6 +5,7 @@ OC.L10N.register(
     "Public" : "สาธารณะ",
     "Settings" : "การตั้งค่า",
     "30 minutes" : "30 นาที",
+    "Never" : "ไม่เคย",
     "Disable" : "ปิดใช้งาน",
     "Delete" : "ลบ",
     "Type" : "ประเภท"

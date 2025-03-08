@@ -9,6 +9,8 @@ OC.L10N.register(
     "Public" : "Avalik",
     "Settings" : "Seaded",
     "30 minutes" : "30 minutit",
+    "1 day" : "1 päev",
+    "Never" : "Mitte kunagi",
     "Disable" : "Lülita välja",
     "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",

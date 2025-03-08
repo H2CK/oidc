@@ -9,6 +9,8 @@ OC.L10N.register(
     "5 minutes" : "5 წუთი",
     "15 minutes" : "15 წუთი",
     "30 minutes" : "30 წუთი",
+    "12 hours" : "12 საათი",
+    "Never" : "არასდროს",
     "Disable" : "გამორთვა",
     "Delete" : "წაშლა",
     "Client Identifier" : "კლიენტის იდენტიფიკატორი",

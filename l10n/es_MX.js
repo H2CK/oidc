@@ -13,6 +13,8 @@ OC.L10N.register(
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
     "30 minutes" : "30 minutos",
+    "12 hours" : "12 horas",
+    "1 day" : "1 día",
     "Disable" : "Deshabilitar",
     "Enable" : "Activar",
     "Delete" : "Eliminar",

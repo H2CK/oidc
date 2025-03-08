@@ -7,6 +7,8 @@ OC.L10N.register(
     "10 minutes" : "10 minuta",
     "15 minutes" : "15 minuta",
     "30 minutes" : "30 minuta",
+    "12 hours" : "12 sati",
+    "Never" : "Nikad",
     "Disable" : "Isključi",
     "Delete" : "Obriši",
     "Type" : "Tip"

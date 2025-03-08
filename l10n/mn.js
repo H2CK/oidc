@@ -8,6 +8,8 @@ OC.L10N.register(
     "5 minutes" : "5 минут",
     "15 minutes" : "15 минут",
     "30 minutes" : "30 минут",
+    "12 hours" : "12 цаг",
+    "Never" : "хэзээч",
     "Delete" : "Устгах",
     "Type" : "Төрөл"
 },
