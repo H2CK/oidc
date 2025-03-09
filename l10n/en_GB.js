@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
+    "Refresh Token Expire Time" : "Refresh Token Expire Time",
+    "Select Refresh Token Expire Time" : "Select Refresh Token Expire Time",
     "12 hours" : "12 hours",
     "1 day" : "1 day",
     "7 days" : "7 days",

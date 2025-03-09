@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 minuti",
     "30 minutes" : "30 minuti",
     "60 minutes" : "60 minuti",
+    "Refresh Token Expire Time" : "Aggiornamento del gettone Scadenza",
+    "Select Refresh Token Expire Time" : "Selezionare il tempo di scadenza del gettone di aggiornamento",
     "12 hours" : "12 ore",
     "1 day" : "1 giorno",
     "7 days" : "7 giorni",

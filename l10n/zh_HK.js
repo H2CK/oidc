@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 分鐘",
     "30 minutes" : "30 分鐘",
     "60 minutes" : "60 分鐘",
+    "Refresh Token Expire Time" : "刷新權杖過期時間",
+    "Select Refresh Token Expire Time" : "選擇刷新權杖過期時間",
     "12 hours" : "12 小時",
     "1 day" : "1 日",
     "7 days" : "7 日",

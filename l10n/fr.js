@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 minutes",
     "30 minutes" : "30 minutes",
     "60 minutes" : "60 minutes",
+    "Refresh Token Expire Time" : "Rafraîchir l'heure d'expiration du jeton",
+    "Select Refresh Token Expire Time" : "Sélectionner l'heure d'expiration du jeton de rafraîchissement",
     "12 hours" : "12 heures",
     "1 day" : "1 jour",
     "7 days" : "7 jours",

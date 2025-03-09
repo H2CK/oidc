@@ -10,7 +10,6 @@
 # ZybarDany <zybardany@gmail.com>, 2024
 # TVDavidsan, 2024
 # Jérémie Tarot <silopolis@gmail.com>, 2024
-# H2CK, 2024
 # Mordecai, 2024
 # Git'Fellow, 2024
 # Jérôme HERBINET, 2024
@@ -18,15 +17,16 @@
 # Ldm Public <ldmpub@gmail.com>, 2025
 # Mer0me <postmaster@merome.net>, 2025
 # ascpial, 2025
+# H2CK, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-03-08 02:20+0000\n"
+"POT-Creation-Date: 2025-03-09 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: ascpial, 2025\n"
+"Last-Translator: H2CK, 2025\n"
 "Language-Team: French (https://app.transifex.com/nextcloud/teams/64236/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -227,12 +227,12 @@ msgstr "60 minutes"
 #: /app/specialVueFakeDummyForL10nScript.js:317
 #: /app/specialVueFakeDummyForL10nScript.js:319
 msgid "Refresh Token Expire Time"
-msgstr ""
+msgstr "Rafraîchir l'heure d'expiration du jeton"
 
 #. TRANSLATORS src/App.vue:102
 #: /app/specialVueFakeDummyForL10nScript.js:321
 msgid "Select Refresh Token Expire Time"
-msgstr ""
+msgstr "Sélectionner l'heure d'expiration du jeton de rafraîchissement"
 
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:333

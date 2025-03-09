@@ -8,19 +8,19 @@
 # Developer From Jokela Offical Channel <developerfromjokela@gmail.com>, 2024
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2024
 # 72d686daabd2f7212739b412929536be_e195df1 <a6caa6e567bfabba50a29e9a037273fb_1019631>, 2024
-# H2CK, 2024
 # Robin Lahtinen <robin.lahtinen@gmail.com>, 2024
 # Jiri Grönroos <jiri.gronroos@iki.fi>, 2025
 # teemue, 2025
+# H2CK, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-03-08 02:20+0000\n"
+"POT-Creation-Date: 2025-03-09 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: teemue, 2025\n"
+"Last-Translator: H2CK, 2025\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -208,7 +208,7 @@ msgstr "15 minuuttia"
 #: /app/specialVueFakeDummyForL10nScript.js:313
 #: /app/specialVueFakeDummyForL10nScript.js:329
 msgid "30 minutes"
-msgstr ""
+msgstr "30 minuuttia"
 
 #. TRANSLATORS src/App.vue:92
 #: /app/specialVueFakeDummyForL10nScript.js:315
@@ -221,12 +221,12 @@ msgstr "60 minuuttia"
 #: /app/specialVueFakeDummyForL10nScript.js:317
 #: /app/specialVueFakeDummyForL10nScript.js:319
 msgid "Refresh Token Expire Time"
-msgstr ""
+msgstr "Refresh Tokenin vanhentumisaika"
 
 #. TRANSLATORS src/App.vue:102
 #: /app/specialVueFakeDummyForL10nScript.js:321
 msgid "Select Refresh Token Expire Time"
-msgstr ""
+msgstr "Valitse Refresh Token Expire Time"
 
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:333

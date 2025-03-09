@@ -7,20 +7,20 @@
 # Miguel de Dios Matias <tres.14159@gmail.com>, 2024
 # Víctor Rodríguez Bouza, 2024
 # Andy Scherzinger <info@andy-scherzinger.de>, 2024
-# H2CK, 2024
 # Javier San Juan <sanjuan.javier@gmail.com>, 2024
 # Next Cloud <nextcloud.translator.es@cgj.es>, 2025
 # Álvaro Fernández <bosscyril+transifex@gmail.com>, 2025
 # Paúl Sanz <registro@polkillas.net>, 2025
+# H2CK, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-03-08 02:20+0000\n"
+"POT-Creation-Date: 2025-03-09 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Paúl Sanz <registro@polkillas.net>, 2025\n"
+"Last-Translator: H2CK, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/nextcloud/teams/64236/es/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -221,12 +221,12 @@ msgstr "60 minutos"
 #: /app/specialVueFakeDummyForL10nScript.js:317
 #: /app/specialVueFakeDummyForL10nScript.js:319
 msgid "Refresh Token Expire Time"
-msgstr ""
+msgstr "Hora de caducidad de la ficha de actualización"
 
 #. TRANSLATORS src/App.vue:102
 #: /app/specialVueFakeDummyForL10nScript.js:321
 msgid "Select Refresh Token Expire Time"
-msgstr ""
+msgstr "Seleccione la hora de caducidad de la ficha de actualización"
 
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:333

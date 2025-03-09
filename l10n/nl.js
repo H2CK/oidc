@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 minuten",
     "30 minutes" : "30 minuten",
     "60 minutes" : "60 minuten",
+    "Refresh Token Expire Time" : "Vernieuw Token Vervaldatum",
+    "Select Refresh Token Expire Time" : "Selecteer Vernieuw Token Vervaldatum",
     "12 hours" : "12 uur",
     "1 day" : "1 dag",
     "7 days" : "7 dagen",

@@ -9,20 +9,20 @@
 # Andy Scherzinger <info@andy-scherzinger.de>, 2024
 # Erik Lennartsson, 2024
 # Dženan, 2024
-# H2CK, 2024
 # Niklas Andersson <mail.niklasandersson@gmail.com>, 2024
 # Filip Bengtsson, 2024
-# Magnus Höglund, 2025
 # Martin H <pilino+transifex@posteo.de>, 2025
+# Magnus Höglund, 2025
+# H2CK, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-03-08 02:20+0000\n"
+"POT-Creation-Date: 2025-03-09 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Martin H <pilino+transifex@posteo.de>, 2025\n"
+"Last-Translator: H2CK, 2025\n"
 "Language-Team: Swedish (https://app.transifex.com/nextcloud/teams/64236/sv/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -223,12 +223,12 @@ msgstr "60 minuter"
 #: /app/specialVueFakeDummyForL10nScript.js:317
 #: /app/specialVueFakeDummyForL10nScript.js:319
 msgid "Refresh Token Expire Time"
-msgstr ""
+msgstr "Refresh Token Expire Time"
 
 #. TRANSLATORS src/App.vue:102
 #: /app/specialVueFakeDummyForL10nScript.js:321
 msgid "Select Refresh Token Expire Time"
-msgstr ""
+msgstr "Välj Refresh Token Expire Time"
 
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:333
@@ -243,7 +243,7 @@ msgstr "1 dag"
 #. TRANSLATORS src/App.vue:126
 #: /app/specialVueFakeDummyForL10nScript.js:337
 msgid "7 days"
-msgstr ""
+msgstr "7 dagar"
 
 #. TRANSLATORS src/App.vue:129
 #: /app/specialVueFakeDummyForL10nScript.js:339
