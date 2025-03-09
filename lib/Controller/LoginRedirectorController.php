@@ -253,7 +253,7 @@ class LoginRedirectorController extends ApiController
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', '3600'))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
             $params = [
                 'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
@@ -359,7 +359,7 @@ class LoginRedirectorController extends ApiController
             $state = '';
         }
 
-        $expireTime = $this->appConfig->getAppValue('expire_time');
+        $expireTime = $this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
 
         $url = $redirect_uri . '?state=' . urlencode($state);
         if (str_contains($redirect_uri, '?')) {

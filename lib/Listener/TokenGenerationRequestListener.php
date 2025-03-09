@@ -57,13 +57,13 @@ class TokenGenerationRequestListener implements IEventListener {
             return;
         }
         // check client expiration
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', '3600'))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('[TokenGenerationRequestListener] Client ' . $client->getId() . ' has expired');
             return;
         }
 
         // generate a new access token for the client
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time', '0');
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
         $accessTokenString = $this->random->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();

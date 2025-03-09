@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OC\Security\Bruteforce\Throttler;
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
@@ -159,7 +160,7 @@ class UserInfoController extends ApiController
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600'))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
             return new JSONResponse([
                 'error' => 'expired_client',
@@ -168,7 +169,7 @@ class UserInfoController extends ApiController
         }
 
         // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue('expire_time') ) {
+        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME) ) {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired.');
             return new JSONResponse([

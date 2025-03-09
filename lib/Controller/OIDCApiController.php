@@ -210,7 +210,7 @@ class OIDCApiController extends ApiController {
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', '3600'))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
             return new JSONResponse([
                 'error' => 'expired_client',

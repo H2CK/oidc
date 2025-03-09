@@ -33,6 +33,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -205,7 +206,7 @@ class DynamicRegistrationController extends ApiController
             'id_token_signed_response_alg' => $client->getSigningAlg(),
             'application_type' => $application_type,
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', '3600')
+            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME)
         ];
 
         $response = new JSONResponse($jsonResponse, Http::STATUS_CREATED);

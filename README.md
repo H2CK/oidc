@@ -107,6 +107,16 @@ The registration endpoint is accessible for everybody without any authentication
 
 The app provides the events TokenValidationRequestEvent and TokenGenerationRequestEvent, which allow that other apps could request the generation of an access and id token as well as perform a validation of received access or id tokens. This way it will be possible that other Nextcloud apps could make use of access & id tokens. Further details can be found here: [#515](https://github.com/H2CK/oidc/pull/515) and [#521](https://github.com/H2CK/oidc/pull/521)
 
+## Expire time of tokens
+
+The expire time of tokens (access and refresh tokens) can be set in the UI. Alternatively (especially if the provided select options in the UI do not match with your requirements) the expire times for the access and refresh token can be set using the CLI.
+You could set those values with following CLI commands:
+
+| Token Type | CLI command to set expire time |
+|---|---|
+| Access Token | `occ config:app:set oidc expire_time --value "123456"` |
+| Refresh Token | `occ config:app:set oidc refresh_expire_time --value "123456"` |
+
 ## Development
 
 To install it change into your Nextcloud's apps directory:

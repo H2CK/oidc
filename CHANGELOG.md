@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+
+## [1.5.0] - 2025-03-09
+
+### Changed
+
+- Add setting to choose the refresh token expiration time (thanks to @julien-nc)
+- Updated dependencies
+- Updated translations
+
 ## [1.4.0] - 2025-02-16
 
 ### Changed
