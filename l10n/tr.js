@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 dakika",
     "30 minutes" : "30 dakika",
     "60 minutes" : "60 dakika",
+    "Refresh Token Expire Time" : "Yenileme kodu geçerlilik süresi",
+    "Select Refresh Token Expire Time" : "Yenileme kodu geçerlilik süresini seçin",
     "12 hours" : "12 saat",
     "1 day" : "1 gün",
     "7 days" : "7 gün",
