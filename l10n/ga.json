@@ -27,6 +27,8 @@
     "15 minutes" : "15 nóiméad",
     "30 minutes" : "30 nóiméad",
     "60 minutes" : "60 nóiméad",
+    "Refresh Token Expire Time" : "Athnuaigh Comhartha Am Éaga",
+    "Select Refresh Token Expire Time" : "Roghnaigh Athnuaigh Chomhartha In éag Am",
     "12 hours" : "12 n-uaire",
     "1 day" : "1 lá",
     "7 days" : "7 lá",

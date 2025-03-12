@@ -31,7 +31,7 @@ OC.L10N.register(
     "60 minutes" : "60 Minuten",
     "Refresh Token Expire Time" : "Ablaufzeit des Aktualisierungstokens",
     "Select Refresh Token Expire Time" : "Ablaufzeit des Aktualisierungstokens wählen",
-    "12 hours" : "Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).",
+    "12 hours" : "12 Stunden",
     "1 day" : "1 Tag",
     "7 days" : "7 Tage",
     "Never" : "Niemals",

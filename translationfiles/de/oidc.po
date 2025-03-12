@@ -11,17 +11,17 @@
 # H2CK, 2024
 # Joas Schilling, 2024
 # Martin Wilichowski, 2025
-# Markus Eckstein, 2025
 # Joachim Sokolowski, 2025
+# Markus Eckstein, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-03-09 02:22+0000\n"
+"POT-Creation-Date: 2025-03-12 02:24+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Joachim Sokolowski, 2025\n"
+"Last-Translator: Markus Eckstein, 2025\n"
 "Language-Team: German (https://app.transifex.com/nextcloud/teams/64236/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -233,9 +233,7 @@ msgstr "Ablaufzeit des Aktualisierungstokens wählen"
 #. TRANSLATORS src/App.vue:120
 #: /app/specialVueFakeDummyForL10nScript.js:333
 msgid "12 hours"
-msgstr ""
-"Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet"
-" (de_DE)."
+msgstr "12 Stunden"
 
 #. TRANSLATORS src/App.vue:123
 #: /app/specialVueFakeDummyForL10nScript.js:335
