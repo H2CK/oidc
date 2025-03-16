@@ -11,6 +11,7 @@ OC.L10N.register(
     "Never" : "Hech qachon",
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
-    "Delete" : "Delete"
+    "Delete" : "Delete",
+    "Type" : "Turi"
 },
 "nplurals=1; plural=0;");
