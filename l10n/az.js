@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Ad",
     "Public" : "İctimai",
     "Settings" : "Quraşdırmalar",
+    "Never" : "Heç vaxt",
     "Disable" : "Dayandır",
     "Delete" : "Sil"
 },

@@ -29,6 +29,8 @@ OC.L10N.register(
     "15 minutes" : "15 minút",
     "30 minutes" : "30 minút",
     "60 minutes" : "60 minút",
+    "Refresh Token Expire Time" : "Čas obnovy expirácie tokenu",
+    "Select Refresh Token Expire Time" : "Vyberte čas obnovy expirácie tokenu",
     "12 hours" : "12 hodín",
     "1 day" : "1 deň",
     "7 days" : "7 dní",

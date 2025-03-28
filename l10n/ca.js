@@ -13,6 +13,8 @@ OC.L10N.register(
     "10 minutes" : "10 minuts",
     "15 minutes" : "15 minuts",
     "30 minutes" : "30 minuts",
+    "12 hours" : "12 hores",
+    "1 day" : "1 dia",
     "7 days" : "7 dies",
     "Never" : "Mai",
     "Disable" : "Inhabilitar",
