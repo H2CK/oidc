@@ -16,6 +16,7 @@ OC.L10N.register(
     "1 day" : "1 päev",
     "Never" : "Mitte kunagi",
     "Disable" : "Lülita välja",
+    "Enable" : "Lülita sisse",
     "Public Key" : "Avalik võti",
     "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",
