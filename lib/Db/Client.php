@@ -23,6 +23,7 @@
 namespace OCA\OIDCIdentityProvider\Db;
 
 use OCP\AppFramework\Db\Entity;
+use \OCP\DB\Types;
 
 use JsonSerializable;
 
@@ -46,6 +47,8 @@ use JsonSerializable;
  * @method void setDcr(boolean $dcr)
  * @method int getIssuedAt()
  * @method void setIssuedAt(int $issuedAt)
+ * @method string isJwtAccessToken()
+ * @method void setJwtAccessToken(boolean $jwtAccessToken)
  */
 class Client extends Entity implements JsonSerializable {
     public $id;
@@ -63,6 +66,8 @@ class Client extends Entity implements JsonSerializable {
     protected $type;
     /** @var string */
     protected $flowType;
+	/** @var bool */
+	protected $jwtAccessToken;
     /** @var bool */
     protected $dcr;
     /** @var int */
@@ -74,6 +79,7 @@ class Client extends Entity implements JsonSerializable {
         $algorithm = 'RS256',
         $type = 'confidential',
         $flowType = 'code',
+		$jwtAccessToken = false,
         $dcr = false
     ) {
         $this->setName($name);
@@ -81,18 +87,21 @@ class Client extends Entity implements JsonSerializable {
         $this->setSigningAlg($algorithm == 'RS256' ? 'RS256' : 'HS256');
         $this->setType($type == 'public' ? 'public' : 'confidential');
         $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
+		$this->setJwtAccessToken($jwtAccessToken);
         $this->setDcr($dcr);
         $this->setIssuedAt(time());
 
-        $this->addType('id', 'int');
-        $this->addType('name', 'string');
-        $this->addType('client_identifier', 'string');
-        $this->addType('secret', 'string');
-        $this->addType('signing_alg', 'string');
-        $this->addType('type', 'string');
-        $this->addType('flow_type', 'string');
-        $this->addType('dcr', 'boolean');
-        $this->addType('issued_at', 'int');
+        $this->addType('id', Types::INTEGER);
+        $this->addType('name', Types::STRING);
+        $this->addType('client_identifier', Types::STRING);
+        $this->addType('secret', Types::STRING);
+        $this->addType('signing_alg', Types::STRING);
+        $this->addType('type', Types::STRING);
+        $this->addType('flow_type', Types::STRING);
+		$this->addType('jwt_access_token', Types::BOOLEAN);
+        $this->addType('dcr', Types::BOOLEAN);
+        $this->addType('issued_at', Types::INTEGER);
+
     }
 
     public function getRedirectUris(): array {
@@ -102,6 +111,14 @@ class Client extends Entity implements JsonSerializable {
     public function setRedirectUris(array $uris): void {
         $this->redirectUris = $uris;
     }
+
+	public function isJwtAccessToken(): bool {
+		return $this->jwtAccessToken;
+	}
+
+	public function isDcr(): bool {
+		return $this->dcr;
+	}
 
     /**
      * Implement JsonSerializable interface
@@ -116,8 +133,9 @@ class Client extends Entity implements JsonSerializable {
             'client_id' => $this->getClientIdentifier(),
             'client_secret' => $this->getSecret(),
             'flow_type' => $this->getFlowType(),
-            'dcr' => $this->getDcr(),
-            'issued_at' => $this->getIssuedAt()
+            'dcr' => $this->isDcr(),
+            'issued_at' => $this->getIssuedAt(),
+			'jwt_access_token' => $this->isJwtAccessToken()
         ];
     }
 }

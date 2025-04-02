@@ -42,7 +42,8 @@
 					@deleteredirect="deleteRedirectUri"
 					@delete="deleteClient"
 					@updategroups="updateGroups"
-					@updateflowtypes="updateFlowTypes" />
+					@updateflowtypes="updateFlowTypes"
+					@updatejwtaccesstoken="updateJwtAccessToken" />
 			</tbody>
 		</table>
 
@@ -295,6 +296,7 @@ export default {
 				redirectUri: '',
 				signingAlg: 'RS256',
 				type: 'confidential',
+				jwtAccessToken: false,
 				errorMsg: '',
 				error: false,
 			},
@@ -502,6 +504,22 @@ export default {
 				{
 					id,
 					flowType: resultingFlowTypes,
+				}
+			).then(response => {
+				// Nothing to do
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
+			})
+		},
+		updateJwtAccessToken(id, jwtAccessToken) {
+			this.error = false
+
+			axios.patch(
+				generateUrl('apps/oidc/clients/jwt_access_token/{id}', { id }),
+				{
+					id,
+					jwtAccessToken,
 				}
 			).then(response => {
 				// Nothing to do

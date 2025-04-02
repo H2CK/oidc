@@ -42,6 +42,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setRefreshed(int $timestamp)
  * @method string getNonce()
  * @method void setNonce(string $nonce)
+ * @method string getResource()
+ * @method void setResource(string $resource)
  */
 class AccessToken extends Entity
 {
@@ -63,6 +65,8 @@ class AccessToken extends Entity
     protected $refreshed;
     /** @var string */
     protected $nonce;
+	/** @var string */
+    protected $resource;
 
     public function __construct() {
         $this->addType('id', 'int');
@@ -74,5 +78,6 @@ class AccessToken extends Entity
         $this->addType('created', 'int');
         $this->addType('refreshed', 'int');
         $this->addType('nonce', 'string');
+		$this->addType('resource', 'string');
     }
 }

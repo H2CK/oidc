@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2025-04-02
+
+### Changed
+
+- Added possibility to use RFC9068 conforming Access Tokens (configuration per client)
+- Updated dependencies
+- Updated translations
 
 ## [1.5.0] - 2025-03-09
 

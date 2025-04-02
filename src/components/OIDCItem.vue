@@ -83,6 +83,27 @@
 					</td>
 				</tr>
 				<tr>
+					<td>{{ t('oidc', 'Access Token Type') }}</td>
+					<td>
+						<div class="oidc_jwt_access_token_container">
+							<NcCheckboxRadioSwitch v-model="jwtAccessToken"
+								value="false"
+								name="jwt_access_token"
+								type="radio"
+								@update:modelValue="updateJwtAccessToken">
+								{{ t('oidc', 'Opaque Access Token') }}
+							</NcCheckboxRadioSwitch>
+							<NcCheckboxRadioSwitch v-model="jwtAccessToken"
+								value="true"
+								name="jwt_access_token"
+								type="radio"
+								@update:modelValue="updateJwtAccessToken">
+								{{ t('oidc', 'JWT Access Token (RFC9068)') }}
+							</NcCheckboxRadioSwitch>
+						</div>
+					</td>
+				</tr>
+				<tr>
 					<td>{{ t('oidc', 'Limited to Groups') }}</td>
 					<td>
 						<div class="oidc_group_container">
@@ -106,11 +127,13 @@
 
 <script>
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 
 export default {
 	name: 'OIDCItem',
 	components: {
 		NcSelect,
+		NcCheckboxRadioSwitch,
 	},
 	props: {
 		client: {
@@ -133,6 +156,7 @@ export default {
 			type: this.client.type,
 			renderSecret: false,
 			addRedirectUri: '',
+			jwtAccessToken: this.client.jwtAccessToken.toString(),
 			flowData: {
 				props: {
 					inputId: this.client.id + '-flow-select',
@@ -191,6 +215,9 @@ export default {
 		},
 		updateFlowTypes() {
 			this.$emit('updateflowtypes', this.id, this.flowData.props.value)
+		},
+		updateJwtAccessToken() {
+			this.$emit('updatejwtaccesstoken', this.id, this.jwtAccessToken)
 		},
 	},
 }

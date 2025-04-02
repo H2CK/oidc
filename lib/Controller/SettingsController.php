@@ -102,7 +102,8 @@ class SettingsController extends Controller
                     string $name,
                     string $redirectUri,
                     string $signingAlg,
-                    string $type
+                    string $type,
+					bool $jwtAccessToken
                     ): JSONResponse
     {
         if (filter_var($redirectUri, FILTER_VALIDATE_URL) === false) {
@@ -113,7 +114,8 @@ class SettingsController extends Controller
             $name,
             [ $redirectUri ],
             $signingAlg,
-            $type
+            $type,
+			$jwtAccessToken
         );
 
         $client = $this->clientMapper->insert($client);
@@ -140,6 +142,7 @@ class SettingsController extends Controller
             'signingAlg' => $client->getSigningAlg(),
             'type' => $client->getType(),
             'flowType' => $client->getFlowType(),
+			'jwtAccessToken' => $client->isJwtAccessToken(),
         ]);
     }
 
@@ -177,6 +180,18 @@ class SettingsController extends Controller
         $this->clientMapper->update($client);
         return new JSONResponse([]);
     }
+
+	public function updateJwtAccessToken(
+		int $id,
+		bool $jwtAccessToken
+		): JSONResponse
+	{
+		$this->logger->debug("Updating jwt_access_token for client " . $id);
+		$client = $this->clientMapper->getByUid($id);
+		$client->setJwtAccessToken($jwtAccessToken);
+		$this->clientMapper->update($client);
+		return new JSONResponse([]);
+	}
 
     public function deleteClient(int $id): JSONResponse
     {
@@ -221,6 +236,7 @@ class SettingsController extends Controller
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
                 'type' => $client->getType(),
+				'jwtAccessToken' => $client->isJwtAccessToken(),
             ];
         }
         return new JSONResponse($result);
@@ -255,6 +271,7 @@ class SettingsController extends Controller
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
                 'type' => $client->getType(),
+				'jwtAccessToken' => $client->isJwtAccessToken(),
             ];
         }
         return new JSONResponse($result);

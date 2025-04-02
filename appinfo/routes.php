@@ -87,6 +87,11 @@ return [
             'url' => '/clients/flows/{id}',
             'verb' => 'PATCH'
         ],
+		[
+            'name' => 'Settings#updateJwtAccessToken',
+            'url' => '/clients/jwt_access_token/{id}',
+            'verb' => 'PATCH'
+        ],
         [
             'name' => 'Settings#deleteClient',
             'url' => '/clients/{id}',

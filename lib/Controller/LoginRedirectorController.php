@@ -177,6 +177,7 @@ class LoginRedirectorController extends ApiController
      * @param string $redirect_uri
      * @param string $scope
      * @param string $nonce
+	 * @param string $resource
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -189,7 +190,8 @@ class LoginRedirectorController extends ApiController
                     $response_type,
                     $redirect_uri,
                     $scope,
-                    $nonce
+                    $nonce,
+					$resource
                     ): Response
         {
         if (!$this->userSession->isLoggedIn()) {
@@ -201,6 +203,7 @@ class LoginRedirectorController extends ApiController
             $this->session->set('oidc_redirect_uri', $redirect_uri);
             $this->session->set('oidc_scope', $scope);
             $this->session->set('oidc_nonce', $nonce);
+			$this->session->set('oidc_resource', $resource);
 
             $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', []);
 
@@ -234,10 +237,18 @@ class LoginRedirectorController extends ApiController
         if (empty($nonce)) {
             $nonce = $this->session->get('oidc_nonce');
         }
+		if (empty($resource)) {
+            $resource = $this->session->get('oidc_resource');
+        }
 
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
             $scope = Application::DEFAULT_SCOPE;
+        }
+
+		// Set default resource if resource is not set at all
+        if (!isset($resource)) {
+            $resource = (string)$this->appConfig->getAppValue('default_resource_identifier', Application::DEFAULT_RESOURCE_IDENTIFIER);
         }
 
         $this->clientMapper->cleanUp();
@@ -278,6 +289,7 @@ class LoginRedirectorController extends ApiController
             return new TemplateResponse('core', '403', $params, 'error');
         }
 
+		// Check response type
         $responseTypeEntries = explode(' ', strtolower(trim($response_type)), 3);
         $codeFlow = false;
         $implicitFlow = false;
@@ -288,11 +300,12 @@ class LoginRedirectorController extends ApiController
             $implicitFlow = true;
         }
         if (in_array('id_token', $responseTypeEntries) && empty($nonce)) {
+			$this->logger->notice('Missing nonce in request for client ' . $client_id . '.');
             $url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20nonce&state=' . $state;
             return new RedirectResponse($url);
         }
         if (in_array('token', $responseTypeEntries) && !in_array('id_token', $responseTypeEntries)) {
-            // array_push($responseTypeEntries, 'id_token'); // Add ID token by default
+			$this->logger->notice('Missing id_token in response_type of request for client ' . $client_id . '.');
             $url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20id_token&state=' . $state;
             return new RedirectResponse($url);
         }
@@ -303,12 +316,7 @@ class LoginRedirectorController extends ApiController
             $isImplicitFlowAllowed = true;
         }
         if (($implicitFlow && !$isImplicitFlowAllowed) || (!$codeFlow && !$implicitFlow)) {
-            // $params = [
-            // 	'message' => $this->l->t('The received response_type is not accepted. Please inform the administrator of your client.'),
-            // ];
-            // $this->logger->notice('Response_type ' . $response_type . ' from client ' . $client_id . ' is not accepted.');
-            // return new TemplateResponse('core', '403', $params, 'error');
-            //Fail - Instead Template Response???
+			$this->logger->notice('Not allowed response_type in request for client ' . $client_id . '. Please check the configuration for not allowed flow types.');
             $url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
             return new RedirectResponse($url);
         }
@@ -335,16 +343,15 @@ class LoginRedirectorController extends ApiController
             return new TemplateResponse('core', '403', $params, 'error');
         }
 
-        $accessTokenCode = $this->random->generate(72, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $uid = $this->userSession->getUser()->getUID();
 
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($uid);
-        $accessToken->setAccessToken($accessTokenCode);
         $accessToken->setHashedCode(hash('sha512', $code));
         $accessToken->setScope(substr($scope, 0, 128));
+		$accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         if (empty($nonce) || !isset($nonce)) {
@@ -353,6 +360,7 @@ class LoginRedirectorController extends ApiController
             $nonce = substr($nonce, 0, 256);
         }
         $accessToken->setNonce($nonce);
+		$accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
         $this->accessTokenMapper->insert($accessToken);
 
         if (empty($state) || !isset($state)) {
@@ -369,7 +377,7 @@ class LoginRedirectorController extends ApiController
             $url = $url . '&code=' . $code;
         }
         if (in_array('token', $responseTypeEntries)) {
-            $url = $url . '&access_token=' . $accessTokenCode;
+            $url = $url . '&access_token=' . $accessToken->getAccessToken();
         }
         if (in_array('id_token', $responseTypeEntries)) {
             $jwt = $this->jwtGenerator->generateIdToken(

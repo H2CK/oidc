@@ -53,6 +53,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => $baseDir . '/../lib/Migration/Version0009Date20230401232100.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => $baseDir . '/../lib/Migration/Version0010Date20230411232100.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0011Date20240430171900' => $baseDir . '/../lib/Migration/Version0011Date20240430171900.php',
+	'OCA\\OIDCIdentityProvider\\Migration\\Version0012Date20250402100100' => $baseDir . '/../lib/Migration/Version0012Date20250402100100.php',
     'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
     'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => $baseDir . '/../lib/Util/DiscoveryGenerator.php',
     'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => $baseDir . '/../lib/Util/JwtGenerator.php',

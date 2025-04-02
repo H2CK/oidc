@@ -62,24 +62,24 @@ class TokenGenerationRequestListener implements IEventListener {
             return;
         }
 
+		$instanceUrl = $this->urlGenerator->getBaseUrl();
+        $protocol = parse_url($instanceUrl, PHP_URL_SCHEME);
+        $host = parse_url($instanceUrl, PHP_URL_HOST);
+
         // generate a new access token for the client
         $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
-        $accessTokenString = $this->random->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-        $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+		$code = $this->random->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($userId);
-        $accessToken->setAccessToken($accessTokenString);
         $accessToken->setHashedCode(hash('sha512', $code));
         $accessToken->setScope(substr(Application::DEFAULT_SCOPE, 0, 128));
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime() + $expireTime);
         $accessToken->setNonce('');
+		$accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
         $accessToken = $this->accessTokenMapper->insert($accessToken);
 
-        $instanceUrl = $this->urlGenerator->getBaseUrl();
-        $protocol = parse_url($instanceUrl, PHP_URL_SCHEME);
-        $host = parse_url($instanceUrl, PHP_URL_HOST);
         $idToken = $this->jwtGenerator->generateIdToken($accessToken, $client, $protocol, $host, false);
 
         $event->setAccessToken($accessToken->getAccessToken());
