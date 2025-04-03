@@ -397,6 +397,7 @@ export default {
 					redirectUri: this.newClient.redirectUri,
 					signingAlg: this.newClient.signingAlg,
 					type: this.newClient.type,
+					jwtAccessToken: this.newClient.jwtAccessToken,
 				}
 			).then(response => {
 				// eslint-disable-next-line vue/no-mutating-props

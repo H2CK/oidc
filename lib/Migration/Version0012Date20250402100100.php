@@ -32,6 +32,7 @@ use OCP\Migration\SimpleMigrationStep;
 use Psr\Log\LoggerInterface;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use Doctrine\DBAL\Types\Type;
 
 class Version0012Date20250402100100 extends SimpleMigrationStep {
     private LoggerInterface $logger;
@@ -57,24 +58,25 @@ class Version0012Date20250402100100 extends SimpleMigrationStep {
         $schema = $schemaClosure();
 
         $table = $schema->getTable('oidc_clients');
-		if(!$table->hasColumn('jwt_access_token')) {
-			$table->addColumn('jwt_access_token', 'boolean', [
-				'notnull' => false,
-				'default' => 'false',
-			]);
-		}
+        if(!$table->hasColumn('jwt_access_token')) {
+            $table->addColumn('jwt_access_token', 'boolean', [
+                'notnull' => false,
+                'default' => 'false',
+            ]);
+        }
 
-		$table = $schema->getTable('oidc_access_tokens');
-		if (!$table->hasColumn('resource')) {
-			$table->addColumn('resource', 'string', [
-				'notnull' => false,
-				'length' => 2000,
-			]);
-		}
+        $table = $schema->getTable('oidc_access_tokens');
+        if (!$table->hasColumn('resource')) {
+            $table->addColumn('resource', 'string', [
+                'notnull' => false,
+                'length' => 2000,
+            ]);
+        }
 
-		$table->modifyColumn('access_token', [
-			'length' => 4000,
-		]);
+        $column = $table->getColumn('access_token');
+        $column->setType(Type::getType('text'))
+            ->setLength(65535)
+            ->setNotnull(false);
 
         return $schema;
     }

@@ -65,7 +65,7 @@ class AccessToken extends Entity
     protected $refreshed;
     /** @var string */
     protected $nonce;
-	/** @var string */
+    /** @var string */
     protected $resource;
 
     public function __construct() {
@@ -78,6 +78,6 @@ class AccessToken extends Entity
         $this->addType('created', 'int');
         $this->addType('refreshed', 'int');
         $this->addType('nonce', 'string');
-		$this->addType('resource', 'string');
+        $this->addType('resource', 'string');
     }
 }

@@ -271,7 +271,7 @@ class OIDCApiController extends ApiController {
                 'error_description' => 'Access token not allowed for user groups.',
             ], Http::STATUS_BAD_REQUEST);
         }
-		$accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+        $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
         $this->accessTokenMapper->update($accessToken);
 
         $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), false);

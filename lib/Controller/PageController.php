@@ -82,7 +82,7 @@ class PageController extends Controller {
         $response_type = $this->session->get('oidc_response_type');
         $redirect_uri = $this->session->get('oidc_redirect_uri');
         $scope = $this->session->get('oidc_scope');
-		$resource = $this->session->get('oidc_resource');
+        $resource = $this->session->get('oidc_resource');
 
 
         $parameters = [
@@ -91,7 +91,7 @@ class PageController extends Controller {
             'response_type' => $response_type,
             'redirect_uri' => $redirect_uri,
             'scope' => $scope,
-			'resource' => $resource
+            'resource' => $resource
         ];
 
         $response = new TemplateResponse('oidc', 'main', $parameters);

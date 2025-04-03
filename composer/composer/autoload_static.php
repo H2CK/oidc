@@ -68,14 +68,14 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Migration\\Version0009Date20230401232100' => __DIR__ . '/..' . '/../lib/Migration/Version0009Date20230401232100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0010Date20230411232100' => __DIR__ . '/..' . '/../lib/Migration/Version0010Date20230411232100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0011Date20240430171900' => __DIR__ . '/..' . '/../lib/Migration/Version0011Date20240430171900.php',
-		'OCA\\OIDCIdentityProvider\\Migration\\Version0012Date20250402100100' => __DIR__ . '/..' . '/../lib/Migration/Version0012Date20250402100100.php',
-		'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
+        'OCA\\OIDCIdentityProvider\\Migration\\Version0012Date20250402100100' => __DIR__ . '/..' . '/../lib/Migration/Version0012Date20250402100100.php',
+        'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
         'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => __DIR__ . '/..' . '/../lib/Util/DiscoveryGenerator.php',
         'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => __DIR__ . '/..' . '/../lib/Util/JwtGenerator.php',
-		'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenGenerationRequestEvent.php',
-		'OCA\\OIDCIdentityProvider\\Event\\TokenValidationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenValidationRequestEvent.php',
-		'OCA\\OIDCIdentityProvider\\Listener\\TokenGenerationRequestListener' => __DIR__ . '/..' . '/../lib/Listener/TokenGenerationRequestListener.php',
-		'OCA\\OIDCIdentityProvider\\Listener\\TokenValidationRequestListener' => __DIR__ . '/..' . '/../lib/Listener/TokenValidationRequestListener.php',
+        'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenGenerationRequestEvent.php',
+        'OCA\\OIDCIdentityProvider\\Event\\TokenValidationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenValidationRequestEvent.php',
+        'OCA\\OIDCIdentityProvider\\Listener\\TokenGenerationRequestListener' => __DIR__ . '/..' . '/../lib/Listener/TokenGenerationRequestListener.php',
+        'OCA\\OIDCIdentityProvider\\Listener\\TokenValidationRequestListener' => __DIR__ . '/..' . '/../lib/Listener/TokenValidationRequestListener.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

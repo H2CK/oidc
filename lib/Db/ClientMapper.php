@@ -91,7 +91,7 @@ class ClientMapper extends QBMapper {
     }
 
     public function delete(Entity $entity): Entity {
-        // remove redirect uris first        
+        // remove redirect uris first
         $uris = $this->redirectUriMapper->getByClientId($entity->getId());
         foreach ($uris as $uri)
             $this->redirectUriMapper->delete($uri);

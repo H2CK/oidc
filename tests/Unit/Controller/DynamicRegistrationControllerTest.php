@@ -42,25 +42,25 @@ class DynamicRegistrationControllerTest extends TestCase {
     protected $logoutRedirectUriMapper;
     /** @var ITimeFactory */
     protected $time;
-	/** @var IBackend */
-	protected $throttlerBackend;
+    /** @var IBackend */
+    protected $throttlerBackend;
     /** @var Throttler */
     protected $throttler;
     /** @var IURLGenerator */
     protected $urlGenerator;
-	/** @var IConfig */
-	protected $config;
+    /** @var IConfig */
+    protected $config;
     /** @var IAppConfig */
     protected $appConfig;
     /** @var IDBConnection */
     protected $db;
     /** @var LoggerInterface */
     protected $logger;
-	/** @var BruteforceAllowList */
-	private $bruteforceAllowList;
+    /** @var BruteforceAllowList */
+    private $bruteforceAllowList;
 
     public function setUp(): void {
-		parent::setUp();
+        parent::setUp();
         $this->request = $this->getMockBuilder(IRequest::class)->getMock();
         $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
         $this->secureRandom = $this->getMockBuilder(ISecureRandom::class)->getMock();
@@ -68,10 +68,10 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
         $this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
-		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
-		$this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-		$this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
-		$this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([$this->db,
+        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
+        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+        $this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
+        $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([$this->db,
                                                                                                         $this->time,
                                                                                                         $this->appConfig])->getMock();
         $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([$this->db,
@@ -86,9 +86,9 @@ class DynamicRegistrationControllerTest extends TestCase {
                                                                                         $this->logger,
                                                                                         $this->config,
                                                                                         $this->throttlerBackend,
-																						$this->bruteforceAllowList])->getMock();
+                                                                                        $this->bruteforceAllowList])->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
-		$this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([$this->db,
+        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([$this->db,
                                                                                               $this->time,
                                                                                               $this->appConfig,
                                                                                               $this->redirectUriMapper,
@@ -118,11 +118,11 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('dynamic_registration_not_allowed', $result->getData()['error']);
     }
 
-	public function testNoRedirectUris() {
-		// Return true for getAppValue('dynamic_client_registration', 'false')
-		$this->appConfig
-			->method('getAppValue')
-			->willReturn('true');
+    public function testNoRedirectUris() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValue')
+            ->willReturn('true');
 
         $result = $this->controller->registerClient();
 
@@ -130,11 +130,11 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('no_redirect_uris_provided', $result->getData()['error']);
     }
 
-	public function testEmptyRedirectUris() {
-		// Return true for getAppValue('dynamic_client_registration', 'false')
-		$this->appConfig
-			->method('getAppValue')
-			->willReturn('true');
+    public function testEmptyRedirectUris() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValue')
+            ->willReturn('true');
 
         $result = $this->controller->registerClient([]);
 
@@ -142,16 +142,16 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('no_redirect_uris_provided', $result->getData()['error']);
     }
 
-	public function testMaxNumClientsExceeded() {
-		// Return true for getAppValue('dynamic_client_registration', 'false')
-		$this->appConfig
-			->method('getAppValue')
-			->willReturn('true');
+    public function testMaxNumClientsExceeded() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValue')
+            ->willReturn('true');
 
-		// Return max number of clients 1000
-		$this->clientMapper
-			->method('getNumDcrClients')
-			->willReturn(101);
+        // Return max number of clients 1000
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(101);
 
         $result = $this->controller->registerClient(['https://test.org/redirect']);
 
@@ -159,27 +159,27 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('max_num_clients_exceeded', $result->getData()['error']);
     }
 
-	public function testClientCreated() {
-		// Return true for getAppValue('dynamic_client_registration', 'false')
-		$this->appConfig
-			->method('getAppValue')
-			->willReturnMap([
-				['dynamic_client_registration', 'false', 'true'],
-				['client_expire_time', '3600', '3600']
-			]);
+    public function testClientCreated() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValue')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600']
+            ]);
 
-		// Return max number of clients 1000
-		$this->clientMapper
-			->method('getNumDcrClients')
-			->willReturn(100);
+        // Return max number of clients 1000
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(100);
 
-		$this->clientMapper
-			->method('insert')
-			->willReturnCallBack (
-				function ($arg) {
-					return $arg;
-				}
-			);
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    return $arg;
+                }
+            );
 
         $ts = time();
         $result = $this->controller->registerClient(['https://test.org/redirect'], 'TEST-CLIENT');

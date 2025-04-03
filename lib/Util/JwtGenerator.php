@@ -99,17 +99,17 @@ class JwtGenerator
         $this->converter = Server::get(Converter::class);
     }
 
-	/**
-	 * Generate JWT ID Token
-	 *
-	 * @param AccessToken $accessToken
-	 * @param Client $client
-	 * @param string $issuerProtocol
-	 * @param string $issuerHost
-	 * @param bool $atHash
-	 * @return string
-	 * @throws PropertyDoesNotExistException
-	 */
+    /**
+     * Generate JWT ID Token
+     *
+     * @param AccessToken $accessToken
+     * @param Client $client
+     * @param string $issuerProtocol
+     * @param string $issuerHost
+     * @param bool $atHash
+     * @return string
+     * @throws PropertyDoesNotExistException
+     */
     public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash): string {
         $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
@@ -118,7 +118,7 @@ class JwtGenerator
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
-		$quota = $user->getQuota();
+        $quota = $user->getQuota();
 
         $jwt_payload = [
             'iss' => $issuer,
@@ -220,9 +220,9 @@ class JwtGenerator
             // 'birthdate' => ,
             // 'zoneinfo' => ,
             // 'locale' => ,
-			if ($quota != 'none') {
+            if ($quota != 'none') {
                 $profile = array_merge($profile,
-						['quota' => $quota]);
+                        ['quota' => $quota]);
             }
             $jwt_payload = array_merge($jwt_payload, $profile);
         }
@@ -271,29 +271,29 @@ class JwtGenerator
     }
 
 
-	/**
-	 * Generate JWT Access Token (RFC9068) if client is configured to use JWT access tokens otherwise opaque access token
-	 * is returned. The passed accessToken object is not modified.
-	 *
-	 * @param AccessToken $accessToken
-	 * @param Client $client
-	 * @param string $issuerProtocol
-	 * @param string $issuerHost
-	 * @param bool $atHash
-	 * @return string
-	 * @throws PropertyDoesNotExistException
-	 */
+    /**
+     * Generate JWT Access Token (RFC9068) if client is configured to use JWT access tokens otherwise opaque access token
+     * is returned. The passed accessToken object is not modified.
+     *
+     * @param AccessToken $accessToken
+     * @param Client $client
+     * @param string $issuerProtocol
+     * @param string $issuerHost
+     * @param bool $atHash
+     * @return string
+     * @throws PropertyDoesNotExistException
+     */
     public function generateAccessToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost): string {
-		if (!$client->isJwtAccessToken()) {
-			$this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
-			return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-		}
+        if (!$client->isJwtAccessToken()) {
+            $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
+            return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+        }
 
         $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
-		$groups = $this->groupManager->getUserGroups($user);
+        $groups = $this->groupManager->getUserGroups($user);
 
         $jwt_payload = [
             'iss' => $issuer,
@@ -308,7 +308,7 @@ class JwtGenerator
             'jti' => strval($accessToken->getId()),
         ];
 
-		$roles = [];
+        $roles = [];
         // Fetch roles
         foreach ($groups as $group) {
             array_push($roles, $group->getGID());
@@ -351,12 +351,12 @@ class JwtGenerator
 
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
 
-		// Check length - should not exceed 4000
-		if (strlen($jwt) > 4000) {
-			$this->logger->error('Too big JWT Access token (Fallback to opaque Access token) with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
-			$this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
-			return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-		}
+        // Check length - should not exceed 65535 - DB Limit - not expected to be reached with a JWT access token
+        if (strlen($jwt) > 65535) {
+            $this->logger->error('Too big JWT Access token (Fallback to opaque Access token) with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
+            $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
+            return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+        }
 
         $this->logger->debug('Generated JWT Access token with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
         return $jwt;

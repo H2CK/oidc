@@ -66,8 +66,8 @@ class Client extends Entity implements JsonSerializable {
     protected $type;
     /** @var string */
     protected $flowType;
-	/** @var bool */
-	protected $jwtAccessToken;
+    /** @var bool */
+    protected $jwtAccessToken;
     /** @var bool */
     protected $dcr;
     /** @var int */
@@ -79,7 +79,7 @@ class Client extends Entity implements JsonSerializable {
         $algorithm = 'RS256',
         $type = 'confidential',
         $flowType = 'code',
-		$jwtAccessToken = false,
+        $jwtAccessToken = false,
         $dcr = false
     ) {
         $this->setName($name);
@@ -87,7 +87,7 @@ class Client extends Entity implements JsonSerializable {
         $this->setSigningAlg($algorithm == 'RS256' ? 'RS256' : 'HS256');
         $this->setType($type == 'public' ? 'public' : 'confidential');
         $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
-		$this->setJwtAccessToken($jwtAccessToken);
+        $this->setJwtAccessToken($jwtAccessToken);
         $this->setDcr($dcr);
         $this->setIssuedAt(time());
 
@@ -98,7 +98,7 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('signing_alg', Types::STRING);
         $this->addType('type', Types::STRING);
         $this->addType('flow_type', Types::STRING);
-		$this->addType('jwt_access_token', Types::BOOLEAN);
+        $this->addType('jwt_access_token', Types::BOOLEAN);
         $this->addType('dcr', Types::BOOLEAN);
         $this->addType('issued_at', Types::INTEGER);
 
@@ -112,13 +112,17 @@ class Client extends Entity implements JsonSerializable {
         $this->redirectUris = $uris;
     }
 
-	public function isJwtAccessToken(): bool {
-		return $this->jwtAccessToken;
-	}
+    public function setJwtAccessToken(string $jwtAccessToken): void {
+        $this->jwtAccessToken = $jwtAccessToken;
+    }
 
-	public function isDcr(): bool {
-		return $this->dcr;
-	}
+    public function isJwtAccessToken(): bool {
+        return $this->jwtAccessToken;
+    }
+
+    public function isDcr(): bool {
+        return $this->dcr;
+    }
 
     /**
      * Implement JsonSerializable interface
@@ -135,7 +139,7 @@ class Client extends Entity implements JsonSerializable {
             'flow_type' => $this->getFlowType(),
             'dcr' => $this->isDcr(),
             'issued_at' => $this->getIssuedAt(),
-			'jwt_access_token' => $this->isJwtAccessToken()
+            'jwt_access_token' => $this->isJwtAccessToken()
         ];
     }
 }

@@ -40,10 +40,10 @@ class Application extends App implements IBootstrap {
     public const APP_ID = 'oidc';
 
     public const DEFAULT_SCOPE = 'openid profile email roles';
-	public const DEFAULT_EXPIRE_TIME = '900';
+    public const DEFAULT_EXPIRE_TIME = '900';
     public const DEFAULT_REFRESH_EXPIRE_TIME = '900';
-	public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
-	public const DEFAULT_RESOURCE_IDENTIFIER = 'https://rs.local/';
+    public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
+    public const DEFAULT_RESOURCE_IDENTIFIER = 'https://rs.local/';
 
     private $backend;
 
