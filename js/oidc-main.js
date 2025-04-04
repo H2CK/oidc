@@ -38132,7 +38132,8 @@ __webpack_require__.r(__webpack_exports__);
         redirectUri: '',
         signingAlg: 'RS256',
         type: 'confidential',
-        jwtAccessToken: false,
+        flowType: 'code',
+        tokenType: 'opaque',
         errorMsg: '',
         error: false
       },
@@ -38224,7 +38225,9 @@ __webpack_require__.r(__webpack_exports__);
         name: this.newClient.name,
         redirectUri: this.newClient.redirectUri,
         signingAlg: this.newClient.signingAlg,
-        type: this.newClient.type
+        type: this.newClient.type,
+        flowType: this.newClient.flowType,
+        tokenType: this.newClient.tokenType
       }).then(response => {
         // eslint-disable-next-line vue/no-mutating-props
         this.clients.push(response.data);
@@ -38232,6 +38235,8 @@ __webpack_require__.r(__webpack_exports__);
         this.newClient.redirectUri = '';
         this.newClient.signingAlg = 'RS256';
         this.newClient.type = 'confidential';
+        this.newClient.flowType = 'code';
+        this.newClient.tokenType = 'opaque';
       }).catch(reason => {
         this.newClient.error = true;
         this.newClient.errorMsg = reason.response.data.message;
@@ -38322,13 +38327,13 @@ __webpack_require__.r(__webpack_exports__);
         this.errorMsg = reason;
       });
     },
-    updateJwtAccessToken(id, jwtAccessToken) {
+    updateTokenType(id, tokenType) {
       this.error = false;
-      _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].patch((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_3__.generateUrl)('apps/oidc/clients/jwt_access_token/{id}', {
+      _nextcloud_axios__WEBPACK_IMPORTED_MODULE_0__["default"].patch((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_3__.generateUrl)('apps/oidc/clients/token_type/{id}', {
         id
       }), {
         id,
-        jwtAccessToken
+        tokenType
       }).then(response => {
         // Nothing to do
       }).catch(reason => {
@@ -38383,7 +38388,7 @@ __webpack_require__.r(__webpack_exports__);
       type: this.client.type,
       renderSecret: false,
       addRedirectUri: '',
-      jwtAccessToken: this.client.jwtAccessToken.toString(),
+      tokenType: this.client.tokenType,
       flowData: {
         props: {
           inputId: this.client.id + '-flow-select',
@@ -38440,8 +38445,8 @@ __webpack_require__.r(__webpack_exports__);
     updateFlowTypes() {
       this.$emit('updateflowtypes', this.id, this.flowData.props.value);
     },
-    updateJwtAccessToken() {
-      this.$emit('updatejwtaccesstoken', this.id, this.jwtAccessToken);
+    updateTokenType() {
+      this.$emit('updatetokentype', this.id, this.tokenType);
     }
   }
 });
@@ -38527,7 +38532,7 @@ var render = function render() {
         delete: _vm.deleteClient,
         updategroups: _vm.updateGroups,
         updateflowtypes: _vm.updateFlowTypes,
-        updatejwtaccesstoken: _vm.updateJwtAccessToken
+        updatetokentype: _vm.updateTokenType
       }
     });
   }), 1) : _vm._e()]) : _vm._e(), _vm._v(" "), _c("br"), _vm._v(" "), _c("h3", [_vm._v(_vm._s(_vm.t("oidc", "Add client")))]), _vm._v(" "), _vm.newClient.error ? _c("span", {
@@ -39070,38 +39075,38 @@ var render = function render() {
       expression: "flowData.props.value"
     }
   }, "NcSelect", _vm.flowData.props, false))], 1)])]), _vm._v(" "), _c("tr", [_c("td", [_vm._v(_vm._s(_vm.t("oidc", "Access Token Type")))]), _vm._v(" "), _c("td", [_c("div", {
-    staticClass: "oidc_jwt_access_token_container"
+    staticClass: "oidc_token_type_container"
   }, [_c("NcCheckboxRadioSwitch", {
     attrs: {
-      value: "false",
-      name: "jwt_access_token",
+      value: "opaque",
+      name: "token_type",
       type: "radio"
     },
     on: {
-      "update:modelValue": _vm.updateJwtAccessToken
+      "update:modelValue": _vm.updateTokenType
     },
     model: {
-      value: _vm.jwtAccessToken,
+      value: _vm.tokenType,
       callback: function ($$v) {
-        _vm.jwtAccessToken = $$v;
+        _vm.tokenType = $$v;
       },
-      expression: "jwtAccessToken"
+      expression: "tokenType"
     }
   }, [_vm._v("\n\t\t\t\t\t\t\t" + _vm._s(_vm.t("oidc", "Opaque Access Token")) + "\n\t\t\t\t\t\t")]), _vm._v(" "), _c("NcCheckboxRadioSwitch", {
     attrs: {
-      value: "true",
-      name: "jwt_access_token",
+      value: "jwt",
+      name: "token_type",
       type: "radio"
     },
     on: {
-      "update:modelValue": _vm.updateJwtAccessToken
+      "update:modelValue": _vm.updateTokenType
     },
     model: {
-      value: _vm.jwtAccessToken,
+      value: _vm.tokenType,
       callback: function ($$v) {
-        _vm.jwtAccessToken = $$v;
+        _vm.tokenType = $$v;
       },
-      expression: "jwtAccessToken"
+      expression: "tokenType"
     }
   }, [_vm._v("\n\t\t\t\t\t\t\t" + _vm._s(_vm.t("oidc", "JWT Access Token (RFC9068)")) + "\n\t\t\t\t\t\t")])], 1)])]), _vm._v(" "), _c("tr", [_c("td", [_vm._v(_vm._s(_vm.t("oidc", "Limited to Groups")))]), _vm._v(" "), _c("td", [_c("div", {
     staticClass: "oidc_group_container"
@@ -62450,4 +62455,4 @@ oidc.$mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=b4c3207506bb7c169226
+//# sourceMappingURL=oidc-main.js.map?v=4f9352f379a171d2b737

@@ -64,11 +64,11 @@ class OIDCCreate extends Command {
         'confidential'
       )
       ->addOption(
-        'jwt_access_token',
-        'j',
+        'token_type',
+        null,
         InputOption::VALUE_OPTIONAL,
-        'The type of the access token created for the client. If set to ´true´ a RFC9068 conforming access token is generated.',
-        'false'
+        'The type of the access token created for the client. If set to ´jwt´ a RFC9068 conforming access token is generated.',
+        'opaque'
       );
   }
 
@@ -81,7 +81,7 @@ class OIDCCreate extends Command {
             $input->getOption('algorithm'),
             $input->getOption('type'),
             $input->getOption('flow'),
-            boolval($input->getOption('jwt_access_token'))
+            $input->getOption('token_type')
           );
           // insert new client into database
           $client = $this->mapper->insert($client);

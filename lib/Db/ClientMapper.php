@@ -35,6 +35,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Security\ISecureRandom;
 use OCP\IDBConnection;
+use Psr\Log\LoggerInterface;
 
 /**
  * @template-extends QBMapper<Client>
@@ -48,6 +49,8 @@ class ClientMapper extends QBMapper {
     private $redirectUriMapper;
     /** @var ISecureRandom */
     private $secureRandom;
+    /** @var LoggerInterface */
+    private $logger;
 
     public const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
@@ -60,12 +63,14 @@ class ClientMapper extends QBMapper {
         IAppConfig $appConfig,
         RedirectUriMapper $redirectUriMapper,
         ISecureRandom $secureRandom,
+        LoggerInterface $logger
     ) {
         parent::__construct($db, 'oidc_clients');
         $this->time = $time;
         $this->appConfig = $appConfig;
         $this->redirectUriMapper = $redirectUriMapper;
         $this->secureRandom = $secureRandom;
+        $this->logger = $logger;
     }
 
     public function insert(Entity $entity): Entity {

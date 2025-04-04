@@ -103,9 +103,11 @@ class SettingsController extends Controller
                     string $redirectUri,
                     string $signingAlg,
                     string $type,
-                    bool $jwtAccessToken
+                    string $flowType,
+                    string $tokenType
                     ): JSONResponse
     {
+        $this->logger->debug("Adding client " . $name);
         if (filter_var($redirectUri, FILTER_VALIDATE_URL) === false) {
             return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
         }
@@ -115,13 +117,11 @@ class SettingsController extends Controller
             [ $redirectUri ],
             $signingAlg,
             $type,
-            $jwtAccessToken
+            $flowType,
+            $tokenType
         );
 
         $client = $this->clientMapper->insert($client);
-
-        // @TODO: use standardized serialization
-        // return new JSONResponse($client);
 
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
         $resultRedirectUris = [];
@@ -131,6 +131,16 @@ class SettingsController extends Controller
                 'client_id' => $tmpRedirectUri->getClientId(),
                 'redirect_uri' => $tmpRedirectUri->getRedirectUri(),
             ];
+        }
+        $groups = $this->groupMapper->getGroupsByClientId($client->getId());
+        $resultGroups = [];
+        foreach ($groups as $group) {
+            array_push($resultGroups, $group->getGroupId());
+        }
+        $flowTypeLabel = $this->l->t('Code Authorization Flow');
+        $responseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
+        if (in_array('id_token', $responseTypeEntries)) {
+            $flowTypeLabel = $this->l->t('Code & Implicit Authorization Flow');
         }
 
         return new JSONResponse([
@@ -142,7 +152,9 @@ class SettingsController extends Controller
             'signingAlg' => $client->getSigningAlg(),
             'type' => $client->getType(),
             'flowType' => $client->getFlowType(),
-            'jwtAccessToken' => $client->isJwtAccessToken(),
+            'flowTypeLabel' => $flowTypeLabel,
+            'groups' => $resultGroups,
+            'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
         ]);
     }
 
@@ -181,14 +193,14 @@ class SettingsController extends Controller
         return new JSONResponse([]);
     }
 
-    public function updateJwtAccessToken(
+    public function updateTokenType(
         int $id,
-        bool $jwtAccessToken
+        string $tokenType
         ): JSONResponse
     {
-        $this->logger->debug("Updating jwt_access_token for client " . $id);
+        $this->logger->debug("Updating tokenType for client " . $id . " with value " .$tokenType);
         $client = $this->clientMapper->getByUid($id);
-        $client->setJwtAccessToken($jwtAccessToken);
+        $client->setTokenType(($tokenType==='jwt') ? 'jwt' : 'opaque');
         $this->clientMapper->update($client);
         return new JSONResponse([]);
     }
@@ -236,7 +248,8 @@ class SettingsController extends Controller
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
                 'type' => $client->getType(),
-                'jwtAccessToken' => $client->isJwtAccessToken(),
+                'flowType' => $client->getFlowType(),
+                'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
             ];
         }
         return new JSONResponse($result);
@@ -271,7 +284,8 @@ class SettingsController extends Controller
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
                 'type' => $client->getType(),
-                'jwtAccessToken' => $client->isJwtAccessToken(),
+                'flowType' => $client->getFlowType(),
+                'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
             ];
         }
         return new JSONResponse($result);

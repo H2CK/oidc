@@ -92,7 +92,8 @@ class DynamicRegistrationControllerTest extends TestCase {
                                                                                               $this->time,
                                                                                               $this->appConfig,
                                                                                               $this->redirectUriMapper,
-                                                                                              $this->secureRandom])->getMock();
+                                                                                              $this->secureRandom,
+                                                                                              $this->logger])->getMock();
 
 
         $this->controller = new DynamicRegistrationController(

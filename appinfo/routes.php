@@ -88,8 +88,8 @@ return [
             'verb' => 'PATCH'
         ],
         [
-            'name' => 'Settings#updateJwtAccessToken',
-            'url' => '/clients/jwt_access_token/{id}',
+            'name' => 'Settings#updateTokenType',
+            'url' => '/clients/token_type/{id}',
             'verb' => 'PATCH'
         ],
         [

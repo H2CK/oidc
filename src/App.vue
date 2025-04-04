@@ -43,7 +43,7 @@
 					@delete="deleteClient"
 					@updategroups="updateGroups"
 					@updateflowtypes="updateFlowTypes"
-					@updatejwtaccesstoken="updateJwtAccessToken" />
+					@updatetokentype="updateTokenType" />
 			</tbody>
 		</table>
 
@@ -296,7 +296,8 @@ export default {
 				redirectUri: '',
 				signingAlg: 'RS256',
 				type: 'confidential',
-				jwtAccessToken: false,
+				flowType: 'code',
+				tokenType: 'opaque',
 				errorMsg: '',
 				error: false,
 			},
@@ -397,7 +398,8 @@ export default {
 					redirectUri: this.newClient.redirectUri,
 					signingAlg: this.newClient.signingAlg,
 					type: this.newClient.type,
-					jwtAccessToken: this.newClient.jwtAccessToken,
+					flowType: this.newClient.flowType,
+					tokenType: this.newClient.tokenType,
 				}
 			).then(response => {
 				// eslint-disable-next-line vue/no-mutating-props
@@ -407,6 +409,8 @@ export default {
 				this.newClient.redirectUri = ''
 				this.newClient.signingAlg = 'RS256'
 				this.newClient.type = 'confidential'
+				this.newClient.flowType = 'code'
+				this.newClient.tokenType = 'opaque'
 			}).catch(reason => {
 				this.newClient.error = true
 				this.newClient.errorMsg = reason.response.data.message
@@ -513,14 +517,14 @@ export default {
 				this.errorMsg = reason
 			})
 		},
-		updateJwtAccessToken(id, jwtAccessToken) {
+		updateTokenType(id, tokenType) {
 			this.error = false
 
 			axios.patch(
-				generateUrl('apps/oidc/clients/jwt_access_token/{id}', { id }),
+				generateUrl('apps/oidc/clients/token_type/{id}', { id }),
 				{
 					id,
-					jwtAccessToken,
+					tokenType,
 				}
 			).then(response => {
 				// Nothing to do

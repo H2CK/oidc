@@ -99,7 +99,7 @@ class JwtGeneratorTest extends TestCase {
     // }
 
     public function testGenerateOpaqueAccessToken() {
-        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', false, false);
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'opaque', false);
         $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
@@ -172,7 +172,7 @@ class JwtGeneratorTest extends TestCase {
         $resource = 'http://test.rs.url/';
         $scope = 'openid profile email roles';
 
-        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', true, false);
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
         $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
 
         $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);

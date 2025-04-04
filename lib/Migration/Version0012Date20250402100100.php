@@ -32,6 +32,7 @@ use OCP\Migration\SimpleMigrationStep;
 use Psr\Log\LoggerInterface;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\DB\Types;
 use Doctrine\DBAL\Types\Type;
 
 class Version0012Date20250402100100 extends SimpleMigrationStep {
@@ -58,10 +59,18 @@ class Version0012Date20250402100100 extends SimpleMigrationStep {
         $schema = $schemaClosure();
 
         $table = $schema->getTable('oidc_clients');
-        if(!$table->hasColumn('jwt_access_token')) {
-            $table->addColumn('jwt_access_token', 'boolean', [
+        if($table->hasColumn('jwt')) {
+            $table->dropColumn('jwt');
+        }
+        if($table->hasColumn('jwt_access_token')) {
+            $table->dropColumn('jwt_access_token');
+        }
+
+        if(!$table->hasColumn('token_type')) {
+            $table->addColumn('token_type', Types::STRING, [
                 'notnull' => false,
-                'default' => 'false',
+                'default' => 'opaque',
+                'length' => 16,
             ]);
         }
 

@@ -284,7 +284,7 @@ class JwtGenerator
      * @throws PropertyDoesNotExistException
      */
     public function generateAccessToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost): string {
-        if (!$client->isJwtAccessToken()) {
+        if ($client->getTokenType()!=='jwt') {
             $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
             return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         }

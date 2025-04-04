@@ -133,7 +133,7 @@ class Admin implements ISettings {
                 'flowType' => $client->getFlowType(),
                 'flowTypeLabel' => $flowTypeLabel,
                 'groups' => $resultGroups,
-                'jwtAccessToken' => $client->isJwtAccessToken(),
+                'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
             ];
         }
 
