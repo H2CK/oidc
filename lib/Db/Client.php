@@ -23,6 +23,7 @@
 namespace OCA\OIDCIdentityProvider\Db;
 
 use OCP\AppFramework\Db\Entity;
+use \OCP\DB\Types;
 
 use JsonSerializable;
 
@@ -42,12 +43,15 @@ use JsonSerializable;
  * @method void setType(string $type)
  * @method string getFlowType()
  * @method void setFlowType(string $flowType)
- * @method string isDcr()
+ * @method boolean isDcr()
  * @method void setDcr(boolean $dcr)
  * @method int getIssuedAt()
  * @method void setIssuedAt(int $issuedAt)
+ * @method string getTokenType()
+ * @method void setTokenType(string $tokenType)
  */
 class Client extends Entity implements JsonSerializable {
+    /** @var int */
     public $id;
     /** @var string */
     protected $name;
@@ -67,6 +71,8 @@ class Client extends Entity implements JsonSerializable {
     protected $dcr;
     /** @var int */
     protected $issuedAt = 0;
+    /** @var string */
+    protected $tokenType;
 
     public function __construct(
         $name = '',
@@ -74,6 +80,7 @@ class Client extends Entity implements JsonSerializable {
         $algorithm = 'RS256',
         $type = 'confidential',
         $flowType = 'code',
+        $tokenType = 'opaque',
         $dcr = false
     ) {
         $this->setName($name);
@@ -81,18 +88,20 @@ class Client extends Entity implements JsonSerializable {
         $this->setSigningAlg($algorithm == 'RS256' ? 'RS256' : 'HS256');
         $this->setType($type == 'public' ? 'public' : 'confidential');
         $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
+        $this->setTokenType($tokenType);
         $this->setDcr($dcr);
         $this->setIssuedAt(time());
 
-        $this->addType('id', 'int');
-        $this->addType('name', 'string');
-        $this->addType('client_identifier', 'string');
-        $this->addType('secret', 'string');
-        $this->addType('signing_alg', 'string');
-        $this->addType('type', 'string');
-        $this->addType('flow_type', 'string');
-        $this->addType('dcr', 'boolean');
-        $this->addType('issued_at', 'int');
+        $this->addType('id', Types::INTEGER);
+        $this->addType('name', Types::STRING);
+        $this->addType('client_identifier', Types::STRING);
+        $this->addType('secret', Types::STRING);
+        $this->addType('signing_alg', Types::STRING);
+        $this->addType('type', Types::STRING);
+        $this->addType('flow_type', Types::STRING);
+        $this->addType('dcr', Types::BOOLEAN);
+        $this->addType('issued_at', Types::INTEGER);
+        $this->addType('token_type', Types::STRING);
     }
 
     public function getRedirectUris(): array {
@@ -116,8 +125,9 @@ class Client extends Entity implements JsonSerializable {
             'client_id' => $this->getClientIdentifier(),
             'client_secret' => $this->getSecret(),
             'flow_type' => $this->getFlowType(),
-            'dcr' => $this->getDcr(),
-            'issued_at' => $this->getIssuedAt()
+            'dcr' => $this->isDcr(),
+            'issued_at' => $this->getIssuedAt(),
+            'token_type' => $this->getTokenType()
         ];
     }
 }

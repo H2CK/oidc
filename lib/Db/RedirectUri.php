@@ -49,9 +49,9 @@ class RedirectUri extends Entity implements JsonSerializable {
 
     /**
      * Implement JsonSerializable interface
-     * @return array An associative array representing the Client object
+     * @return mixed A string containing the redirect uri
      */
-    public function jsonSerialize() {
+    public function jsonSerialize(): mixed {
         return $this->redirectUri;
     }
 }

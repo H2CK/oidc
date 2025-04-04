@@ -21,56 +21,56 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCA\OIDCIdentityProvider\Controller\JwksController;
 
 class JwksControllerTest extends TestCase {
-	protected $controller;
-	/** @var IRequest */
-	protected $request;
-	/** @var ITimeFactory */
-	private $time;
-	/** @var Throttler */
-	private $throttler;
+    protected $controller;
+    /** @var IRequest */
+    protected $request;
+    /** @var ITimeFactory */
+    private $time;
+    /** @var Throttler */
+    private $throttler;
     /** @var IURLGenerator */
-	private $urlGenerator;
-	/** @var IDBConnection */
-	private $db;
-	/** @var IConfig */
-	private $config;
-	/** @var IAppConfig */
-	private $appConfig;
-	/** @var LoggerInterface */
-	private $logger;
-	/** @var IBackend */
-	private $throttlerBackend;
-	/** @var BruteforceAllowList */
-	private $bruteforceAllowList;
+    private $urlGenerator;
+    /** @var IDBConnection */
+    private $db;
+    /** @var IConfig */
+    private $config;
+    /** @var IAppConfig */
+    private $appConfig;
+    /** @var LoggerInterface */
+    private $logger;
+    /** @var IBackend */
+    private $throttlerBackend;
+    /** @var BruteforceAllowList */
+    private $bruteforceAllowList;
 
-	public function setUp(): void {
-		$this->request = $this->getMockBuilder(IRequest::class)->getMock();
-		$this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
-		$this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-		$this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-		$this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
-		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
-		$this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
-		$this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
-																						$this->logger,
-																						$this->config,
-																						$this->throttlerBackend,
-																						$this->bruteforceAllowList])->getMock();
-		$this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
-		$this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-		$this->controller = new JwksController(
+    public function setUp(): void {
+        $this->request = $this->getMockBuilder(IRequest::class)->getMock();
+        $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
+        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
+        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+        $this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
+        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
+        $this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
+        $this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
+                                                                                        $this->logger,
+                                                                                        $this->config,
+                                                                                        $this->throttlerBackend,
+                                                                                        $this->bruteforceAllowList])->getMock();
+        $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
+        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+        $this->controller = new JwksController(
             'oidc',
             $this->request,
-			$this->time,
-			$this->throttler,
-			$this->urlGenerator,
-			$this->appConfig,
-			$this->logger
-		);
-	}
+            $this->time,
+            $this->throttler,
+            $this->urlGenerator,
+            $this->appConfig,
+            $this->logger
+        );
+    }
 
-	public function testDiscoveryResponse() {
-		$keyOps = [
+    public function testDiscoveryResponse() {
+        $keyOps = [
             // 'sign',       // (compute digital signature or MAC)
             'verify',     // (verify digital signature or MAC)
             // 'encrypt',    // (encrypt content)
@@ -91,11 +91,11 @@ class JwksControllerTest extends TestCase {
             'e' => $this->appConfig->getAppValue('public_key_e'),
         ];
 
-		$result = $this->controller->getKeyInfo();
+        $result = $this->controller->getKeyInfo();
 
-		$this->assertEquals(Http::STATUS_OK, $result->getStatus());
-		$this->assertEquals($oidcKey, $result->getData()['keys'][0]);
-	}
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $this->assertEquals($oidcKey, $result->getData()['keys'][0]);
+    }
 
 
 }

@@ -182,7 +182,7 @@ class UserInfoController extends ApiController
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
-		$quota = $user->getQuota();
+        $quota = $user->getQuota();
 
         $userInfoPayload = [
             'sub' => $uid,
@@ -256,9 +256,9 @@ class UserInfoController extends ApiController
             // 'birthdate' => ,
             // 'zoneinfo' => ,
             // 'locale' => ,
-			if ($quota != 'none') {
+            if ($quota != 'none') {
                 $profile = array_merge($profile,
-						['quota' => $quota]);
+                        ['quota' => $quota]);
             }
             $userInfoPayload = array_merge($userInfoPayload, $profile);
         }

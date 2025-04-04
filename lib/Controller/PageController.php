@@ -77,18 +77,21 @@ class PageController extends Controller {
     #[UseSession]
     public function index()
     {
-        $client_id = $this->session->get('client_id');
-        $state = $this->session->get('state');
-        $response_type = $this->session->get('response_type');
-        $redirect_uri = $this->session->get('redirect_uri');
-        $scope = $this->session->get('scope');
+        $client_id = $this->session->get('oidc_client_id');
+        $state = $this->session->get('oidc_state');
+        $response_type = $this->session->get('oidc_response_type');
+        $redirect_uri = $this->session->get('oidc_redirect_uri');
+        $scope = $this->session->get('oidc_scope');
+        $resource = $this->session->get('oidc_resource');
+
 
         $parameters = [
             'client_id' => $client_id,
             'state' => $state,
             'response_type' => $response_type,
             'redirect_uri' => $redirect_uri,
-            'scope' => $scope
+            'scope' => $scope,
+            'resource' => $resource
         ];
 
         $response = new TemplateResponse('oidc', 'main', $parameters);

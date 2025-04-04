@@ -32,7 +32,7 @@ return [
             'url' => '/clients/redirect/{id}',
             'verb' => 'DELETE'
         ],
-		[
+        [
             'name' => 'Settings#addLogoutRedirectUri',
             'url' => '/logoutRedirect',
             'verb' => 'POST',
@@ -57,17 +57,17 @@ return [
             'url' => '/refreshExpire',
             'verb' => 'POST',
         ],
-		[
+        [
             'name' => 'Settings#setIntegrateAvatar',
             'url' => '/integrateAvatar',
             'verb' => 'POST',
         ],
-		[
+        [
             'name' => 'Settings#setOverwriteEmailVerified',
             'url' => '/overwriteEmailVerified',
             'verb' => 'POST',
         ],
-		[
+        [
             'name' => 'Settings#setDynamicClientRegistration',
             'url' => '/dynamicClientRegistration',
             'verb' => 'POST',
@@ -77,14 +77,19 @@ return [
             'url' => '/genKeys',
             'verb' => 'POST',
         ],
-		[
+        [
             'name' => 'Settings#updateClient',
             'url' => '/clients/groups/{id}',
             'verb' => 'PATCH'
         ],
-		[
+        [
             'name' => 'Settings#updateClientFlow',
             'url' => '/clients/flows/{id}',
+            'verb' => 'PATCH'
+        ],
+        [
+            'name' => 'Settings#updateTokenType',
+            'url' => '/clients/token_type/{id}',
             'verb' => 'PATCH'
         ],
         [
@@ -97,7 +102,7 @@ return [
             'url' => '/authorize',
             'verb' => 'GET',
         ],
-		[
+        [
             'name' => 'Cors#authorizeCorsResponse',
             'url' => '/authorize',
             'verb' => 'OPTIONS',
@@ -112,7 +117,7 @@ return [
             'url' => '/token',
             'verb' => 'POST'
         ],
-		[
+        [
             'name' => 'Cors#tokenCorsResponse',
             'url' => '/token',
             'verb' => 'OPTIONS',
@@ -147,7 +152,7 @@ return [
             'url' => '/openid-configuration',
             'verb' => 'GET'
         ],
-		[
+        [
             'name' => 'Discovery#preflighted_cors',
             'url' => '/openid-configuration',
             'verb' => 'OPTIONS',
@@ -162,7 +167,7 @@ return [
             'url' => '/jwks',
             'verb' => 'GET'
         ],
-		[
+        [
             'name' => 'Jwks#preflighted_cors',
             'url' => '/jwks',
             'verb' => 'OPTIONS',
