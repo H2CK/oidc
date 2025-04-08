@@ -16,18 +16,18 @@ use UnexpectedValueException;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OC\Authentication\Token\IProvider as TokenProvider;
+use OC\Group\Group;
 use OC\Security\SecureRandom;
 use OC\User\User;
-use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\DAV\CardDAV\Converter;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
+use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserManager;
-use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\Server;
 use OCP\IURLGenerator;
@@ -39,6 +39,7 @@ use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use Psr\Log\LoggerInterface;
+use OCP\EventDispatcher\IEventDispatcher;
 
 class JwtGeneratorTest extends TestCase {
         protected $generator;
@@ -64,6 +65,8 @@ class JwtGeneratorTest extends TestCase {
         private $logger;
         /** @var Converter */
         private $converter;
+        /** @var IEventDispatcher */
+        private $eventDispatcher;
 
     public function setUp(): void {
         $this->crypto = $this->getMockBuilder(ICrypto::class)->getMock();
@@ -77,6 +80,7 @@ class JwtGeneratorTest extends TestCase {
         $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
         $this->converter = Server::get(Converter::class);
+        $this->eventDispatcher = $this->getMockBuilder(IEventDispatcher::class)->getMock();
 
         $this->generator = new JwtGenerator(
             $this->crypto,
@@ -222,6 +226,108 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals($resource, $decodedJwt['aud']);
         $this->assertEquals($scope, $decodedJwt['scope']);
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['client_id']);
+    }
+
+    public function testGenerateJwtAccessTokenException() {
+        $this->expectException(JwtCreationErrorException::class);
+
+        // Prepare key material for test
+        $config = array(
+            "digest_alg" => 'sha512',
+            "private_key_bits" => 4096,
+            "private_key_type" => OPENSSL_KEYTYPE_RSA
+        );
+        $keyPair = openssl_pkey_new($config);
+        $privateKey = null;
+        openssl_pkey_export($keyPair, $privateKey);
+        $keyDetails = openssl_pkey_get_details($keyPair);
+        $publicKey = $keyDetails['key'];
+        $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
+        $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
+
+        // Mock necessary methods
+        $this->appConfig
+            ->method('getAppValue')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['expire_time', Application::DEFAULT_EXPIRE_TIME, '3600'],
+                ['integrate_avatar', 'id_token'],
+                ['overwrite_email_verified', 'true'],
+                ['private_key', $privateKey],
+                ['public_key', $publicKey],
+                ['public_key_n', $modulus],
+                ['public_key_e', $exponent],
+                ['kid', $this->guidv4()],
+            ]);
+
+        $this->userManager
+            ->method('get')
+            ->willReturnCallBack (
+                function ($arg) {
+                    return null;
+                }
+            );
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $groupsArr = [];
+                    for ($i=0; $i < 65535; $i++) {
+                        $groupName = 'group' . $i;
+                        $groupObj = new Group($groupName, [], $this->eventDispatcher, $this->userManager, null, $groupName);
+                        array_push($groupsArr, $groupObj);
+                    }
+                    return $groupsArr;
+                }
+            );
+
+        $user_id = '34';
+        $protocol = 'https';
+        $issuer = 'issuer.url';
+        $resource = 'http://test.rs.url/';
+        $scope = 'openid profile email roles';
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+
+        $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user_id);
+        $accessToken->setHashedCode(hash('sha512', $code));
+        $accessToken->setScope(substr($scope, 0, 128));
+        $accessToken->setResource(substr($resource, 0, 2000));
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+
+        // Execute test
+        $result = $this->generator->generateAccessToken(
+            $accessToken,
+            $client,
+            $protocol,
+            $issuer
+        );
+
+        // Decode received JWT
+        $oidcKey = [
+            'kty' => 'RSA',
+            'use' => 'sig',
+            'key_ops' => [ 'verify' ],
+            'alg' => 'RS256',
+            'kid' => $this->appConfig->getAppValue('kid'),
+            'n' => $this->appConfig->getAppValue('public_key_n'),
+            'e' => $this->appConfig->getAppValue('public_key_e'),
+        ];
+
+        $jwks = [
+            'keys' => [
+                $oidcKey,
+            ],
+        ];
+
+        $decodedStdClass = JWT::decode($result, JWK::parseKeySet($jwks));
+        $decodedJwt = (array) $decodedStdClass;
     }
 
     private function guidv4($data = null)

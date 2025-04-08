@@ -38,6 +38,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -271,7 +272,15 @@ class OIDCApiController extends ApiController {
                 'error_description' => 'Access token not allowed for user groups.',
             ], Http::STATUS_BAD_REQUEST);
         }
-        $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+		try {
+			$accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+		} catch (JwtCreationErrorException $e) {
+			$this->logger->notice('An error occured during creation of JWT.');
+            return new JSONResponse([
+                'error' => 'server_error',
+                'error_description' => 'An error occured during creation of JWT.',
+            ], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
         $this->accessTokenMapper->update($accessToken);
 
         $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), false);

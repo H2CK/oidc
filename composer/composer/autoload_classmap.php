@@ -38,6 +38,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => $baseDir . '/../lib/Exceptions/AccessTokenNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => $baseDir . '/../lib/Exceptions/ClientNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => $baseDir . '/../lib/Exceptions/RedirectUriNotFoundException.php',
+    'OCA\\OIDCIdentityProvider\\Exceptions\\JwtCreationErrorException' => $baseDir . '/../lib/Exceptions/JwtCreationErrorException.php',
     'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\JsonResponseMapper' => $baseDir . '/../lib/Http/WellKnown/JsonResponseMapper.php',
     'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\OIDCDiscoveryHandler' => $baseDir . '/../lib/Http/WellKnown/OIDCDiscoveryHandler.php',
     'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\WebFingerHandler' => $baseDir . '/../lib/Http/WellKnown/WebFingerHandler.php',

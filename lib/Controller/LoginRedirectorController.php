@@ -27,6 +27,7 @@ namespace OCA\OIDCIdentityProvider\Controller;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OC\Authentication\Token\IProvider;
 use OC\Authentication\Token\IToken;
 use OCP\AppFramework\ApiController;
@@ -360,8 +361,17 @@ class LoginRedirectorController extends ApiController
             $nonce = substr($nonce, 0, 256);
         }
         $accessToken->setNonce($nonce);
-        $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
-        $this->accessTokenMapper->insert($accessToken);
+
+        try {
+            $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+            $this->accessTokenMapper->insert($accessToken);
+        } catch (JwtCreationErrorException $e) {
+            $params = [
+                'message' => $this->l->t('A failure during JWT creation occured. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . $client_id . ' is not authorized to connect, due to failure during JWT creation.');
+            return new TemplateResponse('core', '500', $params, 'error');
+        }
 
         if (empty($state) || !isset($state)) {
             $state = '';

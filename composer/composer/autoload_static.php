@@ -53,6 +53,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/AccessTokenNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/ClientNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/RedirectUriNotFoundException.php',
+        'OCA\\OIDCIdentityProvider\\Exceptions\\JwtCreationErrorException' => __DIR__ . '/..' . '/../lib/Exceptions/JwtCreationErrorException.php',
         'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\JsonResponseMapper' => __DIR__ . '/..' . '/../lib/Http/WellKnown/JsonResponseMapper.php',
         'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\OIDCDiscoveryHandler' => __DIR__ . '/..' . '/../lib/Http/WellKnown/OIDCDiscoveryHandler.php',
         'OCA\\OIDCIdentityProvider\\Http\\WellKnown\\WebFingerHandler' => __DIR__ . '/..' . '/../lib/Http/WellKnown/WebFingerHandler.php',

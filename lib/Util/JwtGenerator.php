@@ -31,6 +31,7 @@ use OC\Authentication\Token\IProvider as TokenProvider;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
+use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\DAV\CardDAV\Converter;
 use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
@@ -282,6 +283,7 @@ class JwtGenerator
      * @param bool $atHash
      * @return string
      * @throws PropertyDoesNotExistException
+     * @throws JwtCreationErrorException
      */
     public function generateAccessToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost): string {
         if ($client->getTokenType()!=='jwt') {
@@ -353,9 +355,8 @@ class JwtGenerator
 
         // Check length - should not exceed 65535 - DB Limit - not expected to be reached with a JWT access token
         if (strlen($jwt) > 65535) {
-            $this->logger->error('Too big JWT Access token (Fallback to opaque Access token) with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
-            $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
-            return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+            $this->logger->error('Too big JWT Access token with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
+            throw new JwtCreationErrorException('Created JWT exceeds limits of 65535 characters. JWT can not be stored in database.', 0, null);
         }
 
         $this->logger->debug('Generated JWT Access token with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
