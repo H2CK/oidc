@@ -7,6 +7,7 @@ OC.L10N.register(
     "Name" : "Nimi",
     "Redirection URI" : "Suunamise URI",
     "Public" : "Avalik",
+    "Add" : "Lisa",
     "Settings" : "Seaded",
     "5 minutes" : "5 minutit",
     "10 minutes" : "10 minutit",
