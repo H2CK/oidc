@@ -10,12 +10,13 @@ Hint: Up to now it is not possible to use the provided Access Tokens or ID Token
 
 Provided features:
 
-- Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow (since version 0.4.0) - Implicite Flow must be activated per client.
-- Configuration of accepted client for whom JWT Tokens are provided. Public and confidential types are supported.
-- Creation of JWT Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles and groups)
+- Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow - Implicite Flow must be activated per client.
+- Public and confidential types of clients are supported.
+- Creation of ID Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles and groups)
 - Supported signing algorithms RS256 (default) and HS256
-- Group memberships are passed as roles in JWT token.
-- Clients can be assigned to dedicated user groups. Only users in the configured group are allowed to retrieve an access token to fetch the JWT.
+- Group memberships are passed as roles in ID token.
+- Clients can be assigned to dedicated user groups. Only users in the configured group are allowed to retrieve an access token to fetch the ID token.
+- Support for RFC9068 JWT Access Tokens (must be activated per client)
 - Discovery & WebFinger endpoint provided
 - Logout endpoint
 - Dynamic Client Registration
@@ -116,6 +117,14 @@ You could set those values with following CLI commands:
 |---|---|
 | Access Token | `occ config:app:set oidc expire_time --value "123456"` |
 | Refresh Token | `occ config:app:set oidc refresh_expire_time --value "123456"` |
+
+## JWT Access Tokens (RFC9068)
+
+It is possible to activate the use of JWT based access tokens according to RFC9068. This can be done in the settings UI or while creating a client in the CLI. If not activated an opaque access token will be generated (as it was done previously).
+The generation of the JWT based access token requires in some situations that a default resource identifier is used. If there is the need
+to change the predefined value you could set it via the CLI with the following command.
+
+`occ config:app:set oidc default_resource_identifier --value "https://rs.local/"`
 
 ## Development
 

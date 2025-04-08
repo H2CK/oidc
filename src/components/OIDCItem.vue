@@ -83,6 +83,27 @@
 					</td>
 				</tr>
 				<tr>
+					<td>{{ t('oidc', 'Access Token Type') }}</td>
+					<td>
+						<div class="oidc_token_type_container">
+							<NcCheckboxRadioSwitch v-model="tokenType"
+								value="opaque"
+								name="token_type"
+								type="radio"
+								@update:modelValue="updateTokenType">
+								{{ t('oidc', 'Opaque Access Token') }}
+							</NcCheckboxRadioSwitch>
+							<NcCheckboxRadioSwitch v-model="tokenType"
+								value="jwt"
+								name="token_type"
+								type="radio"
+								@update:modelValue="updateTokenType">
+								{{ t('oidc', 'JWT Access Token (RFC9068)') }}
+							</NcCheckboxRadioSwitch>
+						</div>
+					</td>
+				</tr>
+				<tr>
 					<td>{{ t('oidc', 'Limited to Groups') }}</td>
 					<td>
 						<div class="oidc_group_container">
@@ -106,11 +127,13 @@
 
 <script>
 import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
+import NcCheckboxRadioSwitch from '@nextcloud/vue/dist/Components/NcCheckboxRadioSwitch.js'
 
 export default {
 	name: 'OIDCItem',
 	components: {
 		NcSelect,
+		NcCheckboxRadioSwitch,
 	},
 	props: {
 		client: {
@@ -133,6 +156,7 @@ export default {
 			type: this.client.type,
 			renderSecret: false,
 			addRedirectUri: '',
+			tokenType: this.client.tokenType,
 			flowData: {
 				props: {
 					inputId: this.client.id + '-flow-select',
@@ -191,6 +215,9 @@ export default {
 		},
 		updateFlowTypes() {
 			this.$emit('updateflowtypes', this.id, this.flowData.props.value)
+		},
+		updateTokenType() {
+			this.$emit('updatetokentype', this.id, this.tokenType)
 		},
 	},
 }

@@ -26,10 +26,12 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Util;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OC\Authentication\Token\IProvider as TokenProvider;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
+use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\DAV\CardDAV\Converter;
 use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
@@ -98,26 +100,26 @@ class JwtGenerator
         $this->converter = Server::get(Converter::class);
     }
 
-	/**
-	 * Generate JWT Token
-	 *
-	 * @param AccessToken $accessToken
-	 * @param Client $client
-	 * @param string $issuerProtocol
-	 * @param string $issuerHost
-	 * @param bool $atHash
-	 * @return string
-	 * @throws PropertyDoesNotExistException
-	 */
+    /**
+     * Generate JWT ID Token
+     *
+     * @param AccessToken $accessToken
+     * @param Client $client
+     * @param string $issuerProtocol
+     * @param string $issuerHost
+     * @param bool $atHash
+     * @return string
+     * @throws PropertyDoesNotExistException
+     */
     public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash): string {
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time');
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $nonce = $accessToken->getNonce();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
-		$quota = $user->getQuota();
+        $quota = $user->getQuota();
 
         $jwt_payload = [
             'iss' => $issuer,
@@ -219,9 +221,9 @@ class JwtGenerator
             // 'birthdate' => ,
             // 'zoneinfo' => ,
             // 'locale' => ,
-			if ($quota != 'none') {
+            if ($quota != 'none') {
                 $profile = array_merge($profile,
-						['quota' => $quota]);
+                        ['quota' => $quota]);
             }
             $jwt_payload = array_merge($jwt_payload, $profile);
         }
@@ -266,6 +268,98 @@ class JwtGenerator
 
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
         $this->logger->debug('Generated JWT with iss => ' . $issuer . ' sub => ' . $uid . ' aud/azp => ' . $client->getClientIdentifier() . ' preferred_username => ' . $uid);
+        return $jwt;
+    }
+
+
+    /**
+     * Generate JWT Access Token (RFC9068) if client is configured to use JWT access tokens otherwise opaque access token
+     * is returned. The passed accessToken object is not modified.
+     *
+     * @param AccessToken $accessToken
+     * @param Client $client
+     * @param string $issuerProtocol
+     * @param string $issuerHost
+     * @param bool $atHash
+     * @return string
+     * @throws PropertyDoesNotExistException
+     * @throws JwtCreationErrorException
+     */
+    public function generateAccessToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost): string {
+        if ($client->getTokenType()!=='jwt') {
+            $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
+            return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+        }
+
+        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
+        $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
+        $uid = $accessToken->getUserId();
+        $user = $this->userManager->get($uid);
+        $groups = $this->groupManager->getUserGroups($user);
+
+        $jwt_payload = [
+            'iss' => $issuer,
+            'sub' => $uid,
+            'aud' => $accessToken->getResource(),
+            'exp' => $this->time->getTime() + $expireTime,
+            'auth_time' => $accessToken->getCreated(),
+            'iat' => $this->time->getTime(),
+            'acr' => '0',
+            'client_id' => $client->getClientIdentifier(),
+            'scope' => $accessToken->getScope(),
+            'jti' => strval($accessToken->getId()),
+        ];
+
+        $roles = [];
+        // Fetch roles
+        foreach ($groups as $group) {
+            array_push($roles, $group->getGID());
+        }
+
+        // Check for scopes roles, groups and entitlements (not supported)
+        $scopeArray = preg_split('/ +/', $accessToken->getScope());
+        if (in_array("roles", $scopeArray)) {
+            $roles_payload = [
+                'roles' => $roles
+            ];
+            $jwt_payload = array_merge($jwt_payload, $roles_payload);
+        }
+        if (in_array("groups", $scopeArray)) {
+            $roles_payload = [
+                'groups' => $roles
+            ];
+            $jwt_payload = array_merge($jwt_payload, $roles_payload);
+        }
+
+        $payload = json_encode($jwt_payload);
+        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+
+        $base64UrlHeader = '';
+        $base64UrlSignature = '';
+
+        $signing_alg = $client->getSigningAlg(); // HS256 or RS256
+        if ($signing_alg === 'HS256') {
+            $header = json_encode(['typ' => 'at+JWT', 'alg' => $signing_alg]);
+            $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+            $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $client->getSecret(), true);
+            $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+        } else {
+            $kid = $this->appConfig->getAppValue('kid');
+            $header = json_encode(['typ' => 'at+JWT', 'alg' => 'RS256', 'kid' => $kid]);
+            $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
+            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->appConfig->getAppValue('private_key'), 'sha256WithRSAEncryption');
+            $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+        }
+
+        $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
+
+        // Check length - should not exceed 65535 - DB Limit - not expected to be reached with a JWT access token
+        if (strlen($jwt) > 65535) {
+            $this->logger->error('Too big JWT Access token with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
+            throw new JwtCreationErrorException('Created JWT exceeds limits of 65535 characters. JWT can not be stored in database.', 0, null);
+        }
+
+        $this->logger->debug('Generated JWT Access token with iss => ' . $issuer . ' sub => ' . $uid . ' aud => ' . $accessToken->getResource() . ' client_id => ' . $client->getClientIdentifier());
         return $jwt;
     }
 }

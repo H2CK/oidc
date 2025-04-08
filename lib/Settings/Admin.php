@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Settings;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
@@ -132,6 +133,7 @@ class Admin implements ISettings {
                 'flowType' => $client->getFlowType(),
                 'flowTypeLabel' => $flowTypeLabel,
                 'groups' => $resultGroups,
+                'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
             ];
         }
 

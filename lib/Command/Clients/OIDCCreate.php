@@ -62,6 +62,13 @@ class OIDCCreate extends Command {
         InputOption::VALUE_REQUIRED,
         'The type of the client. Can be ´public´ or ´confidential´.',
         'confidential'
+      )
+      ->addOption(
+        'token_type',
+        null,
+        InputOption::VALUE_OPTIONAL,
+        'The type of the access token created for the client. If set to ´jwt´ a RFC9068 conforming access token is generated.',
+        'opaque'
       );
   }
 
@@ -73,7 +80,8 @@ class OIDCCreate extends Command {
             $input->getArgument('redirect_uris'),
             $input->getOption('algorithm'),
             $input->getOption('type'),
-            $input->getOption('flow')
+            $input->getOption('flow'),
+            $input->getOption('token_type')
           );
           // insert new client into database
           $client = $this->mapper->insert($client);
