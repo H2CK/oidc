@@ -47,6 +47,13 @@ class TokenGenerationRequestListener implements IEventListener {
 
         $clientIdentifier = $event->getClientIdentifier();
         $userId = $event->getUserId();
+
+        $extraScopes = $event->getExtraScopes();
+        $scopes = Application::DEFAULT_SCOPE;
+        if ($extraScopes !== "") {
+            $scopes .= " " . $extraScopes;
+        }
+
         $this->logger->debug('[TokenGenerationRequestListener] received token request event for user: ' . $userId . ' and client identifier: ' . $clientIdentifier);
 
         // get client from identifier
@@ -73,7 +80,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($userId);
         $accessToken->setHashedCode(hash('sha512', $code));
-        $accessToken->setScope(substr(Application::DEFAULT_SCOPE, 0, 128));
+        $accessToken->setScope(substr($scopes, 0, 128));
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime() + $expireTime);
         $accessToken->setNonce('');
