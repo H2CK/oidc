@@ -85,11 +85,10 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setRefreshed($this->time->getTime() + $expireTime);
         $accessToken->setNonce('');
 
-        // resource will be used for the audience claim
-        if (!empty($resource)) {
-            $accessToken->setResource(substr($resource, 0, 2000));
+        if (!isset($resource) || trim($resource)==='') {
+            $resource = (string)$this->appConfig->getAppValue('default_resource_identifier', Application::DEFAULT_RESOURCE_IDENTIFIER);
         }
-
+        $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
         $accessToken = $this->accessTokenMapper->insert($accessToken);
 
