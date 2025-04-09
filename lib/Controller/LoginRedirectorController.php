@@ -248,7 +248,7 @@ class LoginRedirectorController extends ApiController
         }
 
         // Set default resource if resource is not set at all
-        if (!isset($resource)) {
+        if (!isset($resource) || trim($resource)==='') {
             $resource = (string)$this->appConfig->getAppValue('default_resource_identifier', Application::DEFAULT_RESOURCE_IDENTIFIER);
         }
 

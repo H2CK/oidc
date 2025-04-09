@@ -296,11 +296,15 @@ class JwtGenerator
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
+        $resource = $accessToken->getResource();
+        if (!isset($resource) || trim($resource)==='') {
+            $resource = (string)$this->appConfig->getAppValue('default_resource_identifier', Application::DEFAULT_RESOURCE_IDENTIFIER);
+        }
 
         $jwt_payload = [
             'iss' => $issuer,
             'sub' => $uid,
-            'aud' => $accessToken->getResource(),
+            'aud' => $resource,
             'exp' => $this->time->getTime() + $expireTime,
             'auth_time' => $accessToken->getCreated(),
             'iat' => $this->time->getTime(),
