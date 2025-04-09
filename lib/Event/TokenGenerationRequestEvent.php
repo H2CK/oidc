@@ -24,6 +24,7 @@ class TokenGenerationRequestEvent extends Event {
     public function __construct(
         private string $clientIdentifier,
         private string $userId,
+        private string $extraScopes = "",
     ) {
         parent::__construct();
     }
@@ -34,6 +35,10 @@ class TokenGenerationRequestEvent extends Event {
 
     public function getUserId(): string {
         return $this->userId;
+    }
+
+    public function getExtraScopes(): string {
+        return $this->extraScopes;
     }
 
     public function getAccessToken(): ?string {
