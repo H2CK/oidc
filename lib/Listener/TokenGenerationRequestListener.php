@@ -47,7 +47,7 @@ class TokenGenerationRequestListener implements IEventListener {
 
         $clientIdentifier = $event->getClientIdentifier();
         $userId = $event->getUserId();
-
+        $resource = $event->getResource();
         $extraScopes = $event->getExtraScopes();
         $scopes = Application::DEFAULT_SCOPE;
         if ($extraScopes !== "") {
@@ -84,6 +84,12 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime() + $expireTime);
         $accessToken->setNonce('');
+
+        // resource will be used for the audience claim
+        if (!empty($resource)) {
+            $accessToken->setResource(substr($resource, 0, 2000));
+        }
+
         $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
         $accessToken = $this->accessTokenMapper->insert($accessToken);
 
