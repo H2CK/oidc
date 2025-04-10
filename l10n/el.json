@@ -3,6 +3,7 @@
     "Your client is expired. Please inform the administrator of your client." : "Ο πελάτης σας έχει λήξει. Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Το ληφθέν URI ανακατεύθυνσης δεν είναι αποδεκτό για σύνδεση. Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Ο χρήστης δεν είναι μέλος των ομάδων που έχουν οριστεί για τον πελάτη. Δεν επιτρέπεται η ανάκτηση ενός κουπονιού σύνδεσης.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Παρουσιάστηκε αποτυχία κατά τη δημιουργία JWT. Παρακαλούμε ενημερώστε τον διαχειριστή του πελάτη σας.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Η διεύθυνση URL ανακατεύθυνσης πρέπει να είναι μια πλήρη διεύθυνση URL, για παράδειγμα: https://yourdomain.com/path",
     "Code Authorization Flow" : "Ροή εξουσιοδότησης κώδικα",
     "Code & Implicit Authorization Flow" : "Κώδικας & Ροή σιωπηρής εξουσιοδότησης",
@@ -62,6 +63,9 @@
     "Type" : "Τύπος",
     "Flows" : "Ροές",
     "Flows allowed to be used with the client." : "Ροές που επιτρέπεται να χρησιμοποιούνται με τον πελάτη.",
+    "Access Token Type" : "Τύπος Token πρόσβασης",
+    "Opaque Access Token" : "Αδιαφανές Token πρόσβασης",
+    "JWT Access Token (RFC9068)" : "JWT Token πρόσβασης (RFC9068)",
     "Limited to Groups" : "Περιορίζεται σε ομάδες",
     "Only users in one of the following groups are allowed to use the client." : "Μόνο οι χρήστες που ανήκουν σε μία από τις ακόλουθες ομάδες επιτρέπεται να χρησιμοποιούν το πρόγραμμα-πελάτη.",
     "Groups allowed to use the client." : "Ομάδες που επιτρέπεται να χρησιμοποιούν το πρόγραμμα-πελάτη."

@@ -11,7 +11,7 @@ OC.L10N.register(
     "Never" : "James",
     "Disable" : "Diweredekaat",
     "Enable" : "Aotreañ",
-    "Delete" : "Lemel",
+    "Delete" : "Dilemel",
     "Client Identifier" : "Anavezer Kliant",
     "Secret" : "Sekret",
     "Show client secret" : "Diskouez sekret ar kliant",

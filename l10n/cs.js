@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "Platnost vašeho klienta skončila. Prosím informujte správce vašeho klienta.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené uri přesměrování není přijato pro připojení se. Informujte o tom správce vašeho klienta.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Uživatel není členem skupin určených pro klienta. Nemáte oprávnění získat přihlašovací token.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Došlo k nezdaru při vytváření JWT. Sdělte to správci vašeho klienta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL adresu přesměrování je třeba uvádět celou, např. https://yourdomain.com/umisteni",
     "Code Authorization Flow" : "Tok pověřování kódu",
     "Code & Implicit Authorization Flow" : "Kód a tok výslovného pověřování",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Type" : "Typ",
     "Flows" : "Toky",
     "Flows allowed to be used with the client." : "Toky, které je umožněno používat pomocí klienta.",
+    "Access Token Type" : "Typ přístupového tokenu",
+    "Opaque Access Token" : "Neprůhledný přístupový token",
+    "JWT Access Token (RFC9068)" : "JWT přístupový token (RFC9068)",
     "Limited to Groups" : "Omezeno na skupiny",
     "Only users in one of the following groups are allowed to use the client." : "Klienta je umožněno používat pouze uživatelům v následujících skupinách.",
     "Groups allowed to use the client." : "Skupiny, kterým je umožněno používat klienta."

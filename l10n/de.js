@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "Dein Client ist abgelaufen. Bitte informiere die Administration deines Clients.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung akzeptiert. Bitte informiere die Administration deines Clients.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Der Benutzer ist kein Mitglied der für den Client definierten Gruppen. Du bist  nicht berechtigt, ein Login-Token abzurufen.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Bei der JWT-Erstellung ist ein Fehler aufgetreten. Bitte die Administration Ihres Clients informieren.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Die Weiterleitungs-URL muss eine vollständige URL sein. Beispiel: https://deinedomain.com/pfad",
     "Code Authorization Flow" : "Code-Autorisierungsablauf",
     "Code & Implicit Authorization Flow" : "Code- und Impliziter-Autorisierungsablauf",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Type" : "Typ",
     "Flows" : "Abläufe",
     "Flows allowed to be used with the client." : "Abläufe, die vom Client unterstützt werden.",
+    "Access Token Type" : "Typ des Zugriffstokens",
+    "Opaque Access Token" : "Undurchsichtiges Zugriffstoken",
+    "JWT Access Token (RFC9068)" : "JWT-Zugriffstoken (RFC9068)",
     "Limited to Groups" : "Beschränkt auf Gruppen",
     "Only users in one of the following groups are allowed to use the client." : "Nur Benutzer, die einer der folgenden Gruppen angehören, dürfen den Client verwenden.",
     "Groups allowed to use the client." : "Gruppen, die den Client benutzen dürfen."

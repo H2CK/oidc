@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-04-09 02:24+0000\n"
+"POT-Creation-Date: 2025-04-10 02:23+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2025\n"
 "Language-Team: Spanish (https://app.transifex.com/nextcloud/teams/64236/es/)\n"
@@ -63,6 +63,8 @@ msgid ""
 "A failure during JWT creation occured. Please inform the administrator of "
 "your client."
 msgstr ""
+"Se ha producido un error durante la creación del JWT. Por favor, informe al "
+"administrador de su cliente."
 
 #: /app/lib/Controller/SettingsController.php:112
 msgid ""
@@ -413,17 +415,17 @@ msgstr "Flujos que se pueden utilizar con el cliente."
 #. TRANSLATORS src/components/OIDCItem.vue:65
 #: /app/specialVueFakeDummyForL10nScript.js:542
 msgid "Access Token Type"
-msgstr ""
+msgstr "Tipo de token de acceso"
 
 #. TRANSLATORS src/components/OIDCItem.vue:73
 #: /app/specialVueFakeDummyForL10nScript.js:544
 msgid "Opaque Access Token"
-msgstr ""
+msgstr "Token de acceso opaco"
 
 #. TRANSLATORS src/components/OIDCItem.vue:80
 #: /app/specialVueFakeDummyForL10nScript.js:546
 msgid "JWT Access Token (RFC9068)"
-msgstr ""
+msgstr "Token de acceso JWT (RFC9068)"
 
 #. TRANSLATORS src/components/OIDCItem.vue:86
 #: /app/specialVueFakeDummyForL10nScript.js:548

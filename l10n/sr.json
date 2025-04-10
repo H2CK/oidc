@@ -3,6 +3,7 @@
     "Your client is expired. Please inform the administrator of your client." : "Истекло је важење клијента. Обавестите администратора вашег клијента.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Примљени URI преисмеравања не дозвољава повезивање. Молимо вас да обавестите администратора свог клијента.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Корисник није члан група дефнинсаних за клијента. Немате дозволу да примите жетон за пријаву.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Дошло је до грешке приликом креирања JWT. Молимо вас да обавестите администратора свог клијента.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Адреса за преусмеравање мора бити пуна адреса, нпр: https://yourdomain.com/path",
     "Code Authorization Flow" : "Ток ауторизације кода",
     "Code & Implicit Authorization Flow" : "Ток кода и имплицитне ауторизације",
@@ -62,6 +63,9 @@
     "Type" : "Тип",
     "Flows" : "Токови",
     "Flows allowed to be used with the client." : "Токови који клијент сме да користи.",
+    "Access Token Type" : "Тип приступног жетона",
+    "Opaque Access Token" : "Opaque приступни жетон",
+    "JWT Access Token (RFC9068)" : "JWT приступни жетон (RFC9068)",
     "Limited to Groups" : "Ограничено на групе",
     "Only users in one of the following groups are allowed to use the client." : "Клијент могу да користе само корисници из једне од следећих група.",
     "Groups allowed to use the client." : "Групе које смеју да користе клијент."

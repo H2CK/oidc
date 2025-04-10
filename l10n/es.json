@@ -3,6 +3,7 @@
     "Your client is expired. Please inform the administrator of your client." : "Su cliente ha caducado. Por favor, informe al administrador de su cliente.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "El URI de redirección recibido no es aceptado para conectarse. Por favor, informe al administrador de su cliente.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "El usuario no es miembro de los grupos definidos para el cliente. No se le permite recuperar un token de inicio de sesión.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Se ha producido un error durante la creación del JWT. Por favor, informe al administrador de su cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tu URL de redirección debe ser una URL completa, por ejemplo: https://tudominio.com/ruta",
     "Code Authorization Flow" : "Flujo de autorización de código",
     "Code & Implicit Authorization Flow" : "Flujo de autorización de códigos y implícito",
@@ -62,6 +63,9 @@
     "Type" : "Tipo",
     "Flows" : "Flujos",
     "Flows allowed to be used with the client." : "Flujos que se pueden utilizar con el cliente.",
+    "Access Token Type" : "Tipo de token de acceso",
+    "Opaque Access Token" : "Token de acceso opaco",
+    "JWT Access Token (RFC9068)" : "Token de acceso JWT (RFC9068)",
     "Limited to Groups" : "Limitado a grupos",
     "Only users in one of the following groups are allowed to use the client." : "Sólo los usuarios de uno de los siguientes grupos pueden utilizar el cliente.",
     "Groups allowed to use the client." : "Grupos autorizados a utilizar el cliente."

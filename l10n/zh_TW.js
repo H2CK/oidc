@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "您的客戶端已過期。請通知您客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "所收到之重新導向 URI 不被連線所接受。請通知您的客戶端管理員。",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "使用者不是客戶端定義的群組成員。您無權擷取登入權杖。",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT 建立時發生問題。請通知您的客戶端管理員。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的重新導向 URL 必須為完整的 URL，例如：https://yourdomain.com/path",
     "Code Authorization Flow" : "代碼授權流程",
     "Code & Implicit Authorization Flow" : "代碼與隱含授權流程",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Type" : "類型",
     "Flows" : "流程",
     "Flows allowed to be used with the client." : "允許使用客戶端的流程。",
+    "Access Token Type" : "存取權杖類型",
+    "Opaque Access Token" : "不透明的存取權杖",
+    "JWT Access Token (RFC9068)" : "JWT 存取權杖 (RFC9068)",
     "Limited to Groups" : "限於群組",
     "Only users in one of the following groups are allowed to use the client." : "僅允許以下群組之一的使用者使用客戶端。",
     "Groups allowed to use the client." : "允許使用客戶端的群組。"

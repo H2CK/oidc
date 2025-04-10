@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "Asiakkaasi on vanhentunut. Ilmoita asiakkaasi ylläpitäjälle.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Käyttäjä ei kuulu asiakkaalle määritettyihin ryhmiin. Et saa hakea kirjautumistunnusta.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT:n luomisessa tapahtui virhe. Ilmoita asiasta asiakkaasi ylläpitäjälle.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, esimerkiksi: https://yourdomain.com/path",
     "Code Authorization Flow" : "Koodin hyväksyntävirta",
     "Code & Implicit Authorization Flow" : "Koodi ja implisiittisen valtuutuksen virtaus",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Type" : "Tyyppi",
     "Flows" : "Virtaukset",
     "Flows allowed to be used with the client." : "Virrat, joita saa käyttää asiakkaan kanssa.",
+    "Access Token Type" : "Access Token tyyppi",
+    "Opaque Access Token" : "Opaque Access Token",
+    "JWT Access Token (RFC9068)" : "JWT Access Token (RFC9068)",
     "Limited to Groups" : "Rajoitettu ryhmille",
     "Only users in one of the following groups are allowed to use the client." : "Vain johonkin seuraavista ryhmistä kuuluvat käyttäjät saavat käyttää asiakasta.",
     "Groups allowed to use the client." : "Ryhmät, jotka saavat käyttää asiakasta."
