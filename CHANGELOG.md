@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.6.0] - 2025-04-02
+## [1.6.0] - 2025-04-11
 
 ### Changed
 
 - Added possibility to use RFC9068 conforming Access Tokens (configuration per client)
+- Extended generation of tokens via event (provide scopes & resource)
 - Updated dependencies
 - Updated translations
 
