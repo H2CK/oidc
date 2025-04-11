@@ -7,21 +7,21 @@
 # daf9a3bef94549192358462a8bb20263_a023b71 <69530ed134884b79b067e9214de553f8_465041>, 2024
 # Jasper vom Felde, 2024
 # M M <drcarsonbeckett@icloud.com>, 2024
-# Mark Ziegler <mark.ziegler@rakekniven.de>, 2024
 # H2CK, 2024
 # Joas Schilling, 2024
 # Martin Wilichowski, 2025
 # Markus Eckstein, 2025
 # Joachim Sokolowski, 2025
+# Mark Ziegler <mark.ziegler@rakekniven.de>, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-04-10 02:23+0000\n"
+"POT-Creation-Date: 2025-04-11 02:24+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Joachim Sokolowski, 2025\n"
+"Last-Translator: Mark Ziegler <mark.ziegler@rakekniven.de>, 2025\n"
 "Language-Team: German (https://app.transifex.com/nextcloud/teams/64236/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -66,7 +66,7 @@ msgid ""
 "your client."
 msgstr ""
 "Bei der JWT-Erstellung ist ein Fehler aufgetreten. Bitte die Administration "
-"Ihres Clients informieren."
+"Deines Clients informieren."
 
 #: /app/lib/Controller/SettingsController.php:112
 msgid ""
