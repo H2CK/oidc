@@ -36,7 +36,7 @@
 		"linkifyjs": "^4.2.0",
 		"postcss-html": "^1.8.0",
 		"sass": "^1.86.3",
-		"webpack": "^5.98.0"
+		"webpack": "^5.99.5"
 	},
 	"browserslist": [
 		"extends @nextcloud/browserslist-config"
