@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "Tá do chliant imithe in éag. Cuir do chliant ar an eolas do riarthóir le do thoil.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Ní ghlactar leis an URI atreoraithe faighte chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Níl an t-úsáideoir ina bhall de na grúpaí sainithe don chliant. Níl cead agat chomhartha logála isteach a fháil.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Tharla teip le linn cruthú JWT. Cuir do chliant ar an eolas do riarthóir.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ní mór do URL athsheolaidh a bheith ina URL iomlán mar shampla: https://yourdomain.com/path",
     "Code Authorization Flow" : "Sreabhadh Údaraithe Cóid",
     "Code & Implicit Authorization Flow" : "Sreabhadh Cóid & Údaraithe Intuigthe",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Type" : "Cineál",
     "Flows" : "Sreabhadh",
     "Flows allowed to be used with the client." : "Sreabhadh a cheadaítear a úsáid leis an gcliant.",
+    "Access Token Type" : "Cineál Comhartha Rochtana",
+    "Opaque Access Token" : "Comhartha Rochtana Teimhneach",
+    "JWT Access Token (RFC9068)" : "Comhartha Rochtana JWT (RFC9068)",
     "Limited to Groups" : "Teoranta do Ghrúpaí",
     "Only users in one of the following groups are allowed to use the client." : "Ní cheadaítear ach d’úsáideoirí i gceann de na grúpaí seo a leanas an cliant a úsáid.",
     "Groups allowed to use the client." : "Ceadaítear do ghrúpaí an cliant a úsáid."
