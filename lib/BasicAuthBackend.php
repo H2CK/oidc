@@ -106,7 +106,8 @@ class BasicAuthBackend extends \OC\User\Backend {
         }
 
         // Limit access to token endpoint only
-        if (strcmp($this->request->getRequestUri(), $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', [])) !== 0) {
+		if (!str_ends_with($this->request->getRequestUri(), 'token')) {
+        //if (strcmp($this->request->getRequestUri(), $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', [])) !== 0) {
             $this->logger->warning('OIDCIdentityProvider BasicAuthBackend: RequestUri was: ' . $this->request->getRequestUri() . 'Allowed is only the token endpoint: ' . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []));
             return false;
         }

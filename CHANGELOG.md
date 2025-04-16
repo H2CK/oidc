@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.1] - 2025-04-16
+
+### Changed
+
+- Added quota claim to discovery endpoint
+- Changed security checks in user backend
+- Updated dependencies
+- Updated translations
+
 ## [1.6.0] - 2025-04-11
 
 ### Changed

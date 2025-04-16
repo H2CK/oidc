@@ -158,6 +158,7 @@ class DiscoveryControllerTest extends TestCase {
             'phone_number',
             'address',
             'picture',
+			'quota',
         ];
 
         $result = $this->controller->getInfo();

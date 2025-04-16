@@ -142,6 +142,7 @@ class DiscoveryGenerator
             'phone_number',
             'address',
             'picture',
+			'quota',
         ];
 
         $discoveryPayload = [
