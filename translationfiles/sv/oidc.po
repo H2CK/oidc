@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-04-10 02:23+0000\n"
+"POT-Creation-Date: 2025-04-16 02:23+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2025\n"
 "Language-Team: Swedish (https://app.transifex.com/nextcloud/teams/64236/sv/)\n"
@@ -117,12 +117,12 @@ msgstr ""
 "- [Användardokumentation] (https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Utvecklingsdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
-#. TRANSLATORS src/App.vue:2
+#. TRANSLATORS src/App.vue:23
 #: /app/specialVueFakeDummyForL10nScript.js:301
 msgid "OpenID Connect clients"
 msgstr "OpenID Connect-klienter"
 
-#. TRANSLATORS src/App.vue:3
+#. TRANSLATORS src/App.vue:24
 #: /app/specialVueFakeDummyForL10nScript.js:303
 msgid ""
 "OpenID Connect allows to authenticate at external services with "
@@ -131,21 +131,21 @@ msgstr ""
 "OpenID Connect gör det möjligt att autentisera externa tjänster med "
 "{instanceName}-användarkonton."
 
-#. TRANSLATORS src/App.vue:30
+#. TRANSLATORS src/App.vue:51
 #: /app/specialVueFakeDummyForL10nScript.js:305
 msgid "Add client"
 msgstr "Lägg till klient"
 
-#. TRANSLATORS src/App.vue:37
-#. TRANSLATORS src/components/OIDCItem.vue:6
+#. TRANSLATORS src/App.vue:58
+#. TRANSLATORS src/components/OIDCItem.vue:27
 #: /app/specialVueFakeDummyForL10nScript.js:307
 #: /app/specialVueFakeDummyForL10nScript.js:514
 msgid "Name"
 msgstr "Namn"
 
-#. TRANSLATORS src/App.vue:42
-#. TRANSLATORS src/components/OIDCItem.vue:10
-#. TRANSLATORS src/components/OIDCItem.vue:24
+#. TRANSLATORS src/App.vue:63
+#. TRANSLATORS src/components/OIDCItem.vue:31
+#. TRANSLATORS src/components/OIDCItem.vue:45
 #: /app/specialVueFakeDummyForL10nScript.js:309
 #: /app/specialVueFakeDummyForL10nScript.js:397
 #: /app/specialVueFakeDummyForL10nScript.js:516
@@ -153,290 +153,290 @@ msgstr "Namn"
 msgid "Redirection URI"
 msgstr "Omdirigerings-URI"
 
-#. TRANSLATORS src/App.vue:46
+#. TRANSLATORS src/App.vue:67
 #: /app/specialVueFakeDummyForL10nScript.js:311
 msgid "Select Signing Algorithm"
 msgstr "Välj signeringsalgoritm"
 
-#. TRANSLATORS src/App.vue:58
+#. TRANSLATORS src/App.vue:79
 #: /app/specialVueFakeDummyForL10nScript.js:313
 msgid "Select Type"
 msgstr "Välj typ"
 
-#. TRANSLATORS src/App.vue:61
+#. TRANSLATORS src/App.vue:82
 #: /app/specialVueFakeDummyForL10nScript.js:315
 msgid "Confidential"
 msgstr "Konfidentiell"
 
-#. TRANSLATORS src/App.vue:64
+#. TRANSLATORS src/App.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:317
 msgid "Public"
 msgstr "Offentlig"
 
-#. TRANSLATORS src/App.vue:67
-#. TRANSLATORS src/components/OIDCItem.vue:25
+#. TRANSLATORS src/App.vue:88
+#. TRANSLATORS src/components/OIDCItem.vue:46
 #: /app/specialVueFakeDummyForL10nScript.js:319
 #: /app/specialVueFakeDummyForL10nScript.js:399
 #: /app/specialVueFakeDummyForL10nScript.js:522
 msgid "Add"
 msgstr "Lägg till"
 
-#. TRANSLATORS src/App.vue:71
+#. TRANSLATORS src/App.vue:92
 #: /app/specialVueFakeDummyForL10nScript.js:321
 msgid "Settings"
 msgstr "Inställningar"
 
-#. TRANSLATORS src/App.vue:72
-#. TRANSLATORS src/App.vue:75
+#. TRANSLATORS src/App.vue:93
+#. TRANSLATORS src/App.vue:96
 #: /app/specialVueFakeDummyForL10nScript.js:323
 #: /app/specialVueFakeDummyForL10nScript.js:325
 msgid "Token Expire Time"
 msgstr "Token upphör att gälla"
 
-#. TRANSLATORS src/App.vue:78
+#. TRANSLATORS src/App.vue:99
 #: /app/specialVueFakeDummyForL10nScript.js:327
 msgid "Select Token Expire Time"
 msgstr "Välj tid för utgången av Token"
 
-#. TRANSLATORS src/App.vue:81
+#. TRANSLATORS src/App.vue:102
 #: /app/specialVueFakeDummyForL10nScript.js:329
 #: /app/specialVueFakeDummyForL10nScript.js:345
 msgid "5 minutes"
 msgstr "5 minuter"
 
-#. TRANSLATORS src/App.vue:84
+#. TRANSLATORS src/App.vue:105
 #: /app/specialVueFakeDummyForL10nScript.js:331
 #: /app/specialVueFakeDummyForL10nScript.js:347
 msgid "10 minutes"
 msgstr "10 minuter"
 
-#. TRANSLATORS src/App.vue:87
+#. TRANSLATORS src/App.vue:108
 #: /app/specialVueFakeDummyForL10nScript.js:333
 #: /app/specialVueFakeDummyForL10nScript.js:349
 msgid "15 minutes"
 msgstr "15 minuter"
 
-#. TRANSLATORS src/App.vue:90
+#. TRANSLATORS src/App.vue:111
 #: /app/specialVueFakeDummyForL10nScript.js:335
 #: /app/specialVueFakeDummyForL10nScript.js:351
 msgid "30 minutes"
 msgstr "30 minuter"
 
-#. TRANSLATORS src/App.vue:93
+#. TRANSLATORS src/App.vue:114
 #: /app/specialVueFakeDummyForL10nScript.js:337
 #: /app/specialVueFakeDummyForL10nScript.js:353
 msgid "60 minutes"
 msgstr "60 minuter"
 
-#. TRANSLATORS src/App.vue:97
-#. TRANSLATORS src/App.vue:100
+#. TRANSLATORS src/App.vue:118
+#. TRANSLATORS src/App.vue:121
 #: /app/specialVueFakeDummyForL10nScript.js:339
 #: /app/specialVueFakeDummyForL10nScript.js:341
 msgid "Refresh Token Expire Time"
 msgstr "Refresh Token Expire Time"
 
-#. TRANSLATORS src/App.vue:103
+#. TRANSLATORS src/App.vue:124
 #: /app/specialVueFakeDummyForL10nScript.js:343
 msgid "Select Refresh Token Expire Time"
 msgstr "Välj Refresh Token Expire Time"
 
-#. TRANSLATORS src/App.vue:121
+#. TRANSLATORS src/App.vue:142
 #: /app/specialVueFakeDummyForL10nScript.js:355
 msgid "12 hours"
 msgstr "12 timmar"
 
-#. TRANSLATORS src/App.vue:124
+#. TRANSLATORS src/App.vue:145
 #: /app/specialVueFakeDummyForL10nScript.js:357
 msgid "1 day"
 msgstr "1 dag"
 
-#. TRANSLATORS src/App.vue:127
+#. TRANSLATORS src/App.vue:148
 #: /app/specialVueFakeDummyForL10nScript.js:359
 msgid "7 days"
 msgstr "7 dagar"
 
-#. TRANSLATORS src/App.vue:130
+#. TRANSLATORS src/App.vue:151
 #: /app/specialVueFakeDummyForL10nScript.js:361
 msgid "Never"
 msgstr "Aldrig"
 
-#. TRANSLATORS src/App.vue:135
+#. TRANSLATORS src/App.vue:156
 #: /app/specialVueFakeDummyForL10nScript.js:363
 msgid "Dynamic Client Registration"
 msgstr "Dynamisk klientregistrering"
 
-#. TRANSLATORS src/App.vue:139
+#. TRANSLATORS src/App.vue:160
 #: /app/specialVueFakeDummyForL10nScript.js:365
 msgid "Enable or disable Dynamic Client Registration"
 msgstr "Aktivera eller inaktivera dynamisk klientregistrering"
 
-#. TRANSLATORS src/App.vue:142
+#. TRANSLATORS src/App.vue:163
 #: /app/specialVueFakeDummyForL10nScript.js:367
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr "Välj för att aktivera/inaktivera dynamisk klientregistrering"
 
-#. TRANSLATORS src/App.vue:145
+#. TRANSLATORS src/App.vue:166
 #: /app/specialVueFakeDummyForL10nScript.js:369
 msgid "Disable"
 msgstr "Inaktivera"
 
-#. TRANSLATORS src/App.vue:148
+#. TRANSLATORS src/App.vue:169
 #: /app/specialVueFakeDummyForL10nScript.js:371
 msgid "Enable"
 msgstr "Aktivera"
 
-#. TRANSLATORS src/App.vue:153
+#. TRANSLATORS src/App.vue:174
 #: /app/specialVueFakeDummyForL10nScript.js:373
 msgid "Email Verified Flag"
 msgstr "E-post verifierad attribut"
 
-#. TRANSLATORS src/App.vue:157
+#. TRANSLATORS src/App.vue:178
 #: /app/specialVueFakeDummyForL10nScript.js:375
 msgid "Source for email verified flag in token"
 msgstr "Källa för e-post verifierat attribut i token"
 
-#. TRANSLATORS src/App.vue:160
+#. TRANSLATORS src/App.vue:181
 #: /app/specialVueFakeDummyForL10nScript.js:377
 msgid "Select behaviour for setting email verified flag"
 msgstr "Välj beteende för att ange verifierat e-post attribut"
 
-#. TRANSLATORS src/App.vue:163
+#. TRANSLATORS src/App.vue:184
 #: /app/specialVueFakeDummyForL10nScript.js:379
 msgid "Use Nextcloud account information"
 msgstr "Använd kontoinformation från Nextcloud"
 
-#. TRANSLATORS src/App.vue:166
+#. TRANSLATORS src/App.vue:187
 #: /app/specialVueFakeDummyForL10nScript.js:381
 msgid "Set to always verified"
 msgstr "Ställ in på alltid verifierad"
 
-#. TRANSLATORS src/App.vue:170
+#. TRANSLATORS src/App.vue:191
 #: /app/specialVueFakeDummyForL10nScript.js:383
 msgid "Integrate avatar in user info/ID token"
 msgstr "Integrera avatar i användarinformation/ID-token"
 
-#. TRANSLATORS src/App.vue:173
+#. TRANSLATORS src/App.vue:194
 #: /app/specialVueFakeDummyForL10nScript.js:385
 msgid "Method for integration of avatar"
 msgstr "Metod för integration av avatar"
 
-#. TRANSLATORS src/App.vue:176
+#. TRANSLATORS src/App.vue:197
 #: /app/specialVueFakeDummyForL10nScript.js:387
 msgid "Select how the avatar image should be integrated"
 msgstr "Välj hur avatarbilden ska integreras"
 
-#. TRANSLATORS src/App.vue:179
+#. TRANSLATORS src/App.vue:200
 #: /app/specialVueFakeDummyForL10nScript.js:389
 msgid "No integration"
 msgstr "Ingen integration"
 
-#. TRANSLATORS src/App.vue:182
+#. TRANSLATORS src/App.vue:203
 #: /app/specialVueFakeDummyForL10nScript.js:391
 msgid "Add to user info"
 msgstr "Lägg till i användarinformation"
 
-#. TRANSLATORS src/App.vue:185
+#. TRANSLATORS src/App.vue:206
 #: /app/specialVueFakeDummyForL10nScript.js:393
 msgid "Add to user info and ID token"
 msgstr "Lägg till i användarinformation och ID-token"
 
-#. TRANSLATORS src/App.vue:189
+#. TRANSLATORS src/App.vue:210
 #: /app/specialVueFakeDummyForL10nScript.js:395
 msgid "Accepted Logout Redirect URIs"
 msgstr "Accepterade URI:er för omdirigering av utloggning"
 
-#. TRANSLATORS src/App.vue:209
+#. TRANSLATORS src/App.vue:230
 #: /app/specialVueFakeDummyForL10nScript.js:401
 msgid "Public Key"
 msgstr "Offentlig nyckel"
 
-#. TRANSLATORS src/App.vue:214
+#. TRANSLATORS src/App.vue:235
 #: /app/specialVueFakeDummyForL10nScript.js:403
 msgid "Regenerate Keys"
 msgstr "Återskapa nycklar"
 
-#. TRANSLATORS src/Redirect.vue:4
+#. TRANSLATORS src/Redirect.vue:25
 #: /app/specialVueFakeDummyForL10nScript.js:415
 msgid "OpenID Connect Redirect"
 msgstr "Omdirigering av OpenID Connect"
 
-#. TRANSLATORS src/components/OIDCItem.vue:16
-#. TRANSLATORS src/components/OIDCItem.vue:102
-#. TRANSLATORS src/components/RedirectItem.vue:7
+#. TRANSLATORS src/components/OIDCItem.vue:37
+#. TRANSLATORS src/components/OIDCItem.vue:123
+#. TRANSLATORS src/components/RedirectItem.vue:28
 #: /app/specialVueFakeDummyForL10nScript.js:518
 #: /app/specialVueFakeDummyForL10nScript.js:554
 #: /app/specialVueFakeDummyForL10nScript.js:576
 msgid "Delete"
 msgstr "Radera"
 
-#. TRANSLATORS src/components/OIDCItem.vue:30
+#. TRANSLATORS src/components/OIDCItem.vue:51
 #: /app/specialVueFakeDummyForL10nScript.js:524
 msgid "Client Identifier"
 msgstr "Klientidentifierare"
 
-#. TRANSLATORS src/components/OIDCItem.vue:34
+#. TRANSLATORS src/components/OIDCItem.vue:55
 #: /app/specialVueFakeDummyForL10nScript.js:526
 msgid "Secret"
 msgstr "Hemlig"
 
-#. TRANSLATORS src/components/OIDCItem.vue:36
+#. TRANSLATORS src/components/OIDCItem.vue:57
 #: /app/specialVueFakeDummyForL10nScript.js:528
 msgid "Show client secret"
 msgstr "Visa klienthemlighet"
 
-#. TRANSLATORS src/components/OIDCItem.vue:39
+#. TRANSLATORS src/components/OIDCItem.vue:60
 #: /app/specialVueFakeDummyForL10nScript.js:530
 msgid "-- NONE --"
 msgstr "-- INGA --"
 
-#. TRANSLATORS src/components/OIDCItem.vue:43
+#. TRANSLATORS src/components/OIDCItem.vue:64
 #: /app/specialVueFakeDummyForL10nScript.js:532
 msgid "Signing Algorithm"
 msgstr "Algoritm för signering"
 
-#. TRANSLATORS src/components/OIDCItem.vue:47
+#. TRANSLATORS src/components/OIDCItem.vue:68
 #: /app/specialVueFakeDummyForL10nScript.js:534
 msgid "Type"
 msgstr "Typ"
 
-#. TRANSLATORS src/components/OIDCItem.vue:51
+#. TRANSLATORS src/components/OIDCItem.vue:72
 #: /app/specialVueFakeDummyForL10nScript.js:536
 msgid "Flows"
 msgstr "Flöden"
 
-#. TRANSLATORS src/components/OIDCItem.vue:56
+#. TRANSLATORS src/components/OIDCItem.vue:77
 #: /app/specialVueFakeDummyForL10nScript.js:538
 #: /app/specialVueFakeDummyForL10nScript.js:540
 msgid "Flows allowed to be used with the client."
 msgstr "Flöden som får användas med klienten."
 
-#. TRANSLATORS src/components/OIDCItem.vue:65
+#. TRANSLATORS src/components/OIDCItem.vue:86
 #: /app/specialVueFakeDummyForL10nScript.js:542
 msgid "Access Token Type"
 msgstr "Typ av access-token"
 
-#. TRANSLATORS src/components/OIDCItem.vue:73
+#. TRANSLATORS src/components/OIDCItem.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:544
 msgid "Opaque Access Token"
 msgstr "Ogenomskinlig access-token"
 
-#. TRANSLATORS src/components/OIDCItem.vue:80
+#. TRANSLATORS src/components/OIDCItem.vue:101
 #: /app/specialVueFakeDummyForL10nScript.js:546
 msgid "JWT Access Token (RFC9068)"
 msgstr "JWT access-token (RFC9068)"
 
-#. TRANSLATORS src/components/OIDCItem.vue:86
+#. TRANSLATORS src/components/OIDCItem.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:548
 msgid "Limited to Groups"
 msgstr "Begränsat till grupper"
 
-#. TRANSLATORS src/components/OIDCItem.vue:91
+#. TRANSLATORS src/components/OIDCItem.vue:112
 #: /app/specialVueFakeDummyForL10nScript.js:550
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr "Endast användare i någon av följande grupper får använda klienten."
 
-#. TRANSLATORS src/components/OIDCItem.vue:92
+#. TRANSLATORS src/components/OIDCItem.vue:113
 #: /app/specialVueFakeDummyForL10nScript.js:552
 msgid "Groups allowed to use the client."
 msgstr "Grupper som får använda klienten."
