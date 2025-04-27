@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "İstemciniz kullanımdan kaldırılmış. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Alınan yönlendirme adresi bağlantı kurmak için kabul edilmiyor. Lütfen istemcinizin BT yöneticisini bilgilendirin.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kullanıcı, istemci için tanımlanmış grupların üyesi değil. Oturum açma kodu almanıza izin verilmiyor.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "JWt oluşturulurken bir sorun çıktı. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Yönlendirme adresi https://sitem.com/yol gibi tam bir adres olmalıdır",
     "Code Authorization Flow" : "Yetkilendirme akışını kodla",
     "Code & Implicit Authorization Flow" : "Yetkilendirme akışını kodla ve uygula",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Type" : "Tür",
     "Flows" : "Akışlar",
     "Flows allowed to be used with the client." : "İstemcinin kullanmasına izin verilecek akışlar",
+    "Access Token Type" : "Erişim kodu türü",
+    "Opaque Access Token" : "Opaque erişim kodu",
+    "JWT Access Token (RFC9068)" : "JWT erişim kodu (RFC9068)",
     "Limited to Groups" : "Şu gruplarla sınırlanmış",
     "Only users in one of the following groups are allowed to use the client." : "Yalnızca aşağıdaki gruplardan birindeki kullanıcıların istemciyi kullanmasına izin verilir.",
     "Groups allowed to use the client." : "İstemciyi kullanmasına izin verilecek gruplar"
