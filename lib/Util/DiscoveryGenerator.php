@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Util;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -183,7 +184,7 @@ class DiscoveryGenerator
             'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
         ];
 
-        if ($this->appConfig->getAppValue('dynamic_client_registration') == 'true') {
+        if ($this->appConfig->getAppValue(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION) == 'true') {
             $discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
         }
 

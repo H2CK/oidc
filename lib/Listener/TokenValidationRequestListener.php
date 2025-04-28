@@ -52,7 +52,7 @@ class TokenValidationRequestListener implements IEventListener {
         $tokenString = $event->getToken();
         $this->logger->debug('[TokenValidationRequestListener] received a token validation request event');
 
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
 
         // check if it's an access token
         try {

@@ -128,8 +128,8 @@ class AccessTokenMapper extends QBMapper {
      *
      */
     public function cleanUp() {
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
-        $refreshExpireTime = $this->appConfig->getAppValue('refresh_expire_time', Application::DEFAULT_REFRESH_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $refreshExpireTime = $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         if ($refreshExpireTime !== 'never') {
             // keep the token until its refresh token has expired
             $expireTime = max($expireTime, (int)$refreshExpireTime);

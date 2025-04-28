@@ -160,7 +160,7 @@ class UserInfoController extends ApiController
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
             return new JSONResponse([
                 'error' => 'expired_client',
@@ -169,7 +169,7 @@ class UserInfoController extends ApiController
         }
 
         // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME) ) {
+        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME) ) {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired.');
             return new JSONResponse([

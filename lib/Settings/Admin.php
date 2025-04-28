@@ -155,19 +155,19 @@ class Admin implements ISettings {
         $this->logger->debug("Logout Redirect URIs provided: " . $this->arystr($logoutRedirectUrisResult, true, '|', ','));
 
         $this->initialState->provideInitialState('oidc', 'clients', $result);
-        $this->initialState->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue('expire_time'));
+        $this->initialState->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME));
         $this->initialState->provideInitialState('oidc',
-            'refreshExpireTime', $this->appConfig->getAppValue('refresh_expire_time', Application::DEFAULT_REFRESH_EXPIRE_TIME)
+            'refreshExpireTime', $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME)
         );
         $this->initialState->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
         $this->initialState->provideInitialState('oidc', 'groups', $availableGroups);
         $this->initialState->provideInitialState('oidc', 'logoutRedirectUris', $logoutRedirectUrisResult);
         $this->initialState->provideInitialState('oidc',
-                'integrateAvatar', $this->appConfig->getAppValue('integrate_avatar'));
+                'integrateAvatar', $this->appConfig->getAppValue(Application::APP_CONFIG_INTEGRATE_AVATAR));
         $this->initialState->provideInitialState('oidc',
-                'overwriteEmailVerified', $this->appConfig->getAppValue('overwrite_email_verified'));
+                'overwriteEmailVerified', $this->appConfig->getAppValue(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED));
         $this->initialState->provideInitialState('oidc',
-                'dynamicClientRegistration', $this->appConfig->getAppValue('dynamic_client_registration'));
+                'dynamicClientRegistration', $this->appConfig->getAppValue(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));
 
         return new TemplateResponse(
                         'oidc',

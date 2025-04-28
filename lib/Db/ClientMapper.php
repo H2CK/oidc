@@ -25,6 +25,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Db;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Db\Entity;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
@@ -198,7 +199,7 @@ class ClientMapper extends QBMapper {
      */
     public function cleanUp() {
         $qb = $this->db->getQueryBuilder();
-        $timeLimit = $this->time->getTime() - $this->appConfig->getAppValue('client_expire_time', '3600');
+        $timeLimit = $this->time->getTime() - $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME);
 
         $where = $qb->expr()->andX(
             $qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),

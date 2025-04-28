@@ -64,7 +64,7 @@ class TokenGenerationRequestListener implements IEventListener {
             return;
         }
         // check client expiration
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('[TokenGenerationRequestListener] Client ' . $client->getId() . ' has expired');
             return;
         }
@@ -74,7 +74,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $host = parse_url($instanceUrl, PHP_URL_HOST);
 
         // generate a new access token for the client
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
@@ -86,7 +86,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setNonce('');
 
         if (!isset($resource) || trim($resource)==='') {
-            $resource = (string)$this->appConfig->getAppValue('default_resource_identifier', Application::DEFAULT_RESOURCE_IDENTIFIER);
+            $resource = (string)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
         }
         $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
@@ -98,7 +98,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $event->setExpiresIn($expireTime);
         $event->setRefreshToken($code);
         $event->setIdToken($idToken);
-        $refreshExpireTime = $this->appConfig->getAppValue('refresh_expire_time', Application::DEFAULT_REFRESH_EXPIRE_TIME);
+        $refreshExpireTime = $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         if ($refreshExpireTime !== 'never') {
             $event->setRefreshExpiresIn((int)$refreshExpireTime);
         }

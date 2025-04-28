@@ -101,8 +101,8 @@ The registration endpoint is accessible for everybody without any authentication
 | openid | Default scope. Will be added if missing. Information about the user is provided as user id in the claims `preferred_username` and `sub`. |
 | profile | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at`to the ID Token. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) If enabled in the app settings it is also possible to generate the claim `picture` with users avatar encoded in a data url. Caution: If enabled for the id token this might lead to very large id token, even if the picture size is limited to 64px. |
 | email | Adds the email address of the user to the claim `email`. Furthermore the claim `email_verified` is added. |
-| roles | Adds the groups of the user in the claim `roles`. |
-| groups | Adds the groups of the user in the claim `groups`. |
+| roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. The content of the claim `roles` is identical to the claim `groups`. |
+| groups | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID is not identical to the group name (display name) shown in the UI (especially after renaming groups). |
 
 ## Access Token & ID token generation and validation via events by other Nextcloud apps
 

@@ -112,7 +112,7 @@ class JwtGenerator
      * @throws PropertyDoesNotExistException
      */
     public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash): string {
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $nonce = $accessToken->getNonce();
         $uid = $accessToken->getUserId();
@@ -206,7 +206,7 @@ class JwtGenerator
                         ['address' =>
                                 [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
-            if ($this->appConfig->getAppValue('integrate_avatar') == 'id_token') {
+            if ($this->appConfig->getAppValue(Application::APP_CONFIG_INTEGRATE_AVATAR) == 'id_token') {
                 $avatarImage = $user->getAvatarImage(64);
                 if ($avatarImage !== null) {
                     $profile = array_merge($profile,
@@ -234,7 +234,7 @@ class JwtGenerator
             $email = [
                 'email' => $mail_property->getValue(),
             ];
-            if ($this->appConfig->getAppValue('overwrite_email_verified') == 'true') {
+            if ($this->appConfig->getAppValue(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED) == 'true') {
                 $email = array_merge($email, ['email_verified' => true]);
             } else {
                 if ($mail_property->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
@@ -291,14 +291,14 @@ class JwtGenerator
             return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         }
 
-        $expireTime = (int)$this->appConfig->getAppValue('expire_time', Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $resource = $accessToken->getResource();
         if (!isset($resource) || trim($resource)==='') {
-            $resource = (string)$this->appConfig->getAppValue('default_resource_identifier', Application::DEFAULT_RESOURCE_IDENTIFIER);
+            $resource = (string)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
         }
 
         $jwt_payload = [
