@@ -106,7 +106,24 @@ The registration endpoint is accessible for everybody without any authentication
 
 ## Access Token & ID token generation and validation via events by other Nextcloud apps
 
-The app provides the events TokenValidationRequestEvent and TokenGenerationRequestEvent, which allow that other apps could request the generation of an access and id token as well as perform a validation of received access or id tokens. This way it will be possible that other Nextcloud apps could make use of access & id tokens. Further details can be found here: [#515](https://github.com/H2CK/oidc/pull/515) and [#521](https://github.com/H2CK/oidc/pull/521)
+The app provides the events [TokenValidationRequestEvent](https://github.com/H2CK/oidc/blob/master/lib/Event/TokenValidationRequestEvent.php) (`OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent`) and [TokenGenerationRequestEvent](https://github.com/H2CK/oidc/blob/master/lib/Event/TokenGenerationRequestEvent.php) (`OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent`), which allow that other apps could request the generation of an access and id token as well as perform a validation of received access or id tokens. This way it will be possible that other Nextcloud apps could make use of access & id tokens. 
+
+### Generate a token
+
+To get a token from the oidc app, the TokenGenerationRequestEvent can be emitted. A client must have been created in advance in the settings of the oidc app.
+
+```php
+if (class_exists(OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent::class)) {
+	$event = new OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent('client_identifier', 'user_id');
+    $this->eventDispatcher->dispatchTyped($event);
+	$accessToken = $event->getAccessToken();
+    $idToken = $event->getIdToken();
+	...
+} else {
+	$this->logger->debug('The oidc app is not installed/available');
+}
+```
+
 
 ## Expire time of tokens
 
