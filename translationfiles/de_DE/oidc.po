@@ -10,15 +10,16 @@
 # Mario Siegmann <mario_siegmann@web.de>, 2024
 # Mark Ziegler <mark.ziegler@rakekniven.de>, 2025
 # Joachim Sokolowski, 2025
+# Martin Wilichowski, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-04-16 02:23+0000\n"
+"POT-Creation-Date: 2025-04-29 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Joachim Sokolowski, 2025\n"
+"Last-Translator: Martin Wilichowski, 2025\n"
 "Language-Team: German (Germany) (https://app.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -341,7 +342,7 @@ msgstr "Zur Benutzerinformation und dem ID-Token hinzufügen"
 #. TRANSLATORS src/App.vue:210
 #: /app/specialVueFakeDummyForL10nScript.js:395
 msgid "Accepted Logout Redirect URIs"
-msgstr "Akzeptierte Abmelde-Weiterleitungs-URIs"
+msgstr "Akzeptierte Abmelde-Umleitungs-URIs"
 
 #. TRANSLATORS src/App.vue:230
 #: /app/specialVueFakeDummyForL10nScript.js:401

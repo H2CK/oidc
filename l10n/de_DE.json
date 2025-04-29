@@ -50,7 +50,7 @@
     "No integration" : "Keine Einbindung",
     "Add to user info" : "Zur Benutzerinformation hinzufügen",
     "Add to user info and ID token" : "Zur Benutzerinformation und dem ID-Token hinzufügen",
-    "Accepted Logout Redirect URIs" : "Akzeptierte Abmelde-Weiterleitungs-URIs",
+    "Accepted Logout Redirect URIs" : "Akzeptierte Abmelde-Umleitungs-URIs",
     "Public Key" : "Öffentlicher Schlüssel",
     "Regenerate Keys" : "Schlüssel neu erzeugen",
     "OpenID Connect Redirect" : "OpenID Connect-Weiterleitung",
