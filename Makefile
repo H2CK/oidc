@@ -30,18 +30,25 @@ else
 	$(composer) update --prefer-dist
 endif
 
+# Translations are now done via Transifex, therefore the three tasks 'make translationtool',
+# 'make generate-po-translation' and 'make generate-nc-translation' are no longer necessary.
+# Previously the translations were made with a local translation tool. For installation of 
+# the necessary tools execute `make translationtool`. To create the pot file from the source 
+# code execute `make generate-po-translation`. After creating the po translation files under 
+# translationfiles/...LANGUAGE-CODE.../oidc.po you must execute `make generate-nc-translation`
+# to generate the necessary nextcloud translation files.
 # Install translationtool from https://github.com/nextcloud/docker-ci/tree/master/translations/translationtool
-translationtool:
-	curl -sSO https://raw.githubusercontent.com/nextcloud/docker-ci/master/translations/translationtool/translationtool.phar
-	mv translationtool.phar $(build_tools_directory)
-
+#translationtool:
+#	curl -sSO https://raw.githubusercontent.com/nextcloud/docker-ci/master/translations/translationtool/translationtool.phar
+#	mv translationtool.phar $(build_tools_directory)
+#
 # Generate po files to perform translation
-generate-po-translation:
-	php $(build_tools_directory)/translationtool.phar create-pot-files
-
+#generate-po-translation:
+#	php $(build_tools_directory)/translationtool.phar create-pot-files
+#
 # Generate nextcloud translation files
-generate-nc-translation:
-	php $(build_tools_directory)/translationtool.phar convert-po-files
+#generate-nc-translation:
+#	php $(build_tools_directory)/translationtool.phar convert-po-files
 
 npm-init:
 	npm ci
