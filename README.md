@@ -96,34 +96,54 @@ The registration endpoint is accessible for everybody without any authentication
 
 ## Scopes
 
+Following the supported scopes are described. If no scope is defined during the authorization request, the following scopes will be used: `openid profile email roles`. Based in the defined scope different information about the user will be provided in the id token or at the userinfo endpoint.
+
 | Scope | Description |
 |---|---|
 | openid | Default scope. Will be added if missing. Information about the user is provided as user id in the claims `preferred_username` and `sub`. |
-| profile | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at`to the ID Token. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) If enabled in the app settings it is also possible to generate the claim `picture` with users avatar encoded in a data url. Caution: If enabled for the id token this might lead to very large id token, even if the picture size is limited to 64px. |
+| profile | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at`to the id token. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) If enabled in the app settings it is also possible to generate the claim `picture` with users avatar encoded in a data url. Caution: If enabled for the id token this might lead to very large id token, even if the picture size is limited to 64px. |
 | email | Adds the email address of the user to the claim `email`. Furthermore the claim `email_verified` is added. |
 | roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. The content of the claim `roles` is identical to the claim `groups`. |
 | groups | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID is not identical to the group name (display name) shown in the UI (especially after renaming groups). |
 
-## Access Token & ID token generation and validation via events by other Nextcloud apps
+## Access Token & ID Token generation and validation via events by other Nextcloud apps
 
-The app provides the events [TokenValidationRequestEvent](https://github.com/H2CK/oidc/blob/master/lib/Event/TokenValidationRequestEvent.php) (`OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent`) and [TokenGenerationRequestEvent](https://github.com/H2CK/oidc/blob/master/lib/Event/TokenGenerationRequestEvent.php) (`OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent`), which allow that other apps could request the generation of an access and id token as well as perform a validation of received access or id tokens. This way it will be possible that other Nextcloud apps could make use of access & id tokens. 
+The app provides the events [TokenValidationRequestEvent](https://github.com/H2CK/oidc/blob/master/lib/Event/TokenValidationRequestEvent.php) (`OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent`) and [TokenGenerationRequestEvent](https://github.com/H2CK/oidc/blob/master/lib/Event/TokenGenerationRequestEvent.php) (`OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent`), which allow that other apps could request the generation of an access and id token as well as perform a validation of received access or id tokens. This way it will be possible that other Nextcloud apps could make use of access & id tokens to integrate with external services (e.g. see https://docs.nextcloud.com/server/latest/developer_manual/digging_deeper/oidc.html#generating-a-token-if-nextcloud-is-the-provider).
 
-### Generate a token
+### Generate an Access Token and ID Token
 
 To get a token from the oidc app, the TokenGenerationRequestEvent can be emitted. A client must have been created in advance in the settings of the oidc app.
 
 ```php
 if (class_exists(OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent::class)) {
-	$event = new OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent('client_identifier', 'user_id');
+    $event = new OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent('client_identifier', 'user_id');
     $this->eventDispatcher->dispatchTyped($event);
-	$accessToken = $event->getAccessToken();
+    $accessToken = $event->getAccessToken();
     $idToken = $event->getIdToken();
-	...
+    ...
 } else {
-	$this->logger->debug('The oidc app is not installed/available');
+    $this->logger->debug('The oidc app is not installed/available');
 }
 ```
 
+### Validate an Access Token or ID Token
+
+To validate a token by the oidc app, the TokenValidationRequestEvent can be emitted. Both an access token as well as an id token can be validated The access or ID token must have been issued by the oidc app.
+
+```php
+if (class_exists(OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent::class)) {
+    $event = new OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent('token');
+    $this->eventDispatcher->dispatchTyped($event);
+    if ($event->getIsValid()) {
+        $userId = $event-> getUserId();
+        $this->logger->debug('The provided token is valid and was issued for user ' . $userId);
+    } else {
+        $this->logger->debug('The provided token is invalid');
+    }
+} else {
+    $this->logger->debug('The oidc app is not installed/available');
+}
+```
 
 ## Expire time of tokens
 
