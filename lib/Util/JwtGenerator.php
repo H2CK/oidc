@@ -156,9 +156,18 @@ class JwtGenerator
         }
 
         $roles = [];
-        // Add roles
+        $groupClaimType = (string)$this->appConfig->getAppValue(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
         foreach ($groups as $group) {
-            array_push($roles, $group->getGID());
+            if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $displayName = $group->getDisplayName();
+                if ($displayName !== null && $displayName !== '') {
+                    array_push($roles, $displayName);
+                } else {
+                    array_push($roles, $group->getGID());
+                }
+            } else {
+                array_push($roles, $group->getGID());
+            }
         }
 
         // Check for scopes
