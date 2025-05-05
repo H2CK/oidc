@@ -39,7 +39,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
-use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IGroup;
 use OCP\IGroupManager;
@@ -49,8 +48,6 @@ class SettingsController extends Controller
 {
     /** @var ClientMapper */
     private $clientMapper;
-    /** @var ISecureRandom */
-    private $secureRandom;
     /** @var AccessTokenMapper  */
     private $accessTokenMapper;
     /** @var RedirectUriMapper  */
@@ -75,7 +72,6 @@ class SettingsController extends Controller
                     string $appName,
                     IRequest $request,
                     ClientMapper $clientMapper,
-                    ISecureRandom $secureRandom,
                     AccessTokenMapper $accessTokenMapper,
                     RedirectUriMapper $redirectUriMapper,
                     LogoutRedirectUriMapper $logoutRedirectUriMapper,
@@ -87,7 +83,6 @@ class SettingsController extends Controller
                     )
     {
         parent::__construct($appName, $request);
-        $this->secureRandom = $secureRandom;
         $this->clientMapper = $clientMapper;
         $this->accessTokenMapper = $accessTokenMapper;
         $this->redirectUriMapper = $redirectUriMapper;
