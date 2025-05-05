@@ -52,7 +52,7 @@ class TokenValidationRequestListener implements IEventListener {
         $tokenString = $event->getToken();
         $this->logger->debug('[TokenValidationRequestListener] received a token validation request event');
 
-        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
 
         // check if it's an access token
         try {
@@ -69,6 +69,7 @@ class TokenValidationRequestListener implements IEventListener {
             // stop here if we found this access token
             return;
         } catch (AccessTokenNotFoundException $e) {
+            // proceed checking for an id token
         }
 
         // check if it's an id token
@@ -77,9 +78,9 @@ class TokenValidationRequestListener implements IEventListener {
             'use' => 'sig',
             'key_ops' => [ 'verify' ],
             'alg' => 'RS256',
-            'kid' => $this->appConfig->getAppValue('kid'),
-            'n' => $this->appConfig->getAppValue('public_key_n'),
-            'e' => $this->appConfig->getAppValue('public_key_e'),
+            'kid' => $this->appConfig->getAppValueString('kid'),
+            'n' => $this->appConfig->getAppValueString('public_key_n'),
+            'e' => $this->appConfig->getAppValueString('public_key_e'),
         ];
 
         $jwks = [

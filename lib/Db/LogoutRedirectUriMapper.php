@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -90,10 +90,10 @@ class LogoutRedirectUriMapper extends QBMapper {
 
     /**
      * @param string $redirectUri
-     * @return LogoutRedirectUri[]
+     * @return LogoutRedirectUri
      * @throws RedirectUriNotFoundException
      */
-    public function getByRedirectUri(string $redirectUri): array {
+    public function getByRedirectUri(string $redirectUri): LogoutRedirectUri {
         $qb = $this->db->getQueryBuilder();
         $qb
             ->select('*')
@@ -103,7 +103,7 @@ class LogoutRedirectUriMapper extends QBMapper {
         try {
             $redirectUriEntry = $this->findEntity($qb);
         } catch (IMapperException $e) {
-            throw new RedirectUriTokenNotFoundException('Could not find redirect URI', 0, $e);
+            throw new RedirectUriNotFoundException('Could not find redirect URI', 0, $e);
         }
 
         return $redirectUriEntry;

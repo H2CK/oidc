@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -28,10 +28,8 @@ namespace OCA\OIDCIdentityProvider\Controller;
 use OCA\OIDCIdentityProvider\Util\DiscoveryGenerator;
 use OC\Security\Bruteforce\Throttler;
 use OCP\AppFramework\ApiController;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;

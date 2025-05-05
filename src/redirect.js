@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -21,16 +21,11 @@
  */
 
 // eslint-disable-next-line n/no-extraneous-import
-import Vue from 'vue'
+import { createApp } from 'vue'
 import App from './Redirect.vue'
 
-Vue.prototype.t = t
-Vue.prototype.OC = OC
+const app = createApp(App)
 
-const View = Vue.extend(App)
-const oidc = new View({
-	propsData: {
-	},
-})
+app.config.globalProperties.$OC = window.OC
 
-oidc.$mount('#oidc-redirect')
+app.mount('#oidc-redirect')

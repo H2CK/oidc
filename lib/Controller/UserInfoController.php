@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -160,7 +160,7 @@ class UserInfoController extends ApiController
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
             return new JSONResponse([
                 'error' => 'expired_client',
@@ -169,7 +169,7 @@ class UserInfoController extends ApiController
         }
 
         // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME) ) {
+        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME) ) {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired.');
             return new JSONResponse([
@@ -194,7 +194,7 @@ class UserInfoController extends ApiController
         $scopeArray = preg_split('/ +/', $accessToken->getScope());
 
         $roles = [];
-        $groupClaimType = (string)$this->appConfig->getAppValue(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
+        $groupClaimType = (string)$this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
         foreach ($groups as $group) {
             if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
                 $displayName = $group->getDisplayName();
@@ -251,7 +251,7 @@ class UserInfoController extends ApiController
                         ['address' =>
                                 [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
-            if ($this->appConfig->getAppValue('integrate_avatar') == 'user_info' || $this->appConfig->getAppValue('integrate_avatar') == 'id_token') {
+            if ($this->appConfig->getAppValueString('integrate_avatar') == 'user_info' || $this->appConfig->getAppValueString('integrate_avatar') == 'id_token') {
                 $avatarImage = $user->getAvatarImage(64);
                 if ($avatarImage !== null) {
                     $profile = array_merge($profile,

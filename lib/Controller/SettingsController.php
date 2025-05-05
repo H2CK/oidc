@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -68,7 +68,8 @@ class SettingsController extends Controller
     /** @var LoggerInterface */
     private $logger;
 
-    public const VALID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    public const CODE_AUTHORIZATION_FLOW= 'Code Authorization Flow';
+    public const CODE_IMPLICIT_AUTHORIZATION_FLOW = 'Code & Implicit Authorization Flow';
 
     public function __construct(
                     string $appName,
@@ -108,7 +109,8 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         $this->logger->debug("Adding client " . $name);
-        if (filter_var($redirectUri, FILTER_VALIDATE_URL) === false) {
+
+        if (filter_var($redirectUri, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/.*:\/\/.*/"))) === false) {
             return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
         }
 
@@ -137,10 +139,10 @@ class SettingsController extends Controller
         foreach ($groups as $group) {
             array_push($resultGroups, $group->getGroupId());
         }
-        $flowTypeLabel = $this->l->t('Code Authorization Flow');
+        $flowTypeLabel = $this->l->t(SettingsController::CODE_AUTHORIZATION_FLOW);
         $responseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
         if (in_array('id_token', $responseTypeEntries)) {
-            $flowTypeLabel = $this->l->t('Code & Implicit Authorization Flow');
+            $flowTypeLabel = $this->l->t(SettingsController::CODE_IMPLICIT_AUTHORIZATION_FLOW);
         }
 
         return new JSONResponse([
@@ -222,6 +224,10 @@ class SettingsController extends Controller
     {
         $this->logger->debug("Adding Redirect URI " . $redirectUri . " for client " . $id);
 
+        if (filter_var($redirectUri, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/.*:\/\/.*/"))) === false) {
+            return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
+        }
+
         $redirectUriObj = new RedirectUri();
         $redirectUriObj->setClientId($id);
         $redirectUriObj->setRedirectUri(trim($redirectUri));
@@ -240,6 +246,18 @@ class SettingsController extends Controller
                     'redirect_uri' => $redirectUri->getRedirectUri(),
                 ];
             }
+
+            $groups = $this->groupMapper->getGroupsByClientId($client->getId());
+            $resultGroups = [];
+            foreach ($groups as $group) {
+                array_push($resultGroups, $group->getGroupId());
+            }
+            $flowTypeLabel = $this->l->t(SettingsController::CODE_AUTHORIZATION_FLOW);
+            $responseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
+            if (in_array('id_token', $responseTypeEntries)) {
+                $flowTypeLabel = $this->l->t(SettingsController::CODE_IMPLICIT_AUTHORIZATION_FLOW);
+            }
+
             $result[] = [
                 'id' => $client->getId(),
                 'name' => $client->getName(),
@@ -249,7 +267,10 @@ class SettingsController extends Controller
                 'signingAlg' => $client->getSigningAlg(),
                 'type' => $client->getType(),
                 'flowType' => $client->getFlowType(),
+                'flowTypeLabel' => $flowTypeLabel,
+                'groups' => $resultGroups,
                 'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+            'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
             ];
         }
         return new JSONResponse($result);
@@ -276,6 +297,18 @@ class SettingsController extends Controller
                     'redirect_uri' => $redirectUri->getRedirectUri(),
                 ];
             }
+
+            $groups = $this->groupMapper->getGroupsByClientId($client->getId());
+            $resultGroups = [];
+            foreach ($groups as $group) {
+                array_push($resultGroups, $group->getGroupId());
+            }
+            $flowTypeLabel = $this->l->t(SettingsController::CODE_AUTHORIZATION_FLOW);
+            $responseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
+            if (in_array('id_token', $responseTypeEntries)) {
+                $flowTypeLabel = $this->l->t(SettingsController::CODE_IMPLICIT_AUTHORIZATION_FLOW);
+            }
+
             $result[] = [
                 'id' => $client->getId(),
                 'name' => $client->getName(),
@@ -285,6 +318,8 @@ class SettingsController extends Controller
                 'signingAlg' => $client->getSigningAlg(),
                 'type' => $client->getType(),
                 'flowType' => $client->getFlowType(),
+                'flowTypeLabel' => $flowTypeLabel,
+                'groups' => $resultGroups,
                 'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
             ];
         }
@@ -301,16 +336,15 @@ class SettingsController extends Controller
         $logoutRedirectUriObj->setRedirectUri(trim($redirectUri));
         $logoutRedirectUriObj = $this->logoutRedirectUriMapper->insert($logoutRedirectUriObj);
 
-        $result = [];
+        $logoutRedirectUrisResult = [];
         $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
         foreach ($logoutRedirectUris as $logoutRedirectUri) {
-            $resultLogoutRedirectUris = array(
+            $logoutRedirectUrisResult[] = [
                 'id' => $logoutRedirectUri->getId(),
                 'redirectUri' => $logoutRedirectUri->getRedirectUri(),
-            );
-            array_push($result, $resultLogoutRedirectUris);
+            ];
         }
-        return new JSONResponse($result);
+        return new JSONResponse($logoutRedirectUrisResult);
     }
 
     public function deleteLogoutRedirectUri(
@@ -346,7 +380,7 @@ class SettingsController extends Controller
         );
         $finalExpireTime = filter_var($expireTime, FILTER_VALIDATE_INT, $options);
         $finalExpireTime = strval($finalExpireTime);
-        $this->appConfig->setAppValue('expire_time', $finalExpireTime);
+        $this->appConfig->setAppValuestring('expire_time', $finalExpireTime);
         $result = [
             'expire_time' => $expireTime,
         ];
@@ -355,7 +389,7 @@ class SettingsController extends Controller
 
     public function setRefreshTokenExpireTime(string $refreshExpireTime): JSONResponse {
         if ($refreshExpireTime === 'never') {
-            $this->appConfig->setAppValue('refresh_expire_time', 'never');
+            $this->appConfig->setAppValueString('refresh_expire_time', 'never');
             return new JSONResponse([
                 'refresh_expire_time' => $refreshExpireTime,
             ]);
@@ -371,7 +405,7 @@ class SettingsController extends Controller
         ];
         $finalExpireTime = filter_var($refreshExpireTime, FILTER_VALIDATE_INT, $options);
         $finalExpireTime = strval($finalExpireTime);
-        $this->appConfig->setAppValue('refresh_expire_time', $finalExpireTime);
+        $this->appConfig->setAppValueString('refresh_expire_time', $finalExpireTime);
         $result = [
             'refresh_expire_time' => $refreshExpireTime,
         ];
@@ -383,10 +417,10 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         if ($integrateAvatar === 'none' || $integrateAvatar === 'user_info' || $integrateAvatar === 'id_token') {
-            $this->appConfig->setAppValue('integrate_avatar', $integrateAvatar);
+            $this->appConfig->setAppValueString('integrate_avatar', $integrateAvatar);
         }
         $result = [
-            'integrate_avatar' => $this->appConfig->getAppValue('integrate_avatar'),
+            'integrate_avatar' => $this->appConfig->getAppValueString('integrate_avatar'),
         ];
         return new JSONResponse($result);
     }
@@ -396,10 +430,10 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         if ($overwriteEmailVerified === 'true' || $overwriteEmailVerified === 'false') {
-            $this->appConfig->setAppValue('overwrite_email_verified', $overwriteEmailVerified);
+            $this->appConfig->setAppValueString('overwrite_email_verified', $overwriteEmailVerified);
         }
         $result = [
-            'overwrite_email_verified' => $this->appConfig->getAppValue('overwrite_email_verified'),
+            'overwrite_email_verified' => $this->appConfig->getAppValueString('overwrite_email_verified'),
         ];
         return new JSONResponse($result);
     }
@@ -409,10 +443,10 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         if ($dynamicClientRegistration === 'true' || $dynamicClientRegistration === 'false') {
-            $this->appConfig->setAppValue('dynamic_client_registration', $dynamicClientRegistration);
+            $this->appConfig->setAppValueString('dynamic_client_registration', $dynamicClientRegistration);
         }
         $result = [
-            'dynamic_client_registration' => $this->appConfig->getAppValue('dynamic_client_registration'),
+            'dynamic_client_registration' => $this->appConfig->getAppValueString('dynamic_client_registration'),
         ];
         return new JSONResponse($result);
     }
@@ -430,14 +464,14 @@ class SettingsController extends Controller
         $keyDetails = openssl_pkey_get_details($keyPair);
         $publicKey = $keyDetails['key'];
 
-        $this->appConfig->setAppValue('private_key', $privateKey);
-        $this->appConfig->setAppValue('public_key', $publicKey);
+        $this->appConfig->setAppValueString('private_key', $privateKey);
+        $this->appConfig->setAppValueString('public_key', $publicKey);
         $uuid = $this->guidv4();
-        $this->appConfig->setAppValue('kid', $uuid);
+        $this->appConfig->setAppValueString('kid', $uuid);
         $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
         $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
-        $this->appConfig->setAppValue('public_key_n', $modulus);
-        $this->appConfig->setAppValue('public_key_e', $exponent);
+        $this->appConfig->setAppValueString('public_key_n', $modulus);
+        $this->appConfig->setAppValueString('public_key_e', $exponent);
         $result = [
             'public_key' => $publicKey,
         ];

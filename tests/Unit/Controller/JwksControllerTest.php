@@ -86,9 +86,9 @@ class JwksControllerTest extends TestCase {
             'use' => 'sig',
             'key_ops' => $keyOps,
             'alg' => 'RS256',
-            'kid' => $this->appConfig->getAppValue('kid'),
-            'n' => $this->appConfig->getAppValue('public_key_n'),
-            'e' => $this->appConfig->getAppValue('public_key_e'),
+            'kid' => $this->appConfig->getAppValueString('kid'),
+            'n' => $this->appConfig->getAppValueString('public_key_n'),
+            'e' => $this->appConfig->getAppValueString('public_key_e'),
         ];
 
         $result = $this->controller->getKeyInfo();

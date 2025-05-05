@@ -1,5 +1,27 @@
 <?php
+declare(strict_types=1);
 
+/**
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
+ *
+ * @author Thorsten Jagel <dev@jagel.net>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 namespace OCA\OIDCIdentityProvider\Command\Clients;
 
 use Symfony\Component\Console\Command\Command;
@@ -17,6 +39,9 @@ class OIDCRemove extends Command {
   /** @var IAppConfig */
   private $appconf;
 
+  /** @var ClientMapper */
+  private $mapper;
+
   public function __construct(
     IAppConfig $appconf,
     ClientMapper $mapper
@@ -32,7 +57,7 @@ class OIDCRemove extends Command {
       ->setDescription('Remove an oidc client')
       ->addArgument(
         'client_id',
-        InputArgument::REQUIRED, 
+        InputArgument::REQUIRED,
         'The identifier of the client to remove'
       );
   }
@@ -42,13 +67,14 @@ class OIDCRemove extends Command {
     $client_id = $input->getArgument("client_id");
     // remove client
     try {
-      if ($this->mapper->deleteByIdentifier($client_id))
+      if ($this->mapper->deleteByIdentifier($client_id)) {
         $output->writeln("<info>Client `{$client_id}` removed.</info>");
-      else
+      } else {
         $output->writeln("<comment>Client `{$client_id}` not found.</comment>");
+      }
       return Command::SUCCESS;
     } catch (\Exception $e) {
-      $output->writeln("<error>Error: {$e->getMessage()}.</error>");      
+      $output->writeln("<error>Error: {$e->getMessage()}.</error>");
       return Command::FAILURE;
     }
   }

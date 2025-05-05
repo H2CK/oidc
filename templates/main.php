@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright Copyright (c) 2022 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @license GNU AGPL version 3 or any later version
  *

@@ -1,5 +1,12 @@
 {
-	"vueCompilerOptions": {
-		"target": 2.7
-	}
+    "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    },
+    "vueCompilerOptions": {
+        "target": 3.3
+    },
+    "exclude": ["node_modules", "dist", "test"],
+    "include": ["*"]
 }

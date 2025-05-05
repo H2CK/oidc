@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2025-05-02
+
+### Changed
+
+- Added possibility to use display name of groups in groups/roles claim (instead of group ID)
+- Allow use of non-http/https redirect urls when creating a client
+- Removed support for Nextcloud 28 and 29
+- Switch to Vue 3
+- Refactoring of documentation
+- Updated dependencies
+- Updated translations
+
 ## [1.6.1] - 2025-04-16
 
 ### Changed

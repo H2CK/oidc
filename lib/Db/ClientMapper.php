@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -75,10 +75,12 @@ class ClientMapper extends QBMapper {
     }
 
     public function insert(Entity $entity): Entity {
-        if(!$entity->getClientIdentifier())
+        if(!$entity->getClientIdentifier()) {
             $entity->setClientIdentifier($this->secureRandom->generate(64, self::ALNUM));
-        if(!$entity->getSecret())
+        }
+        if(!$entity->getSecret()) {
             $entity->setSecret($this->secureRandom->generate(64, self::ALNUM));
+        }
 
         $entity = parent::insert($entity);
 
@@ -99,8 +101,9 @@ class ClientMapper extends QBMapper {
     public function delete(Entity $entity): Entity {
         // remove redirect uris first
         $uris = $this->redirectUriMapper->getByClientId($entity->getId());
-        foreach ($uris as $uri)
+        foreach ($uris as $uri) {
             $this->redirectUriMapper->delete($uri);
+        }
         // remove the client
         $entity = parent::delete($entity);
         return $entity;
@@ -190,7 +193,7 @@ class ClientMapper extends QBMapper {
             ->delete($this->tableName)
             ->where($qb->expr()->eq('client_identifier', $qb->createNamedParameter($clientIdentifier)));
 
-        return boolval($qb->execute());
+        return boolval($qb->executeStatement());
     }
 
     /**
@@ -199,7 +202,7 @@ class ClientMapper extends QBMapper {
      */
     public function cleanUp() {
         $qb = $this->db->getQueryBuilder();
-        $timeLimit = $this->time->getTime() - $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME);
+        $timeLimit = $this->time->getTime() - (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME);
 
         $where = $qb->expr()->andX(
             $qb->expr()->lt('issued_at', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)),

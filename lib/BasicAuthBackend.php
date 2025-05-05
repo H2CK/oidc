@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -75,14 +75,14 @@ class BasicAuthBackend extends \OC\User\Backend {
     * @param int $actions bitwise-or'ed actions
     * @return boolean
     *
-        self::CREATE_USER => 'createUser',
-        self::SET_PASSWORD => 'setPassword',
-        self::CHECK_PASSWORD => 'checkPassword',
-        self::GET_HOME => 'getHome',
-        self::GET_DISPLAYNAME => 'getDisplayName',
-        self::SET_DISPLAYNAME => 'setDisplayName',
-        self::PROVIDE_AVATAR => 'canChangeAvatar',
-        self::COUNT_USERS => 'countUsers'
+    *    self::CREATE_USER => 'createUser',
+    *    self::SET_PASSWORD => 'setPassword',
+    *    self::CHECK_PASSWORD => 'checkPassword',
+    *    self::GET_HOME => 'getHome',
+    *    self::GET_DISPLAYNAME => 'getDisplayName',
+    *    self::SET_DISPLAYNAME => 'setDisplayName',
+    *    self::PROVIDE_AVATAR => 'canChangeAvatar',
+    *    self::COUNT_USERS => 'countUsers'
     *
     * Returns the supported actions as int to be
     * compared with self::CREATE_USER etc.
@@ -106,8 +106,7 @@ class BasicAuthBackend extends \OC\User\Backend {
         }
 
         // Limit access to token endpoint only
-		if (!str_ends_with($this->request->getRequestUri(), 'token')) {
-        //if (strcmp($this->request->getRequestUri(), $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', [])) !== 0) {
+        if (!str_ends_with($this->request->getRequestUri(), 'token')) {
             $this->logger->warning('OIDCIdentityProvider BasicAuthBackend: RequestUri was: ' . $this->request->getRequestUri() . 'Allowed is only the token endpoint: ' . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []));
             return false;
         }
@@ -233,7 +232,7 @@ class BasicAuthBackend extends \OC\User\Backend {
     /**
      * Change the display name of a user
      *
-     * @param string $uid		 The username
+     * @param string $uid The username
      * @param string $displayName The new display name
      *
      * @return true/false

@@ -1,5 +1,5 @@
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -21,12 +21,9 @@
  */
 
 // eslint-disable-next-line n/no-extraneous-import
-import Vue from 'vue'
+import { createApp } from 'vue'
 import App from './App.vue'
 import { loadState } from '@nextcloud/initial-state'
-
-Vue.prototype.t = t
-Vue.prototype.OC = OC
 
 const clients = loadState('oidc', 'clients')
 const expireTime = loadState('oidc', 'expireTime')
@@ -38,18 +35,18 @@ const integrateAvatar = loadState('oidc', 'integrateAvatar')
 const overwriteEmailVerified = loadState('oidc', 'overwriteEmailVerified')
 const dynamicClientRegistration = loadState('oidc', 'dynamicClientRegistration')
 
-const View = Vue.extend(App)
-const oidc = new View({
-	propsData: {
-		clients,
-		expireTime,
-		refreshExpireTime,
-		publicKey,
-		groups,
-		logoutRedirectUris,
-		integrateAvatar,
-		overwriteEmailVerified,
-		dynamicClientRegistration,
-	},
+const app = createApp(App, {
+	clients,
+	expireTime,
+	refreshExpireTime,
+	publicKey,
+	groups,
+	logoutRedirectUris,
+	integrateAvatar,
+	overwriteEmailVerified,
+	dynamicClientRegistration,
 })
-oidc.$mount('#oidc')
+
+app.config.globalProperties.$OC = window.OC
+
+app.mount('#oidc')

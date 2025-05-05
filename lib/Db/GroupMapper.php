@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -120,7 +120,7 @@ class GroupMapper extends QBMapper {
             ->select('*')
             ->from($this->tableName);
         $usedGroups = $this->findEntities($qb);
-        foreach ($usedGroups as $i => $group) {
+        foreach ($usedGroups as $group) {
             if (!$this->groupManager->groupExists($group->getGroupId())) {
                 $this->deleteById($group->getId());
             }

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 
 use PHPUnit\Framework\TestCase;
@@ -122,7 +121,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testNoRedirectUris() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig
-            ->method('getAppValue')
+            ->method('getAppValueString')
             ->willReturn('true');
 
         $result = $this->controller->registerClient();
@@ -134,7 +133,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testEmptyRedirectUris() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig
-            ->method('getAppValue')
+            ->method('getAppValueString')
             ->willReturn('true');
 
         $result = $this->controller->registerClient([]);
@@ -146,7 +145,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testMaxNumClientsExceeded() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig
-            ->method('getAppValue')
+            ->method('getAppValueString')
             ->willReturn('true');
 
         // Return max number of clients 1000
@@ -163,7 +162,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testClientCreated() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig
-            ->method('getAppValue')
+            ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
                 ['client_expire_time', '3600', '3600']

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -42,10 +42,9 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
-use OCP\IInitialStateService;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\IGroup;
 use OCP\IGroupManager;
-use OC_App;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
@@ -92,8 +91,8 @@ class LoginRedirectorController extends ApiController
     private $userSession;
     /** @var IGroupManager */
     private $groupManager;
-    /** @var IInitialStateService */
-    private $initialStateService;
+    /** @var IInitialState */
+    private $initialState;
     /** @var IAppConfig */
     private $appConfig;
     /** @var JwtGenerator */
@@ -117,7 +116,7 @@ class LoginRedirectorController extends ApiController
      * @param IGroupManager $groupManager
      * @param AccessTokenMapper $accessTokenMapper
      * @param RedirectUriMapper $redirectUriMapper
-     * @param IInitialStateService $initialStateService
+     * @param IInitialState $initialState
      * @param IAppConfig $appConfig
      * @param JwtGenerator $jwtGenerator
      * @param LoggerInterface $loggerInterface
@@ -138,7 +137,7 @@ class LoginRedirectorController extends ApiController
                     IGroupManager $groupManager,
                     AccessTokenMapper $accessTokenMapper,
                     RedirectUriMapper $redirectUriMapper,
-                    IInitialStateService $initialStateService,
+                    IInitialState $initialState,
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
                     LoggerInterface $logger
@@ -160,7 +159,7 @@ class LoginRedirectorController extends ApiController
         $this->groupManager = $groupManager;
         $this->accessTokenMapper = $accessTokenMapper;
         $this->redirectUriMapper = $redirectUriMapper;
-        $this->initialStateService = $initialStateService;
+        $this->initialState = $initialState;
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
         $this->logger = $logger;
@@ -249,7 +248,7 @@ class LoginRedirectorController extends ApiController
 
         // Set default resource if resource is not set at all
         if (!isset($resource) || trim($resource)==='') {
-            $resource = (string)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
         }
 
         $this->clientMapper->cleanUp();
@@ -265,7 +264,7 @@ class LoginRedirectorController extends ApiController
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
             $params = [
                 'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
@@ -377,7 +376,7 @@ class LoginRedirectorController extends ApiController
             $state = '';
         }
 
-        $expireTime = $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
 
         $url = $redirect_uri . '?state=' . urlencode($state);
         if (str_contains($redirect_uri, '?')) {

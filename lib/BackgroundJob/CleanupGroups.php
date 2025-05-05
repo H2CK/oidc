@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -33,29 +33,29 @@ use OCP\IConfig;
 class CleanupGroups extends TimedJob {
 
     /** @var GroupMapper */
-	private $groupMapper;
-	/** @var IConfig */
-	private $settings;
+    private $groupMapper;
+    /** @var IConfig */
+    private $settings;
 
-	/**
-	 * @param ITimeFactory $time
-	 * @param GroupMapper $groupMapper
-	 */
-	public function __construct(ITimeFactory $time,
-								GroupMapper $groupMapper,
-								IConfig $settings) {
-		parent::__construct($time);
-		$this->groupMapper = $groupMapper;
-		$this->settings = $settings;
+    /**
+     * @param ITimeFactory $time
+     * @param GroupMapper $groupMapper
+     */
+    public function __construct(ITimeFactory $time,
+                                GroupMapper $groupMapper,
+                                IConfig $settings) {
+        parent::__construct($time);
+        $this->groupMapper = $groupMapper;
+        $this->settings = $settings;
 
-		// Run once a day
-		$this->setInterval(24 * 60 * 60);
-		$this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
-	}
+        // Run once a day
+        $this->setInterval(24 * 60 * 60);
+        $this->setTimeSensitivity(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE);
+    }
 
-	protected function run($argument): void {
-		// Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
-		// if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
+    protected function run($argument): void {
+        // Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
+        // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
         $this->groupMapper->cleanUp();
-	}
+    }
 }

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -35,9 +35,8 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\IInitialStateService;
 use OCP\Settings\ISettings;
-// Should replace the IInitialStateService but currently is not working use OCP\AppFramework\Services\IInitialState;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IGroup;
 use OCP\IGroupManager;
@@ -46,7 +45,7 @@ use Psr\Log\LoggerInterface;
 
 class Admin implements ISettings {
 
-    /** @var IInitialStateService */
+    /** @var IInitialState */
     private $initialState;
 
     /** @var ClientMapper */
@@ -74,7 +73,7 @@ class Admin implements ISettings {
     private $logger;
 
     public function __construct(
-                    IInitialStateService $initialState,
+                    IInitialState $initialState,
                     ClientMapper $clientMapper,
                     RedirectUriMapper $redirectUriMapper,
                     LogoutRedirectUriMapper $logoutRedirectUriMapper,
@@ -154,20 +153,20 @@ class Admin implements ISettings {
 
         $this->logger->debug("Logout Redirect URIs provided: " . $this->arystr($logoutRedirectUrisResult, true, '|', ','));
 
-        $this->initialState->provideInitialState('oidc', 'clients', $result);
-        $this->initialState->provideInitialState('oidc', 'expireTime', $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME));
-        $this->initialState->provideInitialState('oidc',
-            'refreshExpireTime', $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME)
+        $this->initialState->provideInitialState('clients', $result);
+        $this->initialState->provideInitialState('expireTime', $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME));
+        $this->initialState->provideInitialState(
+            'refreshExpireTime', $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME)
         );
-        $this->initialState->provideInitialState('oidc', 'publicKey', $this->appConfig->getAppValue('public_key'));
-        $this->initialState->provideInitialState('oidc', 'groups', $availableGroups);
-        $this->initialState->provideInitialState('oidc', 'logoutRedirectUris', $logoutRedirectUrisResult);
-        $this->initialState->provideInitialState('oidc',
-                'integrateAvatar', $this->appConfig->getAppValue(Application::APP_CONFIG_INTEGRATE_AVATAR));
-        $this->initialState->provideInitialState('oidc',
-                'overwriteEmailVerified', $this->appConfig->getAppValue(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED));
-        $this->initialState->provideInitialState('oidc',
-                'dynamicClientRegistration', $this->appConfig->getAppValue(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));
+        $this->initialState->provideInitialState('publicKey', $this->appConfig->getAppValueString('public_key'));
+        $this->initialState->provideInitialState('groups', $availableGroups);
+        $this->initialState->provideInitialState('logoutRedirectUris', $logoutRedirectUrisResult);
+        $this->initialState->provideInitialState(
+                'integrateAvatar', $this->appConfig->getAppValueString(Application::APP_CONFIG_INTEGRATE_AVATAR));
+        $this->initialState->provideInitialState(
+                'overwriteEmailVerified', $this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED));
+        $this->initialState->provideInitialState(
+                'dynamicClientRegistration', $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));
 
         return new TemplateResponse(
                         'oidc',

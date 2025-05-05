@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+  - @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
   -
   - @author Thorsten Jagel <dev@jagel.net>
   -
@@ -21,9 +21,9 @@
   -->
 <template>
 	<NcSettingsSection :name="t('oidc', 'OpenID Connect clients')"
-		:description="t('oidc', 'OpenID Connect allows to authenticate at external services with {instanceName} user accounts.', { instanceName: OC.theme.name})">
+		:description="t('oidc', 'OpenID Connect allows to authenticate at external services with {instanceName} user accounts.', { instanceName: oc.theme.name})">
 		<span v-if="error" class="msg error">{{ errorMsg }}</span>
-		<table v-if="clients.length > 0" class="grid">
+		<table v-if="localClients.length > 0" class="grid">
 			<thead>
 				<tr>
 					<th id="headerContent" />
@@ -32,9 +32,9 @@
 					</th>
 				</tr>
 			</thead>
-			<tbody v-if="clients"
+			<tbody v-if="localClients"
 				:key="version">
-				<OIDCItem v-for="client in clients"
+				<OIDCItem v-for="client in localClients"
 					:key="client.id"
 					:client="client"
 					:groups="groups"
@@ -92,7 +92,7 @@
 		<h3>{{ t('oidc', 'Settings') }}</h3>
 		<p>{{ t('oidc', 'Token Expire Time') }}</p>
 		<select id="expireTime"
-			v-model="expTime"
+			v-model="localExpireTime"
 			:placeholder="t('oidc', 'Token Expire Time')"
 			@change="setTokenExpireTime">
 			<option disabled value="">
@@ -117,7 +117,7 @@
 
 		<p>{{ t('oidc', 'Refresh Token Expire Time') }}</p>
 		<select id="refreshExpireTime"
-			v-model="refreshExpTime"
+			v-model="localRefreshExpireTime"
 			:placeholder="t('oidc', 'Refresh Token Expire Time')"
 			@change="setRefreshExpireTime">
 			<option disabled value="">
@@ -156,7 +156,7 @@
 			{{ t('oidc', 'Dynamic Client Registration') }}
 		</p>
 		<select id="dynamicClientRegistration"
-			v-model="dynClientRegistration"
+			v-model="localDynamicClientRegistration"
 			:placeholder="t('oidc', 'Enable or disable Dynamic Client Registration')"
 			@change="setDynamicClientRegistration">
 			<option disabled value="">
@@ -174,7 +174,7 @@
 			{{ t('oidc', 'Email Verified Flag') }}
 		</p>
 		<select id="overwriteEmailVerified"
-			v-model="owEmailVerified"
+			v-model="localOverwriteEmailVerified"
 			:placeholder="t('oidc', 'Source for email verified flag in token')"
 			@change="setOverwriteEmailVerified">
 			<option disabled value="">
@@ -188,9 +188,11 @@
 			</option>
 		</select>
 
-		<p style="margin-top: 1.5em;">{{ t('oidc', 'Integrate avatar in user info/ID token') }}</p>
+		<p style="margin-top: 1.5em;">
+			{{ t('oidc', 'Integrate avatar in user info/ID token') }}
+		</p>
 		<select id="integrateAvatar"
-			v-model="intAvatar"
+			v-model="localIntegrateAvatar"
 			:placeholder="t('oidc', 'Method for integration of avatar')"
 			@change="setIntegrateAvatar">
 			<option disabled value="">
@@ -207,11 +209,13 @@
 			</option>
 		</select>
 
-		<p style="margin-top: 1.5em;">{{ t('oidc', 'Accepted Logout Redirect URIs') }}</p>
-		<table v-if="logoutRedirectUris.length > 0" class="grid">
-			<tbody v-if="logoutRedirectUris"
+		<p style="margin-top: 1.5em;">
+			{{ t('oidc', 'Accepted Logout Redirect URIs') }}
+		</p>
+		<table v-if="localLogoutRedirectUris.length > 0" class="grid">
+			<tbody v-if="localLogoutRedirectUris"
 				:key="version">
-				<RedirectItem v-for="redirectUri in logoutRedirectUris"
+				<RedirectItem v-for="redirectUri in localLogoutRedirectUris"
 					:id="redirectUri.id"
 					:key="redirectUri.id"
 					:redirect-uri="redirectUri.redirectUri"
@@ -229,7 +233,7 @@
 		<p style="margin-top: 1.5em;">
 			{{ t('oidc', 'Public Key') }}
 		</p>
-		<code>{{ publicKey }}</code>
+		<code>{{ localPublicKey }}</code>
 		<br>
 		<form @submit.prevent="regenerateKeys">
 			<input type="submit" class="button" :value="t('oidc', 'Regenerate Keys')">
@@ -238,11 +242,12 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 import OIDCItem from './components/OIDCItem.vue'
 import RedirectItem from './components/RedirectItem.vue'
 import { generateUrl } from '@nextcloud/router'
-import NcSettingsSection from '@nextcloud/vue/dist/Components/NcSettingsSection.js'
+import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 
 export default {
 	name: 'App',
@@ -291,6 +296,7 @@ export default {
 	},
 	data() {
 		return {
+			localClients: this.clients,
 			newClient: {
 				name: '',
 				redirectUri: '',
@@ -304,25 +310,31 @@ export default {
 			newLogoutRedirectUri: {
 				redirectUri: '',
 			},
-			expTime: this.expireTime,
-			refreshExpTime: this.refreshExpireTime,
-			intAvatar: this.integrateAvatar,
-			owEmailVerified: this.overwriteEmailVerified,
-			dynClientRegistration: this.dynamicClientRegistration,
+			localLogoutRedirectUris: this.logoutRedirectUris,
+			localPublicKey: this.publicKey,
+			localExpireTime: this.expireTime,
+			localRefreshExpireTime: this.refreshExpireTime,
+			localIntegrateAvatar: this.integrateAvatar,
+			localOverwriteEmailVerified: this.overwriteEmailVerified,
+			localDynamicClientRegistration: this.dynamicClientRegistration,
 			error: false,
 			errorMsg: '',
 			version: 0,
 		}
 	},
+	computed: {
+		oc() {
+			return window.OC
+		},
+	},
 	methods: {
+		t,
 		deleteRedirectUri(id) {
 			axios.delete(generateUrl('apps/oidc/clients/redirect/{id}', { id }))
 				.then((response) => {
-					// eslint-disable-next-line vue/no-mutating-props
-					this.clients.splice(0, this.clients.length)
-					for (let index = 0; index < response.data.length; index++) {
-						// eslint-disable-next-line vue/no-mutating-props
-						this.clients.push(response.data[index])
+					this.localClients.splice(0, this.localClients.length)
+					for (const entry of response.data) {
+						this.localClients.push(entry)
 					}
 					this.version += 1
 				}).catch(reason => {
@@ -338,13 +350,11 @@ export default {
 				{
 					id,
 					redirectUri: uri,
-				}
+				},
 			).then(response => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.clients.splice(0, this.clients.length)
-				for (let index = 0; index < response.data.length; index++) {
-					// eslint-disable-next-line vue/no-mutating-props
-					this.clients.push(response.data[index])
+				this.localClients.splice(0, this.localClients.length)
+				for (const entry of response.data) {
+					this.localClients.push(entry)
 				}
 				this.version += 1
 			}).catch(reason => {
@@ -353,10 +363,11 @@ export default {
 			})
 		},
 		deleteLogoutRedirectUri(id) {
+			this.error = false
+
 			axios.delete(generateUrl('apps/oidc/logoutRedirect/{id}', { id }))
 				.then((response) => {
-					// eslint-disable-next-line vue/no-mutating-props
-					this.logoutRedirectUris = response.data
+					this.localLogoutRedirectUris = response.data
 					this.version += 1
 				}).catch(reason => {
 					this.error = true
@@ -370,10 +381,9 @@ export default {
 				generateUrl('apps/oidc/logoutRedirect'),
 				{
 					redirectUri: this.newLogoutRedirectUri.redirectUri,
-				}
+				},
 			).then(response => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.logoutRedirectUris = response.data
+				this.localLogoutRedirectUris = response.data
 				this.newLogoutRedirectUri.redirectUri = ''
 				this.version += 1
 			}).catch(reason => {
@@ -384,8 +394,7 @@ export default {
 		deleteClient(id) {
 			axios.delete(generateUrl('apps/oidc/clients/{id}', { id }))
 				.then((response) => {
-					// eslint-disable-next-line vue/no-mutating-props
-					this.clients = this.clients.filter(client => client.id !== id)
+					this.localClients = this.localClients.filter(client => client.id !== id)
 				})
 		},
 		addClient() {
@@ -400,10 +409,9 @@ export default {
 					type: this.newClient.type,
 					flowType: this.newClient.flowType,
 					tokenType: this.newClient.tokenType,
-				}
+				},
 			).then(response => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.clients.push(response.data)
+				this.localClients.push(response.data)
 
 				this.newClient.name = ''
 				this.newClient.redirectUri = ''
@@ -420,65 +428,52 @@ export default {
 			axios.post(
 				generateUrl('apps/oidc/expire'),
 				{
-					expireTime: this.expTime,
+					expireTime: this.localExpireTime,
 				}).then((response) => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.expTime = response.data.expire_time
-				// eslint-disable-next-line vue/no-mutating-props
-				this.expireTime = response.data.expire_time
+				this.localExpireTime = response.data.expire_time
 			})
 		},
 		setRefreshExpireTime() {
 			axios.post(
 				generateUrl('apps/oidc/refreshExpire'),
 				{
-					refreshExpireTime: this.refreshExpTime,
+					refreshExpireTime: this.localRefreshExpireTime,
 				}).then((response) => {
-				this.refreshExpTime = response.data.refresh_expire_time
+				this.localRefreshExpireTime = response.data.refresh_expire_time
 			})
 		},
 		setIntegrateAvatar() {
 			axios.post(
 				generateUrl('apps/oidc/integrateAvatar'),
 				{
-					integrateAvatar: this.intAvatar,
+					integrateAvatar: this.localIntegrateAvatar,
 				}).then((response) => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.intAvatar = response.data.integrate_avatar
-				// eslint-disable-next-line vue/no-mutating-props
-				this.integrateAvatar = response.data.integrate_avatar
+				this.localIntegrateAvatar = response.data.integrate_avatar
 			})
 		},
 		setOverwriteEmailVerified() {
 			axios.post(
 				generateUrl('apps/oidc/overwriteEmailVerified'),
 				{
-					overwriteEmailVerified: this.owEmailVerified,
+					overwriteEmailVerified: this.localOverwriteEmailVerified,
 				}).then((response) => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.overwriteEmailVerified = response.data.overwrite_email_verified
-				// eslint-disable-next-line vue/no-mutating-props
-				this.owEmailVerified = response.data.overwrite_email_verified
+				this.localOverwriteEmailVerified = response.data.overwrite_email_verified
 			})
 		},
 		setDynamicClientRegistration() {
 			axios.post(
 				generateUrl('apps/oidc/dynamicClientRegistration'),
 				{
-					dynamicClientRegistration: this.dynClientRegistration,
+					dynamicClientRegistration: this.localDynamicClientRegistration,
 				}).then((response) => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.dynamicClientRegistration = response.data.dynamic_client_registration
-				// eslint-disable-next-line vue/no-mutating-props
-				this.dynClientRegistration = response.data.dynamic_client_registration
+				this.localDynamicClientRegistration = response.data.dynamic_client_registration
 			})
 		},
 		regenerateKeys() {
 			axios.post(
 				generateUrl('apps/oidc/genKeys'),
 				{}).then((response) => {
-				// eslint-disable-next-line vue/no-mutating-props
-				this.publicKey = response.data.public_key
+				this.localPublicKey = response.data.public_key
 			})
 		},
 		updateGroups(id, groups) {
@@ -489,7 +484,7 @@ export default {
 				{
 					id,
 					groups,
-				}
+				},
 			).then(response => {
 				// Nothing to do
 			}).catch(reason => {
@@ -509,7 +504,7 @@ export default {
 				{
 					id,
 					flowType: resultingFlowTypes,
-				}
+				},
 			).then(response => {
 				// Nothing to do
 			}).catch(reason => {
@@ -525,7 +520,7 @@ export default {
 				{
 					id,
 					tokenType,
-				}
+				},
 			).then(response => {
 				// Nothing to do
 			}).catch(reason => {
@@ -536,8 +531,12 @@ export default {
 	},
 }
 </script>
-<style scoped>
+<style>
 	table {
 		max-width: 800px;
+	}
+	#oidc .settings-section h2.settings-section__name {
+		font-size: 20px !important;
+		font-weight: bold !important;
 	}
 </style>

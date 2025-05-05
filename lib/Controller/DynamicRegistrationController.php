@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -114,14 +114,14 @@ class DynamicRegistrationController extends ApiController
     #[NoCSRFRequired]
     #[PublicPage]
     public function registerClient(
-        array $redirect_uris = null,
-        string $client_name = null,
+        array|null $redirect_uris = null,
+        string|null $client_name = null,
         string $id_token_signed_response_alg = 'RS256',
         array $response_types = ['code'],
         string $application_type = 'web',
         ): JSONResponse
     {
-        if ($this->appConfig->getAppValue('dynamic_client_registration', 'false') != 'true') {
+        if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
             $this->logger->info('Access to register dynamic client, but functionality disabled.');
             return new JSONResponse([
                 'error' => 'dynamic_registration_not_allowed',
@@ -206,7 +206,7 @@ class DynamicRegistrationController extends ApiController
             'id_token_signed_response_alg' => $client->getSigningAlg(),
             'application_type' => $application_type,
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValue('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME)
+            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME)
         ];
 
         $response = new JSONResponse($jsonResponse, Http::STATUS_CREATED);

@@ -1,5 +1,5 @@
 <!--
-  - @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+  - @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
   -
   - @author Thorsten Jagel <dev@jagel.net>
   -
@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import { t } from '@nextcloud/l10n'
 
 export default {
 	name: 'RedirectItem',
@@ -47,6 +48,9 @@ export default {
 	data() {
 		return {
 		}
+	},
+	methods: {
+		t,
 	},
 }
 </script>

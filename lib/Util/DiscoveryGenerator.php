@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -143,7 +143,7 @@ class DiscoveryGenerator
             'phone_number',
             'address',
             'picture',
-			'quota',
+            'quota',
         ];
 
         $discoveryPayload = [
@@ -184,7 +184,7 @@ class DiscoveryGenerator
             'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
         ];
 
-        if ($this->appConfig->getAppValue(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION) == 'true') {
+        if ($this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION) == 'true') {
             $discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
         }
 

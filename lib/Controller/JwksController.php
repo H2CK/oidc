@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -27,10 +27,8 @@ namespace OCA\OIDCIdentityProvider\Controller;
 
 use OC\Security\Bruteforce\Throttler;
 use OCP\AppFramework\ApiController;
-use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
@@ -104,9 +102,9 @@ class JwksController extends ApiController
             'use' => 'sig',
             'key_ops' => $keyOps,
             'alg' => 'RS256',
-            'kid' => $this->appConfig->getAppValue('kid'),
-            'n' => $this->appConfig->getAppValue('public_key_n'),
-            'e' => $this->appConfig->getAppValue('public_key_e'),
+            'kid' => $this->appConfig->getAppValueString('kid'),
+            'n' => $this->appConfig->getAppValueString('public_key_n'),
+            'e' => $this->appConfig->getAppValueString('public_key_e'),
         ];
 
         $keys = [

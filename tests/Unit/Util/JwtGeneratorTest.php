@@ -142,7 +142,7 @@ class JwtGeneratorTest extends TestCase {
 
         // Mock necessary methods
         $this->appConfig
-            ->method('getAppValue')
+            ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
                 ['expire_time', Application::DEFAULT_EXPIRE_TIME, '3600'],
@@ -204,9 +204,9 @@ class JwtGeneratorTest extends TestCase {
             'use' => 'sig',
             'key_ops' => [ 'verify' ],
             'alg' => 'RS256',
-            'kid' => $this->appConfig->getAppValue('kid'),
-            'n' => $this->appConfig->getAppValue('public_key_n'),
-            'e' => $this->appConfig->getAppValue('public_key_e'),
+            'kid' => $this->appConfig->getAppValueString('kid'),
+            'n' => $this->appConfig->getAppValueString('public_key_n'),
+            'e' => $this->appConfig->getAppValueString('public_key_e'),
         ];
 
         $jwks = [
@@ -247,7 +247,7 @@ class JwtGeneratorTest extends TestCase {
 
         // Mock necessary methods
         $this->appConfig
-            ->method('getAppValue')
+            ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
                 ['expire_time', Application::DEFAULT_EXPIRE_TIME, '3600'],
@@ -315,9 +315,9 @@ class JwtGeneratorTest extends TestCase {
             'use' => 'sig',
             'key_ops' => [ 'verify' ],
             'alg' => 'RS256',
-            'kid' => $this->appConfig->getAppValue('kid'),
-            'n' => $this->appConfig->getAppValue('public_key_n'),
-            'e' => $this->appConfig->getAppValue('public_key_e'),
+            'kid' => $this->appConfig->getAppValueString('kid'),
+            'n' => $this->appConfig->getAppValueString('public_key_n'),
+            'e' => $this->appConfig->getAppValueString('public_key_e'),
         ];
 
         $jwks = [

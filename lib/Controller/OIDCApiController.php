@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -149,8 +149,8 @@ class OIDCApiController extends ApiController {
     #[NoCSRFRequired]
     public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
     {
-        $expireTime = (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
-        $refreshExpireTime = $this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
+        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
+        $refreshExpireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         // We only handle two types
         if ($grant_type !== 'authorization_code' && $grant_type !== 'refresh_token') {
             $this->logger->notice('Invalid grant_type provided. Must be authorization_code or refresh_token for client id ' . $client_id . '.');
@@ -211,7 +211,7 @@ class OIDCApiController extends ApiController {
         }
 
         // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValue(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
             return new JSONResponse([
                 'error' => 'expired_client',
@@ -272,15 +272,15 @@ class OIDCApiController extends ApiController {
                 'error_description' => 'Access token not allowed for user groups.',
             ], Http::STATUS_BAD_REQUEST);
         }
-		try {
-			$accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
-		} catch (JwtCreationErrorException $e) {
-			$this->logger->notice('An error occured during creation of JWT.');
+        try {
+            $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+        } catch (JwtCreationErrorException $e) {
+            $this->logger->notice('An error occured during creation of JWT.');
             return new JSONResponse([
                 'error' => 'server_error',
                 'error_description' => 'An error occured during creation of JWT.',
             ], Http::STATUS_INTERNAL_SERVER_ERROR);
-		}
+        }
         $this->accessTokenMapper->update($accessToken);
 
         $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), false);

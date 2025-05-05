@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -142,9 +142,6 @@ class CorsController extends ApiController
         $response = new Response();
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
-        // $response->addHeader('Access-Control-Max-Age', '1728000');
-        // $response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-        // $response->addHeader('Access-Control-Allow-Credentials', 'false');
         return $response;
     }
 

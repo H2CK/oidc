@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -43,7 +43,7 @@ class CreateKeys implements IRepairStep {
 
     public function run(IOutput $output) {
         $output->info("Check for OIDC key material.");
-        if ($this->appConfig->getAppValue('kid') === '' ) {
+        if ($this->appConfig->getAppValueString('kid') === '' ) {
             $output->info("Creating OIDC key material.");
             $config = array(
                 "digest_alg" => 'sha512',
@@ -56,17 +56,17 @@ class CreateKeys implements IRepairStep {
             $keyDetails = openssl_pkey_get_details($keyPair);
             $publicKey = $keyDetails['key'];
 
-            $this->appConfig->setAppValue('private_key', $privateKey);
-            $this->appConfig->setAppValue('public_key', $publicKey);
+            $this->appConfig->setAppValueString('private_key', $privateKey);
+            $this->appConfig->setAppValueString('public_key', $publicKey);
             $uuid = $this->guidv4();
-            $this->appConfig->setAppValue('kid', $uuid);
+            $this->appConfig->setAppValueString('kid', $uuid);
             $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
             $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
-            $this->appConfig->setAppValue('public_key_n', $modulus);
-            $this->appConfig->setAppValue('public_key_e', $exponent);
+            $this->appConfig->setAppValueString('public_key_n', $modulus);
+            $this->appConfig->setAppValueString('public_key_e', $exponent);
         }
-        if ($this->appConfig->getAppValue('expire_time') === '' ) {
-            $this->appConfig->setAppValue('expire_time', '900');
+        if ($this->appConfig->getAppValueString('expire_time') === '' ) {
+            $this->appConfig->setAppValueString('expire_time', '900');
         }
     }
 

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2024 Thorsten Jagel <dev@jagel.net>
+ * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
  *
  * @author Thorsten Jagel <dev@jagel.net>
  *
@@ -27,14 +27,10 @@ namespace OCA\OIDCIdentityProvider\Controller;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
-use OC\Authentication\Token\IProvider;
-use OC\Authentication\Token\IToken;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
-use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IUserSession;
 use OCP\IUserManager;
@@ -42,8 +38,6 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
-use OCP\IInitialStateService;
-use OC_App;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
@@ -60,10 +54,10 @@ use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\ExpiredException;
 use DomainException;
 use InvalidArgumentException;
+use UnexpectedValueException;
 use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use UnexpectedValueException;
 
 class LogoutController extends ApiController
 {
@@ -150,9 +144,9 @@ class LogoutController extends ApiController
     #[UseSession]
     #[PublicPage]
     public function logout(
-                    $client_id,		// Optional
+                    $client_id, // Optional
                     $refresh_token, // Not standardized - deprecated will not be used any more
-                    $id_token_hint,  // Recommended to be used
+                    $id_token_hint, // Recommended to be used
                     $post_logout_redirect_uri // Optional url to be redirected to after logout
                     ): Response
     {
@@ -164,9 +158,9 @@ class LogoutController extends ApiController
                 'use' => 'sig',
                 'key_ops' => [ 'verify' ],
                 'alg' => 'RS256',
-                'kid' => $this->appConfig->getAppValue('kid'),
-                'n' => $this->appConfig->getAppValue('public_key_n'),
-                'e' => $this->appConfig->getAppValue('public_key_e'),
+                'kid' => $this->appConfig->getAppValueString('kid'),
+                'n' => $this->appConfig->getAppValueString('public_key_n'),
+                'e' => $this->appConfig->getAppValueString('public_key_e'),
             ];
 
             $jwks = [
@@ -216,8 +210,8 @@ class LogoutController extends ApiController
                 // provided JWT is trying to be used after "exp" claim.
                 // $this->logger->error('Provided JWT is trying to be used after "exp" claim.');
                 // return new JSONResponse([
-                // 	'error' => 'invalid_jwt',
-                // 	'error_description' => 'Provided JWT is trying to be used after "exp" claim.'
+                //   'error' => 'invalid_jwt',
+                //   'error_description' => 'Provided JWT is trying to be used after "exp" claim.'
                 // ], Http::STATUS_UNAUTHORIZED);
             } catch (UnexpectedValueException $e) {
                 // provided JWT is malformed OR
