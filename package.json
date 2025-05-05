@@ -32,10 +32,7 @@
 		"@nextcloud/logger": "^3.0.2",
 		"@nextcloud/router": "^3.0.1",
 		"@nextcloud/vue": "^9.0.0-alpha.8",
-		"json5": "^2.2.3",
-		"linkifyjs": "^4.2.0",
 		"postcss-html": "^1.8.0",
-		"sass": "^1.87.0",
 		"webpack": "^5.99.7"
 	},
 	"browserslist": [
