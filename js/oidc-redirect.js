@@ -16053,25 +16053,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.runtime.esm-bundler.js");
 /* harmony import */ var _Redirect_vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Redirect.vue */ "./src/Redirect.vue");
 /**
- * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
- *
- * @author Thorsten Jagel <dev@jagel.net>
- *
- * @license AGPL-3.0-or-later
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
+ * SPDX-FileCopyrightText: 2022-2025 Thorsten Jagel <dev@jagel.net>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
 // eslint-disable-next-line n/no-extraneous-import
@@ -16084,4 +16067,4 @@ app.mount('#oidc-redirect');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-redirect.js.map?v=9a006fb9b81bafaeac53
+//# sourceMappingURL=oidc-redirect.js.map?v=ec78eaea235867956b41

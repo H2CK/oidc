@@ -3,46 +3,25 @@
 declare(strict_types=1);
 
 /**
- * @copyright Copyright (c) 2022-2025 Thorsten Jagel <dev@jagel.net>
- *
- * @author Thorsten Jagel <dev@jagel.net>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
+ * SPDX-FileCopyrightText: 2022-2025 Thorsten Jagel <dev@jagel.net>
+ * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
-use OC\Authentication\Token\IProvider;
-use OC\Authentication\Token\IToken;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\Security\ICrypto;
 use OCP\Security\ISecureRandom;
 use OCP\IUserSession;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
-use OCP\AppFramework\Services\IInitialState;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -77,10 +56,6 @@ class LoginRedirectorController extends ApiController
     private $redirectUriMapper;
     /** @var ISecureRandom */
     private $random;
-    /** @var ICrypto */
-    private $crypto;
-    /** @var IProvider */
-    private $tokenProvider;
     /** @var ISession */
     private $session;
     /** @var IL10N */
@@ -91,8 +66,6 @@ class LoginRedirectorController extends ApiController
     private $userSession;
     /** @var IGroupManager */
     private $groupManager;
-    /** @var IInitialState */
-    private $initialState;
     /** @var IAppConfig */
     private $appConfig;
     /** @var JwtGenerator */
@@ -107,8 +80,6 @@ class LoginRedirectorController extends ApiController
      * @param ClientMapper $clientMapper
      * @param GroupMapper $groupMapper
      * @param ISecureRandom $random
-     * @param ICrypto $crypto
-     * @param IProvider $tokenProvider
      * @param ISession $session
      * @param IL10N $l
      * @param ITimeFactory $time
@@ -116,7 +87,6 @@ class LoginRedirectorController extends ApiController
      * @param IGroupManager $groupManager
      * @param AccessTokenMapper $accessTokenMapper
      * @param RedirectUriMapper $redirectUriMapper
-     * @param IInitialState $initialState
      * @param IAppConfig $appConfig
      * @param JwtGenerator $jwtGenerator
      * @param LoggerInterface $loggerInterface
@@ -128,8 +98,6 @@ class LoginRedirectorController extends ApiController
                     ClientMapper $clientMapper,
                     GroupMapper $groupMapper,
                     ISecureRandom $random,
-                    ICrypto $crypto,
-                    IProvider $tokenProvider,
                     ISession $session,
                     IL10N $l,
                     ITimeFactory $time,
@@ -137,7 +105,6 @@ class LoginRedirectorController extends ApiController
                     IGroupManager $groupManager,
                     AccessTokenMapper $accessTokenMapper,
                     RedirectUriMapper $redirectUriMapper,
-                    IInitialState $initialState,
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
                     LoggerInterface $logger
@@ -150,8 +117,6 @@ class LoginRedirectorController extends ApiController
         $this->clientMapper = $clientMapper;
         $this->groupMapper = $groupMapper;
         $this->random = $random;
-        $this->crypto = $crypto;
-        $this->tokenProvider = $tokenProvider;
         $this->session = $session;
         $this->l = $l;
         $this->time = $time;
@@ -159,7 +124,6 @@ class LoginRedirectorController extends ApiController
         $this->groupManager = $groupManager;
         $this->accessTokenMapper = $accessTokenMapper;
         $this->redirectUriMapper = $redirectUriMapper;
-        $this->initialState = $initialState;
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
         $this->logger = $logger;

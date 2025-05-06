@@ -301,7 +301,7 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals('opaque', $this->client->getTokenType(), 'TokenType does not match!');
     }
 
-    public function testAddRedirectUritBadRedirectUri() {
+    public function testAddRedirectUriBadRedirectUri() {
         $id = '11';
         $redirectUri = 'bad-uri';
 

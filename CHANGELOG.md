@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.7.0] - 2025-05-05
+## [1.7.0] - 2025-05-06
 
 ### Changed
 
@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - Allow use of non-http/https redirect urls when creating a client
 - Removed support for Nextcloud 28 and 29
 - Switch to Vue 3
+- Refactoring of code
+- Added unnit tests
 - Refactoring of documentation
 - Updated dependencies
 - Updated translations
