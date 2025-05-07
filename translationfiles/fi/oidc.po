@@ -18,7 +18,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-05-06 02:22+0000\n"
+"POT-Creation-Date: 2025-05-07 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2025\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Language: fi_FI\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:260
+#: /app/lib/Controller/LoginRedirectorController.php:224
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
@@ -36,12 +36,12 @@ msgstr ""
 "Asiakastasi ei ole valtuutettu yhdistämään. Ilmoita ylläpidolle "
 "asiakkaastasi."
 
-#: /app/lib/Controller/LoginRedirectorController.php:270
+#: /app/lib/Controller/LoginRedirectorController.php:234
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
 msgstr "Asiakkaasi on vanhentunut. Ilmoita asiakkaasi ylläpitäjälle."
 
-#: /app/lib/Controller/LoginRedirectorController.php:286
+#: /app/lib/Controller/LoginRedirectorController.php:250
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
@@ -49,7 +49,7 @@ msgstr ""
 "Vastaanotettua uudelleenohjauksen URI:tä ei hyväksytä yhteyden "
 "muodostamiseen. Ilmoita asiasta asiakkaasi ylläpitäjälle."
 
-#: /app/lib/Controller/LoginRedirectorController.php:340
+#: /app/lib/Controller/LoginRedirectorController.php:304
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
@@ -57,15 +57,15 @@ msgstr ""
 "Käyttäjä ei kuulu asiakkaalle määritettyihin ryhmiin. Et saa hakea "
 "kirjautumistunnusta."
 
-#: /app/lib/Controller/LoginRedirectorController.php:369
+#: /app/lib/Controller/LoginRedirectorController.php:333
 msgid ""
 "A failure during JWT creation occured. Please inform the administrator of "
 "your client."
 msgstr ""
 "JWT:n luomisessa tapahtui virhe. Ilmoita asiasta asiakkaasi ylläpitäjälle."
 
-#: /app/lib/Controller/SettingsController.php:109
-#: /app/lib/Controller/SettingsController.php:223
+#: /app/lib/Controller/SettingsController.php:92
+#: /app/lib/Controller/SettingsController.php:206
 msgid ""
 "Your redirect URL needs to be a full URL for example: "
 "https://yourdomain.com/path"
@@ -73,12 +73,12 @@ msgstr ""
 "Uudelleenohjauksen URL-osoitteen on oltava täydellinen URL-osoite, "
 "esimerkiksi: https://yourdomain.com/path"
 
-#: /app/lib/Settings/Admin.php:118
+#: /app/lib/Settings/Admin.php:101
 #: /app/specialVueFakeDummyForL10nScript.js:451
 msgid "Code Authorization Flow"
 msgstr "Koodin hyväksyntävirta"
 
-#: /app/lib/Settings/Admin.php:121
+#: /app/lib/Settings/Admin.php:104
 #: /app/specialVueFakeDummyForL10nScript.js:455
 msgid "Code & Implicit Authorization Flow"
 msgstr "Koodi ja implisiittisen valtuutuksen virtaus"
@@ -113,12 +113,12 @@ msgstr ""
 "- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
-#. TRANSLATORS src/App.vue:23
+#. TRANSLATORS src/App.vue:6
 #: /app/specialVueFakeDummyForL10nScript.js:292
 msgid "OpenID Connect clients"
 msgstr "OpenID Connect -asiakkaat"
 
-#. TRANSLATORS src/App.vue:24
+#. TRANSLATORS src/App.vue:7
 #: /app/specialVueFakeDummyForL10nScript.js:294
 msgid ""
 "OpenID Connect allows to authenticate at external services with "
@@ -127,21 +127,21 @@ msgstr ""
 "OpenID Connect mahdollistaa tunnistautumisen ulkoisiin palveluihin "
 "{instanceName}-käyttäjätunnuksilla."
 
-#. TRANSLATORS src/App.vue:51
+#. TRANSLATORS src/App.vue:34
 #: /app/specialVueFakeDummyForL10nScript.js:296
 msgid "Add client"
 msgstr "Lisää asiakas"
 
-#. TRANSLATORS src/App.vue:58
-#. TRANSLATORS src/components/OIDCItem.vue:28
+#. TRANSLATORS src/App.vue:41
+#. TRANSLATORS src/components/OIDCItem.vue:11
 #: /app/specialVueFakeDummyForL10nScript.js:298
 #: /app/specialVueFakeDummyForL10nScript.js:510
 msgid "Name"
 msgstr "Nimi"
 
-#. TRANSLATORS src/App.vue:63
-#. TRANSLATORS src/components/OIDCItem.vue:32
-#. TRANSLATORS src/components/OIDCItem.vue:46
+#. TRANSLATORS src/App.vue:46
+#. TRANSLATORS src/components/OIDCItem.vue:15
+#. TRANSLATORS src/components/OIDCItem.vue:29
 #: /app/specialVueFakeDummyForL10nScript.js:300
 #: /app/specialVueFakeDummyForL10nScript.js:388
 #: /app/specialVueFakeDummyForL10nScript.js:512
@@ -149,285 +149,285 @@ msgstr "Nimi"
 msgid "Redirection URI"
 msgstr "Uudelleenohjaus URI"
 
-#. TRANSLATORS src/App.vue:67
+#. TRANSLATORS src/App.vue:50
 #: /app/specialVueFakeDummyForL10nScript.js:302
 msgid "Select Signing Algorithm"
 msgstr "Valitse allekirjoitusalgoritmi"
 
-#. TRANSLATORS src/App.vue:79
+#. TRANSLATORS src/App.vue:62
 #: /app/specialVueFakeDummyForL10nScript.js:304
 msgid "Select Type"
 msgstr "Valitse tyyppi"
 
-#. TRANSLATORS src/App.vue:82
+#. TRANSLATORS src/App.vue:65
 #: /app/specialVueFakeDummyForL10nScript.js:306
 msgid "Confidential"
 msgstr "Luottamuksellinen"
 
-#. TRANSLATORS src/App.vue:85
+#. TRANSLATORS src/App.vue:68
 #: /app/specialVueFakeDummyForL10nScript.js:308
 msgid "Public"
 msgstr "Julkinen"
 
-#. TRANSLATORS src/App.vue:88
-#. TRANSLATORS src/components/OIDCItem.vue:47
+#. TRANSLATORS src/App.vue:71
+#. TRANSLATORS src/components/OIDCItem.vue:30
 #: /app/specialVueFakeDummyForL10nScript.js:310
 #: /app/specialVueFakeDummyForL10nScript.js:390
 #: /app/specialVueFakeDummyForL10nScript.js:518
 msgid "Add"
 msgstr "Lisää"
 
-#. TRANSLATORS src/App.vue:92
+#. TRANSLATORS src/App.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:312
 msgid "Settings"
 msgstr "Asetukset"
 
-#. TRANSLATORS src/App.vue:93
-#. TRANSLATORS src/App.vue:96
+#. TRANSLATORS src/App.vue:76
+#. TRANSLATORS src/App.vue:79
 #: /app/specialVueFakeDummyForL10nScript.js:314
 #: /app/specialVueFakeDummyForL10nScript.js:316
 msgid "Token Expire Time"
 msgstr "Tokenin viimeinen voimassaoloaika"
 
-#. TRANSLATORS src/App.vue:99
+#. TRANSLATORS src/App.vue:82
 #: /app/specialVueFakeDummyForL10nScript.js:318
 msgid "Select Token Expire Time"
 msgstr "Valitse Tokenin viimeinen voimassaoloaika"
 
-#. TRANSLATORS src/App.vue:102
+#. TRANSLATORS src/App.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:320
 #: /app/specialVueFakeDummyForL10nScript.js:336
 msgid "5 minutes"
 msgstr "5 minuuttia"
 
-#. TRANSLATORS src/App.vue:105
+#. TRANSLATORS src/App.vue:88
 #: /app/specialVueFakeDummyForL10nScript.js:322
 #: /app/specialVueFakeDummyForL10nScript.js:338
 msgid "10 minutes"
 msgstr "10 minuuttia"
 
-#. TRANSLATORS src/App.vue:108
+#. TRANSLATORS src/App.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:324
 #: /app/specialVueFakeDummyForL10nScript.js:340
 msgid "15 minutes"
 msgstr "15 minuuttia"
 
-#. TRANSLATORS src/App.vue:111
+#. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:326
 #: /app/specialVueFakeDummyForL10nScript.js:342
 msgid "30 minutes"
 msgstr "30 minuuttia"
 
-#. TRANSLATORS src/App.vue:114
+#. TRANSLATORS src/App.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:328
 #: /app/specialVueFakeDummyForL10nScript.js:344
 msgid "60 minutes"
 msgstr "60 minuuttia"
 
-#. TRANSLATORS src/App.vue:118
-#. TRANSLATORS src/App.vue:121
+#. TRANSLATORS src/App.vue:101
+#. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:330
 #: /app/specialVueFakeDummyForL10nScript.js:332
 msgid "Refresh Token Expire Time"
 msgstr "Refresh Tokenin vanhentumisaika"
 
-#. TRANSLATORS src/App.vue:124
+#. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:334
 msgid "Select Refresh Token Expire Time"
 msgstr "Valitse Refresh Token Expire Time"
 
-#. TRANSLATORS src/App.vue:142
+#. TRANSLATORS src/App.vue:125
 #: /app/specialVueFakeDummyForL10nScript.js:346
 msgid "12 hours"
 msgstr "12 tuntia"
 
-#. TRANSLATORS src/App.vue:145
+#. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:348
 msgid "1 day"
 msgstr "1 päivä"
 
-#. TRANSLATORS src/App.vue:148
+#. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:350
 msgid "7 days"
 msgstr "7 päivää"
 
-#. TRANSLATORS src/App.vue:151
+#. TRANSLATORS src/App.vue:134
 #: /app/specialVueFakeDummyForL10nScript.js:352
 msgid "Never"
 msgstr "Ei koskaan"
 
-#. TRANSLATORS src/App.vue:156
+#. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:354
 msgid "Dynamic Client Registration"
 msgstr "Dynaaminen asiakkaan rekisteröinti"
 
-#. TRANSLATORS src/App.vue:160
+#. TRANSLATORS src/App.vue:143
 #: /app/specialVueFakeDummyForL10nScript.js:356
 msgid "Enable or disable Dynamic Client Registration"
 msgstr "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä"
 
-#. TRANSLATORS src/App.vue:163
+#. TRANSLATORS src/App.vue:146
 #: /app/specialVueFakeDummyForL10nScript.js:358
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr "Ota dynaaminen asiakasrekisteröinti käyttöön tai poista se käytöstä"
 
-#. TRANSLATORS src/App.vue:166
+#. TRANSLATORS src/App.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:360
 msgid "Disable"
 msgstr "Poista käytöstä"
 
-#. TRANSLATORS src/App.vue:169
+#. TRANSLATORS src/App.vue:152
 #: /app/specialVueFakeDummyForL10nScript.js:362
 msgid "Enable"
 msgstr "Käytä"
 
-#. TRANSLATORS src/App.vue:174
+#. TRANSLATORS src/App.vue:157
 #: /app/specialVueFakeDummyForL10nScript.js:364
 msgid "Email Verified Flag"
 msgstr "Sähköpostivarmennettu attribuutti"
 
-#. TRANSLATORS src/App.vue:178
+#. TRANSLATORS src/App.vue:161
 #: /app/specialVueFakeDummyForL10nScript.js:366
 msgid "Source for email verified flag in token"
 msgstr "Sähköpostin todennetun attribuutin lähde tokenissa"
 
-#. TRANSLATORS src/App.vue:181
+#. TRANSLATORS src/App.vue:164
 #: /app/specialVueFakeDummyForL10nScript.js:368
 msgid "Select behaviour for setting email verified flag"
 msgstr ""
 "Valitse käyttäytyminen sähköpostin todennetun attribuutin asettamista varten"
 
-#. TRANSLATORS src/App.vue:184
+#. TRANSLATORS src/App.vue:167
 #: /app/specialVueFakeDummyForL10nScript.js:370
 msgid "Use Nextcloud account information"
 msgstr "Käytä Nextcloud-tilin tietoja"
 
-#. TRANSLATORS src/App.vue:187
+#. TRANSLATORS src/App.vue:170
 #: /app/specialVueFakeDummyForL10nScript.js:372
 msgid "Set to always verified"
 msgstr "Asetetaan aina tarkistetuksi"
 
-#. TRANSLATORS src/App.vue:192
+#. TRANSLATORS src/App.vue:175
 #: /app/specialVueFakeDummyForL10nScript.js:374
 msgid "Integrate avatar in user info/ID token"
 msgstr "Avatarin sisällyttäminen käyttäjän tietoihin/tunnisteeseen"
 
-#. TRANSLATORS src/App.vue:196
+#. TRANSLATORS src/App.vue:179
 #: /app/specialVueFakeDummyForL10nScript.js:376
 msgid "Method for integration of avatar"
 msgstr "Menetelmä avatarin integroimiseksi"
 
-#. TRANSLATORS src/App.vue:199
+#. TRANSLATORS src/App.vue:182
 #: /app/specialVueFakeDummyForL10nScript.js:378
 msgid "Select how the avatar image should be integrated"
 msgstr "Valitse, miten avatar-kuva integroidaan"
 
-#. TRANSLATORS src/App.vue:202
+#. TRANSLATORS src/App.vue:185
 #: /app/specialVueFakeDummyForL10nScript.js:380
 msgid "No integration"
 msgstr "Ei integrointia"
 
-#. TRANSLATORS src/App.vue:205
+#. TRANSLATORS src/App.vue:188
 #: /app/specialVueFakeDummyForL10nScript.js:382
 msgid "Add to user info"
 msgstr "Lisää käyttäjätietoihin"
 
-#. TRANSLATORS src/App.vue:208
+#. TRANSLATORS src/App.vue:191
 #: /app/specialVueFakeDummyForL10nScript.js:384
 msgid "Add to user info and ID token"
 msgstr "Lisää käyttäjätietoihin ja ID-tunnisteeseen"
 
-#. TRANSLATORS src/App.vue:213
+#. TRANSLATORS src/App.vue:196
 #: /app/specialVueFakeDummyForL10nScript.js:386
 msgid "Accepted Logout Redirect URIs"
 msgstr "Hyväksytyt uloskirjautumisen uudelleenohjauksen URI"
 
-#. TRANSLATORS src/App.vue:234
+#. TRANSLATORS src/App.vue:217
 #: /app/specialVueFakeDummyForL10nScript.js:392
 msgid "Public Key"
 msgstr "Julkinen avain"
 
-#. TRANSLATORS src/App.vue:239
+#. TRANSLATORS src/App.vue:222
 #: /app/specialVueFakeDummyForL10nScript.js:394
 msgid "Regenerate Keys"
 msgstr "Uudelleen avaimet"
 
-#. TRANSLATORS src/Redirect.vue:25
+#. TRANSLATORS src/Redirect.vue:8
 #: /app/specialVueFakeDummyForL10nScript.js:410
 msgid "OpenID Connect Redirect"
 msgstr "OpenID Connectin uudelleenohjaus"
 
-#. TRANSLATORS src/components/OIDCItem.vue:38
-#. TRANSLATORS src/components/OIDCItem.vue:125
-#. TRANSLATORS src/components/RedirectItem.vue:28
+#. TRANSLATORS src/components/OIDCItem.vue:21
+#. TRANSLATORS src/components/OIDCItem.vue:108
+#. TRANSLATORS src/components/RedirectItem.vue:11
 #: /app/specialVueFakeDummyForL10nScript.js:514
 #: /app/specialVueFakeDummyForL10nScript.js:550
 #: /app/specialVueFakeDummyForL10nScript.js:576
 msgid "Delete"
 msgstr "Poista"
 
-#. TRANSLATORS src/components/OIDCItem.vue:52
+#. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:520
 msgid "Client Identifier"
 msgstr "Asiakkaan tunniste"
 
-#. TRANSLATORS src/components/OIDCItem.vue:56
+#. TRANSLATORS src/components/OIDCItem.vue:39
 #: /app/specialVueFakeDummyForL10nScript.js:522
 msgid "Secret"
 msgstr "Salainen"
 
-#. TRANSLATORS src/components/OIDCItem.vue:58
+#. TRANSLATORS src/components/OIDCItem.vue:41
 #: /app/specialVueFakeDummyForL10nScript.js:524
 msgid "Show client secret"
 msgstr "Näytä asiakkaan salaisuus"
 
-#. TRANSLATORS src/components/OIDCItem.vue:61
+#. TRANSLATORS src/components/OIDCItem.vue:44
 #: /app/specialVueFakeDummyForL10nScript.js:526
 msgid "-- NONE --"
 msgstr "-- EI OLE --"
 
-#. TRANSLATORS src/components/OIDCItem.vue:65
+#. TRANSLATORS src/components/OIDCItem.vue:48
 #: /app/specialVueFakeDummyForL10nScript.js:528
 msgid "Signing Algorithm"
 msgstr "Allekirjoitusalgoritmi"
 
-#. TRANSLATORS src/components/OIDCItem.vue:69
+#. TRANSLATORS src/components/OIDCItem.vue:52
 #: /app/specialVueFakeDummyForL10nScript.js:530
 msgid "Type"
 msgstr "Tyyppi"
 
-#. TRANSLATORS src/components/OIDCItem.vue:73
+#. TRANSLATORS src/components/OIDCItem.vue:56
 #: /app/specialVueFakeDummyForL10nScript.js:532
 msgid "Flows"
 msgstr "Virtaukset"
 
-#. TRANSLATORS src/components/OIDCItem.vue:78
+#. TRANSLATORS src/components/OIDCItem.vue:61
 #: /app/specialVueFakeDummyForL10nScript.js:534
 #: /app/specialVueFakeDummyForL10nScript.js:536
 msgid "Flows allowed to be used with the client."
 msgstr "Virrat, joita saa käyttää asiakkaan kanssa."
 
-#. TRANSLATORS src/components/OIDCItem.vue:87
+#. TRANSLATORS src/components/OIDCItem.vue:70
 #: /app/specialVueFakeDummyForL10nScript.js:538
 msgid "Access Token Type"
 msgstr "Access Token tyyppi"
 
-#. TRANSLATORS src/components/OIDCItem.vue:95
+#. TRANSLATORS src/components/OIDCItem.vue:78
 #: /app/specialVueFakeDummyForL10nScript.js:540
 msgid "Opaque Access Token"
 msgstr "Opaque Access Token"
 
-#. TRANSLATORS src/components/OIDCItem.vue:102
+#. TRANSLATORS src/components/OIDCItem.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:542
 msgid "JWT Access Token (RFC9068)"
 msgstr "JWT Access Token (RFC9068)"
 
-#. TRANSLATORS src/components/OIDCItem.vue:108
+#. TRANSLATORS src/components/OIDCItem.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:544
 msgid "Limited to Groups"
 msgstr "Rajoitettu ryhmille"
 
-#. TRANSLATORS src/components/OIDCItem.vue:113
+#. TRANSLATORS src/components/OIDCItem.vue:96
 #: /app/specialVueFakeDummyForL10nScript.js:546
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
@@ -435,7 +435,7 @@ msgstr ""
 "Vain johonkin seuraavista ryhmistä kuuluvat käyttäjät saavat käyttää "
 "asiakasta."
 
-#. TRANSLATORS src/components/OIDCItem.vue:114
+#. TRANSLATORS src/components/OIDCItem.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:548
 msgid "Groups allowed to use the client."
 msgstr "Ryhmät, jotka saavat käyttää asiakasta."

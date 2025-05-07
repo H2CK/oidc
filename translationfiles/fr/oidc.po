@@ -24,7 +24,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-05-06 02:22+0000\n"
+"POT-Creation-Date: 2025-05-07 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2025\n"
 "Language-Team: French (https://app.transifex.com/nextcloud/teams/64236/fr/)\n"
@@ -34,7 +34,7 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;\n"
 
-#: /app/lib/Controller/LoginRedirectorController.php:260
+#: /app/lib/Controller/LoginRedirectorController.php:224
 msgid ""
 "Your client is not authorized to connect. Please inform the administrator of"
 " your client."
@@ -42,13 +42,13 @@ msgstr ""
 "Votre client n'est pas autorisé à se connecter. Veuillez en informer "
 "l'administrateur."
 
-#: /app/lib/Controller/LoginRedirectorController.php:270
+#: /app/lib/Controller/LoginRedirectorController.php:234
 msgid ""
 "Your client is expired. Please inform the administrator of your client."
 msgstr ""
 "Votre client a expiré. Veuillez informer l'administrateur de votre client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:286
+#: /app/lib/Controller/LoginRedirectorController.php:250
 msgid ""
 "The received redirect URI is not accepted to connect. Please inform the "
 "administrator of your client."
@@ -56,7 +56,7 @@ msgstr ""
 "L'URI de redirection reçu n'est pas accepté pour se connecter. Veuillez "
 "informer l'administrateur de votre client."
 
-#: /app/lib/Controller/LoginRedirectorController.php:340
+#: /app/lib/Controller/LoginRedirectorController.php:304
 msgid ""
 "The user is not a member of the groups defined for the client. You are not "
 "allowed to retrieve a login token."
@@ -64,7 +64,7 @@ msgstr ""
 "L'utilisateur n'est pas membre des groupes définis pour le client. Vous "
 "n'êtes pas autorisé à récupérer un jeton de connexion."
 
-#: /app/lib/Controller/LoginRedirectorController.php:369
+#: /app/lib/Controller/LoginRedirectorController.php:333
 msgid ""
 "A failure during JWT creation occured. Please inform the administrator of "
 "your client."
@@ -72,8 +72,8 @@ msgstr ""
 "Un échec s'est produit lors de la création d'un JWT. Veuillez en informer "
 "l'administrateur de votre client."
 
-#: /app/lib/Controller/SettingsController.php:109
-#: /app/lib/Controller/SettingsController.php:223
+#: /app/lib/Controller/SettingsController.php:92
+#: /app/lib/Controller/SettingsController.php:206
 msgid ""
 "Your redirect URL needs to be a full URL for example: "
 "https://yourdomain.com/path"
@@ -81,12 +81,12 @@ msgstr ""
 "Votre adresse de redirection doit être une URL complète, par exemple: "
 "https://example.com/chemin"
 
-#: /app/lib/Settings/Admin.php:118
+#: /app/lib/Settings/Admin.php:101
 #: /app/specialVueFakeDummyForL10nScript.js:451
 msgid "Code Authorization Flow"
 msgstr "Flux d'autorisation par code"
 
-#: /app/lib/Settings/Admin.php:121
+#: /app/lib/Settings/Admin.php:104
 #: /app/specialVueFakeDummyForL10nScript.js:455
 msgid "Code & Implicit Authorization Flow"
 msgstr "Flux d'autorisation par code et implicite"
@@ -120,12 +120,12 @@ msgstr ""
 "- [Documentation utilisateur](https://github.com/H2CK/oidc/wiki#user-documentation)\n"
 "- Documentation pour les développeurs] (https://github.com/H2CK/oidc/wiki#developer-documentation)"
 
-#. TRANSLATORS src/App.vue:23
+#. TRANSLATORS src/App.vue:6
 #: /app/specialVueFakeDummyForL10nScript.js:292
 msgid "OpenID Connect clients"
 msgstr "Clients OpenID Connect"
 
-#. TRANSLATORS src/App.vue:24
+#. TRANSLATORS src/App.vue:7
 #: /app/specialVueFakeDummyForL10nScript.js:294
 msgid ""
 "OpenID Connect allows to authenticate at external services with "
@@ -134,21 +134,21 @@ msgstr ""
 "OpenID Connect permet de s’authentifier auprès de services externes avec des"
 " comptes utilisateurs de {instanceName}."
 
-#. TRANSLATORS src/App.vue:51
+#. TRANSLATORS src/App.vue:34
 #: /app/specialVueFakeDummyForL10nScript.js:296
 msgid "Add client"
 msgstr "Ajouter un client"
 
-#. TRANSLATORS src/App.vue:58
-#. TRANSLATORS src/components/OIDCItem.vue:28
+#. TRANSLATORS src/App.vue:41
+#. TRANSLATORS src/components/OIDCItem.vue:11
 #: /app/specialVueFakeDummyForL10nScript.js:298
 #: /app/specialVueFakeDummyForL10nScript.js:510
 msgid "Name"
 msgstr "Nom"
 
-#. TRANSLATORS src/App.vue:63
-#. TRANSLATORS src/components/OIDCItem.vue:32
-#. TRANSLATORS src/components/OIDCItem.vue:46
+#. TRANSLATORS src/App.vue:46
+#. TRANSLATORS src/components/OIDCItem.vue:15
+#. TRANSLATORS src/components/OIDCItem.vue:29
 #: /app/specialVueFakeDummyForL10nScript.js:300
 #: /app/specialVueFakeDummyForL10nScript.js:388
 #: /app/specialVueFakeDummyForL10nScript.js:512
@@ -156,291 +156,291 @@ msgstr "Nom"
 msgid "Redirection URI"
 msgstr "URI de redirection"
 
-#. TRANSLATORS src/App.vue:67
+#. TRANSLATORS src/App.vue:50
 #: /app/specialVueFakeDummyForL10nScript.js:302
 msgid "Select Signing Algorithm"
 msgstr "Sélectionnez l’algorithme de signature"
 
-#. TRANSLATORS src/App.vue:79
+#. TRANSLATORS src/App.vue:62
 #: /app/specialVueFakeDummyForL10nScript.js:304
 msgid "Select Type"
 msgstr "Sélectionnez le type"
 
-#. TRANSLATORS src/App.vue:82
+#. TRANSLATORS src/App.vue:65
 #: /app/specialVueFakeDummyForL10nScript.js:306
 msgid "Confidential"
 msgstr "Confidentiel"
 
-#. TRANSLATORS src/App.vue:85
+#. TRANSLATORS src/App.vue:68
 #: /app/specialVueFakeDummyForL10nScript.js:308
 msgid "Public"
 msgstr "Public"
 
-#. TRANSLATORS src/App.vue:88
-#. TRANSLATORS src/components/OIDCItem.vue:47
+#. TRANSLATORS src/App.vue:71
+#. TRANSLATORS src/components/OIDCItem.vue:30
 #: /app/specialVueFakeDummyForL10nScript.js:310
 #: /app/specialVueFakeDummyForL10nScript.js:390
 #: /app/specialVueFakeDummyForL10nScript.js:518
 msgid "Add"
 msgstr "Ajouter"
 
-#. TRANSLATORS src/App.vue:92
+#. TRANSLATORS src/App.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:312
 msgid "Settings"
 msgstr "Paramètres"
 
-#. TRANSLATORS src/App.vue:93
-#. TRANSLATORS src/App.vue:96
+#. TRANSLATORS src/App.vue:76
+#. TRANSLATORS src/App.vue:79
 #: /app/specialVueFakeDummyForL10nScript.js:314
 #: /app/specialVueFakeDummyForL10nScript.js:316
 msgid "Token Expire Time"
 msgstr "Temps d’expiration du jeton"
 
-#. TRANSLATORS src/App.vue:99
+#. TRANSLATORS src/App.vue:82
 #: /app/specialVueFakeDummyForL10nScript.js:318
 msgid "Select Token Expire Time"
 msgstr "Sélectionnez temps d’expiration du jeton"
 
-#. TRANSLATORS src/App.vue:102
+#. TRANSLATORS src/App.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:320
 #: /app/specialVueFakeDummyForL10nScript.js:336
 msgid "5 minutes"
 msgstr "5 minutes"
 
-#. TRANSLATORS src/App.vue:105
+#. TRANSLATORS src/App.vue:88
 #: /app/specialVueFakeDummyForL10nScript.js:322
 #: /app/specialVueFakeDummyForL10nScript.js:338
 msgid "10 minutes"
 msgstr "10 minutes"
 
-#. TRANSLATORS src/App.vue:108
+#. TRANSLATORS src/App.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:324
 #: /app/specialVueFakeDummyForL10nScript.js:340
 msgid "15 minutes"
 msgstr "15 minutes"
 
-#. TRANSLATORS src/App.vue:111
+#. TRANSLATORS src/App.vue:94
 #: /app/specialVueFakeDummyForL10nScript.js:326
 #: /app/specialVueFakeDummyForL10nScript.js:342
 msgid "30 minutes"
 msgstr "30 minutes"
 
-#. TRANSLATORS src/App.vue:114
+#. TRANSLATORS src/App.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:328
 #: /app/specialVueFakeDummyForL10nScript.js:344
 msgid "60 minutes"
 msgstr "60 minutes"
 
-#. TRANSLATORS src/App.vue:118
-#. TRANSLATORS src/App.vue:121
+#. TRANSLATORS src/App.vue:101
+#. TRANSLATORS src/App.vue:104
 #: /app/specialVueFakeDummyForL10nScript.js:330
 #: /app/specialVueFakeDummyForL10nScript.js:332
 msgid "Refresh Token Expire Time"
 msgstr "Rafraîchir l'heure d'expiration du jeton"
 
-#. TRANSLATORS src/App.vue:124
+#. TRANSLATORS src/App.vue:107
 #: /app/specialVueFakeDummyForL10nScript.js:334
 msgid "Select Refresh Token Expire Time"
 msgstr "Sélectionner l'heure d'expiration du jeton de rafraîchissement"
 
-#. TRANSLATORS src/App.vue:142
+#. TRANSLATORS src/App.vue:125
 #: /app/specialVueFakeDummyForL10nScript.js:346
 msgid "12 hours"
 msgstr "12 heures"
 
-#. TRANSLATORS src/App.vue:145
+#. TRANSLATORS src/App.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:348
 msgid "1 day"
 msgstr "1 jour"
 
-#. TRANSLATORS src/App.vue:148
+#. TRANSLATORS src/App.vue:131
 #: /app/specialVueFakeDummyForL10nScript.js:350
 msgid "7 days"
 msgstr "7 jours"
 
-#. TRANSLATORS src/App.vue:151
+#. TRANSLATORS src/App.vue:134
 #: /app/specialVueFakeDummyForL10nScript.js:352
 msgid "Never"
 msgstr "Jamais"
 
-#. TRANSLATORS src/App.vue:156
+#. TRANSLATORS src/App.vue:139
 #: /app/specialVueFakeDummyForL10nScript.js:354
 msgid "Dynamic Client Registration"
 msgstr "Enregistrement dynamique des clients"
 
-#. TRANSLATORS src/App.vue:160
+#. TRANSLATORS src/App.vue:143
 #: /app/specialVueFakeDummyForL10nScript.js:356
 msgid "Enable or disable Dynamic Client Registration"
 msgstr "Activer ou désactiver l'enregistrement dynamique des clients"
 
-#. TRANSLATORS src/App.vue:163
+#. TRANSLATORS src/App.vue:146
 #: /app/specialVueFakeDummyForL10nScript.js:358
 msgid "Select to enable/disable the Dynamic Client Registration"
 msgstr ""
 "Sélectionnez cette option pour activer/désactiver l'enregistrement dynamique"
 " des clients."
 
-#. TRANSLATORS src/App.vue:166
+#. TRANSLATORS src/App.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:360
 msgid "Disable"
 msgstr "Désactiver"
 
-#. TRANSLATORS src/App.vue:169
+#. TRANSLATORS src/App.vue:152
 #: /app/specialVueFakeDummyForL10nScript.js:362
 msgid "Enable"
 msgstr "Activer"
 
-#. TRANSLATORS src/App.vue:174
+#. TRANSLATORS src/App.vue:157
 #: /app/specialVueFakeDummyForL10nScript.js:364
 msgid "Email Verified Flag"
 msgstr "Attribut vérifié par e-mail"
 
-#. TRANSLATORS src/App.vue:178
+#. TRANSLATORS src/App.vue:161
 #: /app/specialVueFakeDummyForL10nScript.js:366
 msgid "Source for email verified flag in token"
 msgstr "Source de l’attribut vérifié par e-mail dans le jeton"
 
-#. TRANSLATORS src/App.vue:181
+#. TRANSLATORS src/App.vue:164
 #: /app/specialVueFakeDummyForL10nScript.js:368
 msgid "Select behaviour for setting email verified flag"
 msgstr ""
 "Sélectionner le comportement à adopter pour l'activation de l'indicateur de "
 "vérification de l'e-mail"
 
-#. TRANSLATORS src/App.vue:184
+#. TRANSLATORS src/App.vue:167
 #: /app/specialVueFakeDummyForL10nScript.js:370
 msgid "Use Nextcloud account information"
 msgstr "Utiliser les informations du compte Nextcloud "
 
-#. TRANSLATORS src/App.vue:187
+#. TRANSLATORS src/App.vue:170
 #: /app/specialVueFakeDummyForL10nScript.js:372
 msgid "Set to always verified"
 msgstr "Définir à toujours vérifie "
 
-#. TRANSLATORS src/App.vue:192
+#. TRANSLATORS src/App.vue:175
 #: /app/specialVueFakeDummyForL10nScript.js:374
 msgid "Integrate avatar in user info/ID token"
 msgstr ""
 "Intégrer l'avatar dans le jeton d'information/identification de "
 "l'utilisateur"
 
-#. TRANSLATORS src/App.vue:196
+#. TRANSLATORS src/App.vue:179
 #: /app/specialVueFakeDummyForL10nScript.js:376
 msgid "Method for integration of avatar"
 msgstr "Méthode d'intégration d'un avatar"
 
-#. TRANSLATORS src/App.vue:199
+#. TRANSLATORS src/App.vue:182
 #: /app/specialVueFakeDummyForL10nScript.js:378
 msgid "Select how the avatar image should be integrated"
 msgstr "Choisir le mode d'intégration de l'image de l'avatar"
 
-#. TRANSLATORS src/App.vue:202
+#. TRANSLATORS src/App.vue:185
 #: /app/specialVueFakeDummyForL10nScript.js:380
 msgid "No integration"
 msgstr "Pas d'intégration"
 
-#. TRANSLATORS src/App.vue:205
+#. TRANSLATORS src/App.vue:188
 #: /app/specialVueFakeDummyForL10nScript.js:382
 msgid "Add to user info"
 msgstr "Ajouter aux informations sur l'utilisateur"
 
-#. TRANSLATORS src/App.vue:208
+#. TRANSLATORS src/App.vue:191
 #: /app/specialVueFakeDummyForL10nScript.js:384
 msgid "Add to user info and ID token"
 msgstr ""
 "Ajouter aux informations sur l'utilisateur et au jeton d'identification"
 
-#. TRANSLATORS src/App.vue:213
+#. TRANSLATORS src/App.vue:196
 #: /app/specialVueFakeDummyForL10nScript.js:386
 msgid "Accepted Logout Redirect URIs"
 msgstr "URI de redirection de déconnexion acceptés"
 
-#. TRANSLATORS src/App.vue:234
+#. TRANSLATORS src/App.vue:217
 #: /app/specialVueFakeDummyForL10nScript.js:392
 msgid "Public Key"
 msgstr "Clé publique"
 
-#. TRANSLATORS src/App.vue:239
+#. TRANSLATORS src/App.vue:222
 #: /app/specialVueFakeDummyForL10nScript.js:394
 msgid "Regenerate Keys"
 msgstr "Régénérer les clés"
 
-#. TRANSLATORS src/Redirect.vue:25
+#. TRANSLATORS src/Redirect.vue:8
 #: /app/specialVueFakeDummyForL10nScript.js:410
 msgid "OpenID Connect Redirect"
 msgstr "Redirection d’OpenID Connect"
 
-#. TRANSLATORS src/components/OIDCItem.vue:38
-#. TRANSLATORS src/components/OIDCItem.vue:125
-#. TRANSLATORS src/components/RedirectItem.vue:28
+#. TRANSLATORS src/components/OIDCItem.vue:21
+#. TRANSLATORS src/components/OIDCItem.vue:108
+#. TRANSLATORS src/components/RedirectItem.vue:11
 #: /app/specialVueFakeDummyForL10nScript.js:514
 #: /app/specialVueFakeDummyForL10nScript.js:550
 #: /app/specialVueFakeDummyForL10nScript.js:576
 msgid "Delete"
 msgstr "Supprimer"
 
-#. TRANSLATORS src/components/OIDCItem.vue:52
+#. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:520
 msgid "Client Identifier"
 msgstr "Identifiant du client"
 
-#. TRANSLATORS src/components/OIDCItem.vue:56
+#. TRANSLATORS src/components/OIDCItem.vue:39
 #: /app/specialVueFakeDummyForL10nScript.js:522
 msgid "Secret"
 msgstr "Secret"
 
-#. TRANSLATORS src/components/OIDCItem.vue:58
+#. TRANSLATORS src/components/OIDCItem.vue:41
 #: /app/specialVueFakeDummyForL10nScript.js:524
 msgid "Show client secret"
 msgstr "Afficher le code secret du client"
 
-#. TRANSLATORS src/components/OIDCItem.vue:61
+#. TRANSLATORS src/components/OIDCItem.vue:44
 #: /app/specialVueFakeDummyForL10nScript.js:526
 msgid "-- NONE --"
 msgstr "-- AUCUN --"
 
-#. TRANSLATORS src/components/OIDCItem.vue:65
+#. TRANSLATORS src/components/OIDCItem.vue:48
 #: /app/specialVueFakeDummyForL10nScript.js:528
 msgid "Signing Algorithm"
 msgstr "Algorithme de signature"
 
-#. TRANSLATORS src/components/OIDCItem.vue:69
+#. TRANSLATORS src/components/OIDCItem.vue:52
 #: /app/specialVueFakeDummyForL10nScript.js:530
 msgid "Type"
 msgstr "Type"
 
-#. TRANSLATORS src/components/OIDCItem.vue:73
+#. TRANSLATORS src/components/OIDCItem.vue:56
 #: /app/specialVueFakeDummyForL10nScript.js:532
 msgid "Flows"
 msgstr "Flux"
 
-#. TRANSLATORS src/components/OIDCItem.vue:78
+#. TRANSLATORS src/components/OIDCItem.vue:61
 #: /app/specialVueFakeDummyForL10nScript.js:534
 #: /app/specialVueFakeDummyForL10nScript.js:536
 msgid "Flows allowed to be used with the client."
 msgstr "Flux autorisés avec le client."
 
-#. TRANSLATORS src/components/OIDCItem.vue:87
+#. TRANSLATORS src/components/OIDCItem.vue:70
 #: /app/specialVueFakeDummyForL10nScript.js:538
 msgid "Access Token Type"
 msgstr "Type de token d'accès"
 
-#. TRANSLATORS src/components/OIDCItem.vue:95
+#. TRANSLATORS src/components/OIDCItem.vue:78
 #: /app/specialVueFakeDummyForL10nScript.js:540
 msgid "Opaque Access Token"
 msgstr "Token d'accès opaque"
 
-#. TRANSLATORS src/components/OIDCItem.vue:102
+#. TRANSLATORS src/components/OIDCItem.vue:85
 #: /app/specialVueFakeDummyForL10nScript.js:542
 msgid "JWT Access Token (RFC9068)"
 msgstr "Token d'accès JWT (RFC9068)"
 
-#. TRANSLATORS src/components/OIDCItem.vue:108
+#. TRANSLATORS src/components/OIDCItem.vue:91
 #: /app/specialVueFakeDummyForL10nScript.js:544
 msgid "Limited to Groups"
 msgstr "Limité aux groupes"
 
-#. TRANSLATORS src/components/OIDCItem.vue:113
+#. TRANSLATORS src/components/OIDCItem.vue:96
 #: /app/specialVueFakeDummyForL10nScript.js:546
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
@@ -448,7 +448,7 @@ msgstr ""
 "Seuls les utilisateurs appartenant à l'un des groupes suivants sont "
 "autorisés à utiliser le client."
 
-#. TRANSLATORS src/components/OIDCItem.vue:114
+#. TRANSLATORS src/components/OIDCItem.vue:97
 #: /app/specialVueFakeDummyForL10nScript.js:548
 msgid "Groups allowed to use the client."
 msgstr "Groupes autorisés à utiliser le client."
