@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su klient ei ole ühenduseks autoriseeritud. Palun teavita oma kliendi administraatorit.",
     "Your client is expired. Please inform the administrator of your client." : "Sinu klient on aegunud. Palun teavita oma kliendi administraatorit.",
-    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ümbersuunamise URL peab olema täis URL, näiteks: https://sinudomeen.com/tee",
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ümbersuunamise võrguaadress peab olema täielik võrguaadress, näiteks: https://sinudomeen.com/asukoht",
     "Add client" : "Lisa klient",
     "Name" : "Nimi",
     "Redirection URI" : "Suunamise URI",
