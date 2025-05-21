@@ -84,9 +84,9 @@ class DiscoveryGenerator
             'RS256',
             'HS256',
         ];
-        $userinfoSigningAlgValuesSupported = [
-            'none',
-        ];
+        // $userinfoSigningAlgValuesSupported = [
+        //     'none',
+        // ];
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
             'client_secret_basic',
@@ -144,7 +144,7 @@ class DiscoveryGenerator
             'id_token_signing_alg_values_supported' => $idTokenSigningAlgValuesSupported,
             // 'id_token_encryption_alg_values_supported' => ,
             // 'id_token_encryption_enc_values_supported' => ,
-            'userinfo_signing_alg_values_supported' => $userinfoSigningAlgValuesSupported,
+            // 'userinfo_signing_alg_values_supported' => $userinfoSigningAlgValuesSupported,
             // 'userinfo_encryption_alg_values_supported' => ,
             // 'userinfo_encryption_enc_values_supported' => ,
             // 'request_object_signing_alg_values_supported' => ,

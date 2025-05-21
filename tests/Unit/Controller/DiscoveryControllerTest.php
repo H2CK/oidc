@@ -116,9 +116,9 @@ class DiscoveryControllerTest extends TestCase {
             'RS256',
             'HS256',
         ];
-        $userinfoSigningAlgValuesSupported = [
-            'none',
-        ];
+        // $userinfoSigningAlgValuesSupported = [
+        //     'none',
+        // ];
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
             'client_secret_basic',
@@ -172,7 +172,7 @@ class DiscoveryControllerTest extends TestCase {
         $this->assertEquals($acrValuesSupported, $result->getData()['acr_values_supported']);
         $this->assertEquals($subjectTypesSupported, $result->getData()['subject_types_supported']);
         $this->assertEquals($idTokenSigningAlgValuesSupported, $result->getData()['id_token_signing_alg_values_supported']);
-        $this->assertEquals($userinfoSigningAlgValuesSupported, $result->getData()['userinfo_signing_alg_values_supported']);
+        // $this->assertEquals($userinfoSigningAlgValuesSupported, $result->getData()['userinfo_signing_alg_values_supported']);
         $this->assertEquals($tokenEndpointAuthMethodsSupported, $result->getData()['token_endpoint_auth_methods_supported']);
         $this->assertEquals($displayValuesSupported, $result->getData()['display_values_supported']);
         $this->assertEquals($claimTypesSupported, $result->getData()['claim_types_supported']);
