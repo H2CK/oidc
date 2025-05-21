@@ -21,6 +21,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IGroup;
@@ -57,10 +58,13 @@ class UserInfoController extends ApiController
     private $logger;
     /** @var Converter */
     private $converter;
+    /** @var IURLGenerator */
+    private $urlGenerator;
 
     public function __construct(
                     string $appName,
                     IRequest $request,
+                    IURLGenerator $urlGenerator,
                     AccessTokenMapper $accessTokenMapper,
                     ClientMapper $clientMapper,
                     ITimeFactory $time,
@@ -83,6 +87,7 @@ class UserInfoController extends ApiController
         $this->appConfig = $appConfig;
         $this->logger = $logger;
         $this->converter = Server::get(Converter::class);
+        $this->urlGenerator = $urlGenerator;
     }
 
     /**
