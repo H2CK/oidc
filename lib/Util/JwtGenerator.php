@@ -202,13 +202,9 @@ class JwtGenerator
                         ['address' =>
                                 [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
-            if ($this->appConfig->getAppValueString(Application::APP_CONFIG_INTEGRATE_AVATAR) == 'id_token') {
-                $avatarImage = $user->getAvatarImage(64);
-                if ($avatarImage !== null) {
-                    $profile = array_merge($profile,
-                            ['picture' => 'data:' . $avatarImage->dataMimeType() . ';base64,' . base64_encode($avatarImage->data())]);
-                }
-            }
+            $profile = array_merge($profile,
+                    ['picture' => $issuer . '/avatar/' . $uid . '/64']);
+
             // Possible further values currently not provided by Nextcloud
             // 'nickname' => ,
             // 'profile' => ,

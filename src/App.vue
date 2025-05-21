@@ -172,27 +172,6 @@
 		</select>
 
 		<p style="margin-top: 1.5em;">
-			{{ t('oidc', 'Integrate avatar in user info/ID token') }}
-		</p>
-		<select id="integrateAvatar"
-			v-model="localIntegrateAvatar"
-			:placeholder="t('oidc', 'Method for integration of avatar')"
-			@change="setIntegrateAvatar">
-			<option disabled value="">
-				{{ t('oidc', 'Select how the avatar image should be integrated') }}
-			</option>
-			<option value="none">
-				{{ t('oidc', 'No integration') }}
-			</option>
-			<option value="user_info">
-				{{ t('oidc', 'Add to user info') }}
-			</option>
-			<option value="id_token">
-				{{ t('oidc', 'Add to user info and ID token') }}
-			</option>
-		</select>
-
-		<p style="margin-top: 1.5em;">
 			{{ t('oidc', 'Accepted Logout Redirect URIs') }}
 		</p>
 		<table v-if="localLogoutRedirectUris.length > 0" class="grid">
@@ -264,10 +243,6 @@ export default {
 			type: Array,
 			required: true,
 		},
-		integrateAvatar: {
-			type: String,
-			required: true,
-		},
 		overwriteEmailVerified: {
 			type: String,
 			required: true,
@@ -297,7 +272,6 @@ export default {
 			localPublicKey: this.publicKey,
 			localExpireTime: this.expireTime,
 			localRefreshExpireTime: this.refreshExpireTime,
-			localIntegrateAvatar: this.integrateAvatar,
 			localOverwriteEmailVerified: this.overwriteEmailVerified,
 			localDynamicClientRegistration: this.dynamicClientRegistration,
 			error: false,
@@ -423,15 +397,6 @@ export default {
 					refreshExpireTime: this.localRefreshExpireTime,
 				}).then((response) => {
 				this.localRefreshExpireTime = response.data.refresh_expire_time
-			})
-		},
-		setIntegrateAvatar() {
-			axios.post(
-				generateUrl('apps/oidc/integrateAvatar'),
-				{
-					integrateAvatar: this.localIntegrateAvatar,
-				}).then((response) => {
-				this.localIntegrateAvatar = response.data.integrate_avatar
 			})
 		},
 		setOverwriteEmailVerified() {

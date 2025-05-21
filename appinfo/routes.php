@@ -58,11 +58,6 @@ return [
             'verb' => 'POST',
         ],
         [
-            'name' => 'Settings#setIntegrateAvatar',
-            'url' => '/integrateAvatar',
-            'verb' => 'POST',
-        ],
-        [
             'name' => 'Settings#setOverwriteEmailVerified',
             'url' => '/overwriteEmailVerified',
             'verb' => 'POST',

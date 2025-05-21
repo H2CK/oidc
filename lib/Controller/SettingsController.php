@@ -390,19 +390,6 @@ class SettingsController extends Controller
         return new JSONResponse($result);
     }
 
-    public function setIntegrateAvatar(
-                    string $integrateAvatar
-                    ): JSONResponse
-    {
-        if ($integrateAvatar === 'none' || $integrateAvatar === 'user_info' || $integrateAvatar === 'id_token') {
-            $this->appConfig->setAppValueString('integrate_avatar', $integrateAvatar);
-        }
-        $result = [
-            'integrate_avatar' => $this->appConfig->getAppValueString('integrate_avatar'),
-        ];
-        return new JSONResponse($result);
-    }
-
     public function setOverwriteEmailVerified(
                     string $overwriteEmailVerified
                     ): JSONResponse

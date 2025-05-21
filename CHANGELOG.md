@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.1] - 2025-05-21
+
+### Changed
+
+- Removed metadat in discovery endpoint for userinfo_signing_alg_values_supported
+- Replace avatar data url with url provided by Nextcloud /avatar/userid/size
+- Updated dependencies
+- Updated translations
+
 ## [1.7.0] - 2025-05-06
 
 ### Changed

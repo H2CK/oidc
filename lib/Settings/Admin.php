@@ -145,8 +145,6 @@ class Admin implements ISettings {
         $this->initialState->provideInitialState('groups', $availableGroups);
         $this->initialState->provideInitialState('logoutRedirectUris', $logoutRedirectUrisResult);
         $this->initialState->provideInitialState(
-                'integrateAvatar', $this->appConfig->getAppValueString(Application::APP_CONFIG_INTEGRATE_AVATAR));
-        $this->initialState->provideInitialState(
                 'overwriteEmailVerified', $this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED));
         $this->initialState->provideInitialState(
                 'dynamicClientRegistration', $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));

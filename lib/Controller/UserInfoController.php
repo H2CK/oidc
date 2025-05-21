@@ -161,6 +161,7 @@ class UserInfoController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        $issuer =  $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
@@ -234,13 +235,9 @@ class UserInfoController extends ApiController
                         ['address' =>
                                 [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
-            if ($this->appConfig->getAppValueString('integrate_avatar') == 'user_info' || $this->appConfig->getAppValueString('integrate_avatar') == 'id_token') {
-                $avatarImage = $user->getAvatarImage(64);
-                if ($avatarImage !== null) {
-                    $profile = array_merge($profile,
-                            ['picture' => 'data:' . $avatarImage->dataMimeType() . ';base64,' . base64_encode($avatarImage->data())]);
-                }
-            }
+            $profile = array_merge($profile,
+                    ['picture' => $issuer . '/avatar/' . $uid . '/64']);
+
             // Possible further values
             // 'nickname' => ,
             // 'profile' => ,

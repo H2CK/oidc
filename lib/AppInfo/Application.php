@@ -35,7 +35,6 @@ class Application extends App implements IBootstrap {
     public const APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME = 'refresh_expire_time';
     public const APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME = 'client_expire_time';
     public const APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER = 'default_resource_identifier';
-    public const APP_CONFIG_INTEGRATE_AVATAR = 'integrate_avatar';
     public const APP_CONFIG_OVERWRITE_EMAIL_VERIFIED = 'overwrite_email_verified';
     public const APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION = 'dynamic_client_registration';
     public const APP_CONFIG_GROUP_CLAIM_TYPE = 'group_claim_type';
