@@ -31,7 +31,6 @@ OC.L10N.register(
     "Never" : "Inoiz ez",
     "Disable" : "Desaktibatu",
     "Enable" : "Aktibatu",
-    "No integration" : "Integraziorik ez",
     "Public Key" : "Gako publikoa",
     "Regenerate Keys" : "Berriro sortu gakoak",
     "OpenID Connect Redirect" : "OpenID Connect birbideraketa",
