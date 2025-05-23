@@ -37,6 +37,9 @@ OC.L10N.register(
     "Show client secret" : "Näita kliendi salakoodi",
     "-- NONE --" : "-- PUUDUB --",
     "Signing Algorithm" : "Allkirjastamise algoritm",
-    "Type" : "Tüüp"
+    "Type" : "Tüüp",
+    "Access Token Type" : "Tunnusloa tüüp",
+    "Opaque Access Token" : "Opaque Access Token",
+    "JWT Access Token (RFC9068)" : "JWT Access Token (RFC9068)"
 },
 "nplurals=2; plural=(n != 1);");
