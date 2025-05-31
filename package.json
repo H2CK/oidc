@@ -48,6 +48,6 @@
 		"@nextcloud/eslint-config": "^8.4.2",
 		"@nextcloud/stylelint-config": "^3.1.0",
 		"@nextcloud/webpack-vue-config": "^6.3.0",
-		"@vue/compiler-sfc": "^3.5.14"
+		"@vue/compiler-sfc": "^3.5.16"
 	}
 }
