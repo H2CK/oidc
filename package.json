@@ -31,7 +31,7 @@
 		"@nextcloud/l10n": "^3.2.0",
 		"@nextcloud/logger": "^3.0.2",
 		"@nextcloud/router": "^3.0.1",
-		"@nextcloud/vue": "^9.0.0-rc.1",
+		"@nextcloud/vue": "^9.0.0-rc.2",
 		"postcss-html": "^1.8.0",
 		"webpack": "^5.99.9"
 	},
