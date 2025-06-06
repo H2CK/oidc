@@ -9,6 +9,7 @@ OC.L10N.register(
     "Redirection URI" : "Suunamise URI",
     "Select Signing Algorithm" : "Vali allkirjastamise algoritm",
     "Select Type" : "Vali tüüp",
+    "Confidential" : "Konfidentsiaalne",
     "Public" : "Avalik",
     "Add" : "Lisa",
     "Settings" : "Seadistused",
