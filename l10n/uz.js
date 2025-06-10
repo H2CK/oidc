@@ -12,6 +12,7 @@ OC.L10N.register(
     "Never" : "Hech qachon",
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
+    "Public Key" : "Ochiq kalit",
     "Delete" : "Delete",
     "Type" : "Turi"
 },
