@@ -2,16 +2,16 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs":
+/***/ "./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs":
 /*!***************************************************************************!*\
-  !*** ./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs ***!
+  !*** ./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs ***!
   \***************************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   a: () => (/* binding */ getLocale),
-/* harmony export */   b: () => (/* binding */ getLanguage),
+/* harmony export */   a: () => (/* binding */ getLanguage),
+/* harmony export */   b: () => (/* binding */ getLocale),
 /* harmony export */   c: () => (/* binding */ translatePlural),
 /* harmony export */   d: () => (/* binding */ getPlural),
 /* harmony export */   g: () => (/* binding */ getCanonicalLocale),
@@ -31,14 +31,15 @@ __webpack_require__.r(__webpack_exports__);
  * SPDX-FileCopyrightText: 2019 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+const environmentLocale = Intl.DateTimeFormat().resolvedOptions().locale;
 function getLocale() {
-  return document.documentElement.dataset.locale || "en";
+  return document.documentElement.dataset.locale || environmentLocale.replaceAll(/-/g, "_");
 }
 function getCanonicalLocale() {
-  return getLocale().replace(/_/g, "-");
+  return getLocale().replaceAll(/_/g, "-");
 }
 function getLanguage() {
-  return document.documentElement.lang || "en";
+  return document.documentElement.lang || navigator.language;
 }
 function isRTL(language) {
   const languageCode = language || getLanguage();
@@ -196,35 +197,33 @@ function translatePlural(app, textSingular, textPlural, number, vars, options) {
     return translate(app, textPlural, vars, number, options);
   }
 }
-function loadTranslations(appName, callback) {
-  if (hasAppTranslations(appName) || getLocale() === "en") {
-    return Promise.resolve().then(callback);
+async function loadTranslations(appName, callback) {
+  if (hasAppTranslations(appName) || getLanguage() === "en") {
+    const bundle = getAppTranslations(appName);
+    callback?.(bundle);
+    return bundle;
   }
-  const url = (0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_0__.generateFilePath)(appName, "l10n", getLocale() + ".json");
-  const promise = new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.onerror = () => {
-      reject(new Error(request.statusText || "Network error"));
-    };
-    request.onload = () => {
-      if (request.status >= 200 && request.status < 300) {
-        try {
-          const bundle = JSON.parse(request.responseText);
-          if (typeof bundle.translations === "object") resolve(bundle);
-        } catch (error) {
-        }
-        reject(new Error("Invalid content of translation bundle"));
-      } else {
-        reject(new Error(request.statusText));
+  let response;
+  try {
+    const url = (0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_0__.generateFilePath)(appName, "l10n", getLanguage() + ".json");
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error("Network error");
+  }
+  if (response.ok) {
+    try {
+      const bundle = await response.json();
+      if (typeof bundle.translations === "object") {
+        register(appName, bundle.translations);
+        callback?.(bundle);
+        return bundle;
       }
-    };
-    request.send();
-  });
-  return promise.then((result) => {
-    register(appName, result.translations);
-    return result;
-  }).then(callback);
+    } catch (error) {
+    }
+    throw new Error("Invalid content of translation bundle");
+  } else {
+    throw new Error(response.statusText);
+  }
 }
 function register(appName, bundle) {
   registerAppTranslations(appName, bundle, getPlural);
@@ -358,6 +357,7 @@ function getPlural(number, language = getLanguage()) {
   }
 }
 
+//# sourceMappingURL=translation-DUYoTdjY.mjs.map
 
 
 /***/ }),
@@ -370,26 +370,27 @@ function getPlural(number, language = getLanguage()) {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getCanonicalLocale: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g),
+/* harmony export */   formatRelativeTime: () => (/* binding */ formatRelativeTime),
+/* harmony export */   getCanonicalLocale: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g),
 /* harmony export */   getDayNames: () => (/* binding */ getDayNames),
 /* harmony export */   getDayNamesMin: () => (/* binding */ getDayNamesMin),
 /* harmony export */   getDayNamesShort: () => (/* binding */ getDayNamesShort),
 /* harmony export */   getFirstDay: () => (/* binding */ getFirstDay),
-/* harmony export */   getLanguage: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.b),
-/* harmony export */   getLocale: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.a),
+/* harmony export */   getLanguage: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a),
+/* harmony export */   getLocale: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.b),
 /* harmony export */   getMonthNames: () => (/* binding */ getMonthNames),
 /* harmony export */   getMonthNamesShort: () => (/* binding */ getMonthNamesShort),
-/* harmony export */   getPlural: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.d),
-/* harmony export */   isRTL: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.i),
-/* harmony export */   loadTranslations: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.l),
-/* harmony export */   n: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
-/* harmony export */   register: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.r),
-/* harmony export */   t: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
-/* harmony export */   translate: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
-/* harmony export */   translatePlural: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
-/* harmony export */   unregister: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.u)
+/* harmony export */   getPlural: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.d),
+/* harmony export */   isRTL: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.i),
+/* harmony export */   loadTranslations: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.l),
+/* harmony export */   n: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
+/* harmony export */   register: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.r),
+/* harmony export */   t: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
+/* harmony export */   translate: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
+/* harmony export */   translatePlural: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
+/* harmony export */   unregister: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.u)
 /* harmony export */ });
-/* harmony import */ var _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chunks/translation-CD_FiYBO.mjs */ "./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs");
+/* harmony import */ var _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chunks/translation-DUYoTdjY.mjs */ "./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs");
 
 
 /*!
@@ -400,7 +401,7 @@ function getFirstDay() {
   if (typeof window.firstDay !== "undefined") {
     return window.firstDay;
   }
-  const intl = new Intl.Locale((0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)());
+  const intl = new Intl.Locale((0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)());
   const weekInfo = intl.getWeekInfo?.() ?? intl.weekInfo;
   if (weekInfo) {
     return weekInfo.firstDay % 7;
@@ -411,7 +412,7 @@ function getDayNames() {
   if (typeof window.dayNames !== "undefined") {
     return window.dayNames;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-04T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "long" }),
     (/* @__PURE__ */ new Date("1970-01-05T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "long" }),
@@ -426,7 +427,7 @@ function getDayNamesShort() {
   if (typeof window.dayNamesShort !== "undefined") {
     return window.dayNamesShort;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-04T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "short" }),
     (/* @__PURE__ */ new Date("1970-01-05T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "short" }),
@@ -441,7 +442,7 @@ function getDayNamesMin() {
   if (typeof window.dayNamesMin !== "undefined") {
     return window.dayNamesMin;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-04T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "narrow" }),
     (/* @__PURE__ */ new Date("1970-01-05T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "narrow" }),
@@ -456,7 +457,7 @@ function getMonthNames() {
   if (typeof window.monthNames !== "undefined") {
     return window.monthNames;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "long" }),
     (/* @__PURE__ */ new Date("1970-02-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "long" }),
@@ -476,7 +477,7 @@ function getMonthNamesShort() {
   if (typeof window.monthNamesShort !== "undefined") {
     return window.monthNamesShort;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "short" }),
     (/* @__PURE__ */ new Date("1970-02-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "short" }),
@@ -492,7 +493,47 @@ function getMonthNamesShort() {
     (/* @__PURE__ */ new Date("1970-12-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "short" })
   ];
 }
+/*!
+ * SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+function formatRelativeTime(timestamp = Date.now(), opts = {}) {
+  const options = {
+    ignoreSeconds: false,
+    language: (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)(),
+    relativeTime: "long",
+    ...opts
+  };
+  const date = new Date(timestamp);
+  const formatter = new Intl.RelativeTimeFormat([options.language, (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)()], { numeric: "auto", style: options.relativeTime });
+  const diff = date.getTime() - Date.now();
+  const seconds = diff / 1e3;
+  if (Math.abs(seconds) < 59.5) {
+    return options.ignoreSeconds || formatter.format(Math.round(seconds), "second");
+  }
+  const minutes = seconds / 60;
+  if (Math.abs(minutes) <= 59) {
+    return formatter.format(Math.round(minutes), "minute");
+  }
+  const hours = minutes / 60;
+  if (Math.abs(hours) < 23.5) {
+    return formatter.format(Math.round(hours), "hour");
+  }
+  const days = hours / 24;
+  if (Math.abs(days) < 6.5) {
+    return formatter.format(Math.round(days), "day");
+  }
+  if (Math.abs(days) < 27.5) {
+    const weeks = days / 7;
+    return formatter.format(Math.round(weeks), "week");
+  }
+  const months = days / 30;
+  const format = Math.abs(months) < 11 ? { month: options.relativeTime, day: "numeric" } : { year: options.relativeTime === "narrow" ? "2-digit" : "numeric", month: options.relativeTime };
+  const dateTimeFormatter = new Intl.DateTimeFormat([options.language, (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)()], format);
+  return dateTimeFormatter.format(date);
+}
 
+//# sourceMappingURL=index.mjs.map
 
 
 /***/ }),
@@ -1281,7 +1322,8 @@ function track(target, type, key) {
         type,
         key
       });
-    } else {}
+    } else // removed by dead control flow
+{}
   }
 }
 function trigger(target, type, key, newValue, oldValue, oldTarget) {
@@ -1301,7 +1343,8 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
           oldValue,
           oldTarget
         });
-      } else {}
+      } else // removed by dead control flow
+{}
     }
   };
   startBatch();
@@ -2062,7 +2105,8 @@ class RefImpl {
         type: "get",
         key: "value"
       });
-    } else {}
+    } else // removed by dead control flow
+{}
     return this._value;
   }
   set value(newValue) {
@@ -2080,7 +2124,8 @@ class RefImpl {
           newValue,
           oldValue
         });
-      } else {}
+      } else // removed by dead control flow
+{}
     }
   }
 }
@@ -2093,7 +2138,8 @@ function triggerRef(ref2) {
         key: "value",
         newValue: ref2._value
       });
-    } else {}
+    } else // removed by dead control flow
+{}
   }
 }
 function unref(ref2) {
@@ -2802,7 +2848,8 @@ function formatProp(key, value, raw) {
   }
 }
 function assertNumber(val, type) {
-  if (false) {}
+  if (false) // removed by dead control flow
+{}
   if (val === void 0) {
     return;
   } else if (typeof val !== "number") {
@@ -2950,7 +2997,8 @@ function logError(err, type, contextVNode, throwInDev = true, throwInProd = fals
     } else {
       console.error(err);
     }
-  } else {}
+  } else // removed by dead control flow
+{}
 }
 
 const queue = [];
@@ -3930,7 +3978,8 @@ function findNonCommentChild(children) {
         }
         child = c;
         hasFound = true;
-        if (false) {}
+        if (false) // removed by dead control flow
+{}
       }
     }
   }
@@ -4614,7 +4663,8 @@ Server rendered element contains more child nodes than client vdom.`
               patchProp(el, key, null, props[key], void 0, parentComponent);
             }
           }
-        } else {}
+        } else // removed by dead control flow
+{}
       }
       let vnodeHooks;
       if (vnodeHooks = props && props.onVnodeBeforeMount) {
@@ -6126,7 +6176,8 @@ function applyOptions(instance) {
             enumerable: true,
             writable: true
           });
-        } else {}
+        } else // removed by dead control flow
+{}
         if (true) {
           checkDuplicateProperties("Methods" /* METHODS */, key);
         }
@@ -7802,7 +7853,8 @@ function baseCreateRenderer(options, createHydrationFns) {
         );
         if (true) {
           traverseStaticChildren(n1, n2);
-        } else {}
+        } else // removed by dead control flow
+{}
       } else {
         patchChildren(
           n1,
@@ -10451,7 +10503,8 @@ function createComponentInstance(vnode, parent, suspense) {
   };
   if (true) {
     instance.ctx = createDevRenderContext(instance);
-  } else {}
+  } else // removed by dead control flow
+{}
   instance.root = parent ? parent.root : instance;
   instance.emit = emit.bind(null, instance);
   if (vnode.ce) {
@@ -10744,7 +10797,8 @@ function createSetupContext(instance) {
       },
       expose
     });
-  } else {}
+  } else // removed by dead control flow
+{}
 }
 function getComponentPublicInstance(instance) {
   if (instance.exposed) {
@@ -13906,7 +13960,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ purify)
 /* harmony export */ });
-/*! @license DOMPurify 3.2.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.4/LICENSE */
+/*! @license DOMPurify 3.2.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.6/LICENSE */
 
 const {
   entries,
@@ -13966,6 +14020,9 @@ const typeErrorCreate = unconstruct(TypeError);
  */
 function unapply(func) {
   return function (thisArg) {
+    if (thisArg instanceof RegExp) {
+      thisArg.lastIndex = 0;
+    }
     for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       args[_key - 1] = arguments[_key];
     }
@@ -14107,7 +14164,7 @@ const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
 const TMPLIT_EXPR = seal(/\$\{[\w\W]*/gm); // eslint-disable-line unicorn/better-regex
 const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
 const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
-const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
 );
 const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
@@ -14204,7 +14261,7 @@ const _createHooksMap = function _createHooksMap() {
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.2.4';
+  DOMPurify.version = '3.2.6';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
     // Not running in a browser, provide a factory function
@@ -14443,8 +14500,8 @@ function createDOMPurify() {
     URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS') ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
-    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
+    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
+    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES') ? cfg.USE_PROFILES : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
@@ -14809,7 +14866,7 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
     /* Detect mXSS attempts abusing namespace confusion */
-    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -14961,7 +15018,8 @@ function createDOMPurify() {
         value: attrValue
       } = attr;
       const lcName = transformCaseFunc(name);
-      let value = name === 'value' ? attrValue : stringTrim(attrValue);
+      const initValue = attrValue;
+      let value = name === 'value' ? initValue : stringTrim(initValue);
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
       hookEvent.attrValue = value;
@@ -14987,10 +15045,9 @@ function createDOMPurify() {
       if (hookEvent.forceKeepAttr) {
         continue;
       }
-      /* Remove attribute */
-      _removeAttribute(name, currentNode);
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        _removeAttribute(name, currentNode);
         continue;
       }
       /* Work around a security issue in jQuery 3.0 */
@@ -15007,6 +15064,7 @@ function createDOMPurify() {
       /* Is `value` valid for this attribute? */
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
       /* Handle attributes that require Trusted Types */
@@ -15027,19 +15085,23 @@ function createDOMPurify() {
         }
       }
       /* Handle invalid data-* attribute set by try-catching it */
-      try {
-        if (namespaceURI) {
-          currentNode.setAttributeNS(namespaceURI, name, value);
-        } else {
-          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-          currentNode.setAttribute(name, value);
+      if (value !== initValue) {
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+            currentNode.setAttribute(name, value);
+          }
+          if (_isClobbered(currentNode)) {
+            _forceRemove(currentNode);
+          } else {
+            arrayPop(DOMPurify.removed);
+          }
+        } catch (_) {
+          _removeAttribute(name, currentNode);
         }
-        if (_isClobbered(currentNode)) {
-          _forceRemove(currentNode);
-        } else {
-          arrayPop(DOMPurify.removed);
-        }
-      } catch (_) {}
+      }
     }
     /* Execute a hook if present */
     _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
@@ -15909,7 +15971,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const __exports__ = /*#__PURE__*/(0,_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_3__["default"])(_Redirect_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_Redirect_vue_vue_type_template_id_2be2b6d5_scoped_true__WEBPACK_IMPORTED_MODULE_0__.render],['__scopeId',"data-v-2be2b6d5"],['__file',"src/Redirect.vue"]])
 /* hot reload */
-if (false) {}
+if (false) // removed by dead control flow
+{}
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__exports__);
@@ -16067,4 +16130,4 @@ app.mount('#oidc-redirect');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-redirect.js.map?v=ec78eaea235867956b41
+//# sourceMappingURL=oidc-redirect.js.map?v=2079af98b5abd0a8d78d

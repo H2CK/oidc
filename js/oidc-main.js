@@ -3419,17 +3419,17 @@ function loadState(app, key, fallback) {
 
 /***/ }),
 
-/***/ "./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs":
+/***/ "./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs":
 /*!***************************************************************************!*\
-  !*** ./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs ***!
+  !*** ./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs ***!
   \***************************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   a: () => (/* binding */ getLocale),
-/* harmony export */   b: () => (/* binding */ getLanguage),
+/* harmony export */   a: () => (/* binding */ getLanguage),
+/* harmony export */   b: () => (/* binding */ getLocale),
 /* harmony export */   c: () => (/* binding */ translatePlural),
 /* harmony export */   d: () => (/* binding */ getPlural),
 /* harmony export */   g: () => (/* binding */ getCanonicalLocale),
@@ -3449,14 +3449,15 @@ __webpack_require__.r(__webpack_exports__);
  * SPDX-FileCopyrightText: 2019 Nextcloud GmbH and Nextcloud contributors
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+const environmentLocale = Intl.DateTimeFormat().resolvedOptions().locale;
 function getLocale() {
-  return document.documentElement.dataset.locale || "en";
+  return document.documentElement.dataset.locale || environmentLocale.replaceAll(/-/g, "_");
 }
 function getCanonicalLocale() {
-  return getLocale().replace(/_/g, "-");
+  return getLocale().replaceAll(/_/g, "-");
 }
 function getLanguage() {
-  return document.documentElement.lang || "en";
+  return document.documentElement.lang || navigator.language;
 }
 function isRTL(language) {
   const languageCode = language || getLanguage();
@@ -3614,35 +3615,33 @@ function translatePlural(app, textSingular, textPlural, number, vars, options) {
     return translate(app, textPlural, vars, number, options);
   }
 }
-function loadTranslations(appName, callback) {
-  if (hasAppTranslations(appName) || getLocale() === "en") {
-    return Promise.resolve().then(callback);
+async function loadTranslations(appName, callback) {
+  if (hasAppTranslations(appName) || getLanguage() === "en") {
+    const bundle = getAppTranslations(appName);
+    callback?.(bundle);
+    return bundle;
   }
-  const url = (0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_0__.generateFilePath)(appName, "l10n", getLocale() + ".json");
-  const promise = new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.onerror = () => {
-      reject(new Error(request.statusText || "Network error"));
-    };
-    request.onload = () => {
-      if (request.status >= 200 && request.status < 300) {
-        try {
-          const bundle = JSON.parse(request.responseText);
-          if (typeof bundle.translations === "object") resolve(bundle);
-        } catch (error) {
-        }
-        reject(new Error("Invalid content of translation bundle"));
-      } else {
-        reject(new Error(request.statusText));
+  let response;
+  try {
+    const url = (0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_0__.generateFilePath)(appName, "l10n", getLanguage() + ".json");
+    response = await fetch(url);
+  } catch (error) {
+    throw new Error("Network error");
+  }
+  if (response.ok) {
+    try {
+      const bundle = await response.json();
+      if (typeof bundle.translations === "object") {
+        register(appName, bundle.translations);
+        callback?.(bundle);
+        return bundle;
       }
-    };
-    request.send();
-  });
-  return promise.then((result) => {
-    register(appName, result.translations);
-    return result;
-  }).then(callback);
+    } catch (error) {
+    }
+    throw new Error("Invalid content of translation bundle");
+  } else {
+    throw new Error(response.statusText);
+  }
 }
 function register(appName, bundle) {
   registerAppTranslations(appName, bundle, getPlural);
@@ -3776,6 +3775,7 @@ function getPlural(number, language = getLanguage()) {
   }
 }
 
+//# sourceMappingURL=translation-DUYoTdjY.mjs.map
 
 
 /***/ }),
@@ -3791,7 +3791,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   getGettextBuilder: () => (/* binding */ getGettextBuilder)
 /* harmony export */ });
-/* harmony import */ var _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chunks/translation-CD_FiYBO.mjs */ "./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs");
+/* harmony import */ var _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chunks/translation-DUYoTdjY.mjs */ "./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs");
 
 /*!
  * SPDX-FileCopyrightText: 2019 Nextcloud GmbH and Nextcloud contributors
@@ -3819,7 +3819,7 @@ class GettextBuilder {
    * This only works within a Nextcloud page context.
    */
   detectLanguage() {
-    return this.setLanguage((0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.b)().replace("-", "_"));
+    return this.setLanguage((0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)().replace("-", "_"));
   }
   addTranslation(language, data) {
     this.translations[language] = data;
@@ -3840,7 +3840,7 @@ class GettextBuilder {
       return [msgid, msgstr[0]];
     });
     const bundle = {
-      pluralFunction: (n) => (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.d)(n, this.language),
+      pluralFunction: (n) => (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.d)(n, this.language),
       translations: Object.fromEntries(translations)
     };
     return new GettextWrapper(bundle);
@@ -3857,7 +3857,7 @@ class GettextWrapper {
    * @param placeholders map of placeholder key to value
    */
   gettext(original, placeholders = {}) {
-    return (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.t)("", original, placeholders, void 0, { bundle: this.bundle });
+    return (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.t)("", original, placeholders, void 0, { bundle: this.bundle });
   }
   /**
    * Get translated string with plural forms
@@ -3868,13 +3868,14 @@ class GettextWrapper {
    * @param placeholders optional map of placeholder key to value
    */
   ngettext(singular, plural, count, placeholders = {}) {
-    return (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.c)("", singular, plural, count, placeholders, { bundle: this.bundle });
+    return (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.c)("", singular, plural, count, placeholders, { bundle: this.bundle });
   }
 }
 function getGettextBuilder() {
   return new GettextBuilder();
 }
 
+//# sourceMappingURL=gettext.mjs.map
 
 
 /***/ }),
@@ -3888,26 +3889,27 @@ function getGettextBuilder() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   getCanonicalLocale: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g),
+/* harmony export */   formatRelativeTime: () => (/* binding */ formatRelativeTime),
+/* harmony export */   getCanonicalLocale: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g),
 /* harmony export */   getDayNames: () => (/* binding */ getDayNames),
 /* harmony export */   getDayNamesMin: () => (/* binding */ getDayNamesMin),
 /* harmony export */   getDayNamesShort: () => (/* binding */ getDayNamesShort),
 /* harmony export */   getFirstDay: () => (/* binding */ getFirstDay),
-/* harmony export */   getLanguage: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.b),
-/* harmony export */   getLocale: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.a),
+/* harmony export */   getLanguage: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a),
+/* harmony export */   getLocale: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.b),
 /* harmony export */   getMonthNames: () => (/* binding */ getMonthNames),
 /* harmony export */   getMonthNamesShort: () => (/* binding */ getMonthNamesShort),
-/* harmony export */   getPlural: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.d),
-/* harmony export */   isRTL: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.i),
-/* harmony export */   loadTranslations: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.l),
-/* harmony export */   n: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
-/* harmony export */   register: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.r),
-/* harmony export */   t: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
-/* harmony export */   translate: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
-/* harmony export */   translatePlural: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
-/* harmony export */   unregister: () => (/* reexport safe */ _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.u)
+/* harmony export */   getPlural: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.d),
+/* harmony export */   isRTL: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.i),
+/* harmony export */   loadTranslations: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.l),
+/* harmony export */   n: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
+/* harmony export */   register: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.r),
+/* harmony export */   t: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
+/* harmony export */   translate: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.t),
+/* harmony export */   translatePlural: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.c),
+/* harmony export */   unregister: () => (/* reexport safe */ _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.u)
 /* harmony export */ });
-/* harmony import */ var _chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chunks/translation-CD_FiYBO.mjs */ "./node_modules/@nextcloud/l10n/dist/chunks/translation-CD_FiYBO.mjs");
+/* harmony import */ var _chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chunks/translation-DUYoTdjY.mjs */ "./node_modules/@nextcloud/l10n/dist/chunks/translation-DUYoTdjY.mjs");
 
 
 /*!
@@ -3918,7 +3920,7 @@ function getFirstDay() {
   if (typeof window.firstDay !== "undefined") {
     return window.firstDay;
   }
-  const intl = new Intl.Locale((0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)());
+  const intl = new Intl.Locale((0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)());
   const weekInfo = intl.getWeekInfo?.() ?? intl.weekInfo;
   if (weekInfo) {
     return weekInfo.firstDay % 7;
@@ -3929,7 +3931,7 @@ function getDayNames() {
   if (typeof window.dayNames !== "undefined") {
     return window.dayNames;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-04T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "long" }),
     (/* @__PURE__ */ new Date("1970-01-05T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "long" }),
@@ -3944,7 +3946,7 @@ function getDayNamesShort() {
   if (typeof window.dayNamesShort !== "undefined") {
     return window.dayNamesShort;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-04T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "short" }),
     (/* @__PURE__ */ new Date("1970-01-05T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "short" }),
@@ -3959,7 +3961,7 @@ function getDayNamesMin() {
   if (typeof window.dayNamesMin !== "undefined") {
     return window.dayNamesMin;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-04T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "narrow" }),
     (/* @__PURE__ */ new Date("1970-01-05T00:00:00.000Z")).toLocaleDateString(locale, { weekday: "narrow" }),
@@ -3974,7 +3976,7 @@ function getMonthNames() {
   if (typeof window.monthNames !== "undefined") {
     return window.monthNames;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "long" }),
     (/* @__PURE__ */ new Date("1970-02-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "long" }),
@@ -3994,7 +3996,7 @@ function getMonthNamesShort() {
   if (typeof window.monthNamesShort !== "undefined") {
     return window.monthNamesShort;
   }
-  const locale = (0,_chunks_translation_CD_FiYBO_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
+  const locale = (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.g)();
   return [
     (/* @__PURE__ */ new Date("1970-01-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "short" }),
     (/* @__PURE__ */ new Date("1970-02-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "short" }),
@@ -4010,7 +4012,47 @@ function getMonthNamesShort() {
     (/* @__PURE__ */ new Date("1970-12-01T00:00:00.000Z")).toLocaleDateString(locale, { month: "short" })
   ];
 }
+/*!
+ * SPDX-FileCopyrightText: 2025 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+function formatRelativeTime(timestamp = Date.now(), opts = {}) {
+  const options = {
+    ignoreSeconds: false,
+    language: (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)(),
+    relativeTime: "long",
+    ...opts
+  };
+  const date = new Date(timestamp);
+  const formatter = new Intl.RelativeTimeFormat([options.language, (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)()], { numeric: "auto", style: options.relativeTime });
+  const diff = date.getTime() - Date.now();
+  const seconds = diff / 1e3;
+  if (Math.abs(seconds) < 59.5) {
+    return options.ignoreSeconds || formatter.format(Math.round(seconds), "second");
+  }
+  const minutes = seconds / 60;
+  if (Math.abs(minutes) <= 59) {
+    return formatter.format(Math.round(minutes), "minute");
+  }
+  const hours = minutes / 60;
+  if (Math.abs(hours) < 23.5) {
+    return formatter.format(Math.round(hours), "hour");
+  }
+  const days = hours / 24;
+  if (Math.abs(days) < 6.5) {
+    return formatter.format(Math.round(days), "day");
+  }
+  if (Math.abs(days) < 27.5) {
+    const weeks = days / 7;
+    return formatter.format(Math.round(weeks), "week");
+  }
+  const months = days / 30;
+  const format = Math.abs(months) < 11 ? { month: options.relativeTime, day: "numeric" } : { year: options.relativeTime === "narrow" ? "2-digit" : "numeric", month: options.relativeTime };
+  const dateTimeFormatter = new Intl.DateTimeFormat([options.language, (0,_chunks_translation_DUYoTdjY_mjs__WEBPACK_IMPORTED_MODULE_0__.a)()], format);
+  return dateTimeFormatter.format(date);
+}
 
+//# sourceMappingURL=index.mjs.map
 
 
 /***/ }),
@@ -4484,9 +4526,9 @@ const IconClose = /* @__PURE__ */ (0,_plugin_vue_export_helper_1tPrXgE0_mjs__WEB
 
 /***/ }),
 
-/***/ "./node_modules/@nextcloud/vue/dist/chunks/NcCheckboxRadioSwitch-BmzUQ-WN.mjs":
+/***/ "./node_modules/@nextcloud/vue/dist/chunks/NcCheckboxRadioSwitch-Ca1ouh22.mjs":
 /*!************************************************************************************!*\
-  !*** ./node_modules/@nextcloud/vue/dist/chunks/NcCheckboxRadioSwitch-BmzUQ-WN.mjs ***!
+  !*** ./node_modules/@nextcloud/vue/dist/chunks/NcCheckboxRadioSwitch-Ca1ouh22.mjs ***!
   \************************************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -4500,7 +4542,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _plugin_vue_export_helper_1tPrXgE0_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./_plugin-vue_export-helper-1tPrXgE0.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_plugin-vue_export-helper-1tPrXgE0.mjs");
 /* harmony import */ var _NcLoadingIcon_CsMn1bFR_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./NcLoadingIcon-CsMn1bFR.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcLoadingIcon-CsMn1bFR.mjs");
 /* harmony import */ var _createElementId_DhjFt1I9_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./createElementId-DhjFt1I9.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/createElementId-DhjFt1I9.mjs");
-/* harmony import */ var _l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./_l10n-dinIMiE_.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-dinIMiE_.mjs");
+/* harmony import */ var _l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./_l10n-Bg-fZ9R0.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-Bg-fZ9R0.mjs");
 
 
 
@@ -4955,7 +4997,7 @@ function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
   ], 2);
 }
 const NcCheckboxContent = /* @__PURE__ */ (0,_plugin_vue_export_helper_1tPrXgE0_mjs__WEBPACK_IMPORTED_MODULE_2__._)(_sfc_main$1, [["render", _sfc_render$1], ["__scopeId", "data-v-744c7161"]]);
-(0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.r)();
+(0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.r)();
 const _sfc_main = {
   name: "NcCheckboxRadioSwitch",
   components: {
@@ -5186,8 +5228,8 @@ const _sfc_main = {
     }
   },
   methods: {
-    t: _l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.a,
-    n: _l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.C,
+    t: _l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.a,
+    n: _l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.B,
     onToggle(event) {
       if (this.disabled || event.target.tagName.toLowerCase() === "a") {
         return;
@@ -5301,7 +5343,7 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 }
 const NcCheckboxRadioSwitch = /* @__PURE__ */ (0,_plugin_vue_export_helper_1tPrXgE0_mjs__WEBPACK_IMPORTED_MODULE_2__._)(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-684a6614"]]);
 
-//# sourceMappingURL=NcCheckboxRadioSwitch-BmzUQ-WN.mjs.map
+//# sourceMappingURL=NcCheckboxRadioSwitch-Ca1ouh22.mjs.map
 
 
 /***/ }),
@@ -5704,9 +5746,9 @@ const NcLoadingIcon = /* @__PURE__ */ (0,_plugin_vue_export_helper_1tPrXgE0_mjs_
 
 /***/ }),
 
-/***/ "./node_modules/@nextcloud/vue/dist/chunks/NcSelect-DFMnY4fI.mjs":
+/***/ "./node_modules/@nextcloud/vue/dist/chunks/NcSelect-BSa2kSPW.mjs":
 /*!***********************************************************************!*\
-  !*** ./node_modules/@nextcloud/vue/dist/chunks/NcSelect-DFMnY4fI.mjs ***!
+  !*** ./node_modules/@nextcloud/vue/dist/chunks/NcSelect-BSa2kSPW.mjs ***!
   \***********************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -5721,7 +5763,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _floating_ui_dom__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! @floating-ui/dom */ "./node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs");
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.runtime.esm-bundler.js");
 /* harmony import */ var _createElementId_DhjFt1I9_mjs__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./createElementId-DhjFt1I9.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/createElementId-DhjFt1I9.mjs");
-/* harmony import */ var _l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./_l10n-dinIMiE_.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-dinIMiE_.mjs");
+/* harmony import */ var _l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./_l10n-Bg-fZ9R0.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-Bg-fZ9R0.mjs");
 /* harmony import */ var _ChevronDown_FiGpp0KT_mjs__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./ChevronDown-FiGpp0KT.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/ChevronDown-FiGpp0KT.mjs");
 /* harmony import */ var _Close_D6ngJ4t9_mjs__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Close-D6ngJ4t9.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/Close-D6ngJ4t9.mjs");
 /* harmony import */ var _NcEllipsisedOption_4k07kvEr_mjs__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./NcEllipsisedOption-4k07kvEr.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcEllipsisedOption-4k07kvEr.mjs");
@@ -5739,7 +5781,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-(0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.r)(_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.c);
+(0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.r)(_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.c);
 const _sfc_main = {
   name: "NcSelect",
   components: {
@@ -5757,7 +5799,7 @@ const _sfc_main = {
      */
     ariaLabelClearSelected: {
       type: String,
-      default: (0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.a)("Clear selected")
+      default: (0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.a)("Clear selected")
     },
     /**
      * `aria-label` for the search input
@@ -5773,7 +5815,7 @@ const _sfc_main = {
      */
     ariaLabelListbox: {
       type: String,
-      default: (0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.a)("Options")
+      default: (0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.a)("Options")
     },
     /**
      * Allows to customize the `aria-label` for the deselect-option button
@@ -5782,7 +5824,7 @@ const _sfc_main = {
      */
     ariaLabelDeselectOption: {
       type: Function,
-      default: (optionLabel) => (0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.a)("Deselect {option}", { option: optionLabel })
+      default: (optionLabel) => (0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.a)("Deselect {option}", { option: optionLabel })
     },
     /**
      * Append the dropdown element to the end of the body
@@ -5897,8 +5939,6 @@ const _sfc_main = {
     },
     /**
      * Visible label for the input element
-     *
-     * @todo Set default for @nextcloud/vue 9
      */
     inputLabel: {
       type: String,
@@ -6178,7 +6218,7 @@ const _sfc_main = {
     }
   },
   methods: {
-    t: _l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_5__.a
+    t: _l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_5__.a
   }
 };
 const _hoisted_1 = ["for"];
@@ -6259,14 +6299,14 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 }
 const NcSelect = /* @__PURE__ */ (0,_plugin_vue_export_helper_1tPrXgE0_mjs__WEBPACK_IMPORTED_MODULE_10__._)(_sfc_main, [["render", _sfc_render]]);
 
-//# sourceMappingURL=NcSelect-DFMnY4fI.mjs.map
+//# sourceMappingURL=NcSelect-BSa2kSPW.mjs.map
 
 
 /***/ }),
 
-/***/ "./node_modules/@nextcloud/vue/dist/chunks/NcSettingsSection-Crla6NXM.mjs":
+/***/ "./node_modules/@nextcloud/vue/dist/chunks/NcSettingsSection-D6ShpfeY.mjs":
 /*!********************************************************************************!*\
-  !*** ./node_modules/@nextcloud/vue/dist/chunks/NcSettingsSection-Crla6NXM.mjs ***!
+  !*** ./node_modules/@nextcloud/vue/dist/chunks/NcSettingsSection-D6ShpfeY.mjs ***!
   \********************************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
@@ -6276,14 +6316,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   N: () => (/* binding */ NcSettingsSection)
 /* harmony export */ });
 /* harmony import */ var _assets_NcSettingsSection_Dyrgo_fF_css__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../assets/NcSettingsSection-Dyrgo_fF.css */ "./node_modules/@nextcloud/vue/dist/assets/NcSettingsSection-Dyrgo_fF.css");
-/* harmony import */ var _l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_l10n-dinIMiE_.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-dinIMiE_.mjs");
+/* harmony import */ var _l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./_l10n-Bg-fZ9R0.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-Bg-fZ9R0.mjs");
 /* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.runtime.esm-bundler.js");
 /* harmony import */ var _plugin_vue_export_helper_1tPrXgE0_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./_plugin-vue_export-helper-1tPrXgE0.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/_plugin-vue_export-helper-1tPrXgE0.mjs");
 
 
 
 
-(0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_1__.r)(_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_1__.n);
+(0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_1__.r)(_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_1__.n);
 const _sfc_main$1 = {
   name: "HelpCircleIcon",
   emits: ["click"],
@@ -6348,7 +6388,7 @@ const _sfc_main = {
   },
   data() {
     return {
-      docNameTranslated: (0,_l10n_dinIMiE_mjs__WEBPACK_IMPORTED_MODULE_1__.a)("External documentation for {name}", {
+      docNameTranslated: (0,_l10n_Bg_fZ9R0_mjs__WEBPACK_IMPORTED_MODULE_1__.a)("External documentation for {name}", {
         name: this.name
       })
     };
@@ -6392,40 +6432,38 @@ function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
 }
 const NcSettingsSection = /* @__PURE__ */ (0,_plugin_vue_export_helper_1tPrXgE0_mjs__WEBPACK_IMPORTED_MODULE_3__._)(_sfc_main, [["render", _sfc_render], ["__scopeId", "data-v-9a743cb1"]]);
 
-//# sourceMappingURL=NcSettingsSection-Crla6NXM.mjs.map
+//# sourceMappingURL=NcSettingsSection-D6ShpfeY.mjs.map
 
 
 /***/ }),
 
-/***/ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-dinIMiE_.mjs":
+/***/ "./node_modules/@nextcloud/vue/dist/chunks/_l10n-Bg-fZ9R0.mjs":
 /*!********************************************************************!*\
-  !*** ./node_modules/@nextcloud/vue/dist/chunks/_l10n-dinIMiE_.mjs ***!
+  !*** ./node_modules/@nextcloud/vue/dist/chunks/_l10n-Bg-fZ9R0.mjs ***!
   \********************************************************************/
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   A: () => (/* binding */ t18),
-/* harmony export */   B: () => (/* binding */ t32),
-/* harmony export */   C: () => (/* binding */ n),
-/* harmony export */   D: () => (/* binding */ t6),
-/* harmony export */   E: () => (/* binding */ t27),
-/* harmony export */   F: () => (/* binding */ t21),
-/* harmony export */   G: () => (/* binding */ t20),
-/* harmony export */   H: () => (/* binding */ t10),
-/* harmony export */   I: () => (/* binding */ t47),
-/* harmony export */   J: () => (/* binding */ t14),
-/* harmony export */   K: () => (/* binding */ t38),
-/* harmony export */   L: () => (/* binding */ t36),
-/* harmony export */   M: () => (/* binding */ t8),
-/* harmony export */   N: () => (/* binding */ t7),
-/* harmony export */   O: () => (/* binding */ t41),
-/* harmony export */   P: () => (/* binding */ t37),
-/* harmony export */   Q: () => (/* binding */ t22),
-/* harmony export */   R: () => (/* binding */ t23),
-/* harmony export */   S: () => (/* binding */ t30),
-/* harmony export */   T: () => (/* binding */ t11),
+/* harmony export */   A: () => (/* binding */ t32),
+/* harmony export */   B: () => (/* binding */ n),
+/* harmony export */   C: () => (/* binding */ t6),
+/* harmony export */   D: () => (/* binding */ t27),
+/* harmony export */   E: () => (/* binding */ t21),
+/* harmony export */   F: () => (/* binding */ t20),
+/* harmony export */   G: () => (/* binding */ t10),
+/* harmony export */   H: () => (/* binding */ t14),
+/* harmony export */   I: () => (/* binding */ t38),
+/* harmony export */   J: () => (/* binding */ t36),
+/* harmony export */   K: () => (/* binding */ t8),
+/* harmony export */   L: () => (/* binding */ t7),
+/* harmony export */   M: () => (/* binding */ t41),
+/* harmony export */   N: () => (/* binding */ t37),
+/* harmony export */   O: () => (/* binding */ t22),
+/* harmony export */   P: () => (/* binding */ t23),
+/* harmony export */   Q: () => (/* binding */ t30),
+/* harmony export */   R: () => (/* binding */ t11),
 /* harmony export */   a: () => (/* binding */ t),
 /* harmony export */   b: () => (/* binding */ t2),
 /* harmony export */   c: () => (/* binding */ t16),
@@ -6449,9 +6487,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   u: () => (/* binding */ t15),
 /* harmony export */   v: () => (/* binding */ t5),
 /* harmony export */   w: () => (/* binding */ t19),
-/* harmony export */   x: () => (/* binding */ t29),
-/* harmony export */   y: () => (/* binding */ t26),
-/* harmony export */   z: () => (/* binding */ t34)
+/* harmony export */   x: () => (/* binding */ t34),
+/* harmony export */   y: () => (/* binding */ t18),
+/* harmony export */   z: () => (/* binding */ t29)
 /* harmony export */ });
 /* harmony import */ var _nextcloud_l10n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @nextcloud/l10n */ "./node_modules/@nextcloud/l10n/dist/index.mjs");
 /* harmony import */ var _nextcloud_l10n_gettext__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @nextcloud/l10n/gettext */ "./node_modules/@nextcloud/l10n/dist/gettext.mjs");
@@ -6515,7 +6553,6 @@ const t21 = [{ "l": "af", "t": { "Edit item": { "v": [""] } } }, { "l": "ar", "t
 const t22 = [{ "l": "af", "t": {} }, { "l": "ar", "t": { "Enable interactive view": { "v": ["تمكين المنظور التفاعلي"] } } }, { "l": "ast", "t": { "Enable interactive view": { "v": ["Activar la vista interactiva"] } } }, { "l": "az", "t": {} }, { "l": "be", "t": {} }, { "l": "bg", "t": {} }, { "l": "bn_BD", "t": {} }, { "l": "br", "t": {} }, { "l": "bs", "t": {} }, { "l": "ca", "t": {} }, { "l": "cs", "t": { "Enable interactive view": { "v": ["Zapnout interaktivní zobrazení"] } } }, { "l": "cs_CZ", "t": {} }, { "l": "cy_GB", "t": {} }, { "l": "da", "t": { "Enable interactive view": { "v": ["Aktiver interaktiv visning"] } } }, { "l": "de", "t": { "Enable interactive view": { "v": ["Die interaktive Ansicht aktivieren"] } } }, { "l": "de_DE", "t": { "Enable interactive view": { "v": ["Die interaktive Ansicht aktivieren"] } } }, { "l": "el", "t": { "Enable interactive view": { "v": ["Ενεργοποίηση διαδραστικής προβολής"] } } }, { "l": "en_GB", "t": { "Enable interactive view": { "v": ["Enable interactive view"] } } }, { "l": "eo", "t": {} }, { "l": "es", "t": { "Enable interactive view": { "v": ["Habilitar vista interactiva"] } } }, { "l": "es_419", "t": {} }, { "l": "es_AR", "t": { "Enable interactive view": { "v": ["Habilitar vista interactiva"] } } }, { "l": "es_CL", "t": {} }, { "l": "es_CO", "t": {} }, { "l": "es_CR", "t": {} }, { "l": "es_DO", "t": {} }, { "l": "es_EC", "t": {} }, { "l": "es_GT", "t": {} }, { "l": "es_HN", "t": {} }, { "l": "es_MX", "t": { "Enable interactive view": { "v": ["Habilitar vista interactiva"] } } }, { "l": "es_NI", "t": {} }, { "l": "es_PA", "t": {} }, { "l": "es_PE", "t": {} }, { "l": "es_PR", "t": {} }, { "l": "es_PY", "t": {} }, { "l": "es_SV", "t": {} }, { "l": "es_UY", "t": {} }, { "l": "et_EE", "t": { "Enable interactive view": { "v": ["Lülita interaktiivne vaade sisse"] } } }, { "l": "eu", "t": {} }, { "l": "fa", "t": { "Enable interactive view": { "v": ["فعال‌سازی نمای تعاملی"] } } }, { "l": "fi", "t": { "Enable interactive view": { "v": ["Näytä vuorovaikutteinen näkymä"] } } }, { "l": "fo", "t": {} }, { "l": "fr", "t": { "Enable interactive view": { "v": ["Activer la vue interactive"] } } }, { "l": "ga", "t": { "Enable interactive view": { "v": ["Cumasaigh amharc idirghníomhach"] } } }, { "l": "gd", "t": {} }, { "l": "gl", "t": { "Enable interactive view": { "v": ["Activar a vista interactiva"] } } }, { "l": "he", "t": {} }, { "l": "hi_IN", "t": {} }, { "l": "hr", "t": {} }, { "l": "hsb", "t": {} }, { "l": "hu", "t": {} }, { "l": "hy", "t": {} }, { "l": "ia", "t": {} }, { "l": "id", "t": {} }, { "l": "ig", "t": {} }, { "l": "is", "t": { "Enable interactive view": { "v": ["Virkja gagnvirka sýn"] } } }, { "l": "it", "t": {} }, { "l": "ja", "t": { "Enable interactive view": { "v": ["インタラクティブ・ビューを有効にする"] } } }, { "l": "ja_JP", "t": { "Enable interactive view": { "v": ["インタラクティブ・ビューを有効にする"] } } }, { "l": "ka", "t": {} }, { "l": "ka_GE", "t": {} }, { "l": "kab", "t": {} }, { "l": "kk", "t": {} }, { "l": "km", "t": {} }, { "l": "kn", "t": {} }, { "l": "ko", "t": { "Enable interactive view": { "v": ["대화형 보기 활성화"] } } }, { "l": "la", "t": {} }, { "l": "lb", "t": {} }, { "l": "lo", "t": {} }, { "l": "lt_LT", "t": {} }, { "l": "lv", "t": {} }, { "l": "mk", "t": {} }, { "l": "mn", "t": {} }, { "l": "mr", "t": {} }, { "l": "ms_MY", "t": {} }, { "l": "my", "t": {} }, { "l": "nb", "t": { "Enable interactive view": { "v": ["Aktiver interaktiv visning"] } } }, { "l": "ne", "t": {} }, { "l": "nl", "t": { "Enable interactive view": { "v": ["Interactieve weergave inschakelen"] } } }, { "l": "nn_NO", "t": {} }, { "l": "oc", "t": {} }, { "l": "pl", "t": { "Enable interactive view": { "v": ["Włącz widok interaktywny"] } } }, { "l": "ps", "t": {} }, { "l": "pt_BR", "t": { "Enable interactive view": { "v": ["Ativar visualização interativa"] } } }, { "l": "pt_PT", "t": { "Enable interactive view": { "v": ["Ativar vista interativa"] } } }, { "l": "ro", "t": {} }, { "l": "ru", "t": { "Enable interactive view": { "v": ["Включить интерактивный просмотр"] } } }, { "l": "sc", "t": {} }, { "l": "si", "t": {} }, { "l": "sk", "t": { "Enable interactive view": { "v": ["Povoliť interaktívny pohľad"] } } }, { "l": "sl", "t": {} }, { "l": "sq", "t": {} }, { "l": "sr", "t": { "Enable interactive view": { "v": ["Укључи интерактивни приказ"] } } }, { "l": "sr@latin", "t": {} }, { "l": "sv", "t": { "Enable interactive view": { "v": ["Aktivera interaktiv vy"] } } }, { "l": "sw", "t": {} }, { "l": "ta", "t": {} }, { "l": "th", "t": {} }, { "l": "tk", "t": {} }, { "l": "tr", "t": { "Enable interactive view": { "v": ["Etkileşimli görünümü aç"] } } }, { "l": "ug", "t": {} }, { "l": "uk", "t": { "Enable interactive view": { "v": ["Увімкнути інтерактивний перегляд"] } } }, { "l": "ur_PK", "t": {} }, { "l": "uz", "t": { "Enable interactive view": { "v": ["Interaktiv ko'rinishni yoqing"] } } }, { "l": "vi", "t": {} }, { "l": "zh_CN", "t": { "Enable interactive view": { "v": ["启用交互视窗"] } } }, { "l": "zh_HK", "t": { "Enable interactive view": { "v": ["啟用互動視圖"] } } }, { "l": "zh_TW", "t": { "Enable interactive view": { "v": ["啟用互動檢視"] } } }, { "l": "zu_ZA", "t": {} }];
 const t23 = [{ "l": "af", "t": { "Enter link": { "v": [""] } } }, { "l": "ar", "t": { "Enter link": { "v": ["أدخِل الرابط"] } } }, { "l": "ast", "t": { "Enter link": { "v": ["Introducir l'enllaz"] } } }, { "l": "az", "t": { "Enter link": { "v": [""] } } }, { "l": "be", "t": { "Enter link": { "v": [""] } } }, { "l": "bg", "t": { "Enter link": { "v": [""] } } }, { "l": "bn_BD", "t": { "Enter link": { "v": [""] } } }, { "l": "br", "t": { "Enter link": { "v": [""] } } }, { "l": "bs", "t": { "Enter link": { "v": [""] } } }, { "l": "ca", "t": { "Enter link": { "v": [""] } } }, { "l": "cs", "t": { "Enter link": { "v": ["Zadat odkaz"] } } }, { "l": "cs_CZ", "t": { "Enter link": { "v": ["Zadat odkaz"] } } }, { "l": "cy_GB", "t": { "Enter link": { "v": [""] } } }, { "l": "da", "t": { "Enter link": { "v": ["Indtast link"] } } }, { "l": "de", "t": { "Enter link": { "v": ["Link eingeben"] } } }, { "l": "de_DE", "t": { "Enter link": { "v": ["Link eingeben"] } } }, { "l": "el", "t": { "Enter link": { "v": ["Εισάγετε σύνδεσμο"] } } }, { "l": "en_GB", "t": { "Enter link": { "v": ["Enter link"] } } }, { "l": "eo", "t": { "Enter link": { "v": [""] } } }, { "l": "es", "t": { "Enter link": { "v": ["Ingrese enlace"] } } }, { "l": "es_419", "t": { "Enter link": { "v": [""] } } }, { "l": "es_AR", "t": { "Enter link": { "v": ["Ingresar enlace"] } } }, { "l": "es_CL", "t": { "Enter link": { "v": [""] } } }, { "l": "es_CO", "t": { "Enter link": { "v": [""] } } }, { "l": "es_CR", "t": { "Enter link": { "v": [""] } } }, { "l": "es_DO", "t": { "Enter link": { "v": [""] } } }, { "l": "es_EC", "t": { "Enter link": { "v": ["Ingresar enlace"] } } }, { "l": "es_GT", "t": { "Enter link": { "v": [""] } } }, { "l": "es_HN", "t": { "Enter link": { "v": [""] } } }, { "l": "es_MX", "t": { "Enter link": { "v": ["Ingresar enlace"] } } }, { "l": "es_NI", "t": { "Enter link": { "v": [""] } } }, { "l": "es_PA", "t": { "Enter link": { "v": [""] } } }, { "l": "es_PE", "t": { "Enter link": { "v": [""] } } }, { "l": "es_PR", "t": { "Enter link": { "v": [""] } } }, { "l": "es_PY", "t": { "Enter link": { "v": [""] } } }, { "l": "es_SV", "t": { "Enter link": { "v": [""] } } }, { "l": "es_UY", "t": { "Enter link": { "v": [""] } } }, { "l": "et_EE", "t": { "Enter link": { "v": ["Sisesta link"] } } }, { "l": "eu", "t": { "Enter link": { "v": ["Sartu esteka"] } } }, { "l": "fa", "t": { "Enter link": { "v": ["لینک را وارد کنید"] } } }, { "l": "fi", "t": { "Enter link": { "v": ["Kirjoita linkki"] } } }, { "l": "fo", "t": { "Enter link": { "v": [""] } } }, { "l": "fr", "t": { "Enter link": { "v": ["Saisissez le lien"] } } }, { "l": "ga", "t": { "Enter link": { "v": ["Cuir isteach nasc"] } } }, { "l": "gd", "t": { "Enter link": { "v": [""] } } }, { "l": "gl", "t": { "Enter link": { "v": ["Introducir a ligazón"] } } }, { "l": "he", "t": { "Enter link": { "v": ["מילוי קישור"] } } }, { "l": "hi_IN", "t": { "Enter link": { "v": [""] } } }, { "l": "hr", "t": { "Enter link": { "v": [""] } } }, { "l": "hsb", "t": { "Enter link": { "v": [""] } } }, { "l": "hu", "t": { "Enter link": { "v": [""] } } }, { "l": "hy", "t": { "Enter link": { "v": [""] } } }, { "l": "ia", "t": { "Enter link": { "v": [""] } } }, { "l": "id", "t": { "Enter link": { "v": ["Masukkan tautan"] } } }, { "l": "ig", "t": { "Enter link": { "v": [""] } } }, { "l": "is", "t": { "Enter link": { "v": ["Settu inn tengil"] } } }, { "l": "it", "t": { "Enter link": { "v": ["Inserire il link"] } } }, { "l": "ja", "t": { "Enter link": { "v": ["リンクを入力する"] } } }, { "l": "ja_JP", "t": { "Enter link": { "v": ["リンクを入力する"] } } }, { "l": "ka", "t": { "Enter link": { "v": [""] } } }, { "l": "ka_GE", "t": { "Enter link": { "v": [""] } } }, { "l": "kab", "t": { "Enter link": { "v": [""] } } }, { "l": "kk", "t": { "Enter link": { "v": [""] } } }, { "l": "km", "t": { "Enter link": { "v": [""] } } }, { "l": "kn", "t": { "Enter link": { "v": [""] } } }, { "l": "ko", "t": { "Enter link": { "v": ["링크 입력"] } } }, { "l": "la", "t": { "Enter link": { "v": [""] } } }, { "l": "lb", "t": { "Enter link": { "v": [""] } } }, { "l": "lo", "t": { "Enter link": { "v": [""] } } }, { "l": "lt_LT", "t": { "Enter link": { "v": [""] } } }, { "l": "lv", "t": { "Enter link": { "v": [""] } } }, { "l": "mk", "t": { "Enter link": { "v": [""] } } }, { "l": "mn", "t": { "Enter link": { "v": [""] } } }, { "l": "mr", "t": { "Enter link": { "v": [""] } } }, { "l": "ms_MY", "t": { "Enter link": { "v": [""] } } }, { "l": "my", "t": { "Enter link": { "v": [""] } } }, { "l": "nb", "t": { "Enter link": { "v": ["Skriv inn lenken"] } } }, { "l": "ne", "t": { "Enter link": { "v": [""] } } }, { "l": "nl", "t": { "Enter link": { "v": ["Voer link in"] } } }, { "l": "nn_NO", "t": { "Enter link": { "v": [""] } } }, { "l": "oc", "t": { "Enter link": { "v": [""] } } }, { "l": "pl", "t": { "Enter link": { "v": ["Wprowadź link"] } } }, { "l": "ps", "t": { "Enter link": { "v": [""] } } }, { "l": "pt_BR", "t": { "Enter link": { "v": ["Insira o link"] } } }, { "l": "pt_PT", "t": { "Enter link": { "v": ["Inserir hiperligação"] } } }, { "l": "ro", "t": { "Enter link": { "v": ["Introduceți link-ul"] } } }, { "l": "ru", "t": { "Enter link": { "v": ["Введите ссылку"] } } }, { "l": "sc", "t": { "Enter link": { "v": [""] } } }, { "l": "si", "t": { "Enter link": { "v": [""] } } }, { "l": "sk", "t": { "Enter link": { "v": ["Vložiť link"] } } }, { "l": "sl", "t": { "Enter link": { "v": [""] } } }, { "l": "sq", "t": { "Enter link": { "v": [""] } } }, { "l": "sr", "t": { "Enter link": { "v": ["Унесите линк"] } } }, { "l": "sr@latin", "t": { "Enter link": { "v": [""] } } }, { "l": "sv", "t": { "Enter link": { "v": ["Ange länk"] } } }, { "l": "sw", "t": { "Enter link": { "v": [""] } } }, { "l": "ta", "t": { "Enter link": { "v": [""] } } }, { "l": "th", "t": { "Enter link": { "v": [""] } } }, { "l": "tk", "t": { "Enter link": { "v": [""] } } }, { "l": "tr", "t": { "Enter link": { "v": ["Bağlantıyı yazın"] } } }, { "l": "ug", "t": { "Enter link": { "v": [""] } } }, { "l": "uk", "t": { "Enter link": { "v": ["Зазначте посилання"] } } }, { "l": "ur_PK", "t": { "Enter link": { "v": [""] } } }, { "l": "uz", "t": { "Enter link": { "v": ["Havolani kiriting"] } } }, { "l": "vi", "t": { "Enter link": { "v": [""] } } }, { "l": "zh_CN", "t": { "Enter link": { "v": ["输入链接"] } } }, { "l": "zh_HK", "t": { "Enter link": { "v": ["輸入連結"] } } }, { "l": "zh_TW", "t": { "Enter link": { "v": ["輸入連結"] } } }, { "l": "zu_ZA", "t": { "Enter link": { "v": [""] } } }];
 const t24 = [{ "l": "af", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ar", "t": { "External documentation for {name}": { "v": ["التوثيق الخارجي لـ {name}"] } } }, { "l": "ast", "t": { "External documentation for {name}": { "v": ["Documentación esterna pa: {name}"] } } }, { "l": "az", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "be", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "bg", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "bn_BD", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "br", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "bs", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ca", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "cs", "t": { "External documentation for {name}": { "v": ["Externí dokumentace pro {name}"] } } }, { "l": "cs_CZ", "t": { "External documentation for {name}": { "v": ["Externí dokumentace pro {name}"] } } }, { "l": "cy_GB", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "da", "t": { "External documentation for {name}": { "v": ["Ekstern dokumentation for {name}"] } } }, { "l": "de", "t": { "External documentation for {name}": { "v": ["Externe Dokumentation für {name}"] } } }, { "l": "de_DE", "t": { "External documentation for {name}": { "v": ["Externe Dokumentation für {name}"] } } }, { "l": "el", "t": { "External documentation for {name}": { "v": ["Εξωτερική τεκμηρίωση για {name}"] } } }, { "l": "en_GB", "t": { "External documentation for {name}": { "v": ["External documentation for {name}"] } } }, { "l": "eo", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es", "t": { "External documentation for {name}": { "v": ["Documentación externa para {name}"] } } }, { "l": "es_419", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_AR", "t": { "External documentation for {name}": { "v": ["Documentación externa para {name}"] } } }, { "l": "es_CL", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_CO", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_CR", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_DO", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_EC", "t": { "External documentation for {name}": { "v": ["Documentación externa para {name}"] } } }, { "l": "es_GT", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_HN", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_MX", "t": { "External documentation for {name}": { "v": ["Documentación externa para {name}"] } } }, { "l": "es_NI", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_PA", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_PE", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_PR", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_PY", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_SV", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "es_UY", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "et_EE", "t": { "External documentation for {name}": { "v": ["Väline dokumentatsioon: {name}"] } } }, { "l": "eu", "t": { "External documentation for {name}": { "v": ["{name}-ren kanpoko dokumentazioa"] } } }, { "l": "fa", "t": { "External documentation for {name}": { "v": ["اسناد بیرونی برای {name}"] } } }, { "l": "fi", "t": { "External documentation for {name}": { "v": ["Ulkoinen dokumentaatio {name}lle"] } } }, { "l": "fo", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "fr", "t": { "External documentation for {name}": { "v": ["Documentation externe pour {name}"] } } }, { "l": "ga", "t": { "External documentation for {name}": { "v": ["Doiciméadúchán seachtrach le haghaidh {name}"] } } }, { "l": "gd", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "gl", "t": { "External documentation for {name}": { "v": ["Documentación externa para {name}"] } } }, { "l": "he", "t": { "External documentation for {name}": { "v": ["תיעוד חיצוני עבור {name}"] } } }, { "l": "hi_IN", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "hr", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "hsb", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "hu", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "hy", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ia", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "id", "t": { "External documentation for {name}": { "v": ["Dokumentasi eksternal untuk {name}"] } } }, { "l": "ig", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "is", "t": { "External documentation for {name}": { "v": ["Utanaðkomandi leiðbeiningar fyrir {name}"] } } }, { "l": "it", "t": { "External documentation for {name}": { "v": ["Documentazione esterna per {name}"] } } }, { "l": "ja", "t": { "External documentation for {name}": { "v": ["{name} の外部ドキュメント"] } } }, { "l": "ja_JP", "t": { "External documentation for {name}": { "v": ["{name} の外部ドキュメント"] } } }, { "l": "ka", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ka_GE", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "kab", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "kk", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "km", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "kn", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ko", "t": { "External documentation for {name}": { "v": ["{name}의 외부 문서"] } } }, { "l": "la", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "lb", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "lo", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "lt_LT", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "lv", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "mk", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "mn", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "mr", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ms_MY", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "my", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "nb", "t": { "External documentation for {name}": { "v": ["Ekstern dokumentasjon for {name}"] } } }, { "l": "ne", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "nl", "t": { "External documentation for {name}": { "v": ["Externe documentatie voor {name}"] } } }, { "l": "nn_NO", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "oc", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "pl", "t": { "External documentation for {name}": { "v": ["Dokumentacja zewnętrzna dla {name}"] } } }, { "l": "ps", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "pt_BR", "t": { "External documentation for {name}": { "v": ["Documentação externa para {name}"] } } }, { "l": "pt_PT", "t": { "External documentation for {name}": { "v": ["Documentação externa para {name}"] } } }, { "l": "ro", "t": { "External documentation for {name}": { "v": ["Documentație externă pentru {name}"] } } }, { "l": "ru", "t": { "External documentation for {name}": { "v": ["Внешняя документация для {name}"] } } }, { "l": "sc", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "si", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "sk", "t": { "External documentation for {name}": { "v": ["Externá dokumentácia pre {name}"] } } }, { "l": "sl", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "sq", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "sr", "t": { "External documentation for {name}": { "v": ["Спољна документација за {name}"] } } }, { "l": "sr@latin", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "sv", "t": { "External documentation for {name}": { "v": ["Extern dokumentation för {name}"] } } }, { "l": "sw", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "ta", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "th", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "tk", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "tr", "t": { "External documentation for {name}": { "v": ["{name} için dış belgeler"] } } }, { "l": "ug", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "uk", "t": { "External documentation for {name}": { "v": ["Зовнішня документація для {name}"] } } }, { "l": "ur_PK", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "uz", "t": { "External documentation for {name}": { "v": ["{name}uchun tashqi hujjatlar"] } } }, { "l": "vi", "t": { "External documentation for {name}": { "v": [""] } } }, { "l": "zh_CN", "t": { "External documentation for {name}": { "v": ["{name} 的外部文档"] } } }, { "l": "zh_HK", "t": { "External documentation for {name}": { "v": ["{name} 的外部文件"] } } }, { "l": "zh_TW", "t": { "External documentation for {name}": { "v": ["{name} 的外部文件"] } } }, { "l": "zu_ZA", "t": { "External documentation for {name}": { "v": [""] } } }];
-const t26 = [{ "l": "af", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ar", "t": { "Go back to the list": { "v": ["عودة إلى القائمة"] } } }, { "l": "ast", "t": { "Go back to the list": { "v": ["Volver a la llista"] } } }, { "l": "az", "t": { "Go back to the list": { "v": [""] } } }, { "l": "be", "t": { "Go back to the list": { "v": [""] } } }, { "l": "bg", "t": { "Go back to the list": { "v": [""] } } }, { "l": "bn_BD", "t": { "Go back to the list": { "v": [""] } } }, { "l": "br", "t": { "Go back to the list": { "v": [""] } } }, { "l": "bs", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ca", "t": { "Go back to the list": { "v": ["Torna a la llista"] } } }, { "l": "cs", "t": { "Go back to the list": { "v": ["Jít zpět na seznam"] } } }, { "l": "cs_CZ", "t": { "Go back to the list": { "v": ["Jít zpět na seznam"] } } }, { "l": "cy_GB", "t": { "Go back to the list": { "v": [""] } } }, { "l": "da", "t": { "Go back to the list": { "v": ["Tilbage til listen"] } } }, { "l": "de", "t": { "Go back to the list": { "v": ["Zurück zur Liste"] } } }, { "l": "de_DE", "t": { "Go back to the list": { "v": ["Zurück zur Liste"] } } }, { "l": "el", "t": { "Go back to the list": { "v": ["Επιστροφή στην αρχική λίστα"] } } }, { "l": "en_GB", "t": { "Go back to the list": { "v": ["Go back to the list"] } } }, { "l": "eo", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es", "t": { "Go back to the list": { "v": ["Volver a la lista"] } } }, { "l": "es_419", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_AR", "t": { "Go back to the list": { "v": ["Volver a la lista"] } } }, { "l": "es_CL", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_CO", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_CR", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_DO", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_EC", "t": { "Go back to the list": { "v": ["Volver a la lista"] } } }, { "l": "es_GT", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_HN", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_MX", "t": { "Go back to the list": { "v": ["Regresar a la lista"] } } }, { "l": "es_NI", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_PA", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_PE", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_PR", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_PY", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_SV", "t": { "Go back to the list": { "v": [""] } } }, { "l": "es_UY", "t": { "Go back to the list": { "v": [""] } } }, { "l": "et_EE", "t": { "Go back to the list": { "v": ["Tagasi nimekirja juurde"] } } }, { "l": "eu", "t": { "Go back to the list": { "v": ["Bueltatu zerrendara"] } } }, { "l": "fa", "t": { "Go back to the list": { "v": ["برگشت به لیست"] } } }, { "l": "fi", "t": { "Go back to the list": { "v": ["Takaisin listaan"] } } }, { "l": "fo", "t": { "Go back to the list": { "v": [""] } } }, { "l": "fr", "t": { "Go back to the list": { "v": ["Retourner à la liste"] } } }, { "l": "ga", "t": { "Go back to the list": { "v": ["Téigh ar ais go dtí an liosta"] } } }, { "l": "gd", "t": { "Go back to the list": { "v": [""] } } }, { "l": "gl", "t": { "Go back to the list": { "v": ["Volver á lista"] } } }, { "l": "he", "t": { "Go back to the list": { "v": ["חזרה לרשימה"] } } }, { "l": "hi_IN", "t": { "Go back to the list": { "v": [""] } } }, { "l": "hr", "t": { "Go back to the list": { "v": [""] } } }, { "l": "hsb", "t": { "Go back to the list": { "v": [""] } } }, { "l": "hu", "t": { "Go back to the list": { "v": ["Ugrás vissza a listához"] } } }, { "l": "hy", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ia", "t": { "Go back to the list": { "v": [""] } } }, { "l": "id", "t": { "Go back to the list": { "v": ["Kembali ke daftar"] } } }, { "l": "ig", "t": { "Go back to the list": { "v": [""] } } }, { "l": "is", "t": { "Go back to the list": { "v": ["Fara til baka í listann"] } } }, { "l": "it", "t": { "Go back to the list": { "v": ["Torna all'elenco"] } } }, { "l": "ja", "t": { "Go back to the list": { "v": ["リストに戻る"] } } }, { "l": "ja_JP", "t": { "Go back to the list": { "v": ["リストに戻る"] } } }, { "l": "ka", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ka_GE", "t": { "Go back to the list": { "v": [""] } } }, { "l": "kab", "t": { "Go back to the list": { "v": [""] } } }, { "l": "kk", "t": { "Go back to the list": { "v": [""] } } }, { "l": "km", "t": { "Go back to the list": { "v": [""] } } }, { "l": "kn", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ko", "t": { "Go back to the list": { "v": ["목록으로 돌아가기"] } } }, { "l": "la", "t": { "Go back to the list": { "v": [""] } } }, { "l": "lb", "t": { "Go back to the list": { "v": [""] } } }, { "l": "lo", "t": { "Go back to the list": { "v": [""] } } }, { "l": "lt_LT", "t": { "Go back to the list": { "v": [""] } } }, { "l": "lv", "t": { "Go back to the list": { "v": [""] } } }, { "l": "mk", "t": { "Go back to the list": { "v": ["Врати се на листата"] } } }, { "l": "mn", "t": { "Go back to the list": { "v": [""] } } }, { "l": "mr", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ms_MY", "t": { "Go back to the list": { "v": [""] } } }, { "l": "my", "t": { "Go back to the list": { "v": [""] } } }, { "l": "nb", "t": { "Go back to the list": { "v": ["Gå tilbake til listen"] } } }, { "l": "ne", "t": { "Go back to the list": { "v": [""] } } }, { "l": "nl", "t": { "Go back to the list": { "v": ["Ga terug naar de lijst"] } } }, { "l": "nn_NO", "t": { "Go back to the list": { "v": [""] } } }, { "l": "oc", "t": { "Go back to the list": { "v": [""] } } }, { "l": "pl", "t": { "Go back to the list": { "v": ["Powrót do listy"] } } }, { "l": "ps", "t": { "Go back to the list": { "v": [""] } } }, { "l": "pt_BR", "t": { "Go back to the list": { "v": ["Voltar para a lista"] } } }, { "l": "pt_PT", "t": { "Go back to the list": { "v": ["Voltar para a lista"] } } }, { "l": "ro", "t": { "Go back to the list": { "v": ["Întoarceți-vă la listă"] } } }, { "l": "ru", "t": { "Go back to the list": { "v": ["Вернуться к списку"] } } }, { "l": "sc", "t": { "Go back to the list": { "v": [""] } } }, { "l": "si", "t": { "Go back to the list": { "v": [""] } } }, { "l": "sk", "t": { "Go back to the list": { "v": ["Späť na zoznam"] } } }, { "l": "sl", "t": { "Go back to the list": { "v": ["Vrni se na seznam"] } } }, { "l": "sq", "t": { "Go back to the list": { "v": [""] } } }, { "l": "sr", "t": { "Go back to the list": { "v": ["Назад на листу"] } } }, { "l": "sr@latin", "t": { "Go back to the list": { "v": [""] } } }, { "l": "sv", "t": { "Go back to the list": { "v": ["Gå tillbaka till listan"] } } }, { "l": "sw", "t": { "Go back to the list": { "v": [""] } } }, { "l": "ta", "t": { "Go back to the list": { "v": [""] } } }, { "l": "th", "t": { "Go back to the list": { "v": [""] } } }, { "l": "tk", "t": { "Go back to the list": { "v": [""] } } }, { "l": "tr", "t": { "Go back to the list": { "v": ["Listeye dön"] } } }, { "l": "ug", "t": { "Go back to the list": { "v": [""] } } }, { "l": "uk", "t": { "Go back to the list": { "v": ["Повернутися до списку"] } } }, { "l": "ur_PK", "t": { "Go back to the list": { "v": [""] } } }, { "l": "uz", "t": { "Go back to the list": { "v": ["Ro'yxatga qayting"] } } }, { "l": "vi", "t": { "Go back to the list": { "v": [""] } } }, { "l": "zh_CN", "t": { "Go back to the list": { "v": ["返回至列表"] } } }, { "l": "zh_HK", "t": { "Go back to the list": { "v": ["返回清單"] } } }, { "l": "zh_TW", "t": { "Go back to the list": { "v": ["回到清單"] } } }, { "l": "zu_ZA", "t": { "Go back to the list": { "v": [""] } } }];
 const t27 = [{ "l": "af", "t": {} }, { "l": "ar", "t": { "Hide details": { "v": ["أخفِ التفاصيل"] }, "Rename project": { "v": ["تغيير اسم المشروع"] }, "Show details": { "v": ["أظهِر التفاصيل"] } } }, { "l": "ast", "t": {} }, { "l": "az", "t": {} }, { "l": "be", "t": {} }, { "l": "bg", "t": {} }, { "l": "bn_BD", "t": {} }, { "l": "br", "t": {} }, { "l": "bs", "t": {} }, { "l": "ca", "t": {} }, { "l": "cs", "t": { "Hide details": { "v": ["Skrýt podrobnosti"] }, "Rename project": { "v": ["Přejmenovat projekt"] }, "Show details": { "v": ["Zobrazit podrobnosti"] } } }, { "l": "cs_CZ", "t": {} }, { "l": "cy_GB", "t": {} }, { "l": "da", "t": { "Hide details": { "v": ["Skjul detaljer"] }, "Rename project": { "v": ["Omdøb projekt"] }, "Show details": { "v": ["Vis detaljer"] } } }, { "l": "de", "t": { "Hide details": { "v": ["Details ausblenden"] }, "Rename project": { "v": ["Projekt umbenennen"] }, "Show details": { "v": ["Details anzeigen"] } } }, { "l": "de_DE", "t": { "Hide details": { "v": ["Details ausblenden"] }, "Rename project": { "v": ["Projekt umbenennen"] }, "Show details": { "v": ["Details anzeigen"] } } }, { "l": "el", "t": { "Hide details": { "v": ["Απόκρυψη λεπτομερειών"] }, "Rename project": { "v": ["Μετονομασία έργου"] }, "Show details": { "v": ["Εμφάνιση λεπτομερειών"] } } }, { "l": "en_GB", "t": { "Hide details": { "v": ["Hide details"] }, "Rename project": { "v": ["Rename project"] }, "Show details": { "v": ["Show details"] } } }, { "l": "eo", "t": {} }, { "l": "es", "t": {} }, { "l": "es_419", "t": {} }, { "l": "es_AR", "t": { "Hide details": { "v": ["Ocultar detalles"] }, "Rename project": { "v": ["Renombrar proyecto"] }, "Show details": { "v": ["Mostrar detalles"] } } }, { "l": "es_CL", "t": {} }, { "l": "es_CO", "t": {} }, { "l": "es_CR", "t": {} }, { "l": "es_DO", "t": {} }, { "l": "es_EC", "t": {} }, { "l": "es_GT", "t": {} }, { "l": "es_HN", "t": {} }, { "l": "es_MX", "t": { "Hide details": { "v": ["Ocultar detalles"] }, "Rename project": { "v": ["Renombrar proyecto"] }, "Show details": { "v": ["Mostrar detalles"] } } }, { "l": "es_NI", "t": {} }, { "l": "es_PA", "t": {} }, { "l": "es_PE", "t": {} }, { "l": "es_PR", "t": {} }, { "l": "es_PY", "t": {} }, { "l": "es_SV", "t": {} }, { "l": "es_UY", "t": {} }, { "l": "et_EE", "t": { "Hide details": { "v": ["Peida üksikasjad"] }, "Rename project": { "v": ["Muuda projekti nime"] }, "Show details": { "v": ["Näita üksikasju"] } } }, { "l": "eu", "t": {} }, { "l": "fa", "t": { "Hide details": { "v": ["پنهان کردن جزئیات"] }, "Rename project": { "v": ["تغییر نام پروژه"] }, "Show details": { "v": ["نمایش جزئیات"] } } }, { "l": "fi", "t": { "Hide details": { "v": ["Piilota yksityiskohdat"] }, "Rename project": { "v": ["Nimeä projekti"] }, "Show details": { "v": ["Näytä yksityiskohdat"] } } }, { "l": "fo", "t": {} }, { "l": "fr", "t": { "Hide details": { "v": ["Masquer les détails"] }, "Rename project": { "v": ["Renommer le projet"] }, "Show details": { "v": ["Afficher les détails"] } } }, { "l": "ga", "t": { "Hide details": { "v": ["Folaigh sonraí"] }, "Rename project": { "v": ["Athainmnigh an tionscadal"] }, "Show details": { "v": ["Taispeáin sonraí"] } } }, { "l": "gd", "t": {} }, { "l": "gl", "t": { "Hide details": { "v": ["Agochar os detalles"] }, "Rename project": { "v": ["Cambiar o nome do proxecto"] }, "Show details": { "v": ["Amosar os detalles"] } } }, { "l": "he", "t": {} }, { "l": "hi_IN", "t": {} }, { "l": "hr", "t": {} }, { "l": "hsb", "t": {} }, { "l": "hu", "t": {} }, { "l": "hy", "t": {} }, { "l": "ia", "t": {} }, { "l": "id", "t": {} }, { "l": "ig", "t": {} }, { "l": "is", "t": { "Hide details": { "v": ["Fela nánari upplýsingar"] }, "Rename project": { "v": ["Endurnefna verkefni"] }, "Show details": { "v": ["Birta nánari upplýsingar"] } } }, { "l": "it", "t": {} }, { "l": "ja", "t": { "Hide details": { "v": ["詳細を非表示"] }, "Rename project": { "v": ["プロジェクト名を変更"] }, "Show details": { "v": ["詳細の表示"] } } }, { "l": "ja_JP", "t": {} }, { "l": "ka", "t": {} }, { "l": "ka_GE", "t": {} }, { "l": "kab", "t": {} }, { "l": "kk", "t": {} }, { "l": "km", "t": {} }, { "l": "kn", "t": {} }, { "l": "ko", "t": { "Hide details": { "v": ["세부 사항 숨기기"] }, "Rename project": { "v": ["프로젝트 이름 변경"] }, "Show details": { "v": ["세부 사항 보기"] } } }, { "l": "la", "t": {} }, { "l": "lb", "t": {} }, { "l": "lo", "t": {} }, { "l": "lt_LT", "t": {} }, { "l": "lv", "t": {} }, { "l": "mk", "t": {} }, { "l": "mn", "t": {} }, { "l": "mr", "t": {} }, { "l": "ms_MY", "t": {} }, { "l": "my", "t": {} }, { "l": "nb", "t": { "Hide details": { "v": ["Skjul detaljer"] }, "Rename project": { "v": ["Gi prosjekt nytt navn"] }, "Show details": { "v": ["Vis detaljer"] } } }, { "l": "ne", "t": {} }, { "l": "nl", "t": { "Hide details": { "v": ["Details verbergen"] }, "Rename project": { "v": ["Hernoem project"] }, "Show details": { "v": ["Toon details"] } } }, { "l": "nn_NO", "t": {} }, { "l": "oc", "t": {} }, { "l": "pl", "t": { "Hide details": { "v": ["Ukryj szczegóły"] }, "Rename project": { "v": ["Zmień nazwę projektu"] }, "Show details": { "v": ["Pokaż szczegóły"] } } }, { "l": "ps", "t": {} }, { "l": "pt_BR", "t": { "Hide details": { "v": ["Ocultar detalhes"] }, "Rename project": { "v": ["Renomear projeto"] }, "Show details": { "v": ["Mostrar detalhes"] } } }, { "l": "pt_PT", "t": { "Hide details": { "v": ["Ocultar detalhes"] }, "Rename project": { "v": ["Alterar nome do projeto"] }, "Show details": { "v": ["Ver detalhes"] } } }, { "l": "ro", "t": {} }, { "l": "ru", "t": { "Hide details": { "v": ["Скрыть подробности"] }, "Rename project": { "v": ["Переименовать проект"] }, "Show details": { "v": ["Показать детали"] } } }, { "l": "sc", "t": {} }, { "l": "si", "t": {} }, { "l": "sk", "t": { "Hide details": { "v": ["Skryť detaily"] }, "Rename project": { "v": ["Premenovať projekt"] }, "Show details": { "v": ["Zobraziť detaily"] } } }, { "l": "sl", "t": {} }, { "l": "sq", "t": {} }, { "l": "sr", "t": { "Hide details": { "v": ["Сакриј детаље"] }, "Rename project": { "v": ["Промени име пројекта"] }, "Show details": { "v": ["Прикажи детаље"] } } }, { "l": "sr@latin", "t": {} }, { "l": "sv", "t": { "Hide details": { "v": ["Göm detaljer"] }, "Rename project": { "v": ["Byt namn på projektet"] }, "Show details": { "v": ["Visa detaljer"] } } }, { "l": "sw", "t": {} }, { "l": "ta", "t": {} }, { "l": "th", "t": {} }, { "l": "tk", "t": {} }, { "l": "tr", "t": { "Hide details": { "v": ["Ayrıntıları gizle"] }, "Rename project": { "v": ["Projeyi yeniden adlandır"] }, "Show details": { "v": ["Ayrıntıları görüntüle"] } } }, { "l": "ug", "t": {} }, { "l": "uk", "t": { "Hide details": { "v": ["Сховати деталі"] }, "Rename project": { "v": ["Перейменувати проєкт"] }, "Show details": { "v": ["Показати деталі"] } } }, { "l": "ur_PK", "t": {} }, { "l": "uz", "t": { "Hide details": { "v": ["Tafsilotlarni yashirish"] }, "Rename project": { "v": ["Loyiha nomini o'zgartirish"] }, "Show details": { "v": ["Tafsilotlarni ko'rsatish"] } } }, { "l": "vi", "t": {} }, { "l": "zh_CN", "t": { "Hide details": { "v": ["隐藏细节"] }, "Rename project": { "v": ["重命名项目"] }, "Show details": { "v": ["显示细节"] } } }, { "l": "zh_HK", "t": { "Hide details": { "v": ["隱藏詳情"] }, "Rename project": { "v": ["重命名方案"] }, "Show details": { "v": ["顯示詳情"] } } }, { "l": "zh_TW", "t": { "Hide details": { "v": ["隱藏詳細資料"] }, "Rename project": { "v": ["重新命名專案"] }, "Show details": { "v": ["顯示詳細資訊"] } } }, { "l": "zu_ZA", "t": {} }];
 const t28 = [{ "l": "af", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ar", "t": { "Hide password": { "v": ["إخفاء كلمة المرور"] }, "Password is secure": { "v": ["كلمة المرور آمنة"] }, "Show password": { "v": ["أظهِر كلمة المرور"] } } }, { "l": "ast", "t": { "Hide password": { "v": ["Anubrir la contraseña"] }, "Password is secure": { "v": ["La contraseña ye segura"] }, "Show password": { "v": ["Amosar la contraseña"] } } }, { "l": "az", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "be", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "bg", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "bn_BD", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "br", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "bs", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ca", "t": { "Hide password": { "v": ["Amagar contrasenya"] }, "Password is secure": { "v": ["Contrasenya segura<br>"] }, "Show password": { "v": ["Mostrar contrasenya"] } } }, { "l": "cs", "t": { "Hide password": { "v": ["Skrýt heslo"] }, "Password is secure": { "v": ["Heslo je bezpečné"] }, "Show password": { "v": ["Zobrazit heslo"] } } }, { "l": "cs_CZ", "t": { "Hide password": { "v": ["Skrýt heslo"] }, "Password is secure": { "v": ["Heslo je bezpečné"] }, "Show password": { "v": ["Zobrazit heslo"] } } }, { "l": "cy_GB", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "da", "t": { "Hide password": { "v": ["Skjul kodeord"] }, "Password is secure": { "v": ["Kodeordet er sikkert"] }, "Show password": { "v": ["Vis kodeord"] } } }, { "l": "de", "t": { "Hide password": { "v": ["Passwort verbergen"] }, "Password is secure": { "v": ["Passwort ist sicher"] }, "Show password": { "v": ["Passwort anzeigen"] } } }, { "l": "de_DE", "t": { "Hide password": { "v": ["Passwort verbergen"] }, "Password is secure": { "v": ["Passwort ist sicher"] }, "Show password": { "v": ["Passwort anzeigen"] } } }, { "l": "el", "t": { "Hide password": { "v": ["Απόκρυψη συνθηματικού"] }, "Password is secure": { "v": ["Το συνθηματικό είναι ασφαλές"] }, "Show password": { "v": ["Εμφάνιση κωδικού πρόσβασης"] } } }, { "l": "en_GB", "t": { "Hide password": { "v": ["Hide password"] }, "Password is secure": { "v": ["Password is secure"] }, "Show password": { "v": ["Show password"] } } }, { "l": "eo", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es", "t": { "Hide password": { "v": ["Ocultar contraseña"] }, "Password is secure": { "v": ["La contraseña es segura"] }, "Show password": { "v": ["Mostrar contraseña"] } } }, { "l": "es_419", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_AR", "t": { "Hide password": { "v": ["Ocultar contraseña"] }, "Password is secure": { "v": ["La contraseña es segura"] }, "Show password": { "v": ["Mostrar contraseña"] } } }, { "l": "es_CL", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_CO", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_CR", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_DO", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_EC", "t": { "Hide password": { "v": ["Ocultar contraseña"] }, "Password is secure": { "v": ["La contraseña es segura"] }, "Show password": { "v": ["Mostrar contraseña"] } } }, { "l": "es_GT", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_HN", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_MX", "t": { "Hide password": { "v": ["Ocultar contraseña"] }, "Password is secure": { "v": ["La contraseña es segura"] }, "Show password": { "v": ["Mostrar contraseña"] } } }, { "l": "es_NI", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_PA", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_PE", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_PR", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_PY", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_SV", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "es_UY", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "et_EE", "t": { "Hide password": { "v": ["Peida salasõna"] }, "Password is secure": { "v": ["Salasõna on turvaline"] }, "Show password": { "v": ["Näita salasõna"] } } }, { "l": "eu", "t": { "Hide password": { "v": ["Ezkutatu pasahitza"] }, "Password is secure": { "v": ["Pasahitza segurua da"] }, "Show password": { "v": ["Erakutsi pasahitza"] } } }, { "l": "fa", "t": { "Hide password": { "v": ["پنهان کردن رمز عبور"] }, "Password is secure": { "v": ["گذرواژه امن است"] }, "Show password": { "v": ["نمایش گذرواژه"] } } }, { "l": "fi", "t": { "Hide password": { "v": ["Piilota salasana"] }, "Password is secure": { "v": ["Salasana on turvallinen"] }, "Show password": { "v": ["Näytä salasana"] } } }, { "l": "fo", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "fr", "t": { "Hide password": { "v": ["Cacher le mot de passe"] }, "Password is secure": { "v": ["Le mot de passe est sécurisé"] }, "Show password": { "v": ["Afficher le mot de passe"] } } }, { "l": "ga", "t": { "Hide password": { "v": ["Folaigh pasfhocal"] }, "Password is secure": { "v": ["Tá pasfhocal slán"] }, "Show password": { "v": ["Taispeáin pasfhocal"] } } }, { "l": "gd", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "gl", "t": { "Hide password": { "v": ["Agochar o contrasinal"] }, "Password is secure": { "v": ["O contrasinal é seguro"] }, "Show password": { "v": ["Amosar o contrasinal"] } } }, { "l": "he", "t": { "Hide password": { "v": ["הסתרת סיסמה"] }, "Password is secure": { "v": ["הסיסמה מאובטחת"] }, "Show password": { "v": ["הצגת סיסמה"] } } }, { "l": "hi_IN", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "hr", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "hsb", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "hu", "t": { "Hide password": { "v": ["Jelszó elrejtése"] }, "Password is secure": { "v": ["A jelszó biztonságos"] }, "Show password": { "v": ["Jelszó megjelenítése"] } } }, { "l": "hy", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ia", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "id", "t": { "Hide password": { "v": ["Sembunyikan sandi"] }, "Password is secure": { "v": ["Kata sandi sudah aman"] }, "Show password": { "v": ["Tampilkan sandi"] } } }, { "l": "ig", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "is", "t": { "Hide password": { "v": ["Fela lykilorð"] }, "Password is secure": { "v": ["Lykilorðið er öruggt"] }, "Show password": { "v": ["Birta lykilorð"] } } }, { "l": "it", "t": { "Hide password": { "v": ["Nascondi la password"] }, "Password is secure": { "v": ["La password è sicura"] }, "Show password": { "v": ["Mostra la password"] } } }, { "l": "ja", "t": { "Hide password": { "v": ["パスワードを非表示"] }, "Password is secure": { "v": ["パスワードは保護されています"] }, "Show password": { "v": ["パスワードを表示"] } } }, { "l": "ja_JP", "t": { "Hide password": { "v": ["パスワードを非表示"] }, "Password is secure": { "v": ["パスワードは保護されています"] }, "Show password": { "v": ["パスワードを表示"] } } }, { "l": "ka", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ka_GE", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "kab", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "kk", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "km", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "kn", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ko", "t": { "Hide password": { "v": ["암호 숨기기"] }, "Password is secure": { "v": ["암호가 안전합니다."] }, "Show password": { "v": ["암호 표시"] } } }, { "l": "la", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "lb", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "lo", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "lt_LT", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "lv", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "mk", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "mn", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "mr", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ms_MY", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "my", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "nb", "t": { "Hide password": { "v": ["Skjul passord"] }, "Password is secure": { "v": ["Passordet er sikkert"] }, "Show password": { "v": ["Vis passord"] } } }, { "l": "ne", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "nl", "t": { "Hide password": { "v": ["Verberg wachtwoord"] }, "Password is secure": { "v": ["Wachtwoord is veilig"] }, "Show password": { "v": ["Toon wachtwoord"] } } }, { "l": "nn_NO", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "oc", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "pl", "t": { "Hide password": { "v": ["Ukryj hasło"] }, "Password is secure": { "v": ["Hasło jest bezpieczne"] }, "Show password": { "v": ["Pokaż hasło"] } } }, { "l": "ps", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "pt_BR", "t": { "Hide password": { "v": ["Ocultar senha"] }, "Password is secure": { "v": ["A senha é segura"] }, "Show password": { "v": ["Mostrar senha"] } } }, { "l": "pt_PT", "t": { "Hide password": { "v": ["Ocultar palavra-passe"] }, "Password is secure": { "v": ["A palavra-passe é segura"] }, "Show password": { "v": ["Mostrar palavra-passe"] } } }, { "l": "ro", "t": { "Hide password": { "v": ["Ascunde parola"] }, "Password is secure": { "v": ["Parola este sigură"] }, "Show password": { "v": ["Arată parola"] } } }, { "l": "ru", "t": { "Hide password": { "v": ["Скрыть пароль"] }, "Password is secure": { "v": ["Пароль надежный"] }, "Show password": { "v": ["Показать пароль"] } } }, { "l": "sc", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "si", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "sk", "t": { "Hide password": { "v": ["Skryť heslo"] }, "Password is secure": { "v": ["Heslo je bezpečné"] }, "Show password": { "v": ["Zobraziť heslo"] } } }, { "l": "sl", "t": { "Hide password": { "v": ["Skrij geslo"] }, "Password is secure": { "v": ["Geslo je varno"] }, "Show password": { "v": ["Pokaži geslo"] } } }, { "l": "sq", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "sr", "t": { "Hide password": { "v": ["Сакриј лозинку"] }, "Password is secure": { "v": ["Лозинка је безбедна"] }, "Show password": { "v": ["Прикажи лозинку"] } } }, { "l": "sr@latin", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "sv", "t": { "Hide password": { "v": ["Göm lösenordet"] }, "Password is secure": { "v": ["Lössenordet är säkert"] }, "Show password": { "v": ["Visa lössenordet"] } } }, { "l": "sw", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "ta", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "th", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "tk", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "tr", "t": { "Hide password": { "v": ["Parolayı gizle"] }, "Password is secure": { "v": ["Parola güvenli"] }, "Show password": { "v": ["Parolayı görüntüle"] } } }, { "l": "ug", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "uk", "t": { "Hide password": { "v": ["Приховати пароль"] }, "Password is secure": { "v": ["Пароль безпечний"] }, "Show password": { "v": ["Показати пароль"] } } }, { "l": "ur_PK", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "uz", "t": { "Hide password": { "v": ["Parolni yashirish"] }, "Password is secure": { "v": ["Parol xavfsiz"] }, "Show password": { "v": ["Parolni ko'rsatish"] } } }, { "l": "vi", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }, { "l": "zh_CN", "t": { "Hide password": { "v": ["隐藏密码"] }, "Password is secure": { "v": ["密码安全"] }, "Show password": { "v": ["显示密码"] } } }, { "l": "zh_HK", "t": { "Hide password": { "v": ["隱藏密碼"] }, "Password is secure": { "v": ["密碼是安全的"] }, "Show password": { "v": ["顯示密碼"] } } }, { "l": "zh_TW", "t": { "Hide password": { "v": ["隱藏密碼"] }, "Password is secure": { "v": ["密碼安全"] }, "Show password": { "v": ["顯示密碼"] } } }, { "l": "zu_ZA", "t": { "Hide password": { "v": [""] }, "Password is secure": { "v": [""] }, "Show password": { "v": [""] } } }];
 const t29 = [{ "l": "af", "t": {} }, { "l": "ar", "t": { "Keyboard navigation help": { "v": ["مساعدة في التنقل باستعمال لوحة المفاتيح"] }, "Skip to app navigation": { "v": ["تجاوَز إلى التنقل في التطبيق"] }, "Skip to main content": { "v": ["تجاوَز إلى المحتوى الرئيسي"] } } }, { "l": "ast", "t": { "Keyboard navigation help": { "v": ["Ayuda de la navegación pente'l tecláu"] }, "Skip to app navigation": { "v": ["Dir a la navegación d'aplicaciones"] }, "Skip to main content": { "v": ["Dir al conteníu principal"] } } }, { "l": "az", "t": {} }, { "l": "be", "t": {} }, { "l": "bg", "t": {} }, { "l": "bn_BD", "t": {} }, { "l": "br", "t": {} }, { "l": "bs", "t": {} }, { "l": "ca", "t": {} }, { "l": "cs", "t": { "Keyboard navigation help": { "v": ["Nápověda pro pohyb pomocí klávesnice"] }, "Skip to app navigation": { "v": ["Přeskočit na navigaci aplikace"] }, "Skip to main content": { "v": ["Přeskočit na hlavní obsah"] } } }, { "l": "cs_CZ", "t": { "Keyboard navigation help": { "v": ["Nápověda pro pohyb pomocí klávesnice"] }, "Skip to app navigation": { "v": ["Přeskočit na navigaci aplikace"] }, "Skip to main content": { "v": ["Přeskočit na hlavní obsah"] } } }, { "l": "cy_GB", "t": {} }, { "l": "da", "t": { "Keyboard navigation help": { "v": ["Hjælp til tastaturnavigation"] }, "Skip to app navigation": { "v": ["Spring til app navigation"] }, "Skip to main content": { "v": ["Spring til hovedindhold"] } } }, { "l": "de", "t": { "Keyboard navigation help": { "v": ["Tastatur-Navigationshilfe"] }, "Skip to app navigation": { "v": ["Zur App-Navigation springen"] }, "Skip to main content": { "v": ["Zum Hauptinhalt springen"] } } }, { "l": "de_DE", "t": { "Keyboard navigation help": { "v": ["Tastatur-Navigationshilfe"] }, "Skip to app navigation": { "v": ["Zur App-Navigation springen"] }, "Skip to main content": { "v": ["Zum Hauptinhalt springen"] } } }, { "l": "el", "t": { "Keyboard navigation help": { "v": ["Βοήθεια πλοήγησης με πληκτρολόγιο"] }, "Skip to app navigation": { "v": ["Μετάβαση στην πλοήγηση της εφαρμογής"] }, "Skip to main content": { "v": ["Μετάβαση στο κύριο περιεχόμενο"] } } }, { "l": "en_GB", "t": { "Keyboard navigation help": { "v": ["Keyboard navigation help"] }, "Skip to app navigation": { "v": ["Skip to app navigation"] }, "Skip to main content": { "v": ["Skip to main content"] } } }, { "l": "eo", "t": {} }, { "l": "es", "t": { "Keyboard navigation help": { "v": ["Ayuda de navegación del teclado"] }, "Skip to app navigation": { "v": ["Saltar a la navegación de apps"] }, "Skip to main content": { "v": ["Saltar al contenido principal"] } } }, { "l": "es_419", "t": {} }, { "l": "es_AR", "t": { "Keyboard navigation help": { "v": ["Ayuda de navegación del teclado"] }, "Skip to app navigation": { "v": ["Saltar a la navegación de app"] }, "Skip to main content": { "v": ["Saltar al contenido principal"] } } }, { "l": "es_CL", "t": {} }, { "l": "es_CO", "t": {} }, { "l": "es_CR", "t": {} }, { "l": "es_DO", "t": {} }, { "l": "es_EC", "t": {} }, { "l": "es_GT", "t": {} }, { "l": "es_HN", "t": {} }, { "l": "es_MX", "t": { "Keyboard navigation help": { "v": ["Ayuda de navegación del teclado"] }, "Skip to app navigation": { "v": ["Saltar a la navegación de app"] }, "Skip to main content": { "v": ["Saltar al contenido principal"] } } }, { "l": "es_NI", "t": {} }, { "l": "es_PA", "t": {} }, { "l": "es_PE", "t": {} }, { "l": "es_PR", "t": {} }, { "l": "es_PY", "t": {} }, { "l": "es_SV", "t": {} }, { "l": "es_UY", "t": {} }, { "l": "et_EE", "t": { "Keyboard navigation help": { "v": ["Klahvistiku kasutuse abiteave"] }, "Skip to app navigation": { "v": ["Suundu rakenduses liikumise valikute juurde"] }, "Skip to main content": { "v": ["Suundu põhisisu juurde"] } } }, { "l": "eu", "t": {} }, { "l": "fa", "t": { "Keyboard navigation help": { "v": ["راهنمای ناوبری صفحه کلید"] }, "Skip to app navigation": { "v": ["رفتن به پیمایش برنامه"] }, "Skip to main content": { "v": ["رفتن به محتوای اصلی"] } } }, { "l": "fi", "t": { "Keyboard navigation help": { "v": ["Näppäimistönavigoinnin ohje"] }, "Skip to app navigation": { "v": ["Siirry sovelluksen navigaatioon"] }, "Skip to main content": { "v": ["Siirry pääsisältöön"] } } }, { "l": "fo", "t": {} }, { "l": "fr", "t": { "Keyboard navigation help": { "v": ["Aide à la navigation du clavier"] }, "Skip to app navigation": { "v": ["Passer à l'app navigation"] }, "Skip to main content": { "v": ["Passer au contenu principal"] } } }, { "l": "ga", "t": { "Keyboard navigation help": { "v": ["Cabhair le nascleanúint méarchláir"] }, "Skip to app navigation": { "v": ["Téigh ar aghaidh chuig nascleanúint aip"] }, "Skip to main content": { "v": ["Téigh ar aghaidh chuig an bpríomhábhar"] } } }, { "l": "gd", "t": {} }, { "l": "gl", "t": { "Keyboard navigation help": { "v": ["Axuda á navegación co teclado"] }, "Skip to app navigation": { "v": ["Ir á navegación da aplicación"] }, "Skip to main content": { "v": ["Ir ao contido principal"] } } }, { "l": "he", "t": {} }, { "l": "hi_IN", "t": {} }, { "l": "hr", "t": {} }, { "l": "hsb", "t": {} }, { "l": "hu", "t": {} }, { "l": "hy", "t": {} }, { "l": "ia", "t": {} }, { "l": "id", "t": {} }, { "l": "ig", "t": {} }, { "l": "is", "t": { "Keyboard navigation help": { "v": ["Aðstoð við rötun á lyklaborði"] }, "Skip to app navigation": { "v": ["Sleppa og fara í flakk innan forrits"] }, "Skip to main content": { "v": ["Sleppa og fara í meginefni"] } } }, { "l": "it", "t": {} }, { "l": "ja", "t": { "Keyboard navigation help": { "v": ["キーボード・ナビゲーション・ヘルプ"] }, "Skip to app navigation": { "v": ["アプリのナビゲーションへ移動"] }, "Skip to main content": { "v": ["メインコンテンツへ移動"] } } }, { "l": "ja_JP", "t": { "Keyboard navigation help": { "v": ["キーボード・ナビゲーション・ヘルプ"] }, "Skip to app navigation": { "v": ["アプリのナビゲーションへ移動"] }, "Skip to main content": { "v": ["メインコンテンツへ移動"] } } }, { "l": "ka", "t": {} }, { "l": "ka_GE", "t": {} }, { "l": "kab", "t": {} }, { "l": "kk", "t": {} }, { "l": "km", "t": {} }, { "l": "kn", "t": {} }, { "l": "ko", "t": { "Keyboard navigation help": { "v": ["키보드 탐색 도움말"] }, "Skip to app navigation": { "v": ["앱 탐색으로 건너뛰기"] }, "Skip to main content": { "v": ["본 내용으로 건너뛰기"] } } }, { "l": "la", "t": {} }, { "l": "lb", "t": {} }, { "l": "lo", "t": {} }, { "l": "lt_LT", "t": {} }, { "l": "lv", "t": {} }, { "l": "mk", "t": {} }, { "l": "mn", "t": {} }, { "l": "mr", "t": {} }, { "l": "ms_MY", "t": {} }, { "l": "my", "t": {} }, { "l": "nb", "t": { "Keyboard navigation help": { "v": ["Hjelp for tastaturnavigering"] }, "Skip to app navigation": { "v": ["Hopp til appnavigering"] }, "Skip to main content": { "v": ["Hopp til hovedinnhold"] } } }, { "l": "ne", "t": {} }, { "l": "nl", "t": { "Keyboard navigation help": { "v": ["Hulp voor toetsenbordnavigatie"] }, "Skip to app navigation": { "v": ["Doorgaan naar app-navigatie"] }, "Skip to main content": { "v": ["Naar hoofdinhoud gaan"] } } }, { "l": "nn_NO", "t": {} }, { "l": "oc", "t": {} }, { "l": "pl", "t": { "Keyboard navigation help": { "v": ["Pomoc w nawigacji za pomocą klawiatury"] }, "Skip to app navigation": { "v": ["Przewiń do nawigacji"] }, "Skip to main content": { "v": ["Przewiń do głównych treści"] } } }, { "l": "ps", "t": {} }, { "l": "pt_BR", "t": { "Keyboard navigation help": { "v": ["Ajuda para navegação pelo teclado"] }, "Skip to app navigation": { "v": ["Ir para navegação"] }, "Skip to main content": { "v": ["Ir para conteúdo principal"] } } }, { "l": "pt_PT", "t": { "Keyboard navigation help": { "v": ["Ajuda à navegação no teclado"] }, "Skip to app navigation": { "v": ["Saltar para navegação da app"] }, "Skip to main content": { "v": ["Saltar para conteúdo principal"] } } }, { "l": "ro", "t": {} }, { "l": "ru", "t": { "Keyboard navigation help": { "v": ["Справка по навигации с помощью клавиатуры"] }, "Skip to app navigation": { "v": ["Перейти к навигации по приложению"] }, "Skip to main content": { "v": ["Перейти к основному содержанию"] } } }, { "l": "sc", "t": {} }, { "l": "si", "t": {} }, { "l": "sk", "t": { "Keyboard navigation help": { "v": ["Pomoc pri navigácii pomocou klávesnice"] }, "Skip to app navigation": { "v": ["Preskočiť na navigáciu v aplikácii"] }, "Skip to main content": { "v": ["Preskočiť na hlavný obsah"] } } }, { "l": "sl", "t": {} }, { "l": "sq", "t": {} }, { "l": "sr", "t": { "Keyboard navigation help": { "v": ["Помоћ за навигацију тастатуром"] }, "Skip to app navigation": { "v": ["Прескочи на навигацију апликацијом"] }, "Skip to main content": { "v": ["Прескочи на главни садржај"] } } }, { "l": "sr@latin", "t": {} }, { "l": "sv", "t": { "Keyboard navigation help": { "v": ["Hjälp med tangentbordsnavigering"] }, "Skip to app navigation": { "v": ["Hoppa till appnavigering"] }, "Skip to main content": { "v": ["Hoppa till huvudinnehåll"] } } }, { "l": "sw", "t": {} }, { "l": "ta", "t": {} }, { "l": "th", "t": {} }, { "l": "tk", "t": {} }, { "l": "tr", "t": { "Keyboard navigation help": { "v": ["Klavye ile gezinme yardımı"] }, "Skip to app navigation": { "v": ["Uygulama gezinmesine git"] }, "Skip to main content": { "v": ["Ana içeriğe git"] } } }, { "l": "ug", "t": {} }, { "l": "uk", "t": { "Keyboard navigation help": { "v": ["Допомога з навігацією клавішами"] }, "Skip to app navigation": { "v": ["Пропустити навігацію по застосунках"] }, "Skip to main content": { "v": ["Перейти одразу до головного вмісту"] } } }, { "l": "ur_PK", "t": {} }, { "l": "uz", "t": { "Keyboard navigation help": { "v": ["Klaviatura navigatsiyasi yordami"] }, "Skip to app navigation": { "v": ["Ilova navigatsiyasiga oʻtish"] }, "Skip to main content": { "v": ["Asosiy tarkibga o'tish"] } } }, { "l": "vi", "t": {} }, { "l": "zh_CN", "t": { "Keyboard navigation help": { "v": ["键盘导航栏帮助"] }, "Skip to app navigation": { "v": ["跳转至应用程序导航页"] }, "Skip to main content": { "v": ["跳转至主要内容"] } } }, { "l": "zh_HK", "t": { "Keyboard navigation help": { "v": ["鍵盤導航幫助"] }, "Skip to app navigation": { "v": ["跳至應用程式導航"] }, "Skip to main content": { "v": ["跳至主要內容"] } } }, { "l": "zh_TW", "t": { "Keyboard navigation help": { "v": ["鍵盤導航說明"] }, "Skip to app navigation": { "v": ["略過應用程式導覽"] }, "Skip to main content": { "v": ["跳至主要內容"] } } }, { "l": "zu_ZA", "t": {} }];
@@ -6533,9 +6570,8 @@ const t43 = [{ "l": "af", "t": { "Settings navigation": { "v": [""] } } }, { "l"
 const t44 = [{ "l": "af", "t": { "Submit": { "v": [""] } } }, { "l": "ar", "t": { "Submit": { "v": ["إرسال"] } } }, { "l": "ast", "t": { "Submit": { "v": ["Unviar"] } } }, { "l": "az", "t": { "Submit": { "v": [""] } } }, { "l": "be", "t": { "Submit": { "v": [""] } } }, { "l": "bg", "t": { "Submit": { "v": [""] } } }, { "l": "bn_BD", "t": { "Submit": { "v": [""] } } }, { "l": "br", "t": { "Submit": { "v": [""] } } }, { "l": "bs", "t": { "Submit": { "v": [""] } } }, { "l": "ca", "t": { "Submit": { "v": ["Envia"] } } }, { "l": "cs", "t": { "Submit": { "v": ["Odeslat"] } } }, { "l": "cs_CZ", "t": { "Submit": { "v": ["Odeslat"] } } }, { "l": "cy_GB", "t": { "Submit": { "v": [""] } } }, { "l": "da", "t": { "Submit": { "v": ["Send"] } } }, { "l": "de", "t": { "Submit": { "v": ["Einreichen"] } } }, { "l": "de_DE", "t": { "Submit": { "v": ["Einreichen"] } } }, { "l": "el", "t": { "Submit": { "v": ["Υποβολή"] } } }, { "l": "en_GB", "t": { "Submit": { "v": ["Submit"] } } }, { "l": "eo", "t": { "Submit": { "v": [""] } } }, { "l": "es", "t": { "Submit": { "v": ["Enviar"] } } }, { "l": "es_419", "t": { "Submit": { "v": [""] } } }, { "l": "es_AR", "t": { "Submit": { "v": ["Enviar"] } } }, { "l": "es_CL", "t": { "Submit": { "v": [""] } } }, { "l": "es_CO", "t": { "Submit": { "v": [""] } } }, { "l": "es_CR", "t": { "Submit": { "v": [""] } } }, { "l": "es_DO", "t": { "Submit": { "v": [""] } } }, { "l": "es_EC", "t": { "Submit": { "v": ["Enviar"] } } }, { "l": "es_GT", "t": { "Submit": { "v": [""] } } }, { "l": "es_HN", "t": { "Submit": { "v": [""] } } }, { "l": "es_MX", "t": { "Submit": { "v": ["Enviar"] } } }, { "l": "es_NI", "t": { "Submit": { "v": [""] } } }, { "l": "es_PA", "t": { "Submit": { "v": [""] } } }, { "l": "es_PE", "t": { "Submit": { "v": [""] } } }, { "l": "es_PR", "t": { "Submit": { "v": [""] } } }, { "l": "es_PY", "t": { "Submit": { "v": [""] } } }, { "l": "es_SV", "t": { "Submit": { "v": [""] } } }, { "l": "es_UY", "t": { "Submit": { "v": [""] } } }, { "l": "et_EE", "t": { "Submit": { "v": ["Saada"] } } }, { "l": "eu", "t": { "Submit": { "v": ["Bidali"] } } }, { "l": "fa", "t": { "Submit": { "v": ["ارسال"] } } }, { "l": "fi", "t": { "Submit": { "v": ["Lähetä"] } } }, { "l": "fo", "t": { "Submit": { "v": [""] } } }, { "l": "fr", "t": { "Submit": { "v": ["Valider"] } } }, { "l": "ga", "t": { "Submit": { "v": ["Cuir isteach"] } } }, { "l": "gd", "t": { "Submit": { "v": [""] } } }, { "l": "gl", "t": { "Submit": { "v": ["Enviar"] } } }, { "l": "he", "t": { "Submit": { "v": ["הגשה"] } } }, { "l": "hi_IN", "t": { "Submit": { "v": [""] } } }, { "l": "hr", "t": { "Submit": { "v": [""] } } }, { "l": "hsb", "t": { "Submit": { "v": [""] } } }, { "l": "hu", "t": { "Submit": { "v": ["Beküldés"] } } }, { "l": "hy", "t": { "Submit": { "v": [""] } } }, { "l": "ia", "t": { "Submit": { "v": [""] } } }, { "l": "id", "t": { "Submit": { "v": ["Kirimkan"] } } }, { "l": "ig", "t": { "Submit": { "v": [""] } } }, { "l": "is", "t": { "Submit": { "v": ["Senda inn"] } } }, { "l": "it", "t": { "Submit": { "v": ["Invia"] } } }, { "l": "ja", "t": { "Submit": { "v": ["提出"] } } }, { "l": "ja_JP", "t": { "Submit": { "v": ["提出"] } } }, { "l": "ka", "t": { "Submit": { "v": [""] } } }, { "l": "ka_GE", "t": { "Submit": { "v": [""] } } }, { "l": "kab", "t": { "Submit": { "v": [""] } } }, { "l": "kk", "t": { "Submit": { "v": [""] } } }, { "l": "km", "t": { "Submit": { "v": [""] } } }, { "l": "kn", "t": { "Submit": { "v": [""] } } }, { "l": "ko", "t": { "Submit": { "v": ["제출"] } } }, { "l": "la", "t": { "Submit": { "v": [""] } } }, { "l": "lb", "t": { "Submit": { "v": [""] } } }, { "l": "lo", "t": { "Submit": { "v": [""] } } }, { "l": "lt_LT", "t": { "Submit": { "v": ["Pateikti"] } } }, { "l": "lv", "t": { "Submit": { "v": [""] } } }, { "l": "mk", "t": { "Submit": { "v": ["Испрати"] } } }, { "l": "mn", "t": { "Submit": { "v": [""] } } }, { "l": "mr", "t": { "Submit": { "v": [""] } } }, { "l": "ms_MY", "t": { "Submit": { "v": [""] } } }, { "l": "my", "t": { "Submit": { "v": ["တင်သွင်းရန်"] } } }, { "l": "nb", "t": { "Submit": { "v": ["Send"] } } }, { "l": "ne", "t": { "Submit": { "v": [""] } } }, { "l": "nl", "t": { "Submit": { "v": ["Verwerken"] } } }, { "l": "nn_NO", "t": { "Submit": { "v": [""] } } }, { "l": "oc", "t": { "Submit": { "v": [""] } } }, { "l": "pl", "t": { "Submit": { "v": ["Wyślij"] } } }, { "l": "ps", "t": { "Submit": { "v": [""] } } }, { "l": "pt_BR", "t": { "Submit": { "v": ["Enviar"] } } }, { "l": "pt_PT", "t": { "Submit": { "v": ["Submeter"] } } }, { "l": "ro", "t": { "Submit": { "v": ["Trimiteți"] } } }, { "l": "ru", "t": { "Submit": { "v": ["Утвердить"] } } }, { "l": "sc", "t": { "Submit": { "v": [""] } } }, { "l": "si", "t": { "Submit": { "v": [""] } } }, { "l": "sk", "t": { "Submit": { "v": ["Odoslať"] } } }, { "l": "sl", "t": { "Submit": { "v": ["Pošlji"] } } }, { "l": "sq", "t": { "Submit": { "v": [""] } } }, { "l": "sr", "t": { "Submit": { "v": ["Поднеси"] } } }, { "l": "sr@latin", "t": { "Submit": { "v": [""] } } }, { "l": "sv", "t": { "Submit": { "v": ["Skicka"] } } }, { "l": "sw", "t": { "Submit": { "v": [""] } } }, { "l": "ta", "t": { "Submit": { "v": [""] } } }, { "l": "th", "t": { "Submit": { "v": [""] } } }, { "l": "tk", "t": { "Submit": { "v": [""] } } }, { "l": "tr", "t": { "Submit": { "v": ["Gönder"] } } }, { "l": "ug", "t": { "Submit": { "v": [""] } } }, { "l": "uk", "t": { "Submit": { "v": ["Надіслати"] } } }, { "l": "ur_PK", "t": { "Submit": { "v": [""] } } }, { "l": "uz", "t": { "Submit": { "v": ["Yuborish"] } } }, { "l": "vi", "t": { "Submit": { "v": [""] } } }, { "l": "zh_CN", "t": { "Submit": { "v": ["提交"] } } }, { "l": "zh_HK", "t": { "Submit": { "v": ["提交"] } } }, { "l": "zh_TW", "t": { "Submit": { "v": ["遞交"] } } }, { "l": "zu_ZA", "t": { "Submit": { "v": [""] } } }];
 const t45 = [{ "l": "af", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ar", "t": { "Unable to search the group": { "v": ["تعذّر البحث في المجموعة"] } } }, { "l": "ast", "t": { "Unable to search the group": { "v": ["Nun ye posible buscar el grupu"] } } }, { "l": "az", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "be", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "bg", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "bn_BD", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "br", "t": { "Unable to search the group": { "v": ["Dibosupl eo klask ar strollad"] } } }, { "l": "bs", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ca", "t": { "Unable to search the group": { "v": ["No es pot cercar el grup"] } } }, { "l": "cs", "t": { "Unable to search the group": { "v": ["Nedaří se hledat skupinu"] } } }, { "l": "cs_CZ", "t": { "Unable to search the group": { "v": ["Nedaří se hledat skupinu"] } } }, { "l": "cy_GB", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "da", "t": { "Unable to search the group": { "v": ["Kan ikke søge på denne gruppe"] } } }, { "l": "de", "t": { "Unable to search the group": { "v": ["Die Gruppe kann nicht durchsucht werden"] } } }, { "l": "de_DE", "t": { "Unable to search the group": { "v": ["Die Gruppe kann nicht durchsucht werden"] } } }, { "l": "el", "t": { "Unable to search the group": { "v": ["Δεν είναι δυνατή η αναζήτηση της ομάδας"] } } }, { "l": "en_GB", "t": { "Unable to search the group": { "v": ["Unable to search the group"] } } }, { "l": "eo", "t": { "Unable to search the group": { "v": ["Ne eblas serĉi en la grupo"] } } }, { "l": "es", "t": { "Unable to search the group": { "v": ["No es posible buscar en el grupo"] } } }, { "l": "es_419", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_AR", "t": { "Unable to search the group": { "v": ["No se puede buscar el grupo"] } } }, { "l": "es_CL", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_CO", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_CR", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_DO", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_EC", "t": { "Unable to search the group": { "v": ["No se puede buscar en el grupo"] } } }, { "l": "es_GT", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_HN", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_MX", "t": { "Unable to search the group": { "v": ["No fue posible buscar en el grupo"] } } }, { "l": "es_NI", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_PA", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_PE", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_PR", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_PY", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_SV", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "es_UY", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "et_EE", "t": { "Unable to search the group": { "v": ["Gruppi ei ole võimalik otsida"] } } }, { "l": "eu", "t": { "Unable to search the group": { "v": ["Ezin izan da taldea bilatu"] } } }, { "l": "fa", "t": { "Unable to search the group": { "v": ["امکان جستجوی گروه وجود ندارد"] } } }, { "l": "fi", "t": { "Unable to search the group": { "v": ["Ryhmää ei voi hakea"] } } }, { "l": "fo", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "fr", "t": { "Unable to search the group": { "v": ["Impossible de chercher le groupe"] } } }, { "l": "ga", "t": { "Unable to search the group": { "v": ["Ní féidir an grúpa a chuardach"] } } }, { "l": "gd", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "gl", "t": { "Unable to search the group": { "v": ["Non foi posíbel buscar o grupo"] } } }, { "l": "he", "t": { "Unable to search the group": { "v": ["לא ניתן לחפש בקבוצה"] } } }, { "l": "hi_IN", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "hr", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "hsb", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "hu", "t": { "Unable to search the group": { "v": ["A csoport nem kereshető"] } } }, { "l": "hy", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ia", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "id", "t": { "Unable to search the group": { "v": ["Tidak dapat mencari dalam grup"] } } }, { "l": "ig", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "is", "t": { "Unable to search the group": { "v": ["Get ekki leitað í hópnum"] } } }, { "l": "it", "t": { "Unable to search the group": { "v": ["Impossibile cercare il gruppo"] } } }, { "l": "ja", "t": { "Unable to search the group": { "v": ["グループを検索できません"] } } }, { "l": "ja_JP", "t": { "Unable to search the group": { "v": ["グループを検索できません"] } } }, { "l": "ka", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ka_GE", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "kab", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "kk", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "km", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "kn", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ko", "t": { "Unable to search the group": { "v": ["그룹을 검색할 수 없음"] } } }, { "l": "la", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "lb", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "lo", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "lt_LT", "t": { "Unable to search the group": { "v": ["Nepavyko atlikti paiešką grupėje"] } } }, { "l": "lv", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "mk", "t": { "Unable to search the group": { "v": ["Неможе да се принајде групата"] } } }, { "l": "mn", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "mr", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ms_MY", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "my", "t": { "Unable to search the group": { "v": ["အဖွဲ့အား ရှာဖွေ၍ မရနိုင်ပါ"] } } }, { "l": "nb", "t": { "Unable to search the group": { "v": ["Kunne ikke søke i gruppen"] } } }, { "l": "ne", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "nl", "t": { "Unable to search the group": { "v": ["Kan niet zoeken in de groep"] } } }, { "l": "nn_NO", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "oc", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "pl", "t": { "Unable to search the group": { "v": ["Nie można przeszukać grupy"] } } }, { "l": "ps", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "pt_BR", "t": { "Unable to search the group": { "v": ["Não foi possível pesquisar o grupo"] } } }, { "l": "pt_PT", "t": { "Unable to search the group": { "v": ["Não é possível pesquisar o grupo"] } } }, { "l": "ro", "t": { "Unable to search the group": { "v": ["Imposibilitatea de a căuta în grup"] } } }, { "l": "ru", "t": { "Unable to search the group": { "v": ["Невозможно найти группу"] } } }, { "l": "sc", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "si", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "sk", "t": { "Unable to search the group": { "v": ["Skupinu sa nepodarilo nájsť"] } } }, { "l": "sl", "t": { "Unable to search the group": { "v": ["Ni mogoče iskati po skupini"] } } }, { "l": "sq", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "sr", "t": { "Unable to search the group": { "v": ["Група не може да се претражи"] } } }, { "l": "sr@latin", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "sv", "t": { "Unable to search the group": { "v": ["Kunde inte söka i gruppen"] } } }, { "l": "sw", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "ta", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "th", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "tk", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "tr", "t": { "Unable to search the group": { "v": ["Grupta arama yapılamadı"] } } }, { "l": "ug", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "uk", "t": { "Unable to search the group": { "v": ["Неможливо шукати в групі"] } } }, { "l": "ur_PK", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "uz", "t": { "Unable to search the group": { "v": ["Guruhni qidirish imkonsiz"] } } }, { "l": "vi", "t": { "Unable to search the group": { "v": [""] } } }, { "l": "zh_CN", "t": { "Unable to search the group": { "v": ["无法搜索分组"] } } }, { "l": "zh_HK", "t": { "Unable to search the group": { "v": ["無法搜尋群組"] } } }, { "l": "zh_TW", "t": { "Unable to search the group": { "v": ["無法搜尋群組"] } } }, { "l": "zu_ZA", "t": { "Unable to search the group": { "v": [""] } } }];
 const t46 = [{ "l": "af", "t": { "Undo changes": { "v": [""] } } }, { "l": "ar", "t": { "Undo changes": { "v": ["تراجَع عن التغييرات"] } } }, { "l": "ast", "t": { "Undo changes": { "v": ["Desfacer los cambeos"] } } }, { "l": "az", "t": { "Undo changes": { "v": [""] } } }, { "l": "be", "t": { "Undo changes": { "v": [""] } } }, { "l": "bg", "t": { "Undo changes": { "v": [""] } } }, { "l": "bn_BD", "t": { "Undo changes": { "v": [""] } } }, { "l": "br", "t": { "Undo changes": { "v": [""] } } }, { "l": "bs", "t": { "Undo changes": { "v": [""] } } }, { "l": "ca", "t": { "Undo changes": { "v": ["Desfés els canvis"] } } }, { "l": "cs", "t": { "Undo changes": { "v": ["Vzít změny zpět"] } } }, { "l": "cs_CZ", "t": { "Undo changes": { "v": ["Vzít změny zpět"] } } }, { "l": "cy_GB", "t": { "Undo changes": { "v": [""] } } }, { "l": "da", "t": { "Undo changes": { "v": ["Fortryd ændringer"] } } }, { "l": "de", "t": { "Undo changes": { "v": ["Änderungen rückgängig machen"] } } }, { "l": "de_DE", "t": { "Undo changes": { "v": ["Änderungen rückgängig machen"] } } }, { "l": "el", "t": { "Undo changes": { "v": ["Αναίρεση Αλλαγών"] } } }, { "l": "en_GB", "t": { "Undo changes": { "v": ["Undo changes"] } } }, { "l": "eo", "t": { "Undo changes": { "v": [""] } } }, { "l": "es", "t": { "Undo changes": { "v": ["Deshacer cambios"] } } }, { "l": "es_419", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_AR", "t": { "Undo changes": { "v": ["Deshacer cambios"] } } }, { "l": "es_CL", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_CO", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_CR", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_DO", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_EC", "t": { "Undo changes": { "v": ["Deshacer cambios"] } } }, { "l": "es_GT", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_HN", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_MX", "t": { "Undo changes": { "v": ["Deshacer cambios"] } } }, { "l": "es_NI", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_PA", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_PE", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_PR", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_PY", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_SV", "t": { "Undo changes": { "v": [""] } } }, { "l": "es_UY", "t": { "Undo changes": { "v": [""] } } }, { "l": "et_EE", "t": { "Undo changes": { "v": ["Pööra muudatused tagasi"] } } }, { "l": "eu", "t": { "Undo changes": { "v": ["Aldaketak desegin"] } } }, { "l": "fa", "t": { "Undo changes": { "v": ["لغو تغییرات"] } } }, { "l": "fi", "t": { "Undo changes": { "v": ["Kumoa muutokset"] } } }, { "l": "fo", "t": { "Undo changes": { "v": [""] } } }, { "l": "fr", "t": { "Undo changes": { "v": ["Annuler les changements"] } } }, { "l": "ga", "t": { "Undo changes": { "v": ["Cealaigh athruithe"] } } }, { "l": "gd", "t": { "Undo changes": { "v": [""] } } }, { "l": "gl", "t": { "Undo changes": { "v": ["Desfacer os cambios"] } } }, { "l": "he", "t": { "Undo changes": { "v": ["ביטול שינויים"] } } }, { "l": "hi_IN", "t": { "Undo changes": { "v": [""] } } }, { "l": "hr", "t": { "Undo changes": { "v": [""] } } }, { "l": "hsb", "t": { "Undo changes": { "v": [""] } } }, { "l": "hu", "t": { "Undo changes": { "v": ["Változtatások visszavonása"] } } }, { "l": "hy", "t": { "Undo changes": { "v": [""] } } }, { "l": "ia", "t": { "Undo changes": { "v": [""] } } }, { "l": "id", "t": { "Undo changes": { "v": ["Urungkan perubahan"] } } }, { "l": "ig", "t": { "Undo changes": { "v": [""] } } }, { "l": "is", "t": { "Undo changes": { "v": ["Afturkalla breytingar"] } } }, { "l": "it", "t": { "Undo changes": { "v": ["Cancella i cambiamenti"] } } }, { "l": "ja", "t": { "Undo changes": { "v": ["変更を取り消し"] } } }, { "l": "ja_JP", "t": { "Undo changes": { "v": ["変更を取り消し"] } } }, { "l": "ka", "t": { "Undo changes": { "v": [""] } } }, { "l": "ka_GE", "t": { "Undo changes": { "v": [""] } } }, { "l": "kab", "t": { "Undo changes": { "v": [""] } } }, { "l": "kk", "t": { "Undo changes": { "v": [""] } } }, { "l": "km", "t": { "Undo changes": { "v": [""] } } }, { "l": "kn", "t": { "Undo changes": { "v": [""] } } }, { "l": "ko", "t": { "Undo changes": { "v": ["변경 되돌리기"] } } }, { "l": "la", "t": { "Undo changes": { "v": [""] } } }, { "l": "lb", "t": { "Undo changes": { "v": [""] } } }, { "l": "lo", "t": { "Undo changes": { "v": [""] } } }, { "l": "lt_LT", "t": { "Undo changes": { "v": [""] } } }, { "l": "lv", "t": { "Undo changes": { "v": [""] } } }, { "l": "mk", "t": { "Undo changes": { "v": ["Врати ги промените"] } } }, { "l": "mn", "t": { "Undo changes": { "v": [""] } } }, { "l": "mr", "t": { "Undo changes": { "v": [""] } } }, { "l": "ms_MY", "t": { "Undo changes": { "v": [""] } } }, { "l": "my", "t": { "Undo changes": { "v": [""] } } }, { "l": "nb", "t": { "Undo changes": { "v": ["Tilbakestill endringer"] } } }, { "l": "ne", "t": { "Undo changes": { "v": [""] } } }, { "l": "nl", "t": { "Undo changes": { "v": ["Wijzigingen ongedaan maken"] } } }, { "l": "nn_NO", "t": { "Undo changes": { "v": [""] } } }, { "l": "oc", "t": { "Undo changes": { "v": [""] } } }, { "l": "pl", "t": { "Undo changes": { "v": ["Cofnij zmiany"] } } }, { "l": "ps", "t": { "Undo changes": { "v": [""] } } }, { "l": "pt_BR", "t": { "Undo changes": { "v": ["Desfazer modificações"] } } }, { "l": "pt_PT", "t": { "Undo changes": { "v": ["Anular alterações"] } } }, { "l": "ro", "t": { "Undo changes": { "v": ["Anularea modificărilor"] } } }, { "l": "ru", "t": { "Undo changes": { "v": ["Отменить изменения"] } } }, { "l": "sc", "t": { "Undo changes": { "v": [""] } } }, { "l": "si", "t": { "Undo changes": { "v": [""] } } }, { "l": "sk", "t": { "Undo changes": { "v": ["Vrátiť zmeny"] } } }, { "l": "sl", "t": { "Undo changes": { "v": ["Razveljavi spremembe"] } } }, { "l": "sq", "t": { "Undo changes": { "v": [""] } } }, { "l": "sr", "t": { "Undo changes": { "v": ["Поништи измене"] } } }, { "l": "sr@latin", "t": { "Undo changes": { "v": [""] } } }, { "l": "sv", "t": { "Undo changes": { "v": ["Ångra ändringar"] } } }, { "l": "sw", "t": { "Undo changes": { "v": [""] } } }, { "l": "ta", "t": { "Undo changes": { "v": [""] } } }, { "l": "th", "t": { "Undo changes": { "v": [""] } } }, { "l": "tk", "t": { "Undo changes": { "v": [""] } } }, { "l": "tr", "t": { "Undo changes": { "v": ["Değişiklikleri geri al"] } } }, { "l": "ug", "t": { "Undo changes": { "v": [""] } } }, { "l": "uk", "t": { "Undo changes": { "v": ["Скасувати зміни"] } } }, { "l": "ur_PK", "t": { "Undo changes": { "v": [""] } } }, { "l": "uz", "t": { "Undo changes": { "v": ["O'zgarishlarni bekor qilish"] } } }, { "l": "vi", "t": { "Undo changes": { "v": [""] } } }, { "l": "zh_CN", "t": { "Undo changes": { "v": ["撤销更改"] } } }, { "l": "zh_HK", "t": { "Undo changes": { "v": ["取消更改"] } } }, { "l": "zh_TW", "t": { "Undo changes": { "v": ["還原變更"] } } }, { "l": "zu_ZA", "t": { "Undo changes": { "v": [""] } } }];
-const t47 = [{ "l": "af", "t": {} }, { "l": "ar", "t": { "User status: {status}": { "v": ["حالة المستخدِم: {status}"] } } }, { "l": "ast", "t": { "User status: {status}": { "v": ["Estáu del usuariu: {status}"] } } }, { "l": "az", "t": {} }, { "l": "be", "t": {} }, { "l": "bg", "t": {} }, { "l": "bn_BD", "t": {} }, { "l": "br", "t": {} }, { "l": "bs", "t": {} }, { "l": "ca", "t": {} }, { "l": "cs", "t": { "User status: {status}": { "v": ["Stav uživatele: {status}"] } } }, { "l": "cs_CZ", "t": { "User status: {status}": { "v": ["Stav uživatele: {status}"] } } }, { "l": "cy_GB", "t": {} }, { "l": "da", "t": { "User status: {status}": { "v": ["Brugerstatus: {status}"] } } }, { "l": "de", "t": { "User status: {status}": { "v": ["Benutzerstatus: {status}"] } } }, { "l": "de_DE", "t": { "User status: {status}": { "v": ["Benutzerstatus: {status}"] } } }, { "l": "el", "t": { "User status: {status}": { "v": ["Κατάσταση χρήστη: {status}"] } } }, { "l": "en_GB", "t": { "User status: {status}": { "v": ["User status: {status}"] } } }, { "l": "eo", "t": {} }, { "l": "es", "t": { "User status: {status}": { "v": ["Estatus del usuario: {status}"] } } }, { "l": "es_419", "t": {} }, { "l": "es_AR", "t": { "User status: {status}": { "v": ["Estado del usuario: {status}"] } } }, { "l": "es_CL", "t": {} }, { "l": "es_CO", "t": {} }, { "l": "es_CR", "t": {} }, { "l": "es_DO", "t": {} }, { "l": "es_EC", "t": {} }, { "l": "es_GT", "t": {} }, { "l": "es_HN", "t": {} }, { "l": "es_MX", "t": { "User status: {status}": { "v": ["Estado del usuario: {status}"] } } }, { "l": "es_NI", "t": {} }, { "l": "es_PA", "t": {} }, { "l": "es_PE", "t": {} }, { "l": "es_PR", "t": {} }, { "l": "es_PY", "t": {} }, { "l": "es_SV", "t": {} }, { "l": "es_UY", "t": {} }, { "l": "et_EE", "t": { "User status: {status}": { "v": ["Kasutaja olek: {status}"] } } }, { "l": "eu", "t": {} }, { "l": "fa", "t": { "User status: {status}": { "v": ["وضعیت کاربر: {status}"] } } }, { "l": "fi", "t": { "User status: {status}": { "v": ["Käyttäjän tila: {status}"] } } }, { "l": "fo", "t": {} }, { "l": "fr", "t": { "User status: {status}": { "v": ["Statut de l'utilisateur : {status}"] } } }, { "l": "ga", "t": { "User status: {status}": { "v": ["Stádas úsáideora: {status}"] } } }, { "l": "gd", "t": {} }, { "l": "gl", "t": { "User status: {status}": { "v": ["Estado do usuario: {status}"] } } }, { "l": "he", "t": {} }, { "l": "hi_IN", "t": {} }, { "l": "hr", "t": {} }, { "l": "hsb", "t": {} }, { "l": "hu", "t": {} }, { "l": "hy", "t": {} }, { "l": "ia", "t": {} }, { "l": "id", "t": { "User status: {status}": { "v": ["Status pengguna: {status}"] } } }, { "l": "ig", "t": {} }, { "l": "is", "t": { "User status: {status}": { "v": ["Staða notanda: {status}"] } } }, { "l": "it", "t": { "User status: {status}": { "v": ["Stato dell'utente: {status}"] } } }, { "l": "ja", "t": { "User status: {status}": { "v": ["ユーザのステータス: {status}"] } } }, { "l": "ja_JP", "t": { "User status: {status}": { "v": ["ユーザのステータス: {status}"] } } }, { "l": "ka", "t": {} }, { "l": "ka_GE", "t": {} }, { "l": "kab", "t": {} }, { "l": "kk", "t": {} }, { "l": "km", "t": {} }, { "l": "kn", "t": {} }, { "l": "ko", "t": { "User status: {status}": { "v": ["사용자 상태: {status}"] } } }, { "l": "la", "t": {} }, { "l": "lb", "t": {} }, { "l": "lo", "t": {} }, { "l": "lt_LT", "t": {} }, { "l": "lv", "t": {} }, { "l": "mk", "t": {} }, { "l": "mn", "t": {} }, { "l": "mr", "t": {} }, { "l": "ms_MY", "t": {} }, { "l": "my", "t": {} }, { "l": "nb", "t": { "User status: {status}": { "v": ["Brukerstatus: {status}"] } } }, { "l": "ne", "t": {} }, { "l": "nl", "t": { "User status: {status}": { "v": ["Gebruikers status: {status}"] } } }, { "l": "nn_NO", "t": {} }, { "l": "oc", "t": {} }, { "l": "pl", "t": { "User status: {status}": { "v": ["Status użytkownika: {status}"] } } }, { "l": "ps", "t": {} }, { "l": "pt_BR", "t": { "User status: {status}": { "v": ["Status do usuário: {status}"] } } }, { "l": "pt_PT", "t": { "User status: {status}": { "v": ["Estado do utilizador: {status}"] } } }, { "l": "ro", "t": { "User status: {status}": { "v": ["Status utilizator: {status}"] } } }, { "l": "ru", "t": { "User status: {status}": { "v": ["Статус пользователя: {status}"] } } }, { "l": "sc", "t": {} }, { "l": "si", "t": {} }, { "l": "sk", "t": { "User status: {status}": { "v": ["Stav užívateľa: {status}"] } } }, { "l": "sl", "t": {} }, { "l": "sq", "t": {} }, { "l": "sr", "t": { "User status: {status}": { "v": ["Статус корисника: {status}"] } } }, { "l": "sr@latin", "t": {} }, { "l": "sv", "t": { "User status: {status}": { "v": ["Användarstatus: {status}"] } } }, { "l": "sw", "t": {} }, { "l": "ta", "t": {} }, { "l": "th", "t": {} }, { "l": "tk", "t": {} }, { "l": "tr", "t": { "User status: {status}": { "v": ["Kullanıcı durumu: {status}"] } } }, { "l": "ug", "t": {} }, { "l": "uk", "t": { "User status: {status}": { "v": ["Статус користувача: {status}"] } } }, { "l": "ur_PK", "t": {} }, { "l": "uz", "t": { "User status: {status}": { "v": ["Foydalanuvchi holati: {status}"] } } }, { "l": "vi", "t": {} }, { "l": "zh_CN", "t": { "User status: {status}": { "v": ["用户状态：{status}"] } } }, { "l": "zh_HK", "t": { "User status: {status}": { "v": ["用戶狀態：{status}"] } } }, { "l": "zh_TW", "t": { "User status: {status}": { "v": ["使用者狀態：{status}"] } } }, { "l": "zu_ZA", "t": {} }];
 
-//# sourceMappingURL=_l10n-dinIMiE_.mjs.map
+//# sourceMappingURL=_l10n-Bg-fZ9R0.mjs.map
 
 
 /***/ }),
@@ -6594,9 +6630,9 @@ function createElementId() {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* reexport safe */ _chunks_NcCheckboxRadioSwitch_BmzUQ_WN_mjs__WEBPACK_IMPORTED_MODULE_0__.N)
+/* harmony export */   "default": () => (/* reexport safe */ _chunks_NcCheckboxRadioSwitch_Ca1ouh22_mjs__WEBPACK_IMPORTED_MODULE_0__.N)
 /* harmony export */ });
-/* harmony import */ var _chunks_NcCheckboxRadioSwitch_BmzUQ_WN_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../chunks/NcCheckboxRadioSwitch-BmzUQ-WN.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcCheckboxRadioSwitch-BmzUQ-WN.mjs");
+/* harmony import */ var _chunks_NcCheckboxRadioSwitch_Ca1ouh22_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../chunks/NcCheckboxRadioSwitch-Ca1ouh22.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcCheckboxRadioSwitch-Ca1ouh22.mjs");
 
 
 //# sourceMappingURL=index.mjs.map
@@ -6613,9 +6649,9 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* reexport safe */ _chunks_NcSelect_DFMnY4fI_mjs__WEBPACK_IMPORTED_MODULE_0__.N)
+/* harmony export */   "default": () => (/* reexport safe */ _chunks_NcSelect_BSa2kSPW_mjs__WEBPACK_IMPORTED_MODULE_0__.N)
 /* harmony export */ });
-/* harmony import */ var _chunks_NcSelect_DFMnY4fI_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../chunks/NcSelect-DFMnY4fI.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcSelect-DFMnY4fI.mjs");
+/* harmony import */ var _chunks_NcSelect_BSa2kSPW_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../chunks/NcSelect-BSa2kSPW.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcSelect-BSa2kSPW.mjs");
 
 
 //# sourceMappingURL=index.mjs.map
@@ -6632,9 +6668,9 @@ __webpack_require__.r(__webpack_exports__);
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (/* reexport safe */ _chunks_NcSettingsSection_Crla6NXM_mjs__WEBPACK_IMPORTED_MODULE_0__.N)
+/* harmony export */   "default": () => (/* reexport safe */ _chunks_NcSettingsSection_D6ShpfeY_mjs__WEBPACK_IMPORTED_MODULE_0__.N)
 /* harmony export */ });
-/* harmony import */ var _chunks_NcSettingsSection_Crla6NXM_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../chunks/NcSettingsSection-Crla6NXM.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcSettingsSection-Crla6NXM.mjs");
+/* harmony import */ var _chunks_NcSettingsSection_D6ShpfeY_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../chunks/NcSettingsSection-D6ShpfeY.mjs */ "./node_modules/@nextcloud/vue/dist/chunks/NcSettingsSection-D6ShpfeY.mjs");
 
 
 //# sourceMappingURL=index.mjs.map
@@ -8192,7 +8228,8 @@ function track(target, type, key) {
         type,
         key
       });
-    } else {}
+    } else // removed by dead control flow
+{}
   }
 }
 function trigger(target, type, key, newValue, oldValue, oldTarget) {
@@ -8212,7 +8249,8 @@ function trigger(target, type, key, newValue, oldValue, oldTarget) {
           oldValue,
           oldTarget
         });
-      } else {}
+      } else // removed by dead control flow
+{}
     }
   };
   startBatch();
@@ -8973,7 +9011,8 @@ class RefImpl {
         type: "get",
         key: "value"
       });
-    } else {}
+    } else // removed by dead control flow
+{}
     return this._value;
   }
   set value(newValue) {
@@ -8991,7 +9030,8 @@ class RefImpl {
           newValue,
           oldValue
         });
-      } else {}
+      } else // removed by dead control flow
+{}
     }
   }
 }
@@ -9004,7 +9044,8 @@ function triggerRef(ref2) {
         key: "value",
         newValue: ref2._value
       });
-    } else {}
+    } else // removed by dead control flow
+{}
   }
 }
 function unref(ref2) {
@@ -9714,7 +9755,8 @@ function formatProp(key, value, raw) {
   }
 }
 function assertNumber(val, type) {
-  if (false) {}
+  if (false) // removed by dead control flow
+{}
   if (val === void 0) {
     return;
   } else if (typeof val !== "number") {
@@ -9862,7 +9904,8 @@ function logError(err, type, contextVNode, throwInDev = true, throwInProd = fals
     } else {
       console.error(err);
     }
-  } else {}
+  } else // removed by dead control flow
+{}
 }
 
 const queue = [];
@@ -10842,7 +10885,8 @@ function findNonCommentChild(children) {
         }
         child = c;
         hasFound = true;
-        if (false) {}
+        if (false) // removed by dead control flow
+{}
       }
     }
   }
@@ -11526,7 +11570,8 @@ Server rendered element contains more child nodes than client vdom.`
               patchProp(el, key, null, props[key], void 0, parentComponent);
             }
           }
-        } else {}
+        } else // removed by dead control flow
+{}
       }
       let vnodeHooks;
       if (vnodeHooks = props && props.onVnodeBeforeMount) {
@@ -13038,7 +13083,8 @@ function applyOptions(instance) {
             enumerable: true,
             writable: true
           });
-        } else {}
+        } else // removed by dead control flow
+{}
         if (true) {
           checkDuplicateProperties("Methods" /* METHODS */, key);
         }
@@ -14714,7 +14760,8 @@ function baseCreateRenderer(options, createHydrationFns) {
         );
         if (true) {
           traverseStaticChildren(n1, n2);
-        } else {}
+        } else // removed by dead control flow
+{}
       } else {
         patchChildren(
           n1,
@@ -17363,7 +17410,8 @@ function createComponentInstance(vnode, parent, suspense) {
   };
   if (true) {
     instance.ctx = createDevRenderContext(instance);
-  } else {}
+  } else // removed by dead control flow
+{}
   instance.root = parent ? parent.root : instance;
   instance.emit = emit.bind(null, instance);
   if (vnode.ce) {
@@ -17656,7 +17704,8 @@ function createSetupContext(instance) {
       },
       expose
     });
-  } else {}
+  } else // removed by dead control flow
+{}
 }
 function getComponentPublicInstance(instance) {
   if (instance.exposed) {
@@ -29543,7 +29592,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ purify)
 /* harmony export */ });
-/*! @license DOMPurify 3.2.4 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.4/LICENSE */
+/*! @license DOMPurify 3.2.6 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.2.6/LICENSE */
 
 const {
   entries,
@@ -29603,6 +29652,9 @@ const typeErrorCreate = unconstruct(TypeError);
  */
 function unapply(func) {
   return function (thisArg) {
+    if (thisArg instanceof RegExp) {
+      thisArg.lastIndex = 0;
+    }
     for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
       args[_key - 1] = arguments[_key];
     }
@@ -29744,7 +29796,7 @@ const ERB_EXPR = seal(/<%[\w\W]*|[\w\W]*%>/gm);
 const TMPLIT_EXPR = seal(/\$\{[\w\W]*/gm); // eslint-disable-line unicorn/better-regex
 const DATA_ATTR = seal(/^data-[\-\w.\u00B7-\uFFFF]+$/); // eslint-disable-line no-useless-escape
 const ARIA_ATTR = seal(/^aria-[\-\w]+$/); // eslint-disable-line no-useless-escape
-const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+const IS_ALLOWED_URI = seal(/^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|matrix):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
 );
 const IS_SCRIPT_OR_DATA = seal(/^(?:\w+script|data):/i);
 const ATTR_WHITESPACE = seal(/[\u0000-\u0020\u00A0\u1680\u180E\u2000-\u2029\u205F\u3000]/g // eslint-disable-line no-control-regex
@@ -29841,7 +29893,7 @@ const _createHooksMap = function _createHooksMap() {
 function createDOMPurify() {
   let window = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : getGlobal();
   const DOMPurify = root => createDOMPurify(root);
-  DOMPurify.version = '3.2.4';
+  DOMPurify.version = '3.2.6';
   DOMPurify.removed = [];
   if (!window || !window.document || window.document.nodeType !== NODE_TYPE.document || !window.Element) {
     // Not running in a browser, provide a factory function
@@ -30080,8 +30132,8 @@ function createDOMPurify() {
     URI_SAFE_ATTRIBUTES = objectHasOwnProperty(cfg, 'ADD_URI_SAFE_ATTR') ? addToSet(clone(DEFAULT_URI_SAFE_ATTRIBUTES), cfg.ADD_URI_SAFE_ATTR, transformCaseFunc) : DEFAULT_URI_SAFE_ATTRIBUTES;
     DATA_URI_TAGS = objectHasOwnProperty(cfg, 'ADD_DATA_URI_TAGS') ? addToSet(clone(DEFAULT_DATA_URI_TAGS), cfg.ADD_DATA_URI_TAGS, transformCaseFunc) : DEFAULT_DATA_URI_TAGS;
     FORBID_CONTENTS = objectHasOwnProperty(cfg, 'FORBID_CONTENTS') ? addToSet({}, cfg.FORBID_CONTENTS, transformCaseFunc) : DEFAULT_FORBID_CONTENTS;
-    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : {};
-    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : {};
+    FORBID_TAGS = objectHasOwnProperty(cfg, 'FORBID_TAGS') ? addToSet({}, cfg.FORBID_TAGS, transformCaseFunc) : clone({});
+    FORBID_ATTR = objectHasOwnProperty(cfg, 'FORBID_ATTR') ? addToSet({}, cfg.FORBID_ATTR, transformCaseFunc) : clone({});
     USE_PROFILES = objectHasOwnProperty(cfg, 'USE_PROFILES') ? cfg.USE_PROFILES : false;
     ALLOW_ARIA_ATTR = cfg.ALLOW_ARIA_ATTR !== false; // Default true
     ALLOW_DATA_ATTR = cfg.ALLOW_DATA_ATTR !== false; // Default true
@@ -30446,7 +30498,7 @@ function createDOMPurify() {
       allowedTags: ALLOWED_TAGS
     });
     /* Detect mXSS attempts abusing namespace confusion */
-    if (currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w]/g, currentNode.innerHTML) && regExpTest(/<[/\w]/g, currentNode.textContent)) {
+    if (SAFE_FOR_XML && currentNode.hasChildNodes() && !_isNode(currentNode.firstElementChild) && regExpTest(/<[/\w!]/g, currentNode.innerHTML) && regExpTest(/<[/\w!]/g, currentNode.textContent)) {
       _forceRemove(currentNode);
       return true;
     }
@@ -30598,7 +30650,8 @@ function createDOMPurify() {
         value: attrValue
       } = attr;
       const lcName = transformCaseFunc(name);
-      let value = name === 'value' ? attrValue : stringTrim(attrValue);
+      const initValue = attrValue;
+      let value = name === 'value' ? initValue : stringTrim(initValue);
       /* Execute a hook if present */
       hookEvent.attrName = lcName;
       hookEvent.attrValue = value;
@@ -30624,10 +30677,9 @@ function createDOMPurify() {
       if (hookEvent.forceKeepAttr) {
         continue;
       }
-      /* Remove attribute */
-      _removeAttribute(name, currentNode);
       /* Did the hooks approve of the attribute? */
       if (!hookEvent.keepAttr) {
+        _removeAttribute(name, currentNode);
         continue;
       }
       /* Work around a security issue in jQuery 3.0 */
@@ -30644,6 +30696,7 @@ function createDOMPurify() {
       /* Is `value` valid for this attribute? */
       const lcTag = transformCaseFunc(currentNode.nodeName);
       if (!_isValidAttribute(lcTag, lcName, value)) {
+        _removeAttribute(name, currentNode);
         continue;
       }
       /* Handle attributes that require Trusted Types */
@@ -30664,19 +30717,23 @@ function createDOMPurify() {
         }
       }
       /* Handle invalid data-* attribute set by try-catching it */
-      try {
-        if (namespaceURI) {
-          currentNode.setAttributeNS(namespaceURI, name, value);
-        } else {
-          /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
-          currentNode.setAttribute(name, value);
+      if (value !== initValue) {
+        try {
+          if (namespaceURI) {
+            currentNode.setAttributeNS(namespaceURI, name, value);
+          } else {
+            /* Fallback to setAttribute() for browser-unrecognized namespaces e.g. "x-schema". */
+            currentNode.setAttribute(name, value);
+          }
+          if (_isClobbered(currentNode)) {
+            _forceRemove(currentNode);
+          } else {
+            arrayPop(DOMPurify.removed);
+          }
+        } catch (_) {
+          _removeAttribute(name, currentNode);
         }
-        if (_isClobbered(currentNode)) {
-          _forceRemove(currentNode);
-        } else {
-          arrayPop(DOMPurify.removed);
-        }
-      } catch (_) {}
+      }
     }
     /* Execute a hook if present */
     _executeHooks(hooks.afterSanitizeAttributes, currentNode, null);
@@ -32058,7 +32115,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const __exports__ = /*#__PURE__*/(0,_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_3__["default"])(_App_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_App_vue_vue_type_template_id_7ba5bd90__WEBPACK_IMPORTED_MODULE_0__.render],['__file',"src/App.vue"]])
 /* hot reload */
-if (false) {}
+if (false) // removed by dead control flow
+{}
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__exports__);
@@ -32136,7 +32194,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const __exports__ = /*#__PURE__*/(0,_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_4__["default"])(_OIDCItem_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_OIDCItem_vue_vue_type_template_id_22f9f6c8_scoped_true__WEBPACK_IMPORTED_MODULE_0__.render],['__scopeId',"data-v-22f9f6c8"],['__file',"src/components/OIDCItem.vue"]])
 /* hot reload */
-if (false) {}
+if (false) // removed by dead control flow
+{}
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__exports__);
@@ -32227,7 +32286,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const __exports__ = /*#__PURE__*/(0,_node_modules_vue_loader_dist_exportHelper_js__WEBPACK_IMPORTED_MODULE_4__["default"])(_RedirectItem_vue_vue_type_script_lang_js__WEBPACK_IMPORTED_MODULE_1__["default"], [['render',_RedirectItem_vue_vue_type_template_id_695f0dbf_scoped_true__WEBPACK_IMPORTED_MODULE_0__.render],['__scopeId',"data-v-695f0dbf"],['__file',"src/components/RedirectItem.vue"]])
 /* hot reload */
-if (false) {}
+if (false) // removed by dead control flow
+{}
 
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (__exports__);
@@ -32421,4 +32481,4 @@ app.mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=17b1a5448bf5b5b7ae50
+//# sourceMappingURL=oidc-main.js.map?v=adfa20777fd4a6338239

@@ -125,6 +125,8 @@ class CorsController extends ApiController
         $response = new Response();
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, PATCH');
+		$response->addHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept, OCS-APIRequest, Range, Depth, Destination, Overwrite, X-Requested-With');
+		$response->addHeader('Access-Control-Max-Age', '1728000');
         return $response;
     }
 

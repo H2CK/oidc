@@ -148,11 +148,6 @@ return [
             'verb' => 'GET'
         ],
         [
-            'name' => 'Discovery#preflighted_cors',
-            'url' => '/openid-configuration',
-            'verb' => 'OPTIONS',
-        ],
-        [
             'name' => 'Cors#discoveryCorsResponse',
             'url' => '/openid-configuration',
             'verb' => 'OPTIONS',
@@ -161,11 +156,6 @@ return [
             'name' => 'Jwks#getKeyInfo',
             'url' => '/jwks',
             'verb' => 'GET'
-        ],
-        [
-            'name' => 'Jwks#preflighted_cors',
-            'url' => '/jwks',
-            'verb' => 'OPTIONS',
         ],
         [
             'name' => 'Cors#jwksCorsResponse',
@@ -184,3 +174,15 @@ return [
         ],
     ],
 ];
+
+//        [
+//            'name' => 'Discovery#preflighted_cors',
+//            'url' => '/openid-configuration',
+//            'verb' => 'OPTIONS',
+//        ],
+
+//        [
+//            'name' => 'Jwks#preflighted_cors',
+//            'url' => '/jwks',
+//            'verb' => 'OPTIONS',
+//        ],

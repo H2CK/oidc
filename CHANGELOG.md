@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.2] - 2025-06-10
+
+### Changed
+
+- Fixed CORS handling
+- Updated dependencies
+- Updated translations
+
 ## [1.7.1] - 2025-05-21
 
 ### Changed
