@@ -14,6 +14,7 @@ OC.L10N.register(
     "12 hours" : "12 stundas",
     "1 day" : "1 diena",
     "7 days" : "7 dienas",
+    "Never" : "Nekad",
     "Disable" : "Deaktivēt",
     "Enable" : "Iespējot",
     "Delete" : "Izdzēst",
