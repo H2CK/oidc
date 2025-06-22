@@ -4,6 +4,7 @@ OC.L10N.register(
     "Name" : "Jina",
     "Add" : "Ongeza",
     "Settings" : "Mipangilio",
+    "Never" : "Kamwe",
     "Delete" : "Futa",
     "Type" : "Aina"
 },
