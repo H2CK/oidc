@@ -29,9 +29,9 @@ Full documentation can be found at:
 
 ## Configuration
 
-It is possible to modify the settings of this application in Nextcloud admin settings in the section security. There you find the an area with the headline 'OpenID Connect clients'.
+It is possible to modify the settings of this application in Nextcloud admin settings. There is a dedicated section for the OpenID Connect provider app in the menu on the left.
 
-In this area you can:
+In the settings you can:
 
 - Add/Modify/Remove Clients
 - Add/Modify/Remove Logout URLs
