@@ -13,8 +13,8 @@ Full documentation can be found at:
 - [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
-	]]></description>
-  <version>1.7.2</version>
+    ]]></description>
+  <version>1.8.0</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -63,5 +63,9 @@ Full documentation can be found at:
 
   <settings>
     <admin>OCA\OIDCIdentityProvider\Settings\Admin</admin>
+    <admin-section>OCA\OIDCIdentityProvider\Settings\AdminSection</admin-section>
+    <!--<personal>OCA\OIDCIdentityProvider\Settings\Personal</personal>-->
+    <!--<personal-section>OCA\OIDCIdentityProvider\Settings\PersonalSection</personal-section>-->
+
   </settings>
 </info>

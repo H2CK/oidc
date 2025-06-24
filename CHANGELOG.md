@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2025-06-24
+
+### Changed
+
+- Rework of admin settings - Settings are now in own section
+- Added possibility to limit scopes per client
+- Added possibility to define regex for selection of mail used within id token and userinfo endpoint
+- Updated dependencies
+- Updated translations
+
 ## [1.7.2] - 2025-06-10
 
 ### Changed

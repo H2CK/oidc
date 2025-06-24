@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -86,7 +87,7 @@ class SettingsController extends Controller
                     string $tokenType
                     ): JSONResponse
     {
-        $this->logger->debug("Adding client " . $name);
+        $this->logger->debug("Adding client " . $name. " with Redirect URI " .$redirectUri);
 
         if (filter_var($redirectUri, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/.*:\/\/.*/"))) === false) {
             return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
@@ -98,7 +99,7 @@ class SettingsController extends Controller
             $signingAlg,
             $type,
             $flowType,
-            $tokenType
+            $tokenType,
         );
 
         $client = $this->clientMapper->insert($client);
@@ -135,6 +136,8 @@ class SettingsController extends Controller
             'flowTypeLabel' => $flowTypeLabel,
             'groups' => $resultGroups,
             'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+            'allowedScopes' => $client->getAllowedScopes(),
+            'emailRegex' => $client->getEmailRegex(),
         ]);
     }
 
@@ -181,6 +184,39 @@ class SettingsController extends Controller
         $this->logger->debug("Updating tokenType for client " . $id . " with value " .$tokenType);
         $client = $this->clientMapper->getByUid($id);
         $client->setTokenType(($tokenType==='jwt') ? 'jwt' : 'opaque');
+        $this->clientMapper->update($client);
+        return new JSONResponse([]);
+    }
+
+    public function updateAllowedScopes(
+        int $id,
+        string $allowedScopes
+        ): JSONResponse
+    {
+        $allowedScopes = trim($allowedScopes);
+        $allowedScopes = mb_substr($allowedScopes, 0, 255);
+        if (!preg_match('/^[a-zA-Z0-9 _-]*$/u', $allowedScopes)) {
+             return new JSONResponse(['error' => 'Not allowed characters were used.']);
+         }
+
+        $this->logger->debug("Updating allowedScopes for client " . $id . " with value " .$allowedScopes);
+        $client = $this->clientMapper->getByUid($id);
+        $client->setAllowedScopes($allowedScopes);
+        $this->clientMapper->update($client);
+        return new JSONResponse([]);
+    }
+
+        public function updateEmailRegex(
+        int $id,
+        string $emailRegex
+        ): JSONResponse
+    {
+        $emailRegex = trim($emailRegex);
+        $emailRegex = mb_substr($emailRegex, 0, 255);
+
+        $this->logger->debug("Updating emailRegex for client " . $id . " with value " .$emailRegex);
+        $client = $this->clientMapper->getByUid($id);
+        $client->setEmailRegex($emailRegex);
         $this->clientMapper->update($client);
         return new JSONResponse([]);
     }
@@ -248,7 +284,8 @@ class SettingsController extends Controller
                 'flowTypeLabel' => $flowTypeLabel,
                 'groups' => $resultGroups,
                 'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
-            'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+                'allowedScopes' => $client->getAllowedScopes(),
+                'emailRegex' => $client->getEmailRegex(),
             ];
         }
         return new JSONResponse($result);
@@ -299,6 +336,8 @@ class SettingsController extends Controller
                 'flowTypeLabel' => $flowTypeLabel,
                 'groups' => $resultGroups,
                 'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+                'allowedScopes' => $client->getAllowedScopes(),
+                'emailRegex' => $client->getEmailRegex(),
             ];
         }
         return new JSONResponse($result);
@@ -395,10 +434,10 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         if ($overwriteEmailVerified === 'true' || $overwriteEmailVerified === 'false') {
-            $this->appConfig->setAppValueString('overwrite_email_verified', $overwriteEmailVerified);
+            $this->appConfig->setAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED, $overwriteEmailVerified);
         }
         $result = [
-            'overwrite_email_verified' => $this->appConfig->getAppValueString('overwrite_email_verified'),
+            'overwrite_email_verified' => $this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED),
         ];
         return new JSONResponse($result);
     }
@@ -408,10 +447,23 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         if ($dynamicClientRegistration === 'true' || $dynamicClientRegistration === 'false') {
-            $this->appConfig->setAppValueString('dynamic_client_registration', $dynamicClientRegistration);
+            $this->appConfig->setAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION, $dynamicClientRegistration);
         }
         $result = [
-            'dynamic_client_registration' => $this->appConfig->getAppValueString('dynamic_client_registration'),
+            'dynamic_client_registration' => $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION),
+        ];
+        return new JSONResponse($result);
+    }
+
+    public function setAllowUserSettings(
+                    string $allowUserSettings
+                    ): JSONResponse
+    {
+        if ($allowUserSettings === 'enabled' || $allowUserSettings === 'no') {
+            $this->appConfig->setAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, $allowUserSettings);
+        }
+        $result = [
+            'allow_user_settings' => $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS),
         ];
         return new JSONResponse($result);
     }

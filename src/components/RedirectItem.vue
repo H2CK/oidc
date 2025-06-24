@@ -3,14 +3,14 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 <template>
-	<tr>
-		<td>
+	<div class="grid-inner">
+		<div class="label">
 			{{ redirectUri }}
-		</td>
-		<td class="action-column" style="text-align: right;">
+		</div>
+		<div class="action-column">
 			<span><a class="icon-delete has-tooltip" :title="t('oidc', 'Delete')" @click="$emit('delete', id)" /></span>
-		</td>
-	</tr>
+		</div>
+	</div>
 </template>
 
 <script>
@@ -74,26 +74,23 @@ export default {
 		vertical-align: middle;
 	}
 
-	td code {
-		display: inline-block;
-		vertical-align: middle;
+	#oidc .grid-inner {
+		display: grid;
+		grid-template-columns: 1fr 30px;
 	}
 
-	table.inline td {
-		border: none;
+	#oidc .label {
 		padding: 5px;
 	}
 
-	.oidc_group_container {
-		display: flex;
-		flex-direction: column;
-		gap: 2px 0;
+	#oidc .data {
+		padding: 5px;
 	}
 
-	.oidc_flow_container {
-		display: flex;
-		flex-direction: column;
-		gap: 2px 0;
+	#oidc .data-inner {
+		padding-top: 5px;
+		padding-bottom: 5px;
+		padding-right: 5px;
 	}
 
 </style>

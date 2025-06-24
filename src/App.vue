@@ -3,203 +3,245 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 <template>
-	<NcSettingsSection :name="t('oidc', 'OpenID Connect clients')"
+	<NcSettingsSection :name="t('oidc', 'OpenID Connect Provider')"
 		:description="t('oidc', 'OpenID Connect allows to authenticate at external services with {instanceName} user accounts.', { instanceName: oc.theme.name})">
 		<span v-if="error" class="msg error">{{ errorMsg }}</span>
-		<table v-if="localClients.length > 0" class="grid">
-			<thead>
-				<tr>
-					<th id="headerContent" />
-					<th id="headerRemove">
-&nbsp;
-					</th>
-				</tr>
-			</thead>
-			<tbody v-if="localClients"
-				:key="version">
-				<OIDCItem v-for="client in localClients"
-					:key="client.id"
-					:client="client"
-					:groups="groups"
-					@addredirect="addRedirectUri"
-					@deleteredirect="deleteRedirectUri"
-					@delete="deleteClient"
-					@updategroups="updateGroups"
-					@updateflowtypes="updateFlowTypes"
-					@updatetokentype="updateTokenType" />
-			</tbody>
-		</table>
 
-		<br>
-		<h3>{{ t('oidc', 'Add client') }}</h3>
-		<span v-if="newClient.error" class="msg error">{{ newClient.errorMsg }}</span>
-		<form @submit.prevent="addClient">
-			<input id="name"
-				v-model="newClient.name"
-				type="text"
-				name="name"
-				:placeholder="t('oidc', 'Name')">
-			<input id="redirectUri"
-				v-model="newClient.redirectUri"
-				type="url"
-				name="redirectUri"
-				:placeholder="t('oidc', 'Redirection URI')">
-			<select id="signingAlg"
-				v-model="newClient.signingAlg">
+		<div style="display: flex; gap: 12px; border-bottom: 4px solid var(--color-primary-element-hover);">
+			<NcButton aria-label="t('oidc', 'OpenID Connect clients')"
+				style="border-bottom-left-radius: 0px; border-bottom-right-radius: 0px;"
+				:text="t('oidc', 'OpenID Connect clients')"
+				:variant="variantClients"
+				@click="openOIDCTabClients" />
+			<NcButton aria-label="t('oidc', 'Settings')"
+				style="border-bottom-left-radius: 0px; border-bottom-right-radius: 0px;"
+				:text="t('oidc', 'Settings')"
+				:variant="variantSettings"
+				@click="openOIDCTabSettings" />
+			<NcButton aria-label="t('oidc', 'Public Key')"
+				style="border-bottom-left-radius: 0px; border-bottom-right-radius: 0px;"
+				:text="t('oidc', 'Public Key')"
+				:variant="variantKeys"
+				@click="openOIDCTabKeys" />
+		</div>
+
+		<div id="oidc_clients" style="display: block;">
+			<h3>{{ t('oidc', 'Add client') }}</h3>
+			<span v-if="newClient.error" class="msg error">{{ newClient.errorMsg }}</span>
+			<form @submit.prevent="addClient">
+				<div style="display: flex; gap: 4px;">
+					<input id="name"
+						v-model="newClient.name"
+						type="text"
+						name="name"
+						style="width: 40%"
+						:placeholder="t('oidc', 'Name')">
+					<input id="redirectUri"
+						v-model="newClient.redirectUri"
+						type="url"
+						name="redirectUri"
+						style="width: 60%"
+						:placeholder="t('oidc', 'Redirection URI')">
+				</div>
+				<div style="display: flex; gap: 4px;">
+					<select id="signingAlg"
+						v-model="newClient.signingAlg">
+						<option disabled value="">
+							{{ t('oidc', 'Select Signing Algorithm') }}
+						</option>
+						<option value="RS256">
+							RS256
+						</option>
+						<option value="HS256">
+							HS256
+						</option>
+					</select>
+					<select id="type"
+						v-model="newClient.type">
+						<option disabled value="">
+							{{ t('oidc', 'Select Type') }}
+						</option>
+						<option value="confidential">
+							{{ t('oidc', 'Confidential') }}
+						</option>
+						<option value="public">
+							{{ t('oidc', 'Public') }}
+						</option>
+					</select>
+				</div>
+				<input type="submit" class="button" :value="t('oidc', 'Add')">
+			</form>
+			<h3 v-if="localClients.length > 0">
+				{{ t('oidc', 'List of clients') }}
+			</h3>
+			<div v-if="localClients"
+				:key="version">
+				<div v-if="localClients.length > 0" class="list">
+					<OIDCItem v-for="client in localClients"
+						:key="client.id"
+						:client="client"
+						:groups="groups"
+						@addredirect="addRedirectUri"
+						@deleteredirect="deleteRedirectUri"
+						@delete="deleteClient"
+						@updategroups="updateGroups"
+						@updateflowtypes="updateFlowTypes"
+						@updatetokentype="updateTokenType"
+						@saveallowedscopes="setAllowedScopes"
+						@saveemailregex="setEmailRegex" />
+				</div>
+			</div>
+		</div>
+		<div id="oidc_settings" style="display: none;">
+			<h3>{{ t('oidc', 'Settings') }}</h3>
+			<p>{{ t('oidc', 'Token Expire Time') }}</p>
+			<select id="expireTime"
+				v-model="localExpireTime"
+				:placeholder="t('oidc', 'Token Expire Time')"
+				@change="setTokenExpireTime">
 				<option disabled value="">
-					{{ t('oidc', 'Select Signing Algorithm') }}
+					{{ t('oidc', 'Select Token Expire Time') }}
 				</option>
-				<option value="RS256">
-					RS256
+				<option value="300">
+					{{ t('oidc', '5 minutes') }}
 				</option>
-				<option value="HS256">
-					HS256
+				<option value="600">
+					{{ t('oidc', '10 minutes') }}
+				</option>
+				<option value="900">
+					{{ t('oidc', '15 minutes') }}
+				</option>
+				<option value="1800">
+					{{ t('oidc', '30 minutes') }}
+				</option>
+				<option value="3600">
+					{{ t('oidc', '60 minutes') }}
 				</option>
 			</select>
-			<select id="type"
-				v-model="newClient.type">
+
+			<p>{{ t('oidc', 'Refresh Token Expire Time') }}</p>
+			<select id="refreshExpireTime"
+				v-model="localRefreshExpireTime"
+				:placeholder="t('oidc', 'Refresh Token Expire Time')"
+				@change="setRefreshExpireTime">
 				<option disabled value="">
-					{{ t('oidc', 'Select Type') }}
+					{{ t('oidc', 'Select Refresh Token Expire Time') }}
 				</option>
-				<option value="confidential">
-					{{ t('oidc', 'Confidential') }}
+				<option value="300">
+					{{ t('oidc', '5 minutes') }}
 				</option>
-				<option value="public">
-					{{ t('oidc', 'Public') }}
+				<option value="600">
+					{{ t('oidc', '10 minutes') }}
+				</option>
+				<option value="900">
+					{{ t('oidc', '15 minutes') }}
+				</option>
+				<option value="1800">
+					{{ t('oidc', '30 minutes') }}
+				</option>
+				<option value="3600">
+					{{ t('oidc', '60 minutes') }}
+				</option>
+				<option value="43200">
+					{{ t('oidc', '12 hours') }}
+				</option>
+				<option value="86400">
+					{{ t('oidc', '1 day') }}
+				</option>
+				<option value="604800">
+					{{ t('oidc', '7 days') }}
+				</option>
+				<option value="never">
+					{{ t('oidc', 'Never') }}
 				</option>
 			</select>
-			<input type="submit" class="button" :value="t('oidc', 'Add')">
-		</form>
 
-		<br>
-		<h3>{{ t('oidc', 'Settings') }}</h3>
-		<p>{{ t('oidc', 'Token Expire Time') }}</p>
-		<select id="expireTime"
-			v-model="localExpireTime"
-			:placeholder="t('oidc', 'Token Expire Time')"
-			@change="setTokenExpireTime">
-			<option disabled value="">
-				{{ t('oidc', 'Select Token Expire Time') }}
-			</option>
-			<option value="300">
-				{{ t('oidc', '5 minutes') }}
-			</option>
-			<option value="600">
-				{{ t('oidc', '10 minutes') }}
-			</option>
-			<option value="900">
-				{{ t('oidc', '15 minutes') }}
-			</option>
-			<option value="1800">
-				{{ t('oidc', '30 minutes') }}
-			</option>
-			<option value="3600">
-				{{ t('oidc', '60 minutes') }}
-			</option>
-		</select>
+			<p style="margin-top: 1.5em;">
+				{{ t('oidc', 'Dynamic Client Registration') }}
+			</p>
+			<select id="dynamicClientRegistration"
+				v-model="localDynamicClientRegistration"
+				:placeholder="t('oidc', 'Enable or disable Dynamic Client Registration')"
+				@change="setDynamicClientRegistration">
+				<option disabled value="">
+					{{ t('oidc', 'Select to enable/disable the Dynamic Client Registration') }}
+				</option>
+				<option value="false">
+					{{ t('oidc', 'Disable') }}
+				</option>
+				<option value="true">
+					{{ t('oidc', 'Enable') }}
+				</option>
+			</select>
 
-		<p>{{ t('oidc', 'Refresh Token Expire Time') }}</p>
-		<select id="refreshExpireTime"
-			v-model="localRefreshExpireTime"
-			:placeholder="t('oidc', 'Refresh Token Expire Time')"
-			@change="setRefreshExpireTime">
-			<option disabled value="">
-				{{ t('oidc', 'Select Refresh Token Expire Time') }}
-			</option>
-			<option value="300">
-				{{ t('oidc', '5 minutes') }}
-			</option>
-			<option value="600">
-				{{ t('oidc', '10 minutes') }}
-			</option>
-			<option value="900">
-				{{ t('oidc', '15 minutes') }}
-			</option>
-			<option value="1800">
-				{{ t('oidc', '30 minutes') }}
-			</option>
-			<option value="3600">
-				{{ t('oidc', '60 minutes') }}
-			</option>
-			<option value="43200">
-				{{ t('oidc', '12 hours') }}
-			</option>
-			<option value="86400">
-				{{ t('oidc', '1 day') }}
-			</option>
-			<option value="604800">
-				{{ t('oidc', '7 days') }}
-			</option>
-			<option value="never">
-				{{ t('oidc', 'Never') }}
-			</option>
-		</select>
+			<p style="margin-top: 1.5em;">
+				{{ t('oidc', 'Email Verified Flag') }}
+			</p>
+			<select id="overwriteEmailVerified"
+				v-model="localOverwriteEmailVerified"
+				:placeholder="t('oidc', 'Source for email verified flag in token')"
+				@change="setOverwriteEmailVerified">
+				<option disabled value="">
+					{{ t('oidc', 'Select behaviour for setting email verified flag') }}
+				</option>
+				<option value="false">
+					{{ t('oidc', 'Use Nextcloud account information') }}
+				</option>
+				<option value="true">
+					{{ t('oidc', 'Set to always verified') }}
+				</option>
+			</select>
 
-		<p style="margin-top: 1.5em;">
-			{{ t('oidc', 'Dynamic Client Registration') }}
-		</p>
-		<select id="dynamicClientRegistration"
-			v-model="localDynamicClientRegistration"
-			:placeholder="t('oidc', 'Enable or disable Dynamic Client Registration')"
-			@change="setDynamicClientRegistration">
-			<option disabled value="">
-				{{ t('oidc', 'Select to enable/disable the Dynamic Client Registration') }}
-			</option>
-			<option value="false">
-				{{ t('oidc', 'Disable') }}
-			</option>
-			<option value="true">
-				{{ t('oidc', 'Enable') }}
-			</option>
-		</select>
+			<!--
+			<p style="margin-top: 1.5em;">
+				{{ t('oidc', 'Allow User Settings') }}
+			</p>
+			<select id="allowUserSettings"
+				v-model="localAllowUserSettings"
+				:placeholder="t('oidc', 'Define if user can make own user specific changes to settings')"
+				@change="setAllowUserSettings">
+				<option disabled value="">
+					{{ t('oidc', 'Select if user is able to modify user specific settings') }}
+				</option>
+				<option value="no">
+					{{ t('oidc', 'User can not edit any settings') }}
+				</option>
+				<option value="enabled">
+					{{ t('oidc', 'User can edit settings') }}
+				</option>
+			</select>
+			-->
 
-		<p style="margin-top: 1.5em;">
-			{{ t('oidc', 'Email Verified Flag') }}
-		</p>
-		<select id="overwriteEmailVerified"
-			v-model="localOverwriteEmailVerified"
-			:placeholder="t('oidc', 'Source for email verified flag in token')"
-			@change="setOverwriteEmailVerified">
-			<option disabled value="">
-				{{ t('oidc', 'Select behaviour for setting email verified flag') }}
-			</option>
-			<option value="false">
-				{{ t('oidc', 'Use Nextcloud account information') }}
-			</option>
-			<option value="true">
-				{{ t('oidc', 'Set to always verified') }}
-			</option>
-		</select>
-
-		<p style="margin-top: 1.5em;">
-			{{ t('oidc', 'Accepted Logout Redirect URIs') }}
-		</p>
-		<table v-if="localLogoutRedirectUris.length > 0" class="grid">
-			<tbody v-if="localLogoutRedirectUris"
-				:key="version">
+			<h3>{{ t('oidc', 'Accepted Logout Redirect URIs') }}</h3>
+			<div v-if="localLogoutRedirectUris.length > 0"
+				:key="version"
+				class="list">
 				<RedirectItem v-for="redirectUri in localLogoutRedirectUris"
 					:id="redirectUri.id"
 					:key="redirectUri.id"
 					:redirect-uri="redirectUri.redirectUri"
 					@delete="deleteLogoutRedirectUri" />
-			</tbody>
-		</table>
-		<form @submit.prevent="addLogoutRedirectUri">
-			<input id="redirectUri"
-				v-model="newLogoutRedirectUri.redirectUri"
-				type="url"
-				name="redirectUri"
-				:placeholder="t('oidc', 'Redirection URI')">
-			<input type="submit" class="button" :value="t('oidc', 'Add')">
-		</form>
-		<p style="margin-top: 1.5em;">
-			{{ t('oidc', 'Public Key') }}
-		</p>
-		<code>{{ localPublicKey }}</code>
-		<br>
-		<form @submit.prevent="regenerateKeys">
-			<input type="submit" class="button" :value="t('oidc', 'Regenerate Keys')">
-		</form>
+			</div>
+			<div class="grid-inner-2">
+				<NcTextField v-model="newLogoutRedirectUri.redirectUri"
+					style="width: 100%"
+					type="url"
+					name="redirectUri"
+					:placeholder="t('oidc', 'Redirection URI')" />
+				<NcButton :aria-label="t('oidc', 'Add Redirection URI')"
+					:text="t('oidc', 'Add')"
+					variant="secondary"
+					@click="addLogoutRedirectUri" />
+			</div>
+		</div>
+		<div id="oidc_keys" style="display: none;">
+			<h3>{{ t('oidc', 'Public Key') }}</h3>
+			<code>{{ localPublicKey }}</code>
+			<br>
+			<form @submit.prevent="regenerateKeys">
+				<input type="submit" class="button" :value="t('oidc', 'Regenerate Keys')">
+			</form>
+		</div>
 	</NcSettingsSection>
 </template>
 
@@ -210,6 +252,8 @@ import OIDCItem from './components/OIDCItem.vue'
 import RedirectItem from './components/RedirectItem.vue'
 import { generateUrl } from '@nextcloud/router'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
+import NcTextField from '@nextcloud/vue/components/NcTextField'
+import NcButton from '@nextcloud/vue/components/NcButton'
 
 export default {
 	name: 'App',
@@ -217,6 +261,8 @@ export default {
 		OIDCItem,
 		RedirectItem,
 		NcSettingsSection,
+		NcTextField,
+		NcButton,
 	},
 	props: {
 		clients: {
@@ -251,6 +297,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		allowUserSettings: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -262,6 +312,8 @@ export default {
 				type: 'confidential',
 				flowType: 'code',
 				tokenType: 'opaque',
+				allowedScopes: '',
+				emailRegex: '',
 				errorMsg: '',
 				error: false,
 			},
@@ -274,9 +326,13 @@ export default {
 			localRefreshExpireTime: this.refreshExpireTime,
 			localOverwriteEmailVerified: this.overwriteEmailVerified,
 			localDynamicClientRegistration: this.dynamicClientRegistration,
+			localAllowUserSettings: this.allowUserSettings,
 			error: false,
 			errorMsg: '',
 			version: 0,
+			variantClients: 'primary',
+			variantSettings: 'secondary',
+			variantKeys: 'secondary',
 		}
 	},
 	computed: {
@@ -286,6 +342,30 @@ export default {
 	},
 	methods: {
 		t,
+		openOIDCTabClients() {
+			document.getElementById('oidc_clients').style.display = 'block'
+			document.getElementById('oidc_settings').style.display = 'none'
+			document.getElementById('oidc_keys').style.display = 'none'
+			this.variantClients = 'primary'
+			this.variantSettings = 'secondary'
+			this.variantKeys = 'secondary'
+		},
+		openOIDCTabSettings() {
+			document.getElementById('oidc_clients').style.display = 'none'
+			document.getElementById('oidc_settings').style.display = 'block'
+			document.getElementById('oidc_keys').style.display = 'none'
+			this.variantClients = 'secondary'
+			this.variantSettings = 'primary'
+			this.variantKeys = 'secondary'
+		},
+		openOIDCTabKeys() {
+			document.getElementById('oidc_clients').style.display = 'none'
+			document.getElementById('oidc_settings').style.display = 'none'
+			document.getElementById('oidc_keys').style.display = 'block'
+			this.variantClients = 'secondary'
+			this.variantSettings = 'secondary'
+			this.variantKeys = 'primary'
+		},
 		deleteRedirectUri(id) {
 			axios.delete(generateUrl('apps/oidc/clients/redirect/{id}', { id }))
 				.then((response) => {
@@ -417,6 +497,15 @@ export default {
 				this.localDynamicClientRegistration = response.data.dynamic_client_registration
 			})
 		},
+		setAllowUserSettings() {
+			axios.post(
+				generateUrl('apps/oidc/allowUserSettings'),
+				{
+					allowUserSettings: this.localAllowUserSettings,
+				}).then((response) => {
+				this.localAllowUserSettings = response.data.allow_user_settings
+			})
+		},
 		regenerateKeys() {
 			axios.post(
 				generateUrl('apps/oidc/genKeys'),
@@ -476,15 +565,56 @@ export default {
 				this.errorMsg = reason
 			})
 		},
+		setAllowedScopes(id, allowedScopes) {
+			this.error = false
+
+			axios.patch(
+				generateUrl('apps/oidc/clients/allowed_scopes/{id}', { id }),
+				{
+					id,
+					allowedScopes,
+				},
+			).then(response => {
+				// Nothing to do
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
+			})
+		},
+		setEmailRegex(id, emailRegex) {
+			this.error = false
+
+			axios.patch(
+				generateUrl('apps/oidc/clients/email_regex/{id}', { id }),
+				{
+					id,
+					emailRegex,
+				},
+			).then(response => {
+				// Nothing to do
+			}).catch(reason => {
+				this.error = true
+				this.errorMsg = reason
+			})
+		},
 	},
 }
 </script>
 <style>
-	table {
-		max-width: 800px;
+	#oidc .settings-section {
+		width: 95%;
 	}
+
 	#oidc .settings-section h2.settings-section__name {
 		font-size: 20px !important;
 		font-weight: bold !important;
+	}
+	#oidc .list {
+		display: grid;
+		grid-template-columns: 1fr;
+	}
+	#oidc .grid-inner-2 {
+		display: grid;
+		grid-template-columns: 7fr 1fr;
 	}
 </style>

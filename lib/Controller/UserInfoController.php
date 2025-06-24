@@ -258,13 +258,31 @@ class UserInfoController extends ApiController
             $userInfoPayload = array_merge($userInfoPayload, $profile);
         }
         if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
+            $emailProperty = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL);
+            $clientEmailRegex = $client->getEmailRegex();
+            if ($clientEmailRegex !== '') {
+                $this->logger->debug('Found regex for email: ' . $clientEmailRegex);
+                $emailCollection = $account->getPropertyCollection(\OCP\Accounts\IAccountManager::COLLECTION_EMAIL);
+                foreach ($emailCollection->getProperties() as $emailPropertyEntry) {
+                    $this->logger->debug('Performing check for mail ' . $emailPropertyEntry->getValue());
+                    if (preg_match('/'.$clientEmailRegex.'/', $emailPropertyEntry->getValue())) {
+                        $this->logger->debug('Regex matches');
+                        $emailProperty = $emailPropertyEntry;
+                    }
+                }
+            }
+
             $email = [
-                'email' => $user->getEMailAddress(),
+                'email' => $emailProperty->getValue(),
             ];
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL)->getVerified()) {
+            if ($this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED) == 'true') {
                 $email = array_merge($email, ['email_verified' => true]);
             } else {
-                $email = array_merge($email, ['email_verified' => false]);
+                if ($emailProperty->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
+                    $email = array_merge($email, ['email_verified' => true]);
+                } else {
+                    $email = array_merge($email, ['email_verified' => false]);
+                }
             }
             $userInfoPayload = array_merge($userInfoPayload, $email);
         }

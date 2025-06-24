@@ -236,6 +236,24 @@ class LoginRedirectorController extends ApiController
             return new TemplateResponse('core', '400', $params, 'error');
         }
 
+        // Adapt scopes to configured values
+        $allowedScopes = $client->getAllowedScopes();
+        if (trim($allowedScopes) !== '') {
+            $newScope = '';
+            $allowedScopesArr = explode(' ', strtolower(trim($allowedScopes)));
+            $scopesArr = explode(' ', strtolower(trim($scope)));
+            foreach ($scopesArr as $scopeEntry) {
+                if (in_array($scopeEntry, $allowedScopesArr)) {
+                    $newScope = $newScope . $scopeEntry . ' ';
+                }
+            }
+            $newScope = trim($newScope);
+            if ($newScope === '') {
+                $newScope = Application::DEFAULT_SCOPE;
+            }
+            $scope = $newScope;
+        }
+
         // Check if redirect URI is configured for client
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
         $redirectUriFound = false;

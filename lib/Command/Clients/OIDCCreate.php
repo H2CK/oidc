@@ -76,6 +76,20 @@ class OIDCCreate extends Command {
         InputOption::VALUE_OPTIONAL,
         'The type of the access token created for the client. If set to ´jwt´ a RFC9068 conforming access token is generated.',
         'opaque'
+      )
+      ->addOption(
+        'allowed_scopes',
+        null,
+        InputOption::VALUE_OPTIONAL,
+        'The allowed scopes for the client. E.g. ´openid profile roles´. If not defined any scope is accepted.',
+        ''
+      )
+      ->addOption(
+        'email_regex',
+        null,
+        InputOption::VALUE_OPTIONAL,
+        'The regular expression to select the used email from all email addresses of a user (primary and secondary). If not set always the primary email address will be used.',
+        ''
       );
   }
 
@@ -88,7 +102,9 @@ class OIDCCreate extends Command {
             $input->getOption('algorithm'),
             $input->getOption('type'),
             $input->getOption('flow'),
-            $input->getOption('token_type')
+            $input->getOption('token_type'),
+            $input->getOption('allowed_scopes'),
+            $input->getOption('email_regex')
           );
           // insert new client into database
           $client = $this->mapper->insert($client);

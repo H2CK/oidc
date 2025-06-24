@@ -116,6 +116,8 @@ class Admin implements ISettings {
                 'flowTypeLabel' => $flowTypeLabel,
                 'groups' => $resultGroups,
                 'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+                'allowedScopes' => $client->getAllowedScopes(),
+                'emailRegex' => $client->getEmailRegex(),
             ];
         }
 
@@ -148,6 +150,8 @@ class Admin implements ISettings {
                 'overwriteEmailVerified', $this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED));
         $this->initialState->provideInitialState(
                 'dynamicClientRegistration', $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));
+        $this->initialState->provideInitialState(
+                'allowUserSettings', $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS));
 
         return new TemplateResponse(
                         'oidc',
@@ -159,7 +163,7 @@ class Admin implements ISettings {
 
     public function getSection(): string
     {
-        return 'security';
+        return 'oidc_provider';
     }
 
     public function getPriority(): int

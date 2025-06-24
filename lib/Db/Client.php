@@ -32,6 +32,10 @@ use JsonSerializable;
  * @method void setIssuedAt(int $issuedAt)
  * @method string getTokenType()
  * @method void setTokenType(string $tokenType)
+ * @method string getAllowedScopes()
+ * @method void setAllowedScopes(string $allowedScopes)
+ * @method string getEmailRegex()
+ * @method void setEmailRegex(string $emailRegex)
  */
 class Client extends Entity implements JsonSerializable {
     /** @var int */
@@ -56,6 +60,10 @@ class Client extends Entity implements JsonSerializable {
     protected $issuedAt = 0;
     /** @var string */
     protected $tokenType;
+    /** @var string */
+    protected $allowedScopes;
+    /** @var string */
+    protected $emailRegex;
 
     public function __construct(
         $name = '',
@@ -64,6 +72,8 @@ class Client extends Entity implements JsonSerializable {
         $type = 'confidential',
         $flowType = 'code',
         $tokenType = 'opaque',
+        $allowedScopes = '',
+        $emailRegex = '',
         $dcr = false
     ) {
         $this->setName($name);
@@ -73,6 +83,8 @@ class Client extends Entity implements JsonSerializable {
         $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
         $this->setTokenType($tokenType);
         $this->setDcr($dcr);
+        $this->setAllowedScopes($allowedScopes);
+        $this->setEmailRegex($emailRegex);
         $this->setIssuedAt(time());
 
         $this->addType('id', Types::INTEGER);
@@ -85,6 +97,8 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('dcr', Types::BOOLEAN);
         $this->addType('issued_at', Types::INTEGER);
         $this->addType('token_type', Types::STRING);
+        $this->addType('allowed_scopes', Types::STRING);
+        $this->addType('email_regex', Types::STRING);
     }
 
     public function getRedirectUris(): array {
@@ -110,7 +124,9 @@ class Client extends Entity implements JsonSerializable {
             'flow_type' => $this->getFlowType(),
             'dcr' => $this->isDcr(),
             'issued_at' => $this->getIssuedAt(),
-            'token_type' => $this->getTokenType()
+            'token_type' => $this->getTokenType(),
+            'allowed_scopes' => $this->getAllowedScopes(),
+            'email_regex' => $this->getEmailRegex()
         ];
     }
 }

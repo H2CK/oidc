@@ -68,6 +68,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setAllowUserSettings',
+            'url' => '/allowUserSettings',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#regenerateKeys',
             'url' => '/genKeys',
             'verb' => 'POST',
@@ -85,6 +90,16 @@ return [
         [
             'name' => 'Settings#updateTokenType',
             'url' => '/clients/token_type/{id}',
+            'verb' => 'PATCH'
+        ],
+        [
+            'name' => 'Settings#updateAllowedScopes',
+            'url' => '/clients/allowed_scopes/{id}',
+            'verb' => 'PATCH'
+        ],
+        [
+            'name' => 'Settings#updateEmailRegex',
+            'url' => '/clients/email_regex/{id}',
             'verb' => 'PATCH'
         ],
         [
@@ -174,15 +189,3 @@ return [
         ],
     ],
 ];
-
-//        [
-//            'name' => 'Discovery#preflighted_cors',
-//            'url' => '/openid-configuration',
-//            'verb' => 'OPTIONS',
-//        ],
-
-//        [
-//            'name' => 'Jwks#preflighted_cors',
-//            'url' => '/jwks',
-//            'verb' => 'OPTIONS',
-//        ],
