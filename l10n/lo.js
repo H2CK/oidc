@@ -1,11 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "ຊື່",
     "Settings" : "ການຕັ້ງຄ່າ",
+    "Name" : "ຊື່",
     "30 minutes" : "30 ນາທີ",
     "Disable" : "ປິດ",
     "Delete" : "ລຶບ",
-    "Type" : "ພິມ"
+    "Type" : "ພິມ",
+    "Save" : "ບັນທຶກ"
 },
 "nplurals=1; plural=0;");

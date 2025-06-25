@@ -12,8 +12,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC 身分驗證提供者",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud 作為 OpenID Connect 身分驗證提供者",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud 作為 OpenID Connect 身分驗證提供者\n\n有了這個應用程式，您可以使用 Nextcloud 作為 OpenID Connect 身分提供者。 如果其他服務\n組態正確，您可以使用 Nextcloud 登入存取這些服務。完整的文件可以在以下位置找到：\n\n- [使用者文件](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [開發人員文件](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID Connect 用戶端",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect 允許使用 {instanceName} 使用者帳戶在外部服務上進行身分驗證。",
+    "OpenID Connect clients" : "OpenID Connect 用戶端",
+    "Settings" : "設定",
+    "Public Key" : "公鑰",
     "Add client" : "新增客戶端",
     "Name" : "名稱",
     "Redirection URI" : "重新導向 URI",
@@ -22,7 +24,6 @@ OC.L10N.register(
     "Confidential" : "機密",
     "Public" : "公開",
     "Add" : "新增",
-    "Settings" : "設定",
     "Token Expire Time" : "權杖逾期時間",
     "Select Token Expire Time" : "選取權杖逾期時間",
     "5 minutes" : "5分鐘",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "Use Nextcloud account information" : "使用 Nextcloud 帳號資訊",
     "Set to always verified" : "設定為一律驗證",
     "Accepted Logout Redirect URIs" : "接受的登出重新導向 URI",
-    "Public Key" : "公鑰",
     "Regenerate Keys" : "重新生成密鑰",
     "OpenID Connect Redirect" : "OpenID Connect 重新導向",
     "Delete" : "刪除",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "JWT Access Token (RFC9068)" : "JWT 存取權杖 (RFC9068)",
     "Limited to Groups" : "限於群組",
     "Only users in one of the following groups are allowed to use the client." : "僅允許以下群組之一的使用者使用客戶端。",
-    "Groups allowed to use the client." : "允許使用客戶端的群組。"
+    "Groups allowed to use the client." : "允許使用客戶端的群組。",
+    "Save" : "儲存"
 },
 "nplurals=1; plural=0;");

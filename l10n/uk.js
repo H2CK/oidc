@@ -6,8 +6,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "Постачальник ідентифікації OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud як постачальник ідентифікації OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud як постачальник ідентифікації OpenID Connect За допомогою цього застосунку ви можете використовувати Nextcloud як постачальник ідентифікації OpenID Connect. Якщо інші послуги налаштовані правильно, ви можете отримати доступ до цих служб за допомогою свого логіна Nextcloud. Повну документацію можна знайти за адресою: - [Документація користувача](https://github.com/H2CK/oidc/wiki#user-documentation) - [Документація розробника](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "Клієнти OpenID Connect",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect дозволяє автентифікуватись у зовнішніх службах за допомогою облікових записів користувачів {instanceName}.",
+    "OpenID Connect clients" : "Клієнти OpenID Connect",
+    "Settings" : "Налаштування",
+    "Public Key" : "Відкритий ключ",
     "Add client" : "Додати клієнта",
     "Name" : "Назва",
     "Redirection URI" : "URI перенаправлення",
@@ -15,7 +17,6 @@ OC.L10N.register(
     "Select Type" : "Виберіть Тип",
     "Public" : "Публічна",
     "Add" : "Додати",
-    "Settings" : "Налаштування",
     "Token Expire Time" : "Термін дії токена",
     "Select Token Expire Time" : "Виберіть термін дії токена",
     "5 minutes" : "5 хвилин",
@@ -29,7 +30,6 @@ OC.L10N.register(
     "Never" : "Ніколи",
     "Disable" : "Вимкнути",
     "Enable" : "Увімкнути",
-    "Public Key" : "Відкритий ключ",
     "Regenerate Keys" : "Відновити ключі",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",
     "Delete" : "Вилучити",
@@ -38,6 +38,7 @@ OC.L10N.register(
     "Show client secret" : "Показати ключ клієнта",
     "-- NONE --" : "-- NONE --",
     "Signing Algorithm" : "Алгоритм підписання",
-    "Type" : "Тип"
+    "Type" : "Тип",
+    "Save" : "Зберегти"
 },
 "nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);");

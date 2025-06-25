@@ -10,8 +10,10 @@
     "OIDC Identity Provider" : "OIDC Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud som identitetsleverantör för OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud som identitetsleverantör för OpenID Connect\n\nMed den här appen kan du använda Nextcloud som OpenID Connect Identity Provider. Om andra tjänster är korrekt konfigurerade kan du få tillgång till dessa tjänster med din inloggning till Nextcloud.\n\nFullständig dokumentation finns på följande adress:\n\n- [Användardokumentation] (https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Utvecklingsdokumentation](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID Connect-klienter",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect gör det möjligt att autentisera externa tjänster med {instanceName}-användarkonton.",
+    "OpenID Connect clients" : "OpenID Connect-klienter",
+    "Settings" : "Inställningar",
+    "Public Key" : "Offentlig nyckel",
     "Add client" : "Lägg till klient",
     "Name" : "Namn",
     "Redirection URI" : "Omdirigerings-URI",
@@ -20,7 +22,6 @@
     "Confidential" : "Konfidentiell",
     "Public" : "Offentlig",
     "Add" : "Lägg till",
-    "Settings" : "Inställningar",
     "Token Expire Time" : "Token upphör att gälla",
     "Select Token Expire Time" : "Välj tid för utgången av Token",
     "5 minutes" : "5 minuter",
@@ -45,7 +46,6 @@
     "Use Nextcloud account information" : "Använd kontoinformation från Nextcloud",
     "Set to always verified" : "Ställ in på alltid verifierad",
     "Accepted Logout Redirect URIs" : "Accepterade URI:er för omdirigering av utloggning",
-    "Public Key" : "Offentlig nyckel",
     "Regenerate Keys" : "Återskapa nycklar",
     "OpenID Connect Redirect" : "Omdirigering av OpenID Connect",
     "Delete" : "Radera",
@@ -62,6 +62,7 @@
     "JWT Access Token (RFC9068)" : "JWT access-token (RFC9068)",
     "Limited to Groups" : "Begränsat till grupper",
     "Only users in one of the following groups are allowed to use the client." : "Endast användare i någon av följande grupper får använda klienten.",
-    "Groups allowed to use the client." : "Grupper som får använda klienten."
+    "Groups allowed to use the client." : "Grupper som får använda klienten.",
+    "Save" : "Spara"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

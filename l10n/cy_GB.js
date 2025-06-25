@@ -1,8 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "Enw",
     "Settings" : "Gosodiadau",
+    "Name" : "Enw",
     "Disable" : "Analluogi",
     "Delete" : "Dileu",
     "Type" : "Math"

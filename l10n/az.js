@@ -1,9 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Quraşdırmalar",
     "Name" : "Ad",
     "Public" : "İctimai",
-    "Settings" : "Quraşdırmalar",
     "Never" : "Heç vaxt",
     "Disable" : "Dayandır",
     "Delete" : "Sil"

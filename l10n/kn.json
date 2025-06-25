@@ -1,7 +1,8 @@
 { "translations": {
-    "Name" : "﻿ಹೆಸರು",
     "Settings" : "ಆಯ್ಕೆ",
+    "Name" : "﻿ಹೆಸರು",
     "Disable" : "﻿ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
-    "Delete" : "﻿ಅಳಿಸಿ"
+    "Delete" : "﻿ಅಳಿಸಿ",
+    "Save" : "﻿ಉಳಿಸಿ"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

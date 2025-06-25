@@ -1,11 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Astellungen",
     "Name" : "Numm",
     "Add" : "Dobäisetzen",
-    "Settings" : "Astellungen",
     "Disable" : "Ofschalten",
     "Delete" : "Läschen",
-    "Type" : "Typ"
+    "Type" : "Typ",
+    "Save" : "Späicheren"
 },
 "nplurals=2; plural=(n != 1);");

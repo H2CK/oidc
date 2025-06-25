@@ -11,8 +11,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC-identitetstilbyder",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud som OpenID Connect identitetstilbyder",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud som OpenID Connect identitetstilbyder\n\nMed denne appen kan du bruke Nextcloud som OpenID Connect identitetstilbyder. Hvis andre tjenester\ner konfigurert korrekt, kan du få tilgang til disse tjenestene med din Nextcloud-pålogging.\n\nFull dokumentasjon finner du på:\n\n- [Brukerdokumentasjon](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Utviklerdokumentasjon](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID Connect-klienter",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect gjør det mulig å autentisere på eksterne tjenester med {instanceName}-brukerkontoer.",
+    "OpenID Connect clients" : "OpenID Connect-klienter",
+    "Settings" : "Innstillinger",
+    "Public Key" : "Offentlig nøkkel",
     "Add client" : "Legg til klient",
     "Name" : "Navn",
     "Redirection URI" : "Videresendings-URI",
@@ -21,7 +23,6 @@ OC.L10N.register(
     "Confidential" : "Konfidensiell",
     "Public" : "Offentlig",
     "Add" : "Legg til",
-    "Settings" : "Innstillinger",
     "Token Expire Time" : "Utløpstid for token",
     "Select Token Expire Time" : "Velg utløpstid for token",
     "5 minutes" : "5 minutter",
@@ -44,7 +45,6 @@ OC.L10N.register(
     "Use Nextcloud account information" : "Bruk Nextcloud-kontoinformasjon",
     "Set to always verified" : "Sett til alltid verifisert",
     "Accepted Logout Redirect URIs" : "Godkjente omdirigerings-URIer for utlogging",
-    "Public Key" : "Offentlig nøkkel",
     "Regenerate Keys" : "Generer nøkler på nytt",
     "OpenID Connect Redirect" : "OpenID Connect Omdirigering",
     "Delete" : "Slett",
@@ -58,6 +58,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "Flyter kan brukes med klienten.",
     "Limited to Groups" : "Begrenset til grupper",
     "Only users in one of the following groups are allowed to use the client." : "Kun brukere i en av følgende grupper kan bruke klienten.",
-    "Groups allowed to use the client." : "Grupper som kan bruke klienten."
+    "Groups allowed to use the client." : "Grupper som kan bruke klienten.",
+    "Save" : "Lagre"
 },
 "nplurals=2; plural=(n != 1);");

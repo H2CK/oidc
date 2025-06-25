@@ -12,8 +12,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "Soláthraí Aitheantais OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud mar Sholáthraí Aitheantais OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud mar Sholáthraí Aitheantais OpenID Connect\n\nLeis an aip seo is féidir leat Nextcloud a úsáid mar Sholáthraí Aitheantais OpenID Connect. Má tá seirbhísí eile\natá cumraithe i gceart, tá tú in ann rochtain a fháil ar na seirbhísí sin le do logáil isteach Nextcloud.\n\nIs féidir doiciméadú iomlán a fháil ag:\n\n- [Doiciméadú Úsáideora]( https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Doiciméadúchán Forbróra]( https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "Cliaint OpenID Connect",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "Ligeann OpenID Connect fíordheimhniú a dhéanamh ag seirbhísí seachtracha le cuntais úsáideora {instanceName}.",
+    "OpenID Connect clients" : "Cliaint OpenID Connect",
+    "Settings" : "Socruithe",
+    "Public Key" : "Eochair Phoiblí",
     "Add client" : "Cuir cliant leis",
     "Name" : "Ainm",
     "Redirection URI" : "Atreo URI",
@@ -22,7 +24,6 @@ OC.L10N.register(
     "Confidential" : "Faoi rún",
     "Public" : "Poiblí",
     "Add" : "Cuir",
-    "Settings" : "Socruithe",
     "Token Expire Time" : "Am Éaga Token",
     "Select Token Expire Time" : "Roghnaigh Token Am In éag",
     "5 minutes" : "5 nóiméad",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "Use Nextcloud account information" : "Úsáid faisnéis chuntais Nextcloud",
     "Set to always verified" : "Socraithe le fíorú i gcónaí",
     "Accepted Logout Redirect URIs" : "Glactar leis Logáil Amach Atreorú URIanna",
-    "Public Key" : "Eochair Phoiblí",
     "Regenerate Keys" : "Eochracha a Athghiniúint",
     "OpenID Connect Redirect" : "OpenID Connect Atreorú",
     "Delete" : "Scrios",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "JWT Access Token (RFC9068)" : "Comhartha Rochtana JWT (RFC9068)",
     "Limited to Groups" : "Teoranta do Ghrúpaí",
     "Only users in one of the following groups are allowed to use the client." : "Ní cheadaítear ach d’úsáideoirí i gceann de na grúpaí seo a leanas an cliant a úsáid.",
-    "Groups allowed to use the client." : "Ceadaítear do ghrúpaí an cliant a úsáid."
+    "Groups allowed to use the client." : "Ceadaítear do ghrúpaí an cliant a úsáid.",
+    "Save" : "Sábháil"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

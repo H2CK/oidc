@@ -10,8 +10,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC személyazonosság-szolgáltató",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextclous mint OpenID Connect személyazonosság-szolgáltató",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "A Nextcloud mint OpenID Connect személyazonosság-szolgáltató\n\nAz alkalmazással OpenID Connect személyazonosság-szolgáltatóként használhatja a Nextcloudot. Ha más szolgáltatások helyesen vannak beállítva, akkor azokat el tudja érni a nextcloudos bejelentkezésével.\n\nA teljes dokumentáció itt található:\n\n- [Felhasználói dokumentáció](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Fejlesztői dokumentáció](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID Connect kliensek",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "Az OpenID Connect lehetővé teszi, hogy a(z) {instanceName} felhasználó fiókjaival hitelesítsen külső szolgáltatásoknál.",
+    "OpenID Connect clients" : "OpenID Connect kliensek",
+    "Settings" : "Beállítások",
+    "Public Key" : "Nyilvános kulcs",
     "Add client" : "Kliens hozzáadása",
     "Name" : "Név",
     "Redirection URI" : "Átirányítási URI",
@@ -20,7 +22,6 @@ OC.L10N.register(
     "Confidential" : "Bizalmas",
     "Public" : "Nyilvános",
     "Add" : "Hozzáadás",
-    "Settings" : "Beállítások",
     "Token Expire Time" : "Token lejárati ideje",
     "Select Token Expire Time" : "Válassza ki a token lejárati idejét",
     "5 minutes" : "5 perc",
@@ -35,7 +36,6 @@ OC.L10N.register(
     "Disable" : "Letiltás",
     "Enable" : "Engedélyezés",
     "Accepted Logout Redirect URIs" : "Elfogadott kijelentkezési átirányítási URI-k",
-    "Public Key" : "Nyilvános kulcs",
     "Regenerate Keys" : "Kulcsok újbóli előállítása",
     "OpenID Connect Redirect" : "OpenID Connect átirányítások",
     "Delete" : "Törlés",
@@ -49,6 +49,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "A klienssel használható folyamatok.",
     "Limited to Groups" : "Csoportokra korlátozott",
     "Only users in one of the following groups are allowed to use the client." : "Csak a következő csoportokban lévő felhasználók használhatják a klienst.",
-    "Groups allowed to use the client." : "A csoportok, melyek használhatják a klienst."
+    "Groups allowed to use the client." : "A csoportok, melyek használhatják a klienst.",
+    "Save" : "Mentés"
 },
 "nplurals=2; plural=(n != 1);");

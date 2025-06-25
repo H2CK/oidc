@@ -1,11 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "Ady",
     "Settings" : "Sazlamalar",
+    "Name" : "Ady",
     "30 minutes" : "30 minut",
     "Disable" : "Öçürmek",
     "Delete" : "Pozmak",
-    "Type" : "Görnüşi"
+    "Type" : "Görnüşi",
+    "Save" : "Saklamak"
 },
 "nplurals=2; plural=(n != 1);");

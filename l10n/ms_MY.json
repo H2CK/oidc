@@ -1,8 +1,9 @@
 { "translations": {
-    "Name" : "Nama",
     "Settings" : "Tetapan",
+    "Name" : "Nama",
     "Disable" : "Nyahaktif",
     "Delete" : "Padam",
-    "Type" : "Jenis"
+    "Type" : "Jenis",
+    "Save" : "Simpan"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

@@ -12,8 +12,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC Provedor de Identidade",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud como fornecedor de identidades OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud como fornecedor de identidades OpenID Connect\n\nCom esta aplicação pode usar o Nextcloud como fornecedor de identidades OpenID Connect. Se outros serviços são configurados corretamente, pode aceder a esses serviços com o seu login na Nextcloud.\n\nA documentação completa pode ser encontrada em:\n\n- [Documentação do utilizador](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Documentação do desenvolvedor](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "Clientes OpenID Connect",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect permite autenticar em serviços externos com contas de utilizador de {instanceName}.",
+    "OpenID Connect clients" : "Clientes OpenID Connect",
+    "Settings" : "Definições",
+    "Public Key" : "Chave pública",
     "Add client" : "Adicionar cliente",
     "Name" : "Nome",
     "Redirection URI" : "URI de redirecionamento",
@@ -22,7 +24,6 @@ OC.L10N.register(
     "Confidential" : "Confidencial",
     "Public" : "Público",
     "Add" : "Adicionar",
-    "Settings" : "Definições",
     "Token Expire Time" : "Tempo de Expiração da Código",
     "Select Token Expire Time" : "Tempo de Expiração da Código",
     "5 minutes" : "5 minutos",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "Use Nextcloud account information" : "Use as informações da conta Nextcloud",
     "Set to always verified" : "Definido como sempre verificado",
     "Accepted Logout Redirect URIs" : "URIs de redirecionamento de saída de sessão aceites",
-    "Public Key" : "Chave pública",
     "Regenerate Keys" : "Regenerar Chaves",
     "OpenID Connect Redirect" : "Redirecionamento OpenID Connect",
     "Delete" : "Eliminar",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "JWT Access Token (RFC9068)" : "Token de Accesso JWT (RFC9068)",
     "Limited to Groups" : "Limitado a grupos",
     "Only users in one of the following groups are allowed to use the client." : "Apenas os utilizadores de um dos seguintes grupos estão autorizados a utilizar o cliente.",
-    "Groups allowed to use the client." : "Grupos autorizados a utilizar o cliente."
+    "Groups allowed to use the client." : "Grupos autorizados a utilizar o cliente.",
+    "Save" : "Guardar"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

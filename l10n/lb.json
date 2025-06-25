@@ -1,9 +1,10 @@
 { "translations": {
+    "Settings" : "Astellungen",
     "Name" : "Numm",
     "Add" : "Dobäisetzen",
-    "Settings" : "Astellungen",
     "Disable" : "Ofschalten",
     "Delete" : "Läschen",
-    "Type" : "Typ"
+    "Type" : "Typ",
+    "Save" : "Späicheren"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

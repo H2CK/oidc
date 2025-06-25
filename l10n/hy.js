@@ -1,10 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "Անուն",
     "Settings" : "Կարգավորումներ",
+    "Name" : "Անուն",
     "Never" : "Երբեք",
     "Delete" : "հեռացնել",
-    "Type" : "Տիպ"
+    "Type" : "Տիպ",
+    "Save" : "Պահպանել"
 },
 "nplurals=2; plural=(n != 1);");

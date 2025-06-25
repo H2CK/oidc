@@ -11,8 +11,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "Poskytovateľ identity OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud ako OpenID Connect Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud ako OpenID Connect Identity Provider\n\nPomocou tejto aplikácie môžete použiť Nextcloud ako OpenID Connect Identity Provider. Ak iné služby\nsú správne nakonfigurované, máte prístup k týmto službám pomocou svojho prihlasovacieho mena Nextcloud.\n\nKompletnú dokumentáciu nájdete na:\n\n- [Používateľská dokumentácia](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Dokumentácia pre vývojárov](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "Klienti OpenID Connect",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect umožňuje autentifikáciu v externých službách pomocou užívateľských účtov {instanceName}.",
+    "OpenID Connect clients" : "Klienti OpenID Connect",
+    "Settings" : "Nastavenia",
+    "Public Key" : "Verejný kľúč",
     "Add client" : "Pridať klienta",
     "Name" : "Názov",
     "Redirection URI" : "URI presmerovania",
@@ -21,7 +23,6 @@ OC.L10N.register(
     "Confidential" : "Tajné",
     "Public" : "Verejné",
     "Add" : "Pridať",
-    "Settings" : "Nastavenia",
     "Token Expire Time" : "Čas expirácie tokenu",
     "Select Token Expire Time" : "Vyberte čas expirácie tokenu",
     "5 minutes" : "5 minút",
@@ -46,7 +47,6 @@ OC.L10N.register(
     "Use Nextcloud account information" : "Použiť informácie o účte z Nextcloudu",
     "Set to always verified" : "Nastaviť vždy ako overené",
     "Accepted Logout Redirect URIs" : "Akceptované URI presmerovania odhlásenia",
-    "Public Key" : "Verejný kľúč",
     "Regenerate Keys" : "Znova vytvoriť kľúče",
     "OpenID Connect Redirect" : "Presmerovanie OpenID Connect",
     "Delete" : "Vymazať",
@@ -60,6 +60,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "Povolené toky pre použitie s klientom.",
     "Limited to Groups" : "Limitované pre Skupiny",
     "Only users in one of the following groups are allowed to use the client." : "Klienta môžu používať iba užívatelia v jednej z nasledujúcich skupín.",
-    "Groups allowed to use the client." : "Skupiny ktoré môžu používať klienta."
+    "Groups allowed to use the client." : "Skupiny ktoré môžu používať klienta.",
+    "Save" : "Uložiť"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

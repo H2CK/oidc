@@ -10,8 +10,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC поставщик удостоверений",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud как поставщик удостоверений OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud как поставщик удостоверений OpenID Connect\n\nС помощью этого приложения вы можете использовать Nextcloud в качестве поставщика удостоверений OpenID Connect. Если другие услуги\nнастроены правильно, вы сможете получить доступ к этим сервисам через авторизацию в Nextcloud.\n\nПолная документация может быть найдена в:\n\n- [Пользовательская документация](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Документация для разработчиков](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "Клиенты OpenID Connect",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect позволяет проходить аутентификацию во внешних сервисах с помощью {instanceName} пользовательских аккаунтов.",
+    "OpenID Connect clients" : "Клиенты OpenID Connect",
+    "Settings" : "Настройки",
+    "Public Key" : "Открытый ключ",
     "Add client" : "Добавить клиент",
     "Name" : "Имя",
     "Redirection URI" : "URI перенаправления",
@@ -20,7 +22,6 @@ OC.L10N.register(
     "Confidential" : "Конфиденциальность",
     "Public" : "Публичный",
     "Add" : "Добавить",
-    "Settings" : "Настройки",
     "Token Expire Time" : "Время истечения токена",
     "Select Token Expire Time" : "Выбрать время истечения токена",
     "5 minutes" : "5 минут",
@@ -36,7 +37,6 @@ OC.L10N.register(
     "Enable" : "Включить",
     "Use Nextcloud account information" : "Используйте информацию об учетной записи Nextcloud",
     "Accepted Logout Redirect URIs" : "Разрешенные URI перенаправления при выходе из системы",
-    "Public Key" : "Открытый ключ",
     "Regenerate Keys" : "Пересоздать ключи",
     "OpenID Connect Redirect" : "OpenID Connect перенаправление",
     "Delete" : "Удалить",
@@ -50,6 +50,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "Потоки, разрешенные для использования с клиентом.",
     "Limited to Groups" : "Ограничено группами",
     "Only users in one of the following groups are allowed to use the client." : "Только пользователям из одной из следующих групп разрешено использовать клиент.",
-    "Groups allowed to use the client." : "Группы, которым разрешено использовать клиент."
+    "Groups allowed to use the client." : "Группы, которым разрешено использовать клиент.",
+    "Save" : "Сохранить"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

@@ -1,9 +1,10 @@
 { "translations": {
-    "Name" : "ຊື່",
     "Settings" : "ການຕັ້ງຄ່າ",
+    "Name" : "ຊື່",
     "30 minutes" : "30 ນາທີ",
     "Disable" : "ປິດ",
     "Delete" : "ລຶບ",
-    "Type" : "ພິມ"
+    "Type" : "ພິມ",
+    "Save" : "ບັນທຶກ"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

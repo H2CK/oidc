@@ -1,12 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Setelan",
     "Add client" : "Tambah klien",
     "Name" : "Nama",
     "Redirection URI" : "URI Pengalihan",
     "Public" : "Publik",
     "Add" : "Tambah",
-    "Settings" : "Setelan",
     "5 minutes" : "5 menit",
     "15 minutes" : "15 menit",
     "30 minutes" : "30 Menit",
@@ -18,6 +18,7 @@ OC.L10N.register(
     "Delete" : "Hapus",
     "Client Identifier" : "Identifier klien",
     "Secret" : "Rahasia",
-    "Type" : "tipe"
+    "Type" : "tipe",
+    "Save" : "Simpan"
 },
 "nplurals=1; plural=0;");

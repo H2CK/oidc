@@ -1,9 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Agordoj",
     "Name" : "Nomo",
     "Public" : "Publika",
-    "Settings" : "Agordoj",
     "30 minutes" : "30 minutoj",
     "Never" : "Neniam",
     "Disable" : "Malŝalti",

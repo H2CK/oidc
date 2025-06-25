@@ -7,8 +7,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC identitate-hornitzailea",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect identitate hornitzaile gisa",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud OpenID Connect Identity Hornitzaile gisa\n\nAplikazio honekin Nextcloud OpenID Connect Identity Hornitzaile gisa erabil dezakezu. Beste zerbitzu batzuk bada\nbehar bezala konfiguratuta daude, zerbitzu horietara sartzeko gai zara Nextcloud-en saioa hasteko.\n\nDokumentazio osoa esteka hauetan aurki daiteke:\n\n- [Erabiltzailearen dokumentazioa](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Garatzaileen dokumentazioa](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID Connect bezeroak",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect-ek kanpoko zerbitzuetan autentifikatzeko aukera ematen du {instanceName} erabiltzaile-kontuekin.",
+    "OpenID Connect clients" : "OpenID Connect bezeroak",
+    "Settings" : "Ezarpenak",
+    "Public Key" : "Gako publikoa",
     "Add client" : "Gehitu bezeroa",
     "Name" : "Izena",
     "Redirection URI" : "Birbideraketaren URI",
@@ -17,7 +19,6 @@ OC.L10N.register(
     "Confidential" : "Konfidentziala",
     "Public" : "Publikoa",
     "Add" : "Gehitu",
-    "Settings" : "Ezarpenak",
     "Token Expire Time" : "Token iraungitze denbora",
     "Select Token Expire Time" : "Hautatu token iraungitze denbora",
     "5 minutes" : "5 minutu",
@@ -31,7 +32,6 @@ OC.L10N.register(
     "Never" : "Inoiz ez",
     "Disable" : "Desaktibatu",
     "Enable" : "Aktibatu",
-    "Public Key" : "Gako publikoa",
     "Regenerate Keys" : "Berriro sortu gakoak",
     "OpenID Connect Redirect" : "OpenID Connect birbideraketa",
     "Delete" : "Ezabatu",
@@ -42,6 +42,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Sinatze algoritmoa",
     "Type" : "Mota",
     "Flows" : "Fluxuak",
-    "Limited to Groups" : "Taldeetara mugatuta"
+    "Limited to Groups" : "Taldeetara mugatuta",
+    "Save" : "Gorde"
 },
 "nplurals=2; plural=(n != 1);");

@@ -10,8 +10,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "Proveedor de Identidad OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud como Proveedor de Identidad OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud como Proveedor de Identidad OpenID Connect\n      \n      Con esta aplicación, puedes usar Nextcloud como Proveedor de Identidad OpenID Connect. Si otros servicios\n      están configurados correctamente, podrás acceder a esos servicios con tu inicio de sesión de Nextcloud.\n      \n      La documentación completa se encuentra en:\n      \n      - [Documentación de Usuario](https://github.com/H2CK/oidc/wiki#user-documentation)\n      - [Documentación para Desarrolladores](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "Clientes OpenID Connect",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect permite autenticar en servicios externos con cuentas de usuario de {instanceName}.",
+    "OpenID Connect clients" : "Clientes OpenID Connect",
+    "Settings" : "Ajustes",
+    "Public Key" : "Clave pública",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
@@ -20,7 +22,6 @@ OC.L10N.register(
     "Confidential" : "Confidencial",
     "Public" : "Público",
     "Add" : "Guardar",
-    "Settings" : "Ajustes",
     "Token Expire Time" : "Tiempo de Expiración del Token",
     "Select Token Expire Time" : "Seleccionar Tiempo de Expiración del Token",
     "5 minutes" : "5 minutos",
@@ -35,7 +36,6 @@ OC.L10N.register(
     "Disable" : "Deshabilitar",
     "Enable" : "Habilitar",
     "Accepted Logout Redirect URIs" : "URIs de Redirección Aceptadas para Cerrar Sesión",
-    "Public Key" : "Clave pública",
     "Regenerate Keys" : "Regenerar Claves",
     "OpenID Connect Redirect" : "Redireccionamiento OpenID Connect",
     "Delete" : "Borrar",
@@ -49,6 +49,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "Flujos permitidos para ser usados con el cliente.",
     "Limited to Groups" : "Limitado a Grupos",
     "Only users in one of the following groups are allowed to use the client." : "Solo se permite el uso del cliente a los usuarios de uno de los siguientes grupos.",
-    "Groups allowed to use the client." : "Grupos permitidos para usar el cliente."
+    "Groups allowed to use the client." : "Grupos permitidos para usar el cliente.",
+    "Save" : "Guardar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

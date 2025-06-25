@@ -3,12 +3,13 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Jūsų kliento programa nėra įgaliota prisijungti. Informuokite administratorių apie savo kliento programą.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Jūsų nukreipimo adresas (redirect URL) turi būti pilnas, pavyzdžiui: https://jusuadresas.com/path",
+    "Settings" : "Nustatymai",
+    "Public Key" : "Viešasis raktas",
     "Add client" : "Pridėti klientą",
     "Name" : "Pavadinimas",
     "Redirection URI" : "Peradresavimo URI",
     "Public" : "Viešas",
     "Add" : "Pridėti",
-    "Settings" : "Nustatymai",
     "5 minutes" : "5 minutės",
     "10 minutes" : "10 minučių",
     "15 minutes" : "15 minučių",
@@ -20,12 +21,12 @@ OC.L10N.register(
     "Never" : "Niekada",
     "Disable" : "Išjungti",
     "Enable" : "Įjungti",
-    "Public Key" : "Viešasis raktas",
     "Delete" : "Ištrinti",
     "Client Identifier" : "Kliento identifikatorius",
     "Secret" : "Paslaptis",
     "-- NONE --" : "-- NĖRA --",
     "Signing Algorithm" : "Pasirašymo algoritmas",
-    "Type" : "Tipas"
+    "Type" : "Tipas",
+    "Save" : "Įrašyti"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

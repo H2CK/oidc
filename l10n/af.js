@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Instellings",
     "Add client" : "Voeg kliënt toe",
     "Redirection URI" : "Herverwysings-URI",
     "Add" : "Voeg toe",
-    "Settings" : "Instellings",
     "Disable" : "Deaktiveer",
     "Delete" : "Skrap",
     "Client Identifier" : "Kliëntidentifiseerder",

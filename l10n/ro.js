@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Setări",
     "Name" : "Nume",
     "Public" : "Public",
     "Add" : "Adaugă",
-    "Settings" : "Setări",
     "5 minutes" : "5 minute",
     "10 minutes" : "10 minute",
     "15 minutes" : "15 minute",
@@ -16,6 +16,7 @@ OC.L10N.register(
     "Enable" : "Activare",
     "Delete" : "Șterge",
     "Secret" : "Secret",
-    "Type" : "Tip"
+    "Type" : "Tip",
+    "Save" : "Salvează"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

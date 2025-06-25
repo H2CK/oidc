@@ -1,11 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Mipangilio",
     "Name" : "Jina",
     "Add" : "Ongeza",
-    "Settings" : "Mipangilio",
     "Never" : "Kamwe",
     "Delete" : "Futa",
-    "Type" : "Aina"
+    "Type" : "Aina",
+    "Save" : "Hifadhi"
 },
 "nplurals=2; plural=(n != 1);");

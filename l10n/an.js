@@ -1,8 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "Nombre",
     "Settings" : "Configuración",
+    "Name" : "Nombre",
     "Never" : "Nunca",
     "Delete" : "Borrar"
 },

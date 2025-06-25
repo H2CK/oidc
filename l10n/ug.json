@@ -9,8 +9,10 @@
     "OIDC Identity Provider" : "OIDC كىملىك تەمىنلىگۈچى",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID ئۇلىنىش سالاھىيەت تەمىنلىگۈچى سۈپىتىدە",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud OpenID ئۇلىنىش سالاھىيەت تەمىنلىگۈچى\n\nبۇ ئەپ ئارقىلىق Nextcloud نى OpenID ئۇلىنىش سالاھىيەت تەمىنلىگۈچى سۈپىتىدە ئىشلىتەلەيسىز. باشقا مۇلازىمەتلەر بولسا\nتوغرا تەڭشەلگەن ، Nextcloud كىرىش ئارقىلىق بۇ مۇلازىمەتلەرنى زىيارەت قىلالايسىز.\n\nتولۇق ھۆججەتلەرنى تۆۋەندىكى يەردىن تاپقىلى بولىدۇ:\n\n- [ئىشلەتكۈچى ھۆججەتلىرى] (https://github.com/H2CK/oidc/wiki#user-documentation)\n- [ئاچقۇچىلار ھۆججىتى] (https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID ئۇلىنىش خېرىدارلىرى",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID ئۇلىنىش {instanceName} ئىشلەتكۈچى ھېساباتى بىلەن تاشقى مۇلازىمەتتە دەلىللەشكە يول قويىدۇ.",
+    "OpenID Connect clients" : "OpenID ئۇلىنىش خېرىدارلىرى",
+    "Settings" : "تەڭشەكلەر",
+    "Public Key" : "ئاممىۋى ئاچقۇچ",
     "Add client" : "خېرىدار قوشۇڭ",
     "Name" : "ئاتى",
     "Redirection URI" : "قايتا نىشانلاش URI",
@@ -19,7 +21,6 @@
     "Confidential" : "مەخپىي",
     "Public" : "جامائەت",
     "Add" : "قوش",
-    "Settings" : "تەڭشەكلەر",
     "Token Expire Time" : "توكەننىڭ ۋاقتى توشىدۇ",
     "Select Token Expire Time" : "توكەننىڭ ۋاقتى توشىدۇ",
     "5 minutes" : "5 مىنۇت",
@@ -42,7 +43,6 @@
     "Use Nextcloud account information" : "Nextcloud ھېسابات ئۇچۇرلىرىنى ئىشلىتىڭ",
     "Set to always verified" : "ھەمىشە دەلىللەشكە تەڭشەلدى",
     "Accepted Logout Redirect URIs" : "قوبۇل قىلىنغان Logout قايتا نىشانلانغان URI",
-    "Public Key" : "ئاممىۋى ئاچقۇچ",
     "Regenerate Keys" : "ئاچقۇچنى قايتا ھاسىل قىلىڭ",
     "OpenID Connect Redirect" : "OpenID ئۇلىنىش قايتا نىشانلاش",
     "Delete" : "ئۆچۈر",
@@ -56,6 +56,7 @@
     "Flows allowed to be used with the client." : "ئاقما خېرىدار بىلەن ئىشلىتىشكە رۇخسەت قىلىنغان.",
     "Limited to Groups" : "گۇرۇپپىلار بىلەنلا چەكلىنىدۇ",
     "Only users in one of the following groups are allowed to use the client." : "پەقەت تۆۋەندىكى گۇرۇپپىلارنىڭ ئىچىدىكى ئىشلەتكۈچىلەرلا خېرىدارنى ئىشلىتىشكە رۇخسەت قىلىنىدۇ.",
-    "Groups allowed to use the client." : "گۇرۇپپىلار خېرىدارنى ئىشلىتىشكە رۇخسەت قىلدى."
+    "Groups allowed to use the client." : "گۇرۇپپىلار خېرىدارنى ئىشلىتىشكە رۇخسەت قىلدى.",
+    "Save" : "ساقلاش"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -4,6 +4,8 @@ OC.L10N.register(
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su klient ei ole ühenduseks autoriseeritud. Palun teavita oma kliendi administraatorit.",
     "Your client is expired. Please inform the administrator of your client." : "Sinu klient on aegunud. Palun teavita oma kliendi administraatorit.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ümbersuunamise võrguaadress peab olema täielik võrguaadress, näiteks: https://sinudomeen.com/asukoht",
+    "Settings" : "Seadistused",
+    "Public Key" : "Avalik võti",
     "Add client" : "Lisa klient",
     "Name" : "Nimi",
     "Redirection URI" : "Suunamise URI",
@@ -12,7 +14,6 @@ OC.L10N.register(
     "Confidential" : "Konfidentsiaalne",
     "Public" : "Avalik",
     "Add" : "Lisa",
-    "Settings" : "Seadistused",
     "Token Expire Time" : "Tunnusloa aegumine",
     "Select Token Expire Time" : "Vali tunnusloa aegumise aeg",
     "5 minutes" : "5 minutit",
@@ -30,7 +31,6 @@ OC.L10N.register(
     "Disable" : "Lülita välja",
     "Enable" : "Lülita sisse",
     "Set to always verified" : "Märgi alati verifitseerituks",
-    "Public Key" : "Avalik võti",
     "Regenerate Keys" : "Loo võtmed uuesti",
     "Delete" : "Kustuta",
     "Client Identifier" : "Kliendi identifikaator",
@@ -41,6 +41,7 @@ OC.L10N.register(
     "Type" : "Tüüp",
     "Access Token Type" : "Tunnusloa tüüp",
     "Opaque Access Token" : "Opaque Access Token",
-    "JWT Access Token (RFC9068)" : "JWT Access Token (RFC9068)"
+    "JWT Access Token (RFC9068)" : "JWT Access Token (RFC9068)",
+    "Save" : "Salvesta"
 },
 "nplurals=2; plural=(n != 1);");

@@ -1,9 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "সেটিংস",
     "Name" : "নাম",
     "Add" : "যোগ কর",
-    "Settings" : "সেটিংস",
     "Disable" : "নিষ্ক্রিয়",
     "Delete" : "মুছে",
     "Type" : "ধরণ"

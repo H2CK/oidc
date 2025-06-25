@@ -1,12 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Ajustes",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI de redirección",
     "Public" : "Público",
     "Add" : "Agregar",
-    "Settings" : "Ajustes",
     "5 minutes" : "5 minutos",
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",

@@ -11,6 +11,8 @@ OC.L10N.register(
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud as OpenID Connect Identity Provider",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)",
     "OpenID Connect clients" : "OpenID Connect clients",
+    "Settings" : "تنظیمات",
+    "Public Key" : "کلید عمومی",
     "Add client" : "افزودن مشتری",
     "Name" : "نام",
     "Redirection URI" : "تغییر مسیر URI",
@@ -18,7 +20,6 @@ OC.L10N.register(
     "Select Type" : "Select Type",
     "Confidential" : "Confidential",
     "Public" : "عمومی",
-    "Settings" : "تنظیمات",
     "Token Expire Time" : "Token Expire Time",
     "Select Token Expire Time" : "Select Token Expire Time",
     "5 minutes" : "۵ دقیقه",
@@ -33,7 +34,6 @@ OC.L10N.register(
     "Disable" : "غیرفعال کردن",
     "Enable" : "فعالسازی",
     "Accepted Logout Redirect URIs" : "Accepted Logout Redirect URIs",
-    "Public Key" : "کلید عمومی",
     "Regenerate Keys" : "Regenerate Keys",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",
     "Delete" : "حذف",
@@ -47,6 +47,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "Flows allowed to be used with the client.",
     "Limited to Groups" : "Limited to Groups",
     "Only users in one of the following groups are allowed to use the client." : "Only users in one of the following groups are allowed to use the client.",
-    "Groups allowed to use the client." : "Groups allowed to use the client."
+    "Groups allowed to use the client." : "Groups allowed to use the client.",
+    "Save" : "ذخیره"
 },
 "nplurals=2; plural=(n > 1);");

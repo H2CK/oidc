@@ -1,9 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "﻿ಹೆಸರು",
     "Settings" : "ಆಯ್ಕೆ",
+    "Name" : "﻿ಹೆಸರು",
     "Disable" : "﻿ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ",
-    "Delete" : "﻿ಅಳಿಸಿ"
+    "Delete" : "﻿ಅಳಿಸಿ",
+    "Save" : "﻿ಉಳಿಸಿ"
 },
 "nplurals=2; plural=(n > 1);");

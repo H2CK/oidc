@@ -1,8 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
-    "Name" : "Ime",
     "Settings" : "Поставке",
+    "Name" : "Ime",
     "5 minutes" : "5 minuta",
     "10 minutes" : "10 minuta",
     "15 minutes" : "15 minuta",
@@ -11,6 +11,7 @@ OC.L10N.register(
     "Never" : "Nikad",
     "Disable" : "Isključi",
     "Delete" : "Obriši",
-    "Type" : "Tip"
+    "Type" : "Tip",
+    "Save" : "Sačuvaj"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

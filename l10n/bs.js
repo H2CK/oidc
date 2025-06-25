@@ -1,9 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Settings" : "Podešavanje",
     "Name" : "Ime",
     "Public" : "Javno",
-    "Settings" : "Podešavanje",
     "Disable" : "Onemogući",
     "Delete" : "Obriši",
     "Secret" : "Tajna"

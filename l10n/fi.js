@@ -12,8 +12,10 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC-tunnisteiden tarjoaja",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud OpenID Connect -tunnisteiden tarjoajana\n\nTämän sovelluksen avulla voit käyttää Nextcloudia OpenID Connect Identity Providerina. Jos muut palvelut\non määritetty oikein, voit käyttää näitä palveluja Nextcloud-tunnuksillasi.\n\nTäydellinen dokumentaatio löytyy osoitteesta:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "OpenID Connect clients" : "OpenID Connect -asiakkaat",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect mahdollistaa tunnistautumisen ulkoisiin palveluihin {instanceName}-käyttäjätunnuksilla.",
+    "OpenID Connect clients" : "OpenID Connect -asiakkaat",
+    "Settings" : "Asetukset",
+    "Public Key" : "Julkinen avain",
     "Add client" : "Lisää asiakas",
     "Name" : "Nimi",
     "Redirection URI" : "Uudelleenohjaus URI",
@@ -22,7 +24,6 @@ OC.L10N.register(
     "Confidential" : "Luottamuksellinen",
     "Public" : "Julkinen",
     "Add" : "Lisää",
-    "Settings" : "Asetukset",
     "Token Expire Time" : "Tokenin viimeinen voimassaoloaika",
     "Select Token Expire Time" : "Valitse Tokenin viimeinen voimassaoloaika",
     "5 minutes" : "5 minuuttia",
@@ -47,7 +48,6 @@ OC.L10N.register(
     "Use Nextcloud account information" : "Käytä Nextcloud-tilin tietoja",
     "Set to always verified" : "Asetetaan aina tarkistetuksi",
     "Accepted Logout Redirect URIs" : "Hyväksytyt uloskirjautumisen uudelleenohjauksen URI",
-    "Public Key" : "Julkinen avain",
     "Regenerate Keys" : "Uudelleen avaimet",
     "OpenID Connect Redirect" : "OpenID Connectin uudelleenohjaus",
     "Delete" : "Poista",
@@ -64,6 +64,7 @@ OC.L10N.register(
     "JWT Access Token (RFC9068)" : "JWT Access Token (RFC9068)",
     "Limited to Groups" : "Rajoitettu ryhmille",
     "Only users in one of the following groups are allowed to use the client." : "Vain johonkin seuraavista ryhmistä kuuluvat käyttäjät saavat käyttää asiakasta.",
-    "Groups allowed to use the client." : "Ryhmät, jotka saavat käyttää asiakasta."
+    "Groups allowed to use the client." : "Ryhmät, jotka saavat käyttää asiakasta.",
+    "Save" : "Tallenna"
 },
 "nplurals=2; plural=(n != 1);");

@@ -3,11 +3,11 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "N'eo ket aotreet ho kliant d'en em kenstagañ. Galvit merour ho kliant.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ho adhenter URL en deus ezhomm bezhañ un URL klog da skouer : https://yourdomain.com/path",
+    "Settings" : "Arventennoù",
     "Add client" : "Ouzhoennañ kliant",
     "Name" : "Anv",
     "Redirection URI" : "Adhent URL",
     "Public" : "Publik",
-    "Settings" : "Arventennoù",
     "Never" : "James",
     "Disable" : "Diweredekaat",
     "Enable" : "Aotreañ",
