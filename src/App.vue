@@ -192,26 +192,6 @@
 				</option>
 			</select>
 
-			<!--
-			<p style="margin-top: 1.5em;">
-				{{ t('oidc', 'Allow User Settings') }}
-			</p>
-			<select id="allowUserSettings"
-				v-model="localAllowUserSettings"
-				:placeholder="t('oidc', 'Define if user can make own user specific changes to settings')"
-				@change="setAllowUserSettings">
-				<option disabled value="">
-					{{ t('oidc', 'Select if user is able to modify user specific settings') }}
-				</option>
-				<option value="no">
-					{{ t('oidc', 'User can not edit any settings') }}
-				</option>
-				<option value="enabled">
-					{{ t('oidc', 'User can edit settings') }}
-				</option>
-			</select>
-			-->
-
 			<h3>{{ t('oidc', 'Accepted Logout Redirect URIs') }}</h3>
 			<div v-if="localLogoutRedirectUris.length > 0"
 				:key="version"

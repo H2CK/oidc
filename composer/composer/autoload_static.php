@@ -73,8 +73,6 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Migration\\Version0013Date20250623100100' => __DIR__ . '/..' . '/../lib/Migration/Version0013Date20250623100100.php',
         'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
         'OCA\\OIDCIdentityProvider\\Settings\\AdminSection' => __DIR__ . '/..' . '/../lib/Settings/AdminSection.php',
-        'OCA\\OIDCIdentityProvider\\Settings\\Personal' => __DIR__ . '/..' . '/../lib/Settings/Personal.php',
-        'OCA\\OIDCIdentityProvider\\Settings\\PersonalSection' => __DIR__ . '/..' . '/../lib/Settings/PersonalSection.php',
         'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => __DIR__ . '/..' . '/../lib/Util/DiscoveryGenerator.php',
         'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => __DIR__ . '/..' . '/../lib/Util/JwtGenerator.php',
         'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenGenerationRequestEvent.php',
