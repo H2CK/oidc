@@ -204,7 +204,7 @@
 					{{ t('oidc', 'Select if user is able to modify user specific settings') }}
 				</option>
 				<option value="no">
-					{{ t('oidc', 'User can not edit any settings') }}
+					{{ t('oidc', 'User cannot edit any settings') }}
 				</option>
 				<option value="enabled">
 					{{ t('oidc', 'User can edit settings') }}
