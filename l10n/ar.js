@@ -60,6 +60,7 @@ OC.L10N.register(
     "Flows allowed to be used with the client." : "أتمتة سير العمل المسموح باستعمالها مع العميل",
     "Limited to Groups" : "محصورة في المجموعات",
     "Only users in one of the following groups are allowed to use the client." : "فقط المستخدمون الأعضاء في إحدى المجموعات التالية يُسمح لهم باستخدام العميل.",
-    "Groups allowed to use the client." : "المجموعات المسموح لها باستخدام العميل."
+    "Groups allowed to use the client." : "المجموعات المسموح لها باستخدام العميل.",
+    "Save" : "حفظ"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

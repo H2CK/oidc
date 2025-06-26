@@ -6,6 +6,7 @@ OC.L10N.register(
     "Public" : "İctimai",
     "Never" : "Heç vaxt",
     "Disable" : "Dayandır",
-    "Delete" : "Sil"
+    "Delete" : "Sil",
+    "Save" : "Saxla"
 },
 "nplurals=2; plural=(n != 1);");

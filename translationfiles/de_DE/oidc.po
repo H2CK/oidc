@@ -8,18 +8,19 @@
 # M M <drcarsonbeckett@icloud.com>, 2024
 # H2CK, 2024
 # Mario Siegmann <mario_siegmann@web.de>, 2024
-# Mark Ziegler <mark.ziegler@rakekniven.de>, 2025
 # Joachim Sokolowski, 2025
+# Markus Eckstein, 2025
 # Martin Wilichowski, 2025
+# Mark Ziegler <mark.ziegler@rakekniven.de>, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-06-25 02:22+0000\n"
+"POT-Creation-Date: 2025-06-26 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Martin Wilichowski, 2025\n"
+"Last-Translator: Mark Ziegler <mark.ziegler@rakekniven.de>, 2025\n"
 "Language-Team: German (Germany) (https://app.transifex.com/nextcloud/teams/64236/de_DE/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -90,7 +91,7 @@ msgstr "Code- und Impliziter-Autorisierungsablauf"
 #: /app/lib/Settings/PersonalSection.php:45
 #: /app/specialVueFakeDummyForL10nScript.js:357 /app/templates/personal.php:16
 msgid "OpenID Connect Provider"
-msgstr ""
+msgstr "OpenID Connect-Anbieter"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
@@ -205,7 +206,7 @@ msgstr "Hinzufügen"
 #. TRANSLATORS src/App.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:389
 msgid "List of clients"
-msgstr ""
+msgstr "Liste der Clients"
 
 #. TRANSLATORS src/App.vue:97
 #. TRANSLATORS src/App.vue:100
@@ -335,27 +336,31 @@ msgstr "Auf immer überprüft setzen"
 #. TRANSLATORS src/App.vue:197
 #: /app/specialVueFakeDummyForL10nScript.js:453
 msgid "Allow User Settings"
-msgstr ""
+msgstr "Benutzereinstellungen zulassen"
 
 #. TRANSLATORS src/App.vue:201
 #: /app/specialVueFakeDummyForL10nScript.js:455
 msgid "Define if user can make own user specific changes to settings"
 msgstr ""
+"Definieren Sie, ob der Benutzer eigene benutzerspezifische Änderungen an den"
+" Einstellungen vornehmen kann"
 
 #. TRANSLATORS src/App.vue:204
 #: /app/specialVueFakeDummyForL10nScript.js:457
 msgid "Select if user is able to modify user specific settings"
 msgstr ""
+"Legen Sie fest, ob der Benutzer benutzerspezifische Einstellungen ändern "
+"kann"
 
 #. TRANSLATORS src/App.vue:207
 #: /app/specialVueFakeDummyForL10nScript.js:459
 msgid "User can not edit any settings"
-msgstr ""
+msgstr "Benutzer kann keine Einstellungen bearbeiten"
 
 #. TRANSLATORS src/App.vue:210
 #: /app/specialVueFakeDummyForL10nScript.js:461
 msgid "User can edit settings"
-msgstr ""
+msgstr "Benutzer kann Einstellungen bearbeiten"
 
 #. TRANSLATORS src/App.vue:215
 #: /app/specialVueFakeDummyForL10nScript.js:463
@@ -367,7 +372,7 @@ msgstr "Akzeptierte Abmelde-Umleitungs-URIs"
 #: /app/specialVueFakeDummyForL10nScript.js:467
 #: /app/specialVueFakeDummyForL10nScript.js:611
 msgid "Add Redirection URI"
-msgstr ""
+msgstr "Weiterleitungs-URI hinzufügen"
 
 #. TRANSLATORS src/App.vue:242
 #: /app/specialVueFakeDummyForL10nScript.js:473
@@ -467,18 +472,18 @@ msgstr "Gruppen, die den Client benutzen dürfen."
 #: /app/specialVueFakeDummyForL10nScript.js:645
 #: /app/specialVueFakeDummyForL10nScript.js:647
 msgid "Allowed Scopes"
-msgstr ""
+msgstr "Zulässige Berechtigungsbereiche"
 
 #. TRANSLATORS src/components/OIDCItem.vue:127
 #: /app/specialVueFakeDummyForL10nScript.js:649
 msgid "Save allowed scopes"
-msgstr ""
+msgstr "Zulässige Berechtigungsbereiche speichern"
 
 #. TRANSLATORS src/components/OIDCItem.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:651
 #: /app/specialVueFakeDummyForL10nScript.js:661
 msgid "Save"
-msgstr ""
+msgstr "Speichern"
 
 #. TRANSLATORS src/components/OIDCItem.vue:133
 #: /app/specialVueFakeDummyForL10nScript.js:653
@@ -486,18 +491,21 @@ msgid ""
 "Define the allowed scopes for the client separated by a whitespace, e.g. "
 "openid profile roles. Do not enter any value to allow all scopes."
 msgstr ""
+"Definieren Sie die zulässigen Berechtigungsbereiche für den Client, getrennt"
+" durch ein Leerzeichen, z. B. openid profile roles. Geben Sie keinen Wert "
+"ein, um alle Berechtigungsumfänge zuzulassen."
 
 #. TRANSLATORS src/components/OIDCItem.vue:140
 #. TRANSLATORS src/components/OIDCItem.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:655
 #: /app/specialVueFakeDummyForL10nScript.js:657
 msgid "Email Selection"
-msgstr ""
+msgstr "E-Mail-Auswahl"
 
 #. TRANSLATORS src/components/OIDCItem.vue:151
 #: /app/specialVueFakeDummyForL10nScript.js:659
 msgid "Save email selection regex"
-msgstr ""
+msgstr "E-Mail-Auswahl-Regex speichern"
 
 #. TRANSLATORS src/components/OIDCItem.vue:157
 #: /app/specialVueFakeDummyForL10nScript.js:663
@@ -507,9 +515,16 @@ msgid ""
 "personal settings) you could define a regular expression for selecting the "
 "used email address. E.g. .*@domain.tld"
 msgstr ""
+"Normalerweise wird die primäre E-Mail-Adresse bei OpenID-Kontrollabläufen "
+"verwendet. Wenn Sie andere E-Mail-Adressen verwenden möchten (definiert als "
+"sekundäre E-Mail-Adresse in den persönlichen Einstellungen), können Sie "
+"einen regulären Ausdruck für die Auswahl der verwendeten E-Mail-Adresse "
+"definieren. Z. B. .*@domain.tld"
 
 #: /app/templates/personal.php:18
 msgid ""
 "All settings for the login at other services using the OpenID Connect "
 "Provider app are managed by your administrator."
 msgstr ""
+"Alle Einstellungen für die Anmeldung bei anderen Diensten mit der OpenID "
+"Connect-Anbieter-App werden von Ihrer Administration verwaltet."

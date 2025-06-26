@@ -26,6 +26,7 @@ OC.L10N.register(
     "Secret" : "Secretu",
     "Show client secret" : "Amosar el secretu del veceru",
     "Type" : "Tipu",
-    "Flows" : "Fluxos"
+    "Flows" : "Fluxos",
+    "Save" : "Guardar"
 },
 "nplurals=2; plural=(n != 1);");

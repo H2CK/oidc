@@ -24,6 +24,7 @@ OC.L10N.register(
     "Client Identifier" : "Identificador del client",
     "Secret" : "Secret",
     "Show client secret" : "Mostra el secret del client",
-    "Type" : "Tipus"
+    "Type" : "Tipus",
+    "Save" : "Desar"
 },
 "nplurals=2; plural=(n != 1);");

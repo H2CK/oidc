@@ -10,17 +10,17 @@
 # 72d686daabd2f7212739b412929536be_e195df1 <a6caa6e567bfabba50a29e9a037273fb_1019631>, 2024
 # Robin Lahtinen <robin.lahtinen@gmail.com>, 2024
 # teemue, 2025
-# H2CK, 2025
 # Jiri Grönroos <jiri.gronroos@iki.fi>, 2025
+# H2CK, 2025
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-06-25 02:22+0000\n"
+"POT-Creation-Date: 2025-06-26 02:22+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
-"Last-Translator: Jiri Grönroos <jiri.gronroos@iki.fi>, 2025\n"
+"Last-Translator: H2CK, 2025\n"
 "Language-Team: Finnish (Finland) (https://app.transifex.com/nextcloud/teams/64236/fi_FI/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -88,7 +88,7 @@ msgstr "Koodi ja implisiittisen valtuutuksen virtaus"
 #: /app/lib/Settings/PersonalSection.php:45
 #: /app/specialVueFakeDummyForL10nScript.js:357 /app/templates/personal.php:16
 msgid "OpenID Connect Provider"
-msgstr ""
+msgstr "OpenID Connect tarjoaja"
 
 #: /app/specialAppInfoFakeDummyForL10nScript.php:2
 msgid "OIDC Identity Provider"
@@ -204,7 +204,7 @@ msgstr "Lisää"
 #. TRANSLATORS src/App.vue:75
 #: /app/specialVueFakeDummyForL10nScript.js:389
 msgid "List of clients"
-msgstr ""
+msgstr "Asiakasluettelo"
 
 #. TRANSLATORS src/App.vue:97
 #. TRANSLATORS src/App.vue:100
@@ -334,27 +334,28 @@ msgstr "Asetetaan aina tarkistetuksi"
 #. TRANSLATORS src/App.vue:197
 #: /app/specialVueFakeDummyForL10nScript.js:453
 msgid "Allow User Settings"
-msgstr ""
+msgstr "Salli käyttäjän asetukset"
 
 #. TRANSLATORS src/App.vue:201
 #: /app/specialVueFakeDummyForL10nScript.js:455
 msgid "Define if user can make own user specific changes to settings"
 msgstr ""
+"Määritä, voiko käyttäjä tehdä omia käyttäjäkohtaisia muutoksia asetuksiin."
 
 #. TRANSLATORS src/App.vue:204
 #: /app/specialVueFakeDummyForL10nScript.js:457
 msgid "Select if user is able to modify user specific settings"
-msgstr ""
+msgstr "Valitse, voiko käyttäjä muuttaa käyttäjäkohtaisia asetuksia."
 
 #. TRANSLATORS src/App.vue:207
 #: /app/specialVueFakeDummyForL10nScript.js:459
 msgid "User can not edit any settings"
-msgstr ""
+msgstr "Käyttäjä ei voi muokata mitään asetuksia"
 
 #. TRANSLATORS src/App.vue:210
 #: /app/specialVueFakeDummyForL10nScript.js:461
 msgid "User can edit settings"
-msgstr ""
+msgstr " Käyttäjä voi muokata asetuksia"
 
 #. TRANSLATORS src/App.vue:215
 #: /app/specialVueFakeDummyForL10nScript.js:463
@@ -366,7 +367,7 @@ msgstr "Hyväksytyt uloskirjautumisen uudelleenohjauksen URI"
 #: /app/specialVueFakeDummyForL10nScript.js:467
 #: /app/specialVueFakeDummyForL10nScript.js:611
 msgid "Add Redirection URI"
-msgstr ""
+msgstr "Lisää uudelleenohjaus URI"
 
 #. TRANSLATORS src/App.vue:242
 #: /app/specialVueFakeDummyForL10nScript.js:473
@@ -466,12 +467,12 @@ msgstr "Ryhmät, jotka saavat käyttää asiakasta."
 #: /app/specialVueFakeDummyForL10nScript.js:645
 #: /app/specialVueFakeDummyForL10nScript.js:647
 msgid "Allowed Scopes"
-msgstr ""
+msgstr "Sallitut alueet"
 
 #. TRANSLATORS src/components/OIDCItem.vue:127
 #: /app/specialVueFakeDummyForL10nScript.js:649
 msgid "Save allowed scopes"
-msgstr ""
+msgstr "Tallenna sallitut käyttöalueet"
 
 #. TRANSLATORS src/components/OIDCItem.vue:128
 #: /app/specialVueFakeDummyForL10nScript.js:651
@@ -485,18 +486,21 @@ msgid ""
 "Define the allowed scopes for the client separated by a whitespace, e.g. "
 "openid profile roles. Do not enter any value to allow all scopes."
 msgstr ""
+"Määritä asiakkaan sallitut käyttöalueet välilyönnillä erotettuna, esim. "
+"openid profile roles. Älä anna mitään arvoa, jos haluat sallia kaikki "
+"laajuudet."
 
 #. TRANSLATORS src/components/OIDCItem.vue:140
 #. TRANSLATORS src/components/OIDCItem.vue:149
 #: /app/specialVueFakeDummyForL10nScript.js:655
 #: /app/specialVueFakeDummyForL10nScript.js:657
 msgid "Email Selection"
-msgstr ""
+msgstr "Sähköpostin valinta"
 
 #. TRANSLATORS src/components/OIDCItem.vue:151
 #: /app/specialVueFakeDummyForL10nScript.js:659
 msgid "Save email selection regex"
-msgstr ""
+msgstr "Tallenna sähköpostin valinta regex"
 
 #. TRANSLATORS src/components/OIDCItem.vue:157
 #: /app/specialVueFakeDummyForL10nScript.js:663
@@ -506,9 +510,16 @@ msgid ""
 "personal settings) you could define a regular expression for selecting the "
 "used email address. E.g. .*@domain.tld"
 msgstr ""
+"Yleensä ensisijaista sähköpostiosoitetta käytetään OpenID-ohjausvirroissa. "
+"Jos haluat käyttää muita sähköpostiosoitteita (jotka on määritelty "
+"toissijaiseksi sähköpostiosoitteeksi henkilökohtaisissa asetuksissa), voit "
+"määrittää säännöllisen lausekkeen käytettävän sähköpostiosoitteen "
+"valitsemiseksi. Esim. .*@domain.tld."
 
 #: /app/templates/personal.php:18
 msgid ""
 "All settings for the login at other services using the OpenID Connect "
 "Provider app are managed by your administrator."
 msgstr ""
+"Kaikkia OpenID Connect Provider -sovellusta käyttäviin muihin palveluihin "
+"kirjautumisen asetuksia hallinnoi järjestelmänvalvojasi."

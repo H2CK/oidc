@@ -47,6 +47,7 @@
     "Flows allowed to be used with the client." : "Потоци, разрешени за използване с клиента.",
     "Limited to Groups" : "Ограничено за групи",
     "Only users in one of the following groups are allowed to use the client." : "Само потребители, включени в една от следните групи, е разрешено да използват клиента.",
-    "Groups allowed to use the client." : "Групи, на които е разрешено да използват клиента."
+    "Groups allowed to use the client." : "Групи, на които е разрешено да използват клиента.",
+    "Save" : "Запиши"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

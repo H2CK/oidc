@@ -6,6 +6,7 @@ OC.L10N.register(
     "Add" : "যোগ কর",
     "Disable" : "নিষ্ক্রিয়",
     "Delete" : "মুছে",
-    "Type" : "ধরণ"
+    "Type" : "ধরণ",
+    "Save" : "সংরক্ষণ"
 },
 "nplurals=2; plural=(n != 1);");

@@ -62,6 +62,7 @@
     "JWT Access Token (RFC9068)" : "JWT přístupový token (RFC9068)",
     "Limited to Groups" : "Omezeno na skupiny",
     "Only users in one of the following groups are allowed to use the client." : "Klienta je umožněno používat pouze uživatelům v následujících skupinách.",
-    "Groups allowed to use the client." : "Skupiny, kterým je umožněno používat klienta."
+    "Groups allowed to use the client." : "Skupiny, kterým je umožněno používat klienta.",
+    "Save" : "Uložit"
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }

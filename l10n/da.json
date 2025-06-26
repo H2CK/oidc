@@ -62,6 +62,7 @@
     "JWT Access Token (RFC9068)" : "JWT Adgangsnøgle (RFC9068)",
     "Limited to Groups" : "Begrænset til grupper",
     "Only users in one of the following groups are allowed to use the client." : "Kun brugere i en af følgende grupper må bruge klienten.",
-    "Groups allowed to use the client." : "Grupper der har tilladelse til at bruge klienten."
+    "Groups allowed to use the client." : "Grupper der har tilladelse til at bruge klienten.",
+    "Save" : "Gem"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

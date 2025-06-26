@@ -24,6 +24,7 @@
     "Secret" : "Secretu",
     "Show client secret" : "Amosar el secretu del veceru",
     "Type" : "Tipu",
-    "Flows" : "Fluxos"
+    "Flows" : "Fluxos",
+    "Save" : "Guardar"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

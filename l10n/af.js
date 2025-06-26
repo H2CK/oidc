@@ -8,6 +8,7 @@ OC.L10N.register(
     "Disable" : "Deaktiveer",
     "Delete" : "Skrap",
     "Client Identifier" : "Kliëntidentifiseerder",
-    "Secret" : "Geheim"
+    "Secret" : "Geheim",
+    "Save" : "Stoor"
 },
 "nplurals=2; plural=(n != 1);");
