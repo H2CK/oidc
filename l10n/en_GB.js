@@ -49,11 +49,6 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Select behaviour for setting email verified flag",
     "Use Nextcloud account information" : "Use Nextcloud account information",
     "Set to always verified" : "Set to always verified",
-    "Allow User Settings" : "Allow User Settings",
-    "Define if user can make own user specific changes to settings" : "Define if user can make own user specific changes to settings",
-    "Select if user is able to modify user specific settings" : "Select if user is able to modify user specific settings",
-    "User can not edit any settings" : "User can not edit any settings",
-    "User can edit settings" : "User can edit settings",
     "Accepted Logout Redirect URIs" : "Accepted Logout Redirect URIs",
     "Add Redirection URI" : "Add Redirection URI",
     "Regenerate Keys" : "Regenerate Keys",
@@ -79,7 +74,6 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes.",
     "Email Selection" : "Email Selection",
     "Save email selection regex" : "Save email selection regex",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld",
-    "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator." : "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator."
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld"
 },
 "nplurals=2; plural=(n != 1);");

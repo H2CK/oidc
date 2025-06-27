@@ -10,6 +10,7 @@ OC.L10N.register(
     "Enable" : "Ŝalti",
     "Delete" : "Forigi",
     "Secret" : "Sekreta",
-    "Type" : "Tipo"
+    "Type" : "Tipo",
+    "Save" : "Konservi"
 },
 "nplurals=2; plural=(n != 1);");

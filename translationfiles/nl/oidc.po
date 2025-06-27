@@ -21,7 +21,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Nextcloud 3.14159\n"
 "Report-Msgid-Bugs-To: translations\\@example.com\n"
-"POT-Creation-Date: 2025-06-26 02:22+0000\n"
+"POT-Creation-Date: 2025-06-27 02:26+0000\n"
 "PO-Revision-Date: 2022-09-01 12:13+0000\n"
 "Last-Translator: H2CK, 2025\n"
 "Language-Team: Dutch (https://app.transifex.com/nextcloud/teams/64236/nl/)\n"
@@ -78,19 +78,18 @@ msgstr ""
 "https://jouwdomein.com/pad"
 
 #: /app/lib/Settings/Admin.php:101
-#: /app/specialVueFakeDummyForL10nScript.js:536
+#: /app/specialVueFakeDummyForL10nScript.js:526
 msgid "Code Authorization Flow"
 msgstr "Code autorisatiestroom"
 
 #: /app/lib/Settings/Admin.php:104
-#: /app/specialVueFakeDummyForL10nScript.js:540
+#: /app/specialVueFakeDummyForL10nScript.js:530
 msgid "Code & Implicit Authorization Flow"
 msgstr "Code en impliciete autorisatiestroom"
 
 #. TRANSLATORS src/App.vue:6
 #: /app/lib/Settings/AdminSection.php:44
-#: /app/lib/Settings/PersonalSection.php:45
-#: /app/specialVueFakeDummyForL10nScript.js:357 /app/templates/personal.php:16
+#: /app/specialVueFakeDummyForL10nScript.js:357
 msgid "OpenID Connect Provider"
 msgstr "OpenID Connect Provider"
 
@@ -147,10 +146,10 @@ msgid "Settings"
 msgstr "Instellingen"
 
 #. TRANSLATORS src/App.vue:21
-#. TRANSLATORS src/App.vue:238
+#. TRANSLATORS src/App.vue:218
 #: /app/specialVueFakeDummyForL10nScript.js:369
 #: /app/specialVueFakeDummyForL10nScript.js:371
-#: /app/specialVueFakeDummyForL10nScript.js:471
+#: /app/specialVueFakeDummyForL10nScript.js:461
 msgid "Public Key"
 msgstr "Openbare sleutel"
 
@@ -162,7 +161,7 @@ msgstr "Voeg client toe"
 #. TRANSLATORS src/App.vue:38
 #. TRANSLATORS src/components/OIDCItem.vue:8
 #: /app/specialVueFakeDummyForL10nScript.js:375
-#: /app/specialVueFakeDummyForL10nScript.js:601
+#: /app/specialVueFakeDummyForL10nScript.js:591
 msgid "Name"
 msgstr "Naam"
 
@@ -170,9 +169,9 @@ msgstr "Naam"
 #. TRANSLATORS src/components/OIDCItem.vue:17
 #. TRANSLATORS src/components/OIDCItem.vue:33
 #: /app/specialVueFakeDummyForL10nScript.js:377
-#: /app/specialVueFakeDummyForL10nScript.js:465
-#: /app/specialVueFakeDummyForL10nScript.js:605
-#: /app/specialVueFakeDummyForL10nScript.js:609
+#: /app/specialVueFakeDummyForL10nScript.js:455
+#: /app/specialVueFakeDummyForL10nScript.js:595
+#: /app/specialVueFakeDummyForL10nScript.js:599
 msgid "Redirection URI"
 msgstr "Omeiding URI"
 
@@ -199,8 +198,8 @@ msgstr "Openbaar"
 #. TRANSLATORS src/App.vue:72
 #. TRANSLATORS src/components/OIDCItem.vue:35
 #: /app/specialVueFakeDummyForL10nScript.js:387
-#: /app/specialVueFakeDummyForL10nScript.js:469
-#: /app/specialVueFakeDummyForL10nScript.js:613
+#: /app/specialVueFakeDummyForL10nScript.js:459
+#: /app/specialVueFakeDummyForL10nScript.js:603
 msgid "Add"
 msgstr "Toevoegen"
 
@@ -334,158 +333,130 @@ msgstr "Accountgegevens van Nextcloud gebruiken"
 msgid "Set to always verified"
 msgstr "Ingesteld op altijd geverifieerd"
 
-#. TRANSLATORS src/App.vue:197
+#. TRANSLATORS src/App.vue:195
 #: /app/specialVueFakeDummyForL10nScript.js:453
-msgid "Allow User Settings"
-msgstr "Gebruikersinstellingen toestaan"
-
-#. TRANSLATORS src/App.vue:201
-#: /app/specialVueFakeDummyForL10nScript.js:455
-msgid "Define if user can make own user specific changes to settings"
-msgstr ""
-"Definieer of de gebruiker zelf gebruikersspecifieke wijzigingen in de "
-"instellingen kan aanbrengen"
-
-#. TRANSLATORS src/App.vue:204
-#: /app/specialVueFakeDummyForL10nScript.js:457
-msgid "Select if user is able to modify user specific settings"
-msgstr ""
-"Selecteer of de gebruiker gebruikersspecifieke instellingen kan wijzigen"
-
-#. TRANSLATORS src/App.vue:207
-#: /app/specialVueFakeDummyForL10nScript.js:459
-msgid "User can not edit any settings"
-msgstr "Gebruiker kan geen instellingen bewerken"
-
-#. TRANSLATORS src/App.vue:210
-#: /app/specialVueFakeDummyForL10nScript.js:461
-msgid "User can edit settings"
-msgstr "Gebruiker kan instellingen bewerken"
-
-#. TRANSLATORS src/App.vue:215
-#: /app/specialVueFakeDummyForL10nScript.js:463
 msgid "Accepted Logout Redirect URIs"
 msgstr "Geaccepteerde URI's voor afmelden"
 
-#. TRANSLATORS src/App.vue:231
+#. TRANSLATORS src/App.vue:211
 #. TRANSLATORS src/components/OIDCItem.vue:34
-#: /app/specialVueFakeDummyForL10nScript.js:467
-#: /app/specialVueFakeDummyForL10nScript.js:611
+#: /app/specialVueFakeDummyForL10nScript.js:457
+#: /app/specialVueFakeDummyForL10nScript.js:601
 msgid "Add Redirection URI"
 msgstr "Omleiding URI toevoegen"
 
-#. TRANSLATORS src/App.vue:242
-#: /app/specialVueFakeDummyForL10nScript.js:473
+#. TRANSLATORS src/App.vue:222
+#: /app/specialVueFakeDummyForL10nScript.js:463
 msgid "Regenerate Keys"
 msgstr "Sleutels regenereren"
 
 #. TRANSLATORS src/Redirect.vue:8
-#: /app/specialVueFakeDummyForL10nScript.js:489
+#: /app/specialVueFakeDummyForL10nScript.js:479
 msgid "OpenID Connect Redirect"
 msgstr "OpenID Connect omleiden"
 
 #. TRANSLATORS src/components/OIDCItem.vue:14
 #. TRANSLATORS src/components/OIDCItem.vue:25
 #. TRANSLATORS src/components/RedirectItem.vue:11
-#: /app/specialVueFakeDummyForL10nScript.js:603
-#: /app/specialVueFakeDummyForL10nScript.js:607
-#: /app/specialVueFakeDummyForL10nScript.js:689
+#: /app/specialVueFakeDummyForL10nScript.js:593
+#: /app/specialVueFakeDummyForL10nScript.js:597
+#: /app/specialVueFakeDummyForL10nScript.js:679
 msgid "Delete"
 msgstr "Verwijder"
 
 #. TRANSLATORS src/components/OIDCItem.vue:43
-#: /app/specialVueFakeDummyForL10nScript.js:615
+#: /app/specialVueFakeDummyForL10nScript.js:605
 msgid "Client Identifier"
 msgstr "Client identificatie"
 
 #. TRANSLATORS src/components/OIDCItem.vue:50
-#: /app/specialVueFakeDummyForL10nScript.js:617
+#: /app/specialVueFakeDummyForL10nScript.js:607
 msgid "Secret"
 msgstr "Vertrouwelijk"
 
 #. TRANSLATORS src/components/OIDCItem.vue:53
-#: /app/specialVueFakeDummyForL10nScript.js:619
+#: /app/specialVueFakeDummyForL10nScript.js:609
 msgid "Show client secret"
 msgstr "Tonen client secret"
 
 #. TRANSLATORS src/components/OIDCItem.vue:56
-#: /app/specialVueFakeDummyForL10nScript.js:621
+#: /app/specialVueFakeDummyForL10nScript.js:611
 msgid "-- NONE --"
 msgstr "-- GEEN --"
 
 #. TRANSLATORS src/components/OIDCItem.vue:60
-#: /app/specialVueFakeDummyForL10nScript.js:623
+#: /app/specialVueFakeDummyForL10nScript.js:613
 msgid "Signing Algorithm"
 msgstr "Ondertekenend algoritme"
 
 #. TRANSLATORS src/components/OIDCItem.vue:67
-#: /app/specialVueFakeDummyForL10nScript.js:625
+#: /app/specialVueFakeDummyForL10nScript.js:615
 msgid "Type"
 msgstr "Type"
 
 #. TRANSLATORS src/components/OIDCItem.vue:74
-#: /app/specialVueFakeDummyForL10nScript.js:627
+#: /app/specialVueFakeDummyForL10nScript.js:617
 msgid "Flows"
 msgstr "Stromen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:79
-#: /app/specialVueFakeDummyForL10nScript.js:629
-#: /app/specialVueFakeDummyForL10nScript.js:631
+#: /app/specialVueFakeDummyForL10nScript.js:619
+#: /app/specialVueFakeDummyForL10nScript.js:621
 msgid "Flows allowed to be used with the client."
 msgstr "Stromen die met de cliënt mogen worden gebruikt."
 
 #. TRANSLATORS src/components/OIDCItem.vue:87
-#: /app/specialVueFakeDummyForL10nScript.js:633
+#: /app/specialVueFakeDummyForL10nScript.js:623
 msgid "Access Token Type"
 msgstr "Type access token"
 
 #. TRANSLATORS src/components/OIDCItem.vue:95
-#: /app/specialVueFakeDummyForL10nScript.js:635
+#: /app/specialVueFakeDummyForL10nScript.js:625
 msgid "Opaque Access Token"
 msgstr "Ondoorzichtig access token"
 
 #. TRANSLATORS src/components/OIDCItem.vue:102
-#: /app/specialVueFakeDummyForL10nScript.js:637
+#: /app/specialVueFakeDummyForL10nScript.js:627
 msgid "JWT Access Token (RFC9068)"
 msgstr "JWT access token (RFC9068)"
 
 #. TRANSLATORS src/components/OIDCItem.vue:107
-#: /app/specialVueFakeDummyForL10nScript.js:639
+#: /app/specialVueFakeDummyForL10nScript.js:629
 msgid "Limited to Groups"
 msgstr "Beperkt tot groepen"
 
 #. TRANSLATORS src/components/OIDCItem.vue:112
-#: /app/specialVueFakeDummyForL10nScript.js:641
+#: /app/specialVueFakeDummyForL10nScript.js:631
 msgid ""
 "Only users in one of the following groups are allowed to use the client."
 msgstr ""
 "Alleen gebruikers in een van de volgende groepen mogen de client gebruiken."
 
 #. TRANSLATORS src/components/OIDCItem.vue:113
-#: /app/specialVueFakeDummyForL10nScript.js:643
+#: /app/specialVueFakeDummyForL10nScript.js:633
 msgid "Groups allowed to use the client."
 msgstr "Groepen die de client mogen gebruiken."
 
 #. TRANSLATORS src/components/OIDCItem.vue:120
 #. TRANSLATORS src/components/OIDCItem.vue:126
-#: /app/specialVueFakeDummyForL10nScript.js:645
-#: /app/specialVueFakeDummyForL10nScript.js:647
+#: /app/specialVueFakeDummyForL10nScript.js:635
+#: /app/specialVueFakeDummyForL10nScript.js:637
 msgid "Allowed Scopes"
 msgstr "Toegestane scopes"
 
 #. TRANSLATORS src/components/OIDCItem.vue:127
-#: /app/specialVueFakeDummyForL10nScript.js:649
+#: /app/specialVueFakeDummyForL10nScript.js:639
 msgid "Save allowed scopes"
 msgstr "Toegestane scopes opslaan"
 
 #. TRANSLATORS src/components/OIDCItem.vue:128
+#: /app/specialVueFakeDummyForL10nScript.js:641
 #: /app/specialVueFakeDummyForL10nScript.js:651
-#: /app/specialVueFakeDummyForL10nScript.js:661
 msgid "Save"
 msgstr "Opslaan"
 
 #. TRANSLATORS src/components/OIDCItem.vue:133
-#: /app/specialVueFakeDummyForL10nScript.js:653
+#: /app/specialVueFakeDummyForL10nScript.js:643
 msgid ""
 "Define the allowed scopes for the client separated by a whitespace, e.g. "
 "openid profile roles. Do not enter any value to allow all scopes."
@@ -495,18 +466,18 @@ msgstr ""
 
 #. TRANSLATORS src/components/OIDCItem.vue:140
 #. TRANSLATORS src/components/OIDCItem.vue:149
-#: /app/specialVueFakeDummyForL10nScript.js:655
-#: /app/specialVueFakeDummyForL10nScript.js:657
+#: /app/specialVueFakeDummyForL10nScript.js:645
+#: /app/specialVueFakeDummyForL10nScript.js:647
 msgid "Email Selection"
 msgstr "E-mail selectie"
 
 #. TRANSLATORS src/components/OIDCItem.vue:151
-#: /app/specialVueFakeDummyForL10nScript.js:659
+#: /app/specialVueFakeDummyForL10nScript.js:649
 msgid "Save email selection regex"
 msgstr "E-mailselectie regex opslaan"
 
 #. TRANSLATORS src/components/OIDCItem.vue:157
-#: /app/specialVueFakeDummyForL10nScript.js:663
+#: /app/specialVueFakeDummyForL10nScript.js:653
 msgid ""
 "Usually the primary email address is used during OpenID control flows. If "
 "you wish to use other email adresses (defined as secondary email address in "
@@ -518,11 +489,3 @@ msgstr ""
 "als secundair e-mailadres in persoonlijke instellingen) kun je een reguliere"
 " expressie definiëren voor het selecteren van het gebruikte e-mailadres. "
 "Bijv. .*@domein.tld"
-
-#: /app/templates/personal.php:18
-msgid ""
-"All settings for the login at other services using the OpenID Connect "
-"Provider app are managed by your administrator."
-msgstr ""
-"Alle instellingen voor het inloggen bij andere diensten met de OpenID "
-"Connect Provider app worden beheerd door je beheerder."

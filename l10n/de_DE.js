@@ -49,11 +49,6 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Verhalten für die Angabe der E-Mail-Adressverifizierung",
     "Use Nextcloud account information" : "Nextcloud-Kontoinformation verwenden",
     "Set to always verified" : "Auf immer überprüft setzen",
-    "Allow User Settings" : "Benutzereinstellungen zulassen",
-    "Define if user can make own user specific changes to settings" : "Definieren Sie, ob der Benutzer eigene benutzerspezifische Änderungen an den Einstellungen vornehmen kann",
-    "Select if user is able to modify user specific settings" : "Legen Sie fest, ob der Benutzer benutzerspezifische Einstellungen ändern kann",
-    "User can not edit any settings" : "Benutzer kann keine Einstellungen bearbeiten",
-    "User can edit settings" : "Benutzer kann Einstellungen bearbeiten",
     "Accepted Logout Redirect URIs" : "Akzeptierte Abmelde-Umleitungs-URIs",
     "Add Redirection URI" : "Weiterleitungs-URI hinzufügen",
     "Regenerate Keys" : "Schlüssel neu erzeugen",
@@ -76,10 +71,9 @@ OC.L10N.register(
     "Allowed Scopes" : "Zulässige Berechtigungsbereiche",
     "Save allowed scopes" : "Zulässige Berechtigungsbereiche speichern",
     "Save" : "Speichern",
-    "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Definieren Sie die zulässigen Berechtigungsbereiche für den Client, getrennt durch ein Leerzeichen, z. B. openid profile roles. Geben Sie keinen Wert ein, um alle Berechtigungsumfänge zuzulassen.",
+    "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Definieren Sie die zulässigen Berechtigungsbereiche für den Client, getrennt durch ein Leerzeichen, z. B. openid profile roles. Geben Sie keinen Wert ein, um alle Berechtigungsbereiche zuzulassen.",
     "Email Selection" : "E-Mail-Auswahl",
     "Save email selection regex" : "E-Mail-Auswahl-Regex speichern",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalerweise wird die primäre E-Mail-Adresse bei OpenID-Kontrollabläufen verwendet. Wenn Sie andere E-Mail-Adressen verwenden möchten (definiert als sekundäre E-Mail-Adresse in den persönlichen Einstellungen), können Sie einen regulären Ausdruck für die Auswahl der verwendeten E-Mail-Adresse definieren. Z. B. .*@domain.tld",
-    "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator." : "Alle Einstellungen für die Anmeldung bei anderen Diensten mit der OpenID Connect-Anbieter-App werden von Ihrer Administration verwaltet."
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalerweise wird die primäre E-Mail-Adresse bei OpenID-Kontrollabläufen verwendet. Wenn Sie andere E-Mail-Adressen verwenden möchten (definiert als sekundäre E-Mail-Adresse in den persönlichen Einstellungen), können Sie einen regulären Ausdruck für die Auswahl der verwendeten E-Mail-Adresse definieren. Z. B. .*@domain.tld"
 },
 "nplurals=2; plural=(n != 1);");

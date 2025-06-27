@@ -16,6 +16,7 @@ OC.L10N.register(
     "Delete" : "Eliminar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",
-    "Type" : "Tipo"
+    "Type" : "Tipo",
+    "Save" : "Guardar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

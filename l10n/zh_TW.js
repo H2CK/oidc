@@ -49,11 +49,6 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "選取設定電子郵件驗證旗標的行為",
     "Use Nextcloud account information" : "使用 Nextcloud 帳號資訊",
     "Set to always verified" : "設定為一律驗證",
-    "Allow User Settings" : "允許使用者設定",
-    "Define if user can make own user specific changes to settings" : "定義使用者是否可以變更個人設定",
-    "Select if user is able to modify user specific settings" : "如果使用者可以修改個人設定，請選取此項",
-    "User can not edit any settings" : "使用者不能編輯任何設定",
-    "User can edit settings" : "使用者可以編輯設定",
     "Accepted Logout Redirect URIs" : "接受的登出重新導向 URI",
     "Add Redirection URI" : "新增重新導向 URI",
     "Regenerate Keys" : "重新生成密鑰",
@@ -79,7 +74,6 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "定義客戶端的允許範圍，以空格分隔，例如：openid profile roles。若允許所有範圍，請不要輸入任何值。",
     "Email Selection" : "電子郵件選取",
     "Save email selection regex" : "儲存電子郵件選取正規表示式",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "通常在 OpenID 控制流程中會使用主要電子郵件地址。若您希望使用其他電子郵件地址（在個人設定中定義為次要電子郵件地址）您可以定義正規表示式來選取使用的電子郵件地址。例如：.*@domain.tld",
-    "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator." : "所有使用 OpenID Connect 提供者應用程式在其他服務上的登入設定均由您的管理員管理。"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "通常在 OpenID 控制流程中會使用主要電子郵件地址。若您希望使用其他電子郵件地址（在個人設定中定義為次要電子郵件地址）您可以定義正規表示式來選取使用的電子郵件地址。例如：.*@domain.tld"
 },
 "nplurals=1; plural=0;");

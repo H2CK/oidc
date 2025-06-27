@@ -49,11 +49,6 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Selecteer gedrag voor het instellen van het kenmerk Geverifieerd e-mail",
     "Use Nextcloud account information" : "Accountgegevens van Nextcloud gebruiken",
     "Set to always verified" : "Ingesteld op altijd geverifieerd",
-    "Allow User Settings" : "Gebruikersinstellingen toestaan",
-    "Define if user can make own user specific changes to settings" : "Definieer of de gebruiker zelf gebruikersspecifieke wijzigingen in de instellingen kan aanbrengen",
-    "Select if user is able to modify user specific settings" : "Selecteer of de gebruiker gebruikersspecifieke instellingen kan wijzigen",
-    "User can not edit any settings" : "Gebruiker kan geen instellingen bewerken",
-    "User can edit settings" : "Gebruiker kan instellingen bewerken",
     "Accepted Logout Redirect URIs" : "Geaccepteerde URI's voor afmelden",
     "Add Redirection URI" : "Omleiding URI toevoegen",
     "Regenerate Keys" : "Sleutels regenereren",
@@ -79,7 +74,6 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Definieer de toegestane scopes voor de client, gescheiden door een spatie, bijv. openid profile roles. Voer geen waarde in om alle scopes toe te staan.",
     "Email Selection" : "E-mail selectie",
     "Save email selection regex" : "E-mailselectie regex opslaan",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Gewoonlijk wordt het primaire e-mailadres gebruikt tijdens OpenID controlestromen. Als je andere e-mailadressen wilt gebruiken (gedefinieerd als secundair e-mailadres in persoonlijke instellingen) kun je een reguliere expressie definiëren voor het selecteren van het gebruikte e-mailadres. Bijv. .*@domein.tld",
-    "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator." : "Alle instellingen voor het inloggen bij andere diensten met de OpenID Connect Provider app worden beheerd door je beheerder."
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Gewoonlijk wordt het primaire e-mailadres gebruikt tijdens OpenID controlestromen. Als je andere e-mailadressen wilt gebruiken (gedefinieerd als secundair e-mailadres in persoonlijke instellingen) kun je een reguliere expressie definiëren voor het selecteren van het gebruikte e-mailadres. Bijv. .*@domein.tld"
 },
 "nplurals=2; plural=(n != 1);");

@@ -49,11 +49,6 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Selecione o comportamento para definir o sinalizador de e-mail verificado",
     "Use Nextcloud account information" : "Use as informações da conta Nextcloud",
     "Set to always verified" : "Definido como sempre verificado",
-    "Allow User Settings" : "Permitir definições do utilizador",
-    "Define if user can make own user specific changes to settings" : "Definir se o utilizador pode fazer alterações específicas nas definições",
-    "Select if user is able to modify user specific settings" : "Selecionar se o utilizador pode modificar as definições específicas do utilizador",
-    "User can not edit any settings" : "O utilizador não pode editar quaisquer definições",
-    "User can edit settings" : "O utilizador pode editar as definições",
     "Accepted Logout Redirect URIs" : "URIs de redirecionamento de saída de sessão aceites",
     "Add Redirection URI" : "Adicionar URI de redireccionamento",
     "Regenerate Keys" : "Regenerar Chaves",
@@ -79,7 +74,6 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Defina os scopes permitidos para o cliente separados por um espaço em branco, por exemplo, openid profile roles. Não introduza qualquer valor para permitir todos os scopes.",
     "Email Selection" : "Seleção de e-mail",
     "Save email selection regex" : "Guardar o regex de seleção de e-mail",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalmente, o endereço de correio eletrónico principal é utilizado durante os fluxos de controlo OpenID. Se pretender utilizar outros endereços de correio eletrónico (definidos como endereço de correio eletrónico secundário nas definições pessoais), pode definir uma expressão regular para selecionar o endereço de correio eletrónico utilizado. Por exemplo, .*@domínio.tld",
-    "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator." : "Todas as definições para o início de sessão noutros serviços que utilizam a aplicação OpenID Connect Provider são geridas pelo seu administrador."
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalmente, o endereço de correio eletrónico principal é utilizado durante os fluxos de controlo OpenID. Se pretender utilizar outros endereços de correio eletrónico (definidos como endereço de correio eletrónico secundário nas definições pessoais), pode definir uma expressão regular para selecionar o endereço de correio eletrónico utilizado. Por exemplo, .*@domínio.tld"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -49,11 +49,6 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Valitse käyttäytyminen sähköpostin todennetun attribuutin asettamista varten",
     "Use Nextcloud account information" : "Käytä Nextcloud-tilin tietoja",
     "Set to always verified" : "Asetetaan aina tarkistetuksi",
-    "Allow User Settings" : "Salli käyttäjän asetukset",
-    "Define if user can make own user specific changes to settings" : "Määritä, voiko käyttäjä tehdä omia käyttäjäkohtaisia muutoksia asetuksiin.",
-    "Select if user is able to modify user specific settings" : "Valitse, voiko käyttäjä muuttaa käyttäjäkohtaisia asetuksia.",
-    "User can not edit any settings" : "Käyttäjä ei voi muokata mitään asetuksia",
-    "User can edit settings" : " Käyttäjä voi muokata asetuksia",
     "Accepted Logout Redirect URIs" : "Hyväksytyt uloskirjautumisen uudelleenohjauksen URI",
     "Add Redirection URI" : "Lisää uudelleenohjaus URI",
     "Regenerate Keys" : "Uudelleen avaimet",
@@ -79,7 +74,6 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Määritä asiakkaan sallitut käyttöalueet välilyönnillä erotettuna, esim. openid profile roles. Älä anna mitään arvoa, jos haluat sallia kaikki laajuudet.",
     "Email Selection" : "Sähköpostin valinta",
     "Save email selection regex" : "Tallenna sähköpostin valinta regex",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Yleensä ensisijaista sähköpostiosoitetta käytetään OpenID-ohjausvirroissa. Jos haluat käyttää muita sähköpostiosoitteita (jotka on määritelty toissijaiseksi sähköpostiosoitteeksi henkilökohtaisissa asetuksissa), voit määrittää säännöllisen lausekkeen käytettävän sähköpostiosoitteen valitsemiseksi. Esim. .*@domain.tld.",
-    "All settings for the login at other services using the OpenID Connect Provider app are managed by your administrator." : "Kaikkia OpenID Connect Provider -sovellusta käyttäviin muihin palveluihin kirjautumisen asetuksia hallinnoi järjestelmänvalvojasi."
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Yleensä ensisijaista sähköpostiosoitetta käytetään OpenID-ohjausvirroissa. Jos haluat käyttää muita sähköpostiosoitteita (jotka on määritelty toissijaiseksi sähköpostiosoitteeksi henkilökohtaisissa asetuksissa), voit määrittää säännöllisen lausekkeen käytettävän sähköpostiosoitteen valitsemiseksi. Esim. .*@domain.tld."
 },
 "nplurals=2; plural=(n != 1);");
