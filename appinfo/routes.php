@@ -73,6 +73,16 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#restrictUserInformation',
+            'url' => '/restrictUserInformation',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Settings#restrictUserInformationPersonal',
+            'url' => '/user/restrictUserInformation',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#regenerateKeys',
             'url' => '/genKeys',
             'verb' => 'POST',

@@ -13,6 +13,7 @@ use OCP\ISession;
 use OCP\IUserSession;
 use OCP\IUserManager;
 use OCP\Server;
+use OCP\IConfig;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -63,6 +64,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $userSession;
     /** @var IAppConfig */
     private $appConfig;
+	/** @var IConfig */
+    private $config;
     /** @var LoggerInterface */
     private $logger;
     /** @var ISecureRandom */
@@ -86,6 +89,7 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->crypto = $this->getMockBuilder(ICrypto::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
         $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
         $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
         $this->groupManager = $this->getMockBuilder(IGroupManager::class)->getMock();
         $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
@@ -124,6 +128,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->accountManager,
             $this->urlGenerator,
             $this->appConfig,
+			$this->config,
             $this->logger
         );
 

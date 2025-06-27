@@ -26,7 +26,7 @@
 		</div>
 
 		<div id="oidc_clients" style="display: block;">
-			<h3>{{ t('oidc', 'Add client') }}</h3>
+			<h4>{{ t('oidc', 'Add client') }}</h4>
 			<span v-if="newClient.error" class="msg error">{{ newClient.errorMsg }}</span>
 			<form @submit.prevent="addClient">
 				<div style="display: flex; gap: 4px;">
@@ -71,9 +71,9 @@
 				</div>
 				<input type="submit" class="button" :value="t('oidc', 'Add')">
 			</form>
-			<h3 v-if="localClients.length > 0">
+			<h4 v-if="localClients.length > 0">
 				{{ t('oidc', 'List of clients') }}
-			</h3>
+			</h4>
 			<div v-if="localClients"
 				:key="version">
 				<div v-if="localClients.length > 0" class="list">
@@ -93,7 +93,7 @@
 			</div>
 		</div>
 		<div id="oidc_settings" style="display: none;">
-			<h3>{{ t('oidc', 'Settings') }}</h3>
+			<h4>{{ t('oidc', 'Settings') }}</h4>
 			<p>{{ t('oidc', 'Token Expire Time') }}</p>
 			<select id="expireTime"
 				v-model="localExpireTime"
@@ -192,7 +192,36 @@
 				</option>
 			</select>
 
-			<h3>{{ t('oidc', 'Accepted Logout Redirect URIs') }}</h3>
+			<p style="margin-top: 1.5em;">
+				{{ t('oidc', 'Allow User Settings') }}
+			</p>
+			<select id="allowUserSettings"
+				v-model="localAllowUserSettings"
+				:placeholder="t('oidc', 'Define if user can make own user specific changes to settings')"
+				@change="setAllowUserSettings">
+				<option disabled value="">
+					{{ t('oidc', 'Select if user is able to modify user specific settings') }}
+				</option>
+				<option value="no">
+					{{ t('oidc', 'User cannot edit any settings') }}
+				</option>
+				<option value="enabled">
+					{{ t('oidc', 'User can edit settings') }}
+				</option>
+			</select>
+
+			<h4>
+				{{ t('oidc', 'Restrict User Information') }}
+			</h4>
+			<NcSelect v-bind="userDataRestriction.props"
+				v-model="userDataRestriction.props.value"
+				:no-wrap="false"
+				:input-label="t('oidc', 'Removed information from ID token and userinfo endpoint')"
+				:placeholder="t('oidc', 'Select information to be omitted')"
+				class="nc_select"
+				@update:modelValue="updateRestrictUserInformation" />
+
+			<h4>{{ t('oidc', 'Accepted Logout Redirect URIs') }}</h4>
 			<div v-if="localLogoutRedirectUris.length > 0"
 				:key="version"
 				class="list">
@@ -215,7 +244,7 @@
 			</div>
 		</div>
 		<div id="oidc_keys" style="display: none;">
-			<h3>{{ t('oidc', 'Public Key') }}</h3>
+			<h4>{{ t('oidc', 'Public Key') }}</h4>
 			<code>{{ localPublicKey }}</code>
 			<br>
 			<form @submit.prevent="regenerateKeys">
@@ -234,6 +263,7 @@ import { generateUrl } from '@nextcloud/router'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcSelect from '@nextcloud/vue/components/NcSelect'
 
 export default {
 	name: 'App',
@@ -243,6 +273,7 @@ export default {
 		NcSettingsSection,
 		NcTextField,
 		NcButton,
+		NcSelect,
 	},
 	props: {
 		clients: {
@@ -281,6 +312,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		restrictUserInformation: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -313,6 +348,31 @@ export default {
 			variantClients: 'primary',
 			variantSettings: 'secondary',
 			variantKeys: 'secondary',
+			userDataRestriction: {
+				props: {
+					multiple: true,
+					keepOpen: true,
+					options: [
+						{
+							label: t('oidc', 'Avatar'),
+							value: 'avatar',
+						},
+						{
+							label: t('oidc', 'Address'),
+							value: 'address',
+						},
+						{
+							label: t('oidc', 'Phone'),
+							value: 'phone',
+						},
+						{
+							label: t('oidc', 'Website'),
+							value: 'website',
+						},
+					],
+					value: this.generateRestrictUserInformationProperties(this.restrictUserInformation)
+				},
+			},
 		}
 	},
 	computed: {
@@ -576,6 +636,63 @@ export default {
 				this.error = true
 				this.errorMsg = reason
 			})
+		},
+		updateRestrictUserInformation() {
+			let tmpStr = ''
+			if (this.userDataRestriction.props.value.length > 0) {
+				for (const element of this.userDataRestriction.props.value) {
+					tmpStr = tmpStr + element.value + ' '
+				}
+				tmpStr.trim()
+			} else {
+				tmpStr = 'no'
+			}
+			axios.post(
+				generateUrl('apps/oidc/restrictUserInformation'),
+				{
+					restrictUserInformation: tmpStr,
+				}).then((response) => {
+				this.userDataRestriction.props.value = this.generateRestrictUserInformationProperties(response.data.restrict_user_information)
+			})
+		},
+		generateRestrictUserInformationProperties(conf) {
+			const tmpArr = conf.split(' ')
+			const resultPropValue = []
+			for (const element of tmpArr) {
+				switch (element) {
+				case 'avatar':
+					resultPropValue.push({
+						label: t('oidc', 'Avatar'),
+						value: element,
+					})
+					break
+
+				case 'address':
+					resultPropValue.push({
+						label: t('oidc', 'Address'),
+						value: element,
+					})
+					break
+
+				case 'phone':
+					resultPropValue.push({
+						label: t('oidc', 'Phone'),
+						value: element,
+					})
+					break
+
+				case 'website':
+					resultPropValue.push({
+						label: t('oidc', 'Website'),
+						value: element,
+					})
+					break
+
+				default:
+					break
+				}
+			}
+			return resultPropValue
 		},
 	},
 }

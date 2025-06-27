@@ -27,6 +27,7 @@ use OCP\IUserManager;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\Server;
+use OCP\IConfig;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
@@ -54,6 +55,8 @@ class UserInfoController extends ApiController
     private $accountManager;
     /** @var IAppConfig */
     private $appConfig;
+    /** @var IConfig */
+    private $config;
     /** @var LoggerInterface */
     private $logger;
     /** @var Converter */
@@ -73,6 +76,7 @@ class UserInfoController extends ApiController
                     IGroupManager $groupManager,
                     IAccountManager $accountManager,
                     IAppConfig $appConfig,
+                    IConfig $config,
                     LoggerInterface $logger
                     )
     {
@@ -85,6 +89,7 @@ class UserInfoController extends ApiController
         $this->groupManager = $groupManager;
         $this->accountManager = $accountManager;
         $this->appConfig = $appConfig;
+        $this->config = $config;
         $this->logger = $logger;
         $this->converter = Server::get(Converter::class);
         $this->urlGenerator = $urlGenerator;
@@ -211,6 +216,11 @@ class UserInfoController extends ApiController
             $userInfoPayload = array_merge($userInfoPayload, $groupsPayload);
         }
 
+        $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+        $restrictUserInformationPersonalArr = [ Application::DEFAULT_ALLOW_USER_SETTINGS ];
+        if ($this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS) != Application::DEFAULT_ALLOW_USER_SETTINGS) {
+            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->config->getUserValue($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+        }
         if (in_array("profile", $scopeArray)) {
             $profile = [
                 'updated_at' => $user->getLastLogin(),
@@ -227,21 +237,23 @@ class UserInfoController extends ApiController
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '') {
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '' && !in_array('website', $restrictUserInformationArr) && !in_array('website', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
                         ['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '') {
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '' && !in_array('phone', $restrictUserInformationArr) && !in_array('phone', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
                         ['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '') {
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '' && !in_array('address', $restrictUserInformationArr) && !in_array('address', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
                         ['address' =>
                                 [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
-            $profile = array_merge($profile,
-                    ['picture' => $issuer . '/avatar/' . $uid . '/64']);
+            if (!in_array('avatar', $restrictUserInformationArr) && !in_array('avatar', $restrictUserInformationPersonalArr)) {
+                $profile = array_merge($profile,
+                        ['picture' => $issuer . '/avatar/' . $uid . '/64']);
+            }
 
             // Possible further values
             // 'nickname' => ,

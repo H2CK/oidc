@@ -152,9 +152,11 @@ class Admin implements ISettings {
                 'dynamicClientRegistration', $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));
         $this->initialState->provideInitialState(
                 'allowUserSettings', $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS));
+        $this->initialState->provideInitialState(
+                'restrictUserInformation', $this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION));
 
         return new TemplateResponse(
-                        'oidc',
+                        Application::APP_ID,
                         'admin',
                         [],
                         ''

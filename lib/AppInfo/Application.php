@@ -27,7 +27,8 @@ class Application extends App implements IBootstrap {
     public const DEFAULT_REFRESH_EXPIRE_TIME = '900';
     public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
     public const DEFAULT_RESOURCE_IDENTIFIER = 'https://rs.local/';
-	public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
+    public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
+    public const DEFAULT_RESTRICT_USER_INFORMATION = 'no';
 
     public const GROUP_CLAIM_TYPE_GID = 'gid';
     public const GROUP_CLAIM_TYPE_DISPLAYNAME = 'displayname';
@@ -38,7 +39,8 @@ class Application extends App implements IBootstrap {
     public const APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER = 'default_resource_identifier';
     public const APP_CONFIG_OVERWRITE_EMAIL_VERIFIED = 'overwrite_email_verified';
     public const APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION = 'dynamic_client_registration';
-	public const APP_CONFIG_ALLOW_USER_SETTINGS = 'allow_user_settings';
+    public const APP_CONFIG_ALLOW_USER_SETTINGS = 'allow_user_settings';
+    public const APP_CONFIG_RESTRICT_USER_INFORMATION = 'restrict_user_information';
     public const APP_CONFIG_GROUP_CLAIM_TYPE = 'group_claim_type';
 
     private $backend;
