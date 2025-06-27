@@ -21,6 +21,7 @@ Provided features:
 - Logout endpoint
 - Dynamic Client Registration
 - Administration of clients via CLI
+- User specific settings to define which data is passed to clients in ID token and via userinfo endpoint
 
 Full documentation can be found at:
 
@@ -51,6 +52,15 @@ $ php occ
 ```
 
 Use the option `--help` to retrieve more information on how to use the commands.
+
+### User specific settings
+
+The administrator can give the user the right to personally select, which information is passed to the clients via the ID token and the userinfo endpoint. The following limitations are possible:
+
+- Restrict passing the link to avatar picture
+- Restrict passing address
+- Restrict passing phone number
+- Restrict passing website
 
 ## Endpoints
 

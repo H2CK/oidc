@@ -8,6 +8,8 @@ use OCP\IRequest;
 use OCP\IL10N;
 use OCP\IGroupManager;
 use OCP\IDBConnection;
+use OCP\IUserSession;
+use OCP\IConfig;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Http;
@@ -42,8 +44,12 @@ class SettingsControllerTest extends TestCase {
     private $groupManager;
     /** @var IL10N */
     private $l;
+    /** @var IUserSession */
+    private $userSession;
     /** @var IAppConfig */
     private $appConfig;
+    /** @var IConfig */
+    private $config;
     /** @var LoggerInterface */
     private $logger;
     /** @var ISecureRandom */
@@ -59,6 +65,8 @@ class SettingsControllerTest extends TestCase {
         $this->request = $this->getMockBuilder(IRequest::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
         $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
+        $this->userSession = $this->getMockBuilder(IUserSession::class)->getMock();
         $this->secureRandom = $this->getMockBuilder(ISecureRandom::class)->getMock();
         $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
         $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
@@ -97,7 +105,9 @@ class SettingsControllerTest extends TestCase {
             $this->groupMapper,
             $this->groupManager,
             $this->l,
+            $this->userSession,
             $this->appConfig,
+            $this->config,
             $this->logger
         );
     }

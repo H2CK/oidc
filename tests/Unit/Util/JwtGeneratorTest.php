@@ -31,6 +31,7 @@ use OCP\IUserManager;
 use OCP\IGroupManager;
 use OCP\Server;
 use OCP\IURLGenerator;
+use OCP\IConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Security\ICrypto;
@@ -61,6 +62,8 @@ class JwtGeneratorTest extends TestCase {
         private $urlGenerator;
         /** @var IAppConfig */
         private $appConfig;
+		/** @var IConfig */
+        private $config;
         /** @var LoggerInterface */
         private $logger;
         /** @var Converter */
@@ -78,6 +81,7 @@ class JwtGeneratorTest extends TestCase {
         $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
         $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
         $this->converter = Server::get(Converter::class);
         $this->eventDispatcher = $this->getMockBuilder(IEventDispatcher::class)->getMock();
@@ -92,6 +96,7 @@ class JwtGeneratorTest extends TestCase {
             $this->accountManager,
             $this->urlGenerator,
             $this->appConfig,
+			$this->config,
             $this->logger,
             $this->converter
         );

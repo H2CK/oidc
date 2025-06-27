@@ -64,8 +64,7 @@ Full documentation can be found at:
   <settings>
     <admin>OCA\OIDCIdentityProvider\Settings\Admin</admin>
     <admin-section>OCA\OIDCIdentityProvider\Settings\AdminSection</admin-section>
-    <!--<personal>OCA\OIDCIdentityProvider\Settings\Personal</personal>-->
-    <!--<personal-section>OCA\OIDCIdentityProvider\Settings\PersonalSection</personal-section>-->
-
+    <personal>OCA\OIDCIdentityProvider\Settings\Personal</personal>
+    <personal-section>OCA\OIDCIdentityProvider\Settings\PersonalSection</personal-section>
   </settings>
 </info>

@@ -17,6 +17,7 @@ const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
 const overwriteEmailVerified = loadState('oidc', 'overwriteEmailVerified')
 const dynamicClientRegistration = loadState('oidc', 'dynamicClientRegistration')
 const allowUserSettings = loadState('oidc', 'allowUserSettings')
+const restrictUserInformation = loadState('oidc', 'restrictUserInformation')
 
 const app = createApp(App, {
 	clients,
@@ -28,6 +29,7 @@ const app = createApp(App, {
 	overwriteEmailVerified,
 	dynamicClientRegistration,
 	allowUserSettings,
+	restrictUserInformation,
 })
 
 app.config.globalProperties.$OC = window.OC

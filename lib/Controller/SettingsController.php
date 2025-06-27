@@ -23,9 +23,12 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IUserSession;
+use OCP\IConfig;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IGroup;
 use OCP\IGroupManager;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use Psr\Log\LoggerInterface;
 
 class SettingsController extends Controller
@@ -44,8 +47,12 @@ class SettingsController extends Controller
     private $groupManager;
     /** @var IL10N */
     private $l;
+    /** @var IUserSession */
+    private $userSession;
     /** @var IAppConfig */
     private $appConfig;
+    /** @var IConfig */
+    private $config;
     /** @var LoggerInterface */
     private $logger;
 
@@ -62,7 +69,9 @@ class SettingsController extends Controller
                     GroupMapper $groupMapper,
                     IGroupManager $groupManager,
                     IL10N $l,
+                    IUserSession $userSession,
                     IAppConfig $appConfig,
+                    IConfig $config,
                     LoggerInterface $logger
                     )
     {
@@ -74,7 +83,9 @@ class SettingsController extends Controller
         $this->groupMapper = $groupMapper;
         $this->groupManager = $groupManager;
         $this->l = $l;
+        $this->userSession =$userSession;
         $this->appConfig = $appConfig;
+        $this->config =$config;
         $this->logger = $logger;
     }
 
@@ -464,6 +475,56 @@ class SettingsController extends Controller
         }
         $result = [
             'allow_user_settings' => $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS),
+        ];
+        return new JSONResponse($result);
+    }
+
+    public function restrictUserInformation(
+                    string $restrictUserInformation
+                    ): JSONResponse
+    {
+        $resultRestrictUserInformation = '';
+        $restrictUserInformationArr = explode(' ', strtolower(trim($restrictUserInformation)));
+        $allowedValuesArr = ['avatar', 'address', 'phone', 'website'];
+        foreach ($restrictUserInformationArr as $entry) {
+            if (in_array($entry, $allowedValuesArr)) {
+                $resultRestrictUserInformation = $resultRestrictUserInformation . $entry . ' ';
+            }
+        }
+        $resultRestrictUserInformation = trim($resultRestrictUserInformation);
+        if ($resultRestrictUserInformation === '') {
+            $resultRestrictUserInformation = Application::DEFAULT_RESTRICT_USER_INFORMATION;
+        }
+        $this->appConfig->setAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, $resultRestrictUserInformation);
+        $result = [
+            'restrict_user_information' => $this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION),
+        ];
+        return new JSONResponse($result);
+    }
+
+    #[NoAdminRequired]
+    public function restrictUserInformationPersonal(
+                    string $restrictUserInformation
+                    ): JSONResponse
+    {
+        $currentUser = $this->userSession->getUser();
+        $userId = $currentUser->getUID();
+
+        $resultRestrictUserInformation = '';
+        $restrictUserInformationArr = explode(' ', strtolower(trim($restrictUserInformation)));
+        $allowedValuesArr = ['avatar', 'address', 'phone', 'website'];
+        foreach ($restrictUserInformationArr as $entry) {
+            if (in_array($entry, $allowedValuesArr)) {
+                $resultRestrictUserInformation = $resultRestrictUserInformation . $entry . ' ';
+            }
+        }
+        $resultRestrictUserInformation = trim($resultRestrictUserInformation);
+        if ($resultRestrictUserInformation === '') {
+            $resultRestrictUserInformation = Application::DEFAULT_RESTRICT_USER_INFORMATION;
+        }
+        $this->config->setUserValue($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, $resultRestrictUserInformation);
+        $result = [
+            'restrict_user_information' =>  $this->config->getUserValue($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION),
         ];
         return new JSONResponse($result);
     }
