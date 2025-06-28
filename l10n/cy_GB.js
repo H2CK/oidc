@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Afatar",
     "Settings" : "Gosodiadau",
     "Name" : "Enw",
     "Disable" : "Analluogi",

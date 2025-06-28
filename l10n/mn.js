@@ -1,6 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Хөрөг",
+    "Address" : "хаяг",
+    "Website" : "Веб сайт",
     "Settings" : "Тохиргоо",
     "Name" : "Нэр",
     "Public" : "Нийтийн",

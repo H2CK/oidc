@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашиот клиент не е авторизиран за да се поврзе. Ве молиме, информирајте администратор за вашиот клиент.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Вашето УРЛ со пренасочување треба да биде целосно УРЛ:\nhttps://vasdomen.com/pateka",
+    "Avatar" : "Аватар",
+    "Address" : "Адреса",
+    "Phone" : "Телефон",
+    "Website" : "Веб страна",
     "Settings" : "Параметри",
     "Add client" : "Додади клиент",
     "Name" : "Име",

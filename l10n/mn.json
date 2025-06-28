@@ -1,4 +1,7 @@
 { "translations": {
+    "Avatar" : "Хөрөг",
+    "Address" : "хаяг",
+    "Website" : "Веб сайт",
     "Settings" : "Тохиргоо",
     "Name" : "Нэр",
     "Public" : "Нийтийн",

@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ứng dụng khách của bạn không được ủy quyền để kết nối. Vui lòng thông báo cho quản trị viên của ứng dụng khách.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URl chuyển hướng của bạn phải là URL đầy đủ, vd: https://yourdomain.com/path",
+    "Avatar" : "Hình đại diện",
     "Settings" : "Cài đặt",
     "Add client" : "Thêm kết nối",
     "Name" : "Tên",

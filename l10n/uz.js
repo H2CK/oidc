@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Address" : "Manzil",
+    "Website" : "Veb-sayt",
     "Settings" : "Sozlamalar",
     "Public Key" : "Ochiq kalit",
     "Name" : "Name",

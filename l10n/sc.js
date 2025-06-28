@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su cliente tuo no est autorizadu a si connètere. Pro praghere, informa s'amministradore de su cliente tuo.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : " S'URL tuo pro torrare a deretare tocat chi siat unu URL cumpretu, pro nàrrere: https://sudomìniutuo.com/caminu",
+    "Avatar" : "Avatar",
+    "Address" : "Indiritzu",
+    "Phone" : "Telèfonu",
+    "Website" : "Situ web",
     "Settings" : "Cunfiguratzione",
     "Public Key" : "Crae pùblica",
     "Add client" : "Agiunghe cliente",

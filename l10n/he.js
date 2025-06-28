@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "הלקוח שלך לא אישר את החיבור. נא ליידע את מנהל המערכת שלך על הלקוח שלך.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "כתובת ההפניה שלך חייבת להיות כתובת מלאה, למשל: https://yourdomain.com/path",
+    "Avatar" : "תמונה מייצגת",
+    "Website" : "אתר אינטרנט",
     "Settings" : "הגדרות",
     "Public Key" : "מפתח ציבורי",
     "Add client" : "הוספת לקוחי",

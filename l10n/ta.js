@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Address" : "முகவரி",
+    "Phone" : "தொலைப்பேசி",
     "Settings" : "அமைப்புகள்",
     "Name" : "பெயர்",
     "Add" : "சேர்க்க",

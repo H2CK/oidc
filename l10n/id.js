@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatar",
+    "Website" : "Situs",
     "Settings" : "Setelan",
     "Add client" : "Tambah klien",
     "Name" : "Nama",

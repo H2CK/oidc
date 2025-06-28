@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Awatar",
+    "Website" : "Website",
     "Settings" : "Sazlamalar",
     "Name" : "Ady",
     "30 minutes" : "30 minut",

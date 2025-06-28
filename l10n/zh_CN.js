@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "您的客户端程序未获得连接授权。请联系您客户端程序的管理员",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的跳转网址应为完整网址，例如:\nhttps://yourdomain.com/path",
+    "Avatar" : "头像",
+    "Address" : "地址",
+    "Phone" : "电话",
+    "Website" : "网站",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect 允许使用 {instanceName} 个用户帐户在外部服务上进行身份验证。",
     "Settings" : "设置",
     "Public Key" : "公钥",

@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "ავატარი",
+    "Website" : "ვებ-საიტი",
     "Settings" : "პარამეტრები",
     "Add client" : "კლიენტის დამატება",
     "Name" : "სახელი",

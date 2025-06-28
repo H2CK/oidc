@@ -1,6 +1,10 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Vòstre client es pas autorizat a se connectar. Mercés d’informar l’administrator de vòstre client.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vòstra URL de redireccion deu èsser una URL complèta per exemple : https://vostredomeni.com/path",
+    "Avatar" : "Avatar",
+    "Address" : "Adreça",
+    "Phone" : "Telefòn",
+    "Website" : "Site web",
     "Settings" : "Paramètres",
     "Public Key" : "Clau publica",
     "Add client" : "Apondre un client",

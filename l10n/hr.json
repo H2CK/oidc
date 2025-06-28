@@ -1,6 +1,10 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Vaš klijent nije ovlašten za povezivanje. Obavijestite administratora svog klijenta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vaš URL za preusmjeravanje mora biti cjelovit URL, primjerice: https://yourdomain.com/path",
+    "Avatar" : "Avatar",
+    "Address" : "Adresa",
+    "Phone" : "Telefon",
+    "Website" : "Web-mjesto",
     "Settings" : "Postavke",
     "Public Key" : "Javni ključ",
     "Add client" : "Dodaj klijenta",

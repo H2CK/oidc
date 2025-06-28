@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avataro",
     "Settings" : "Agordoj",
     "Name" : "Nomo",
     "Public" : "Publika",

@@ -1,6 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatari",
+    "Address" : "Adresa",
+    "Website" : "Faqe web-i",
     "Settings" : "Rregullimet",
     "Add client" : "Shto klient",
     "Name" : "Emër",

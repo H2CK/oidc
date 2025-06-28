@@ -3,6 +3,9 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Jūsų kliento programa nėra įgaliota prisijungti. Informuokite administratorių apie savo kliento programą.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Jūsų nukreipimo adresas (redirect URL) turi būti pilnas, pavyzdžiui: https://jusuadresas.com/path",
+    "Avatar" : "Avataras",
+    "Address" : "Adresas",
+    "Phone" : "Telefonas",
     "Settings" : "Nustatymai",
     "Public Key" : "Viešasis raktas",
     "Add client" : "Pridėti klientą",

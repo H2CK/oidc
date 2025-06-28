@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su cliente no está autorizado para conectarse. Por favor, informe al administrador de su cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Su URL de redireccionamiento debe ser una URL completa, por ejemplo: https://yourdomain.com/path",
+    "Avatar" : "Avatar",
+    "Website" : "Sitio web",
     "Settings" : "Ajustes",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",

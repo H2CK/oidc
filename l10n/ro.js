@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatar",
+    "Website" : "Site web",
     "Settings" : "Setări",
     "Name" : "Nume",
     "Public" : "Public",

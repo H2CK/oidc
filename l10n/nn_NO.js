@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatar",
     "Settings" : "Innstillingar",
     "Name" : "Namn",
     "5 minutes" : "5 minutt",

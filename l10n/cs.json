@@ -7,9 +7,11 @@
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL adresu přesměrování je třeba uvádět celou, např. https://yourdomain.com/umisteni",
     "Code Authorization Flow" : "Tok pověřování kódu",
     "Code & Implicit Authorization Flow" : "Kód a tok výslovného pověřování",
+    "OpenID Connect Provider" : "Poskytovatel OpenID Connect",
     "OIDC Identity Provider" : "Poskytovatel OIDC identity",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud jako poskytovat OpenID Connect ",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud jako poskytovatel OpenID Connect identit\n\nPomocí této aplikace je možné používat Nextcloud jako poskytovatele OpenID Connect identit.\nPokud jsou ostatní služby správně nastaveny, můžete k nim přistupovat pomocí svého přihlášení do\nNextcloud.\n\nÚplná dokumentace je k dispozici na:\n\n- [Uživatelská dokumentace](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Vývojářská dokumentace](https://github.com/H2CK/oidc/wiki#developer-documentation)",
+    "Avatar" : "Profilový obrázek",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect umožňuje ověřovat na externích službách pomocí uživatelských účtů na {instanceName}.",
     "OpenID Connect clients" : "Klienti OpenID Connect",
     "Settings" : "Settings",
@@ -22,6 +24,7 @@
     "Confidential" : "Důvěrné",
     "Public" : "Veřejný",
     "Add" : "Přidat",
+    "List of clients" : "Seznam klientů",
     "Token Expire Time" : "Okamžik skončení platnosti tokenu",
     "Select Token Expire Time" : "Vybrat okamžik skončení platnosti tokenu",
     "5 minutes" : "5 minut",
@@ -46,6 +49,7 @@
     "Use Nextcloud account information" : "Použít údaje Nextcloud účtu",
     "Set to always verified" : "Nastavit na vždy ověřeno",
     "Accepted Logout Redirect URIs" : "Přijímané URI přesměrování odhlášení",
+    "Add Redirection URI" : "Přidat URI přesměrování",
     "Regenerate Keys" : "Znovu vytvořit klíče",
     "OpenID Connect Redirect" : "Přesměrování OpenID Connect",
     "Delete" : "Smazat",
@@ -63,6 +67,12 @@
     "Limited to Groups" : "Omezeno na skupiny",
     "Only users in one of the following groups are allowed to use the client." : "Klienta je umožněno používat pouze uživatelům v následujících skupinách.",
     "Groups allowed to use the client." : "Skupiny, kterým je umožněno používat klienta.",
-    "Save" : "Uložit"
+    "Allowed Scopes" : "Umožněné rozsahy",
+    "Save allowed scopes" : "Uložit umožněné rozsahy",
+    "Save" : "Uložit",
+    "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Definujte umožněné rozsahy pro klienty (oddělované prázdným znakem, např. role openid profilu. Pokud chcete umožnit všechny rozsahy, nevyplňujte.",
+    "Email Selection" : "Výběr e-mailu",
+    "Save email selection regex" : "Uložit regulární výraz výběru e-mailu",
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "V řídících tocích OpenID obvykle bývá používána hlavní e-mailová adresa. Pokud si přejete použít jinou e-mailovou adresu (definovanou jako druhotná e-mailová adresa v osobních nastaveních), je možné definovat regulární výraz pro výběr použité e-mailové adresy. Např. *.@domena.pripona"
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"
 }

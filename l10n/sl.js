@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Nameščen odjemalec ni overjen za vzpostavljanje povezave. Stopite v stik s skrbnikom odjemalca.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Preusmeritveni naslov URL mora biti zapisan v polni obliki: https://domena.si/celotna-pot",
+    "Avatar" : "Podoba",
+    "Address" : "Naslov",
+    "Phone" : "Telefon",
+    "Website" : "Spletna stran",
     "Settings" : "Nastavitve",
     "Public Key" : "Javni ključ",
     "Add client" : "Dodaj odjemalca",

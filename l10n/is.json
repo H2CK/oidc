@@ -1,6 +1,8 @@
 { "translations": {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Biðlarinn þinn hefur ekki heimild til að tengjast. Láttu kerfisstjórann þinn vita.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL-endurbeiningarslóðin verður að vera full URL-slóð, til dæmis: https://yourdomain.com/path",
+    "Avatar" : "Auðkennismynd",
+    "Address" : "Vistfang",
     "Settings" : "Stillingar",
     "Add client" : "Bæta við biðlara",
     "Name" : "Heiti",

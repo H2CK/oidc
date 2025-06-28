@@ -1,4 +1,6 @@
 { "translations": {
+    "Address" : "Manzil",
+    "Website" : "Veb-sayt",
     "Settings" : "Sozlamalar",
     "Public Key" : "Ochiq kalit",
     "Name" : "Name",

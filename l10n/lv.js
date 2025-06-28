@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tavam pārvirzīšanas URL ir jābūt pilnam URL, piemēram https://yourdomain.com/path",
+    "Avatar" : "Profila attēls",
     "Settings" : "Iestatījumi",
     "Add client" : "Pievienot klientu",
     "Name" : "Nosaukums",

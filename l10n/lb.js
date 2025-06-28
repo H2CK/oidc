@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatar",
     "Settings" : "Astellungen",
     "Name" : "Numm",
     "Add" : "Dobäisetzen",

@@ -1,6 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatar",
+    "Address" : "Dirección",
+    "Website" : "Sitio web",
     "Settings" : "Ajustes",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",

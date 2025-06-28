@@ -1,6 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
+    "Avatar" : "Avatar",
+    "Address" : "Adresse",
+    "Phone" : "Tiliɣri",
+    "Website" : "Asmel web",
     "Settings" : "Iɣewwaṛen",
     "Name" : "Nom",
     "5 minutes" : "5 n tesdatin",
