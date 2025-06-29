@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Avatar" : "Avataro",
+    "Website" : "Retejo",
     "Settings" : "Agordoj",
     "Name" : "Nomo",
     "Public" : "Publika",

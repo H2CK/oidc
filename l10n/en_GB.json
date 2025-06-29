@@ -13,6 +13,7 @@
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)",
     "Avatar" : "Avatar",
     "Address" : "Address",
+    "Phone" : "Phone",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect allows to authenticate at external services with {instanceName} user accounts.",
     "OpenID Connect clients" : "OpenID Connect clients",
     "Settings" : "Settings",

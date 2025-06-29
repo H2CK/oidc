@@ -15,6 +15,8 @@ OC.L10N.register(
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Το Nextcloud ως πάροχος ταυτότητας OpenID Connect\n\nΜε αυτή την εφαρμογή μπορείτε να χρησιμοποιήσετε το Nextcloud ως πάροχο ταυτότητας OpenID Connect. Εάν άλλες υπηρεσίες έχουν ρυθμιστεί σωστά, μπορείτε να έχετε πρόσβαση σε αυτές τις υπηρεσίες με τη σύνδεσή σας στο Nextcloud.\n\nΠλήρη τεκμηρίωση μπορείτε να βρείτε στη διεύθυνση:\n\n- [Τεκμηρίωση χρήστη](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Τεκμηρίωση για προγραμματιστές](https://github.com/H2CK/oidc/wiki#developer-documentation)",
     "Avatar" : "Εικόνα προφίλ",
     "Address" : "Διεύθυνση",
+    "Phone" : "Τηλέφωνο",
+    "Website" : "Ιστοσελίδα",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "Το OpenID Connect επιτρέπει τον έλεγχο ταυτότητας σε εξωτερικές υπηρεσίες με λογαριασμούς χρηστών {instanceName}.",
     "OpenID Connect clients" : "Πελάτες OpenID Connect",
     "Settings" : "Ρυθμίσεις",

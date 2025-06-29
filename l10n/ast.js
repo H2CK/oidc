@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El veceru nun tien autorización pa conectase. Informa al alministrador de l'aplicación.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "La URL de redireición tien de ser una URL completa, por exemplu: https://dominiu.com/camin",
+    "Avatar" : "Avatar",
+    "Address" : "Direición",
+    "Phone" : "Teléfonu",
+    "Website" : "Sitiu web",
     "Settings" : "Configuración",
     "Public Key" : "Clave pública",
     "Add client" : "Amestar el veceru",

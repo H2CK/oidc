@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El vostre client no té autorització per a connectar-se. Informeu-ne a l'administrador del client.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "L'URL de redirecció ha de ser un URL complet, com ara: https://domini.com/camí",
+    "Avatar" : "Avatar",
+    "Address" : "Adreça",
+    "Phone" : "Telèfon",
+    "Website" : "Lloc web",
     "Settings" : "Paràmetres",
     "Public Key" : "Clau pública",
     "Add client" : "Afegeix un client",
