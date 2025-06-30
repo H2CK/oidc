@@ -2,7 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "İstemcinizin bağlantı kurma izni yok. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
-    "Your client is expired. Please inform the administrator of your client." : "İstemciniz devre dışı bırakılmış. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
+    "Your client is expired. Please inform the administrator of your client." : "İstemciniz kullanımdan kaldırılmış. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Alınan yönlendirme adresi bağlantı kurmak için kabul edilmiyor. Lütfen istemcinizin BT yöneticisini bilgilendirin.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kullanıcı, istemci için tanımlanmış grupların üyesi değil. Oturum açma kodu almanıza izin verilmiyor.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWt oluşturulurken bir sorun çıktı. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
@@ -45,7 +45,7 @@ OC.L10N.register(
     "Enable or disable Dynamic Client Registration" : "Dinamik istemci kaydını açın ya da kapatın",
     "Select to enable/disable the Dynamic Client Registration" : "Dinamik istemci kaydını açmayı ya da kapatmayı seçin",
     "Disable" : "Kullanımdan kaldır",
-    "Enable" : "Etkinleştir",
+    "Enable" : "Kullanıma al",
     "Email Verified Flag" : "E-posta doğrulandı işareti",
     "Source for email verified flag in token" : "Kod içindeki e-posta doğrulandı işaretinin kaynağı",
     "Select behaviour for setting email verified flag" : "E-posta doğrulandı işareti için davranışı seçin",

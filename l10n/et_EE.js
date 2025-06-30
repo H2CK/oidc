@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "Sinu klient on aegunud. Palun teavita oma kliendi administraatorit.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ümbersuunamise võrguaadress peab olema täielik võrguaadress, näiteks: https://sinudomeen.com/asukoht",
     "Avatar" : "Tunnuspilt ehk avatar",
+    "Address" : "Aadress",
     "Phone" : "Telefon",
     "Website" : "Veebisait",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect võimaldab {instanceName} kasutajakontode autentimist välistes teenustes.",
