@@ -21,6 +21,7 @@ Provided features:
 - Logout endpoint
 - Dynamic Client Registration
 - Administration of clients via CLI
+- Generation and validation of access tokens using events
 - User specific settings to define which data is passed to clients in ID token and via userinfo endpoint
 
 Full documentation can be found at:
