@@ -53,7 +53,7 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Selecione o comportamento para definir o sinalizador de e-mail verificado",
     "Use Nextcloud account information" : "Usar as informações da conta Nextcloud",
     "Set to always verified" : "Definir como sempre verificado",
-    "Allow User Settings" : "Permitir configurações do usuário",
+    "Allow User Settings" : "Permitir Configurações do Usuário",
     "Define if user can make own user specific changes to settings" : "Definir se o usuário pode fazer alterações específicas nas configurações",
     "Select if user is able to modify user specific settings" : "Selecione se o usuário pode modificar as configurações específicas do usuário",
     "User cannot edit any settings" : "O usuário não pode editar nenhuma configuração",
