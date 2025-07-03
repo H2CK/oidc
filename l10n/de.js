@@ -59,7 +59,7 @@ OC.L10N.register(
     "User cannot edit any settings" : "Benutzer kann keine Einstellungen bearbeiten",
     "User can edit settings" : "Benutzer kann Einstellungen bearbeiten",
     "Restrict User Information" : "Benutzerinformationen einschränken",
-    "Removed information from ID token and userinfo endpoint" : "Informationen aus dem ID-Token und dem Userinfo-Endpunkt entfernt",
+    "Removed information from ID token and userinfo endpoint" : "Entfernte Informationen aus dem ID-Token und dem Userinfo-Endpunkt",
     "Select information to be omitted" : "Wähle die Informationen aus, die weggelassen werden sollen",
     "Accepted Logout Redirect URIs" : "Akzeptierte Logout Weiterleitungs-URIs",
     "Add Redirection URI" : "Weiterleitungs-URI hinzufügen",
