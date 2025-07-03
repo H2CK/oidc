@@ -158,6 +158,10 @@ class LoginRedirectorController extends ApiController
                     $resource
                     ): Response
         {
+        if (!empty($redirect_uri)) {
+            $redirect_uri = urldecode($redirect_uri);
+        }
+
         if (!$this->userSession->isLoggedIn()) {
             // Not authenticated yet
             // Store oidc attributes in user session to be available after login
