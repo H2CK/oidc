@@ -33,6 +33,7 @@ Full documentation can be found at:
   <category>integration</category>
   <category>security</category>
 
+  <icon>img/app.svg</icon>
   <website>https://github.com/H2CK/oidc</website>
   <discussion>https://github.com/H2CK/oidc/issues</discussion>
   <bugs>https://github.com/H2CK/oidc/issues</bugs>
