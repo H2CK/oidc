@@ -57,7 +57,7 @@
     "User cannot edit any settings" : "Benutzer können keine Einstellungen bearbeiten",
     "User can edit settings" : "Benutzer kann Einstellungen bearbeiten",
     "Restrict User Information" : "Benutzerinformationen einschränken",
-    "Removed information from ID token and userinfo endpoint" : "Entfernte Informationen aus dem ID-Token und dem Userinfo-Endpunkt",
+    "Removed information from ID token and userinfo endpoint" : "Informationen aus dem ID-Token und dem Userinfo-Endpunkt entfernt",
     "Select information to be omitted" : "Wählen Sie die Informationen aus, die weggelassen werden sollen",
     "Accepted Logout Redirect URIs" : "Akzeptierte Abmelde-Umleitungs-URIs",
     "Add Redirection URI" : "Weiterleitungs-URI hinzufügen",
