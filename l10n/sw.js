@@ -6,6 +6,7 @@ OC.L10N.register(
     "Phone" : "Simu",
     "Website" : "Wavuti",
     "Settings" : "Mipangilio",
+    "Public Key" : "Ufunguo wa umma",
     "Name" : "Jina",
     "Add" : "Ongeza",
     "5 minutes" : "Dakika 5",
