@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Avatar" : "Avatar",
     "Address" : "Dirección",
+    "Website" : "Sitio web",
     "Settings" : "Configuraciones ",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",

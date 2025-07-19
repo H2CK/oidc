@@ -14,6 +14,8 @@ OC.L10N.register(
     "30 minutes" : "Dakika 30",
     "1 day" : "Siku moja",
     "Never" : "Kamwe",
+    "Disable" : "Zima",
+    "Enable" : "Wezesha",
     "Delete" : "Futa",
     "Type" : "Aina",
     "Save" : "Hifadhi"
