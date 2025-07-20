@@ -3,7 +3,7 @@ OC.L10N.register(
     {
     "Settings" : "Налады",
     "Add" : "Дадаць",
-    "Delete" : "Delete",
+    "Delete" : "Выдаліць",
     "Type" : "Тып",
     "Save" : "Захаваць"
 },
