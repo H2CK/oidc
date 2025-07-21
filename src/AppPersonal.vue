@@ -7,7 +7,7 @@
 		:description="
 			t(
 				'oidc',
-				'OpenID Connect allows to authenticate at external services with your user account.',
+				'OpenID Connect allows you to log in to external services with your {instanceName} user account.',
 				{ instanceName: oc.theme.name }
 			)
 		">

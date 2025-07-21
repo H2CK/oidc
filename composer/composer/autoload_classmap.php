@@ -58,6 +58,8 @@ return array(
     'OCA\\OIDCIdentityProvider\\Migration\\Version0013Date20250623100100' => $baseDir . '/../lib/Migration/Version0013Date20250623100100.php',
     'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
     'OCA\\OIDCIdentityProvider\\Settings\\AdminSection' => $baseDir . '/../lib/Settings/AdminSection.php',
+    'OCA\\OIDCIdentityProvider\\Settings\Personal' => $baseDir . '/../lib/Settings/Personal.php',
+    'OCA\\OIDCIdentityProvider\\Settings\\PersonalSection' => $baseDir . '/../lib/Settings/PersonalSection.php',
     'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => $baseDir . '/../lib/Util/DiscoveryGenerator.php',
     'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => $baseDir . '/../lib/Util/JwtGenerator.php',
     'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => $baseDir . '/../lib/Event/TokenGenerationRequestEvent.php',

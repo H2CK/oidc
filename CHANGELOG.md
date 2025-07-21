@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.2] - 2025-07-21
+
+### Changed
+
+- Fixed icon in app list
+- Fixed personal settings including issue [#577](https://github.com/H2CK/oidc/issues/577)
+- Support for Nextcloud 32
+- Updated dependencies
+- Updated translations
+
 ## [1.8.1] - 2025-07-03
 
 ### Changed

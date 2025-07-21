@@ -24732,7 +24732,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_NcSettingsSection = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("NcSettingsSection");
   return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createBlock)(_component_NcSettingsSection, {
     name: $options.t('oidc', 'OpenID Connect Provider'),
-    description: $options.t('oidc', 'OpenID Connect allows to authenticate at external services with your user account.', {
+    description: $options.t('oidc', 'OpenID Connect allows you to log in to external services with your {instanceName} user account.', {
       instanceName: $options.oc.theme.name
     })
   }, {
@@ -30101,4 +30101,4 @@ app.mount('#oidc-personal');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-personal.js.map?v=cff6946bfde8c39ae1e7
+//# sourceMappingURL=oidc-personal.js.map?v=f2e761edcb48201a6dac

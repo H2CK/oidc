@@ -1,35 +1,79 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg xmlns:dc="http://purl.org/dc/elements/1.1/"
-     xmlns:cc="http://creativecommons.org/ns#"
-     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-     xmlns:svg="http://www.w3.org/2000/svg"
-     xmlns="http://www.w3.org/2000/svg"
-     xmlns:xlink="http://www.w3.org/1999/xlink"
-     width="128" height="128" version="1.1">
-    <title>OpenID logo</title>
-    <desc>This is shape (source) for Clarity vector icon theme for gtk</desc>
-    <metadata>
-        <rdf:RDF>
-            <cc:Work rdf:about="">
-                <dc:title>OpenID logo</dc:title>
-                <dc:description>This is shape (source) for Clarity vector icon theme for gtk</dc:description>
-                <dc:creator>
-                    <cc:Agent>
-                        <dc:title>Jakub Jankiewicz</dc:title>
-                    </cc:Agent>
-                </dc:creator>
-                <dc:rights>
-                    <cc:Agent>
-                        <dc:title>Jakub Jankiewicz</dc:title>
-                    </cc:Agent>
-                </dc:rights>
-                <dc:date>2010</dc:date>
-                <dc:format>image/svg+xml</dc:format>
-                <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-                <cc:license rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
-             </cc:Work>
-        </rdf:RDF>
-    </metadata>
-    <path d="m 75.180374,15.11293 -15.99577,7.797938 0,79.945522 C 40.931432,100.568 27.193065,90.619126 27.193065,78.662788 c 0,-11.334002 12.358733,-20.879977 29.192279,-23.793706 l 0,-10.163979 C 30.637155,47.81728 11.197296,61.839238 11.197296,78.662788 c 0,17.429891 20.856984,31.825422 47.987308,34.224282 l 15.99577,-7.53134 0,-90.2428 z m 2.79926,29.592173 0,10.163979 c 6.261409,1.083679 11.913385,3.061436 16.528961,5.731817 l -8.664375,4.898704 30.95849,6.731553 -2.23275,-22.927269 -8.23115,4.632108 C 98.692362,49.310409 88.899095,46.024898 77.979634,44.705103 z"/>
+
+<svg
+   width="128"
+   height="128"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="app.svg"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="6.5"
+     inkscape:cx="63.923077"
+     inkscape:cy="64"
+     inkscape:window-width="1552"
+     inkscape:window-height="1027"
+     inkscape:window-x="188"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">OpenID logo</title>
+  <desc
+     id="desc1">This is shape (source) for Clarity vector icon theme for gtk</desc>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>OpenID logo</dc:title>
+        <dc:description>This is shape (source) for Clarity vector icon theme for gtk</dc:description>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Jakub Jankiewicz</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Jakub Jankiewicz</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date>2010</dc:date>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     d="m 75.180374,15.11293 -15.99577,7.797938 0,79.945522 C 40.931432,100.568 27.193065,90.619126 27.193065,78.662788 c 0,-11.334002 12.358733,-20.879977 29.192279,-23.793706 l 0,-10.163979 C 30.637155,47.81728 11.197296,61.839238 11.197296,78.662788 c 0,17.429891 20.856984,31.825422 47.987308,34.224282 l 15.99577,-7.53134 0,-90.2428 z m 2.79926,29.592173 0,10.163979 c 6.261409,1.083679 11.913385,3.061436 16.528961,5.731817 l -8.664375,4.898704 30.95849,6.731553 -2.23275,-22.927269 -8.23115,4.632108 C 98.692362,49.310409 88.899095,46.024898 77.979634,44.705103 z"
+     id="path1" />
+  <path
+     style="fill:#ffffff;stroke-width:0.153846"
+     d="m 57.076923,112.59736 c -7.503617,-0.9263 -13.930426,-2.50413 -20.153846,-4.94792 -2.471385,-0.97046 -7.309712,-3.39519 -9.436288,-4.72901 -4.873344,-3.056625 -9.263196,-7.121692 -11.934168,-11.05121 -1.723453,-2.535535 -3.225441,-6.01878 -3.85761,-8.946143 -0.137046,-0.634615 -0.288432,-2.226923 -0.336413,-3.538462 -0.101392,-2.771527 0.206823,-5.03925 1.024216,-7.53576 1.944681,-5.939512 6.5311,-11.580844 13.155648,-16.18155 7.22959,-5.020907 17.489646,-8.87316 27.776363,-10.42895 1.138384,-0.172173 2.29479,-0.351297 2.56979,-0.398053 l 0.5,-0.08501 v 5.00404 5.004041 l -0.346153,0.07838 c -0.190385,0.04311 -1.073077,0.224789 -1.961539,0.403731 -3.346638,0.674038 -7.350837,1.971036 -10.570905,3.42402 -8.42736,3.802658 -14.319504,9.786523 -15.908213,16.155849 -0.403745,1.618661 -0.541028,4.44518 -0.29697,6.114301 1.500767,10.263808 13.169094,18.866263 29.295663,21.598176 1.25076,0.21189 2.372322,0.38525 2.49236,0.38525 0.187779,0 0.223662,-5.584866 0.257005,-40.000047 l 0.03875,-40.000047 7.846154,-3.826488 7.846154,-3.826488 0.03872,44.933966 c 0.0213,24.713681 -0.01483,44.987514 -0.08028,45.052964 -0.06545,0.0655 -3.648262,1.78186 -7.9618,3.81424 -5.905996,2.78268 -7.97577,3.69077 -8.381257,3.67718 -0.296154,-0.01 -1.023077,-0.0779 -1.615385,-0.151 z"
+     id="path2" />
+  <path
+     style="fill:#ffffff;stroke-width:0.153846"
+     d="m 101.60269,68.842875 c -8.256981,-1.79956 -15.125919,-3.296544 -15.264307,-3.326632 -0.138388,-0.03009 1.650016,-1.127732 3.974232,-2.439211 2.324216,-1.311478 4.225847,-2.435946 4.225847,-2.498814 0,-0.165796 -3.457207,-1.873211 -5.365731,-2.649978 -2.85303,-1.161181 -6.505318,-2.237694 -9.634269,-2.839704 l -1.384616,-0.2664 -0.04057,-5.03382 -0.04057,-5.03382 0.502111,0.08336 c 0.276162,0.04585 1.399771,0.22443 2.49691,0.396845 8.612539,1.353461 17.116447,4.17874 23.524613,7.815652 C 105.51662,53.57266 106.30286,54 106.34353,54 c 0.0407,0 1.87128,-1.01066 4.06801,-2.245912 2.19674,-1.235251 4.01948,-2.220505 4.05053,-2.189452 0.0735,0.07354 2.2612,22.457779 2.19997,22.510215 -0.0257,0.02197 -6.80237,-1.432416 -15.05935,-3.231976 z"
+     id="path3" />
 </svg>
