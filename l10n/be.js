@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Settings" : "Налады",
+    "Name" : "Назва",
     "Add" : "Дадаць",
     "Delete" : "Выдаліць",
     "Type" : "Тып",
