@@ -62,7 +62,6 @@
     "Accepted Logout Redirect URIs" : "Αποδεκτά URI ανακατεύθυνσης αποσύνδεσης",
     "Add Redirection URI" : "Προσθήκη URI ανακατεύθυνσης",
     "Regenerate Keys" : "Αναγέννηση κλειδιών",
-    "OpenID Connect allows to authenticate at external services with your user account." : "Το OpenID Connect επιτρέπει τον έλεγχο ταυτότητας σε εξωτερικές υπηρεσίες με το λογαριασμό χρήστη σας.",
     "All settings for the login at other services are managed by your administrator." : "Όλες οι ρυθμίσεις για τη σύνδεση σε άλλες υπηρεσίες διαχειρίζεται ο διαχειριστής σας.",
     "Restrict Personal Information" : "Περιορισμός προσωπικών πληροφοριών",
     "OpenID Connect Redirect" : "Ανακατεύθυνση OpenID Connect",

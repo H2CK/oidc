@@ -64,7 +64,6 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Onaylanmış oturum açma yönlendirmesi adresleri",
     "Add Redirection URI" : "Yönlendirme adresi ekle",
     "Regenerate Keys" : "Anahtarları yeniden oluştur",
-    "OpenID Connect allows to authenticate at external services with your user account." : "OpenID Connect, kullanıcı hesabınızla dış hizmetlerde kimlik doğrulanabilmesini sağlar.",
     "All settings for the login at other services are managed by your administrator." : "Diğer hizmetlerde oturum açmak için tüm ayarlar yöneticiniz tarafından yapılır.",
     "Restrict Personal Information" : "Kişisel bilgiler kısıtlansın",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",

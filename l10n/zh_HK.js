@@ -64,7 +64,6 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "接受的登出重定向 URIs",
     "Add Redirection URI" : "添加重導向 URI",
     "Regenerate Keys" : "重新生成密鑰",
-    "OpenID Connect allows to authenticate at external services with your user account." : "OpenID Connect 允許您使用您的用戶帳戶在外部服務中進行身份驗證。",
     "All settings for the login at other services are managed by your administrator." : "所有其他服務的登錄設置均由您的管理員管理。",
     "Restrict Personal Information" : "限制個人信息。",
     "OpenID Connect Redirect" : "OpenID 連接重定向",

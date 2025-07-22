@@ -62,7 +62,6 @@
     "Accepted Logout Redirect URIs" : "接受的登出重新導向 URI",
     "Add Redirection URI" : "新增重新導向 URI",
     "Regenerate Keys" : "重新生成密鑰",
-    "OpenID Connect allows to authenticate at external services with your user account." : "OpenID Connect 允許使用您的使用者帳號在外部服務上進行身分驗證。",
     "All settings for the login at other services are managed by your administrator." : "所有在其他服務上的登入設定均由您的管理員管理。",
     "Restrict Personal Information" : "限制個人資訊",
     "OpenID Connect Redirect" : "OpenID Connect 重新導向",

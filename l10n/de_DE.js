@@ -64,7 +64,6 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Akzeptierte Abmelde-Umleitungs-URIs",
     "Add Redirection URI" : "Weiterleitungs-URI hinzufügen",
     "Regenerate Keys" : "Schlüssel neu erzeugen",
-    "OpenID Connect allows to authenticate at external services with your user account." : "OpenID Connect ermöglicht die Anmeldung bei externen Diensten mit Ihrem Benutzerkonto.",
     "All settings for the login at other services are managed by your administrator." : "Alle Einstellungen für die Anmeldung bei anderen Diensten werden von der Administration verwaltet.",
     "Restrict Personal Information" : "Persönliche Informationen beschränken",
     "OpenID Connect Redirect" : "OpenID Connect-Weiterleitung",

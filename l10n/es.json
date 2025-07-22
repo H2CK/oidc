@@ -62,7 +62,6 @@
     "Accepted Logout Redirect URIs" : "URI de redireccionamiento de cierre de sesión aceptados",
     "Add Redirection URI" : " Añadir URI de redirección",
     "Regenerate Keys" : "Regenerar claves",
-    "OpenID Connect allows to authenticate at external services with your user account." : "OpenID Connect permite autenticarse en servicios externos con tu cuenta de usuario.",
     "All settings for the login at other services are managed by your administrator." : "Todos los ajustes para el inicio de sesión en otros servicios son gestionados por tu administrador.",
     "Restrict Personal Information" : "Restringir información personal",
     "OpenID Connect Redirect" : "Redirección de OpenID Connect",
