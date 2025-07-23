@@ -62,6 +62,7 @@
     "Accepted Logout Redirect URIs" : "Accepterade URI:er för omdirigering av utloggning",
     "Add Redirection URI" : "Lägg till omdirigerings-URI",
     "Regenerate Keys" : "Återskapa nycklar",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect gör att du kan logga in på externa tjänster med ditt användarkonto {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Alla inställningar för inloggning på andra tjänster hanteras av din administratör.",
     "Restrict Personal Information" : "Begränsa personlig information",
     "OpenID Connect Redirect" : "Omdirigering av OpenID Connect",

@@ -64,6 +64,7 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Αποδεκτά URI ανακατεύθυνσης αποσύνδεσης",
     "Add Redirection URI" : "Προσθήκη URI ανακατεύθυνσης",
     "Regenerate Keys" : "Αναγέννηση κλειδιών",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "Το OpenID Connect σας επιτρέπει να συνδεθείτε σε εξωτερικές υπηρεσίες με το λογαριασμό χρήστη {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Όλες οι ρυθμίσεις για τη σύνδεση σε άλλες υπηρεσίες διαχειρίζεται ο διαχειριστής σας.",
     "Restrict Personal Information" : "Περιορισμός προσωπικών πληροφοριών",
     "OpenID Connect Redirect" : "Ανακατεύθυνση OpenID Connect",

@@ -64,6 +64,7 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "URI de redireccionamiento de cierre de sesión aceptados",
     "Add Redirection URI" : " Añadir URI de redirección",
     "Regenerate Keys" : "Regenerar claves",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect le permite iniciar sesión en servicios externos con su cuenta de usuario {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Todos los ajustes para el inicio de sesión en otros servicios son gestionados por tu administrador.",
     "Restrict Personal Information" : "Restringir información personal",
     "OpenID Connect Redirect" : "Redirección de OpenID Connect",

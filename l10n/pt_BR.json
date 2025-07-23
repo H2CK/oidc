@@ -62,6 +62,7 @@
     "Accepted Logout Redirect URIs" : "URIs de Redirecionamento de Logout Aceitos",
     "Add Redirection URI" : "Adicionar URI de redirecionamento",
     "Regenerate Keys" : "Regenerar Chaves",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "O OpenID Connect permite que você faça login em serviços externos com sua conta de usuário {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Todas as configurações de login em outros serviços são gerenciadas por seu administrador.",
     "Restrict Personal Information" : "Restringir Informações Pessoais",
     "OpenID Connect Redirect" : "Redirecionamento do OpenID Connect",

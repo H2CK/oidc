@@ -64,6 +64,7 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Hyväksytyt uloskirjautumisen uudelleenohjauksen URI",
     "Add Redirection URI" : "Lisää uudelleenohjaus URI",
     "Regenerate Keys" : "Uudelleen avaimet",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connectin avulla voit kirjautua ulkoisiin palveluihin {instanceName}-käyttäjätililläsi.",
     "All settings for the login at other services are managed by your administrator." : "Järjestelmänvalvoja hallinnoi kaikkia muihin palveluihin kirjautumisen asetuksia.",
     "Restrict Personal Information" : "Henkilökohtaisten tietojen rajoittaminen",
     "OpenID Connect Redirect" : "OpenID Connectin uudelleenohjaus",
