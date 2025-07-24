@@ -6,7 +6,6 @@
 [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QRSDVQA2UMJQC&source=url)
 
 This is the an OIDC App for Nextcloud. This application allows to use your Nextcloud Login at other services supporting OpenID Connect.
-Hint: Up to now it is not possible to use the provided Access Tokens or ID Tokens to access resources (e.g. files, calendars, ...) from your Nextcloud instance. Only the Authorization Codes can be used to fetch the Access Tokens / ID Tokens at the `/token` endpoint.
 
 Provided features:
 
