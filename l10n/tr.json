@@ -62,6 +62,7 @@
     "Accepted Logout Redirect URIs" : "Onaylanmış oturum açma yönlendirmesi adresleri",
     "Add Redirection URI" : "Yönlendirme adresi ekle",
     "Regenerate Keys" : "Anahtarları yeniden oluştur",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect, {instanceName} kullanıcı hesabınızla dış hizmetlerde oturum açmanızı sağlar.",
     "All settings for the login at other services are managed by your administrator." : "Diğer hizmetlerde oturum açmak için tüm ayarlar yöneticiniz tarafından yapılır.",
     "Restrict Personal Information" : "Kişisel bilgiler kısıtlansın",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",
