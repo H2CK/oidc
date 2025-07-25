@@ -64,6 +64,7 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Glactar leis Logáil Amach Atreorú URIanna",
     "Add Redirection URI" : "Cuir URI Athsheolta leis",
     "Regenerate Keys" : "Eochracha a Athghiniúint",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "Le OpenID Connect is féidir leat logáil isteach i seirbhísí seachtracha le do chuntas úsáideora {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Déanann do riarthóir bainistíocht ar na socruithe uile le haghaidh logáil isteach ag seirbhísí eile.",
     "Restrict Personal Information" : "Srian a chur ar Fhaisnéis Phearsanta",
     "OpenID Connect Redirect" : "OpenID Connect Atreorú",

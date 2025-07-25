@@ -11,6 +11,7 @@ OC.L10N.register(
     "Add" : "Ongeza",
     "5 minutes" : "Dakika 5",
     "10 minutes" : "Dakika 10",
+    "15 minutes" : "Dakika 15",
     "30 minutes" : "Dakika 30",
     "1 day" : "Siku moja",
     "Never" : "Kamwe",

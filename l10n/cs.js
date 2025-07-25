@@ -64,6 +64,7 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Přijímané URI přesměrování odhlášení",
     "Add Redirection URI" : "Přidat URI přesměrování",
     "Regenerate Keys" : "Znovu vytvořit klíče",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect umožňuje přihlašování na externí služby pomocí uživatelského účtu z {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Veškerá nastavení pro přihlašování k ostatním službám jdou spravována vaším správcem.",
     "Restrict Personal Information" : "Omezit osobní informace",
     "OpenID Connect Redirect" : "Přesměrování OpenID Connect",

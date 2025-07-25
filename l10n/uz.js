@@ -8,6 +8,7 @@ OC.L10N.register(
     "Name" : "Name",
     "Public" : "Ommaviy",
     "Add" : "Add",
+    "5 minutes" : "5 daqiqa",
     "15 minutes" : "15 daqiqa",
     "30 minutes" : "30 minutes",
     "12 hours" : "12 hours",
@@ -15,7 +16,7 @@ OC.L10N.register(
     "Never" : "Hech qachon",
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
-    "Delete" : "Delete",
+    "Delete" : "O'chirish",
     "Type" : "Turi",
     "Save" : "Saqlash"
 },
