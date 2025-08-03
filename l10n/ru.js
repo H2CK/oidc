@@ -42,6 +42,7 @@ OC.L10N.register(
     "Use Nextcloud account information" : "Используйте информацию об учетной записи Nextcloud",
     "Accepted Logout Redirect URIs" : "Разрешенные URI перенаправления при выходе из системы",
     "Regenerate Keys" : "Пересоздать ключи",
+    "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect позволяет вам входить во внешние сервисы с вашей {instanceName} учётной записью.",
     "OpenID Connect Redirect" : "OpenID Connect перенаправление",
     "Delete" : "Удалить",
     "Client Identifier" : "Идентификатор клиента",

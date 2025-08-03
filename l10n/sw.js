@@ -19,6 +19,7 @@ OC.L10N.register(
     "30 minutes" : "Dakika 30",
     "12 hours" : "Masaa 12",
     "1 day" : "Siku moja",
+    "7 days" : "Siku 7",
     "Never" : "Kamwe",
     "Disable" : "Zima",
     "Enable" : "Wezesha",
