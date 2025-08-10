@@ -4,6 +4,7 @@ OC.L10N.register(
     "Settings" : "Налады",
     "Name" : "Назва",
     "Add" : "Дадаць",
+    "1 day" : "1 дзень",
     "Never" : "Ніколі",
     "Delete" : "Выдаліць",
     "Type" : "Тып",
