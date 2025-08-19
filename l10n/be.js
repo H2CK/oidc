@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Address" : "Адрас",
+    "Website" : "Вэб-сайт",
     "Settings" : "Налады",
     "Name" : "Назва",
     "Add" : "Дадаць",
