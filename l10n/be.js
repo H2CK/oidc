@@ -1,16 +1,23 @@
 OC.L10N.register(
     "oidc",
     {
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш кліент не мае права падключацца. Паведаміце пра гэта адміністратару вашага кліента.",
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL-адрас перанакіравання павінен быць поўным, напрыклад: https://yourdomain.com/path",
     "Address" : "Адрас",
+    "Phone" : "Тэлефон",
     "Website" : "Вэб-сайт",
     "Settings" : "Налады",
+    "Add client" : "Дадаць кліента",
     "Name" : "Назва",
+    "Redirection URI" : "URI перанакіравання",
     "Add" : "Дадаць",
     "30 minutes" : "30 хвілін",
     "1 day" : "1 дзень",
     "Never" : "Ніколі",
     "Disable" : "Адключыць",
     "Delete" : "Выдаліць",
+    "Client Identifier" : "Ідэнтыфікатар кліента",
+    "Show client secret" : "Паказаць сакрэтны ключ кліента",
     "Type" : "Тып",
     "Save" : "Захаваць"
 },
