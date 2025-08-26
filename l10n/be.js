@@ -18,6 +18,7 @@ OC.L10N.register(
     "7 days" : "7 дзён",
     "Never" : "Ніколі",
     "Disable" : "Адключыць",
+    "Enable" : "Уключыць",
     "Delete" : "Выдаліць",
     "Client Identifier" : "Ідэнтыфікатар кліента",
     "Show client secret" : "Паказаць сакрэтны ключ кліента",
