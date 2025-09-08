@@ -24,6 +24,7 @@ OC.L10N.register(
     "Select Type" : "Select Type",
     "Confidential" : "Confidential",
     "Public" : "عمومی",
+    "Add" : "افزودن",
     "Token Expire Time" : "Token Expire Time",
     "Select Token Expire Time" : "Select Token Expire Time",
     "5 minutes" : "۵ دقیقه",
