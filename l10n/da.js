@@ -63,7 +63,7 @@ OC.L10N.register(
     "Flows" : "Flows",
     "Flows allowed to be used with the client." : "Tilladte flows til at blive brugt sammen med klienten.",
     "Access Token Type" : "Adgangsnøgle Type",
-    "Opaque Access Token" : "Opaque Access Token",
+    "Opaque Access Token" : "Uigennemsigtigt adgangstoken",
     "JWT Access Token (RFC9068)" : "JWT Adgangsnøgle (RFC9068)",
     "Limited to Groups" : "Begrænset til grupper",
     "Only users in one of the following groups are allowed to use the client." : "Kun brugere i en af følgende grupper må bruge klienten.",
