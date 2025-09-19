@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.5] - 2025-09-19
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [1.8.4] - 2025-09-02
 
 ### Changed
