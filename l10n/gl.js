@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is expired. Please inform the administrator of your client." : "O seu cliente caducou. Informe do seu cliente á administración da instancia.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "O URI de redirección recibido non é aceptado para conectarse. Informe do seu cliente á administración da instancia",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "O usuario non é membro dos grupos definidos para o cliente. Non ten permiso para recuperar un testemuño de acceso.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Produciuse un fallo durante a creación de JWT. Informe á administración do seu cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "o seu URL de redirección debe ser un URL completo, por exemplo: https://omeudominio.com/ruta",
     "Code Authorization Flow" : "Fluxo de autorización do código",
     "Code & Implicit Authorization Flow" : "Fluxo de autorización o código e implícito",

@@ -43,6 +43,7 @@ OC.L10N.register(
     "Flows" : "フロー",
     "Limited to Groups" : "グループに制限",
     "Only users in one of the following groups are allowed to use the client." : "クライアントを使用できるのは、次のいずれかのグループに所属するユーザーだけです。",
-    "Save" : "保存する"
+    "Save" : "保存する",
+    "Email Selection" : "メールの選択"
 },
 "nplurals=1; plural=0;");
