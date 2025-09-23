@@ -61,7 +61,7 @@ OC.L10N.register(
     "Restrict User Information" : "Restrinxir a información do usuario",
     "Removed information from ID token and userinfo endpoint" : "Retirada a información do testemuño ID e do punto final de «userinfo»",
     "Select information to be omitted" : "Seleccione a información que quere omitir",
-    "Accepted Logout Redirect URIs" : "URI de redirección de saída aceptados",
+    "Accepted Logout Redirect URIs" : "URI de redirección de saída da sesión aceptados",
     "Add Redirection URI" : "Engadir o URI de redireccionamento",
     "Regenerate Keys" : "Rexenerar as chaves",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect permite autenticarse en servizos externos coa súa conta de usuario {instanceName}.",
