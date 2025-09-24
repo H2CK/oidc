@@ -51,6 +51,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUri' => __DIR__ . '/..' . '/../lib/Db/RedirectUri.php',
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => __DIR__ . '/..' . '/../lib/Db/RedirectUriMapper.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/AccessTokenNotFoundException.php',
+        'OCA\\OIDCIdentityProvider\\Exceptions\\CliException' => __DIR__ . '/..' . '/../lib/Exceptions/CliException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/ClientNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/RedirectUriNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\JwtCreationErrorException' => __DIR__ . '/..' . '/../lib/Exceptions/JwtCreationErrorException.php',
