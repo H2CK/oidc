@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2025-09-24
+
+### Added
+
+- Use clientId and clientSecret provided from external party during creation of a new client [#581](https://github.com/H2CK/oidc/issues/581)
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [1.8.5] - 2025-09-19
 
 ### Changed

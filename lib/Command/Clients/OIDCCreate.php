@@ -10,6 +10,7 @@ namespace OCA\OIDCIdentityProvider\Command\Clients;
 
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Exceptions\CliException;
 
 use OCP\AppFramework\Services\IAppConfig;
 
@@ -90,6 +91,20 @@ class OIDCCreate extends Command {
         InputOption::VALUE_OPTIONAL,
         'The regular expression to select the used email from all email addresses of a user (primary and secondary). If not set always the primary email address will be used.',
         ''
+      )
+      ->addOption(
+        'client_id',
+        null,
+        InputOption::VALUE_OPTIONAL,
+        'The client id to be used. If not provided the client id will be generated internally. Requirements: chars A-Za-z0-9 & min length 32 & max length 64',
+        ''
+      )
+      ->addOption(
+        'client_secret',
+        null,
+        InputOption::VALUE_OPTIONAL,
+        'The client secret to be used. If not provided the client secret will be generated internally. Requirements: chars A-Za-z0-9 & min length 32 & max length 64',
+        ''
       );
   }
 
@@ -106,6 +121,21 @@ class OIDCCreate extends Command {
             $input->getOption('allowed_scopes'),
             $input->getOption('email_regex')
           );
+          $clientId = $input->getOption('client_id');
+          $clientSecret = $input->getOption('client_secret');
+          if (isset($clientId) && trim($clientId) !== '') {
+            if (filter_var($clientId, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[A-Za-z0-9]{32,64}$/"))) === false) {
+                throw new CliException ("Your clientId must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64");
+            }
+            $client->setClientIdentifier($clientId);
+          }
+
+          if (isset($clientSecret) && trim($clientSecret) !== '') {
+            if (filter_var($clientSecret, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[A-Za-z0-9]{32,64}$/"))) === false) {
+                throw new CliException ("Your clientSecret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64");
+            }
+            $client->setSecret($clientSecret);
+          }
           // insert new client into database
           $client = $this->mapper->insert($client);
           // print client as pretty json

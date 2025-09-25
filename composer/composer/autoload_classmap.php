@@ -36,6 +36,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\Db\\RedirectUri' => $baseDir . '/../lib/Db/RedirectUri.php',
     'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => $baseDir . '/../lib/Db/RedirectUriMapper.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => $baseDir . '/../lib/Exceptions/AccessTokenNotFoundException.php',
+    'OCA\\OIDCIdentityProvider\\Exceptions\\CliException' => $baseDir . '/../lib/Exceptions/CliException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => $baseDir . '/../lib/Exceptions/ClientNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\RedirectUriNotFoundException' => $baseDir . '/../lib/Exceptions/RedirectUriNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\JwtCreationErrorException' => $baseDir . '/../lib/Exceptions/JwtCreationErrorException.php',

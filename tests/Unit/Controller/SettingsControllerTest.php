@@ -157,6 +157,199 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals($signingAlg, $result->getData()['signingAlg']);
     }
 
+    public function testAddClientwCreds() {
+        $name = 'TEST';
+        $redirectUri = 'https://local.lo';
+        $signingAlg = 'RS256';
+        $type = 'confidential';
+        $flowType = 'code';
+        $tokenType = 'opaque';
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $client = $arg;
+                    $client->setId(1);
+                    return $client;
+                }
+            );
+
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $redirectUri = new RedirectUri();
+                    $redirectUri->setId(1);
+                    $redirectUri->setClientId(1);
+                    $redirectUri->setRedirectUri('https://local.lo');
+                    return [ $redirectUri ];
+                }
+            );
+
+        $clientId = "0582bb51ac974f318c4fe11779c439a0";
+        $clientSecret = "0582bb51ac974f318c4fe11779c439a0";
+
+        $result = $this->controller->addClient(
+            $name,
+            $redirectUri,
+            $signingAlg,
+            $type,
+            $flowType,
+            $tokenType,
+            $clientId,
+            $clientSecret
+        );
+
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals('1', $result->getData()['id']);
+        $this->assertEquals($name, $result->getData()['name']);
+        $this->assertEquals($signingAlg, $result->getData()['signingAlg']);
+        $this->assertEquals($clientId, $result->getData()['clientId']);
+        $this->assertEquals($clientSecret, $result->getData()['clientSecret']);
+    }
+
+    public function testAddClientwWrongCreds1() {
+        $name = 'TEST';
+        $redirectUri = 'https://local.lo';
+        $signingAlg = 'RS256';
+        $type = 'confidential';
+        $flowType = 'code';
+        $tokenType = 'opaque';
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $client = $arg;
+                    $client->setId(1);
+                    return $client;
+                }
+            );
+
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $redirectUri = new RedirectUri();
+                    $redirectUri->setId(1);
+                    $redirectUri->setClientId(1);
+                    $redirectUri->setRedirectUri('https://local.lo');
+                    return [ $redirectUri ];
+                }
+            );
+
+        $clientId = "0582bb51ac974f318c4fe1Ä#1779c439a0";
+        $clientSecret = "0582bb51ac974f318c4fe11779c439a0";
+
+        $result = $this->controller->addClient(
+            $name,
+            $redirectUri,
+            $signingAlg,
+            $type,
+            $flowType,
+            $tokenType,
+            $clientId,
+            $clientSecret
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
+    }
+
+	public function testAddClientwWrongCreds2() {
+        $name = 'TEST';
+        $redirectUri = 'https://local.lo';
+        $signingAlg = 'RS256';
+        $type = 'confidential';
+        $flowType = 'code';
+        $tokenType = 'opaque';
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $client = $arg;
+                    $client->setId(1);
+                    return $client;
+                }
+            );
+
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $redirectUri = new RedirectUri();
+                    $redirectUri->setId(1);
+                    $redirectUri->setClientId(1);
+                    $redirectUri->setRedirectUri('https://local.lo');
+                    return [ $redirectUri ];
+                }
+            );
+
+        $clientId = "0123456789012345678901234567890123456789012345678901234567890123456789";
+        $clientSecret = "0582bb51ac974f318c4fe11779c439a0";
+
+        $result = $this->controller->addClient(
+            $name,
+            $redirectUri,
+            $signingAlg,
+            $type,
+            $flowType,
+            $tokenType,
+            $clientId,
+            $clientSecret
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
+    }
+
+	public function testAddClientwWrongCreds3() {
+        $name = 'TEST';
+        $redirectUri = 'https://local.lo';
+        $signingAlg = 'RS256';
+        $type = 'confidential';
+        $flowType = 'code';
+        $tokenType = 'opaque';
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $client = $arg;
+                    $client->setId(1);
+                    return $client;
+                }
+            );
+
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->willReturnCallBack (
+                function ($arg) {
+                    $redirectUri = new RedirectUri();
+                    $redirectUri->setId(1);
+                    $redirectUri->setClientId(1);
+                    $redirectUri->setRedirectUri('https://local.lo');
+                    return [ $redirectUri ];
+                }
+            );
+
+        $clientId = "0123456789012345678901234567890";
+        $clientSecret = "0582bb51ac974f318c4fe11779c439a0";
+
+        $result = $this->controller->addClient(
+            $name,
+            $redirectUri,
+            $signingAlg,
+            $type,
+            $flowType,
+            $tokenType,
+            $clientId,
+            $clientSecret
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
+    }
+
     public function testAddClientBadRedirectUri() {
         $name = 'TEST';
         $redirectUri = 'bad-uri';
