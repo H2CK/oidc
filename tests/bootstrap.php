@@ -6,10 +6,4 @@ if (!defined('PHPUNIT_RUN')) {
 
 require_once __DIR__.'/../../../lib/base.php';
 
-// Fix for "Autoload path not allowed: .../tests/lib/testcase.php"
-\OC::$loader->addValidRoot(OC::$SERVERROOT . '/tests');
-
-// Fix for "Autoload path not allowed: .../oidc/tests/testcase.php"
-\OC_App::loadApp('oidc');
-
-OC_Hook::clear();
+\OC::$server->get(\OC\App\AppManager::class)->loadApp('oidc');
