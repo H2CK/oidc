@@ -117,14 +117,14 @@ class SettingsController extends Controller
 
         if (isset($clientId) && trim($clientId) !== '') {
             if (filter_var($clientId, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[A-Za-z0-9]{32,64}$/"))) === false) {
-                return new JSONResponse(['message' => $this->l->t('Your clientId must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64')], Http::STATUS_BAD_REQUEST);
+                return new JSONResponse(['message' => $this->l->t('Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64')], Http::STATUS_BAD_REQUEST);
             }
             $client->setClientIdentifier($clientId);
         }
 
         if (isset($clientSecret) && trim($clientSecret) !== '') {
             if (filter_var($clientSecret, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[A-Za-z0-9]{32,64}$/"))) === false) {
-                return new JSONResponse(['message' => $this->l->t('Your clientSecret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64')], Http::STATUS_BAD_REQUEST);
+                return new JSONResponse(['message' => $this->l->t('Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64')], Http::STATUS_BAD_REQUEST);
             }
             $client->setSecret($clientSecret);
         }
