@@ -7,8 +7,6 @@ OC.L10N.register(
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Níl an t-úsáideoir ina bhall de na grúpaí sainithe don chliant. Níl cead agat chomhartha logála isteach a fháil.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Tharla teip le linn cruthú JWT. Cuir do chliant ar an eolas do riarthóir.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ní mór do URL athsheolaidh a bheith ina URL iomlán mar shampla: https://yourdomain.com/path",
-    "Your clientId must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Ní mór do do clientId cloí leis na rialacha seo a leanas: carachtair A-Za-z0-9 & fad íosta 32 & fad uasta 64",
-    "Your clientSecret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Caithfidh do clientSecret cloí leis na rialacha seo a leanas: carachtair A-Za-z0-9 & fad íosta 32 & fad uasta 64",
     "Code Authorization Flow" : "Sreabhadh Údaraithe Cóid",
     "Code & Implicit Authorization Flow" : "Sreabhadh Cóid & Údaraithe Intuigthe",
     "OpenID Connect Provider" : "Soláthraí Ceangail OpenID",
