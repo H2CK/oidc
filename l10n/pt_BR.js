@@ -7,6 +7,8 @@ OC.L10N.register(
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "O usuário não é um membro dos grupos definidos para o cliente. O usuário não tem permissão para recuperar um token de login.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Ocorreu uma falha durante a criação do JWT. Informe o administrador de seu cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "O URL de redirecionamento precisa ser um URL completo, por exemplo: https://yourdomain.com/path",
+    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Seu ID de cliente deve estar em conformidade com as seguintes regras: caracteres A-Za-z0-9 e comprimento mínimo de 32 e máximo de 64",
+    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Sua chave secreta de cliente deve estar em conformidade com as seguintes regras: caracteres A-Za-z0-9 e comprimento mínimo de 32 e máximo de 64",
     "Code Authorization Flow" : "Fluxo de Código de Autorização",
     "Code & Implicit Authorization Flow" : "Fluxo de Código de Aurorização & Fluo de Autorização Implícita",
     "OpenID Connect Provider" : "Provedor OpenID Connect",

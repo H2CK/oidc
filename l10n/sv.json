@@ -5,6 +5,8 @@
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Användaren är inte medlem i de grupper som definierats för klienten. Du får inte hämta en inloggningstoken.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Ett fel inträffade under skapandet av JWT. Vänligen informera administratören för din klient.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigeringsadress måste vara en fullständig webbadress till exempel: https://yourdomain.com/path",
+    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Ditt klient-ID måste följa dessa regler: tecken A-Za-z0-9 & minst 32 tecken & max 64 tecken långt",
+    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Ditt klienthemlighet måste följa dessa regler: tecken A-Za-z0-9 & minst 32 tecken & max 64 tecken långt",
     "Code Authorization Flow" : "Flöde för kodauktorisering",
     "Code & Implicit Authorization Flow" : "Kod och flöde för implicit auktorisering",
     "OpenID Connect Provider" : "OpenID Connect Provider",
