@@ -7,6 +7,8 @@ OC.L10N.register(
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kullanıcı, istemci için tanımlanmış grupların üyesi değil. Oturum açma kodu almanıza izin verilmiyor.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWt oluşturulurken bir sorun çıktı. Lütfen BT yöneticinize istemciniz ile ilgili bilgi verin.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Yönlendirme adresi https://sitem.com/yol gibi tam bir adres olmalıdır",
+    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "İstemci kimliğiniz A-Za-z0-9 karakterlerinden oluşmalı ve en az 32 en fazla 64 karakter uzunluğunda olmalıdır",
+    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "İstemci parolanız A-Za-z0-9 karakterlerinden oluşmalı ve en az 32 en fazla 64 karakter uzunluğunda olmalıdır",
     "Code Authorization Flow" : "Yetkilendirme akışını kodla",
     "Code & Implicit Authorization Flow" : "Yetkilendirme akışını kodla ve uygula",
     "OpenID Connect Provider" : "OpenID Connect kimlik hizmeti sağlayıcısı",
