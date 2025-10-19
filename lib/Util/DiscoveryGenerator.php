@@ -173,7 +173,7 @@ class DiscoveryGenerator
 
         // Add PKCE support if enabled
         if ($this->appConfig->getAppValueBool('proof_key_for_code_exchange', false)) {
-            $discoveryPayload['code_challenge_methods_supported'] = ['S256'];
+            $discoveryPayload['code_challenge_methods_supported'] = ['S256', 'plain'];
         }
 
         $this->logger->info('Request to Discovery Endpoint.');

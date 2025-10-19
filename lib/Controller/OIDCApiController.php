@@ -125,12 +125,13 @@ class OIDCApiController extends ApiController {
      * @param string $refresh_token
      * @param string $client_id
      * @param string $client_secret
+     * @param string $code_verifier
      * @return JSONResponse
      */
     #[BruteForceProtection(action: 'oidc_token')]
     #[PublicPage]
     #[NoCSRFRequired]
-    public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret): JSONResponse
+    public function getToken($grant_type, $code, $refresh_token, $client_id, $client_secret, $code_verifier = null): JSONResponse
     {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         $refreshExpireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
@@ -212,6 +213,32 @@ class OIDCApiController extends ApiController {
                     'error_description' => 'Access token already expired.',
                 ], Http::STATUS_BAD_REQUEST);
             }
+
+            // PKCE verification (RFC 7636 Section 4.6)
+            $storedCodeChallenge = $accessToken->getCodeChallenge();
+            if (!empty($storedCodeChallenge)) {
+                // PKCE was used in authorization request, code_verifier is required
+                if (empty($code_verifier)) {
+                    $this->accessTokenMapper->delete($accessToken);
+                    $this->logger->notice('Missing code_verifier for PKCE-protected token. Client id: ' . $client_id);
+                    return new JSONResponse([
+                        'error' => 'invalid_grant',
+                        'error_description' => 'code_verifier required for PKCE flow.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+
+                $storedCodeChallengeMethod = $accessToken->getCodeChallengeMethod() ?: 'S256';
+                if (!$this->verifyPkce($code_verifier, $storedCodeChallenge, $storedCodeChallengeMethod)) {
+                    $this->accessTokenMapper->delete($accessToken);
+                    $this->logger->notice('PKCE verification failed. Client id: ' . $client_id);
+                    return new JSONResponse([
+                        'error' => 'invalid_grant',
+                        'error_description' => 'Invalid code_verifier.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+
+                $this->logger->debug('PKCE verification successful for client ' . $client_id);
+            }
         } elseif ($refreshExpireTime !== 'never') {
             // The refresh token must not be expired
             $refreshExpireTime = (int)$refreshExpireTime;
@@ -285,5 +312,44 @@ class OIDCApiController extends ApiController {
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 
         return $response;
+    }
+
+    /**
+     * Base64URL encode (RFC 7636 Section 4.2)
+     *
+     * @param string $data
+     * @return string
+     */
+    private function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+    }
+
+    /**
+     * Verify PKCE code_verifier against code_challenge (RFC 7636 Section 4.6)
+     *
+     * @param string $codeVerifier
+     * @param string $codeChallenge
+     * @param string $codeChallengeMethod
+     * @return bool
+     */
+    private function verifyPkce(string $codeVerifier, string $codeChallenge, string $codeChallengeMethod): bool
+    {
+        // Validate code_verifier format: 43-128 characters, unreserved chars only
+        if (!preg_match('/^[A-Za-z0-9._~-]{43,128}$/', $codeVerifier)) {
+            return false;
+        }
+
+        // Compute the challenge based on the method
+        if ($codeChallengeMethod === 'S256') {
+            $computedChallenge = $this->base64UrlEncode(hash('sha256', $codeVerifier, true));
+        } elseif ($codeChallengeMethod === 'plain') {
+            $computedChallenge = $codeVerifier;
+        } else {
+            return false;
+        }
+
+        // Constant-time comparison to prevent timing attacks
+        return hash_equals($codeChallenge, $computedChallenge);
     }
 }

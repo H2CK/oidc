@@ -27,6 +27,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setNonce(string $nonce)
  * @method string getResource()
  * @method void setResource(string $resource)
+ * @method string getCodeChallenge()
+ * @method void setCodeChallenge(string $codeChallenge)
+ * @method string getCodeChallengeMethod()
+ * @method void setCodeChallengeMethod(string $codeChallengeMethod)
  */
 class AccessToken extends Entity
 {
@@ -50,6 +54,10 @@ class AccessToken extends Entity
     protected $nonce;
     /** @var string */
     protected $resource;
+    /** @var string */
+    protected $codeChallenge;
+    /** @var string */
+    protected $codeChallengeMethod;
 
     public function __construct() {
         $this->addType('id', 'int');
@@ -62,5 +70,7 @@ class AccessToken extends Entity
         $this->addType('refreshed', 'int');
         $this->addType('nonce', 'string');
         $this->addType('resource', 'string');
+        $this->addType('codeChallenge', 'string');
+        $this->addType('codeChallengeMethod', 'string');
     }
 }
