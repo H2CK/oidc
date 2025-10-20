@@ -171,6 +171,9 @@ class DiscoveryGenerator
             $discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
         }
 
+        // Add PKCE support to discovery endpoint
+		$discoveryPayload['code_challenge_methods_supported'] = ['S256', 'plain'];
+
         $this->logger->info('Request to Discovery Endpoint.');
 
         $response = new JSONResponse($discoveryPayload);

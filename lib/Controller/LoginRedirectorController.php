@@ -142,6 +142,8 @@ class LoginRedirectorController extends ApiController
      * @param string $scope
      * @param string $nonce
      * @param string $resource
+     * @param string $code_challenge
+     * @param string $code_challenge_method
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -155,7 +157,9 @@ class LoginRedirectorController extends ApiController
                     $redirect_uri,
                     $scope,
                     $nonce,
-                    $resource
+                    $resource,
+                    $code_challenge = null,
+                    $code_challenge_method = null
                     ): Response
         {
         if (!$this->userSession->isLoggedIn()) {
@@ -168,6 +172,8 @@ class LoginRedirectorController extends ApiController
             $this->session->set('oidc_scope', $scope);
             $this->session->set('oidc_nonce', $nonce);
             $this->session->set('oidc_resource', $resource);
+            $this->session->set('oidc_code_challenge', $code_challenge);
+            $this->session->set('oidc_code_challenge_method', $code_challenge_method);
 
             $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', []);
 
@@ -203,6 +209,12 @@ class LoginRedirectorController extends ApiController
         }
         if (empty($resource)) {
             $resource = $this->session->get('oidc_resource');
+        }
+        if (empty($code_challenge)) {
+            $code_challenge = $this->session->get('oidc_code_challenge');
+        }
+        if (empty($code_challenge_method)) {
+            $code_challenge_method = $this->session->get('oidc_code_challenge_method');
         }
 
         // Set default scope if scope is not set at all
@@ -327,6 +339,30 @@ class LoginRedirectorController extends ApiController
 
         $uid = $this->userSession->getUser()->getUID();
 
+        // PKCE validation (RFC 7636)
+        if (!empty($code_challenge)) {
+            // Validate code_challenge format: 43-128 characters, unreserved chars only
+            if (!preg_match('/^[A-Za-z0-9._~-]{43,128}$/', $code_challenge)) {
+                $this->logger->notice('Invalid code_challenge format for client ' . $client_id . '.');
+                $url = $redirect_uri . '?error=invalid_request&error_description=Invalid%20code_challenge%20format&state=' . urlencode($state);
+                return new RedirectResponse($url);
+            }
+
+            // Default to S256 if method not specified
+            if (empty($code_challenge_method)) {
+                $code_challenge_method = 'S256';
+            }
+
+            // Validate code_challenge_method: only S256 and plain are allowed
+            if (!in_array($code_challenge_method, ['S256', 'plain'])) {
+                $this->logger->notice('Unsupported code_challenge_method for client ' . $client_id . ': ' . $code_challenge_method);
+                $url = $redirect_uri . '?error=invalid_request&error_description=Unsupported%20code_challenge_method&state=' . urlencode($state);
+                return new RedirectResponse($url);
+            }
+
+            $this->logger->debug('PKCE challenge received for client ' . $client_id . ' using method ' . $code_challenge_method);
+        }
+
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
@@ -342,6 +378,12 @@ class LoginRedirectorController extends ApiController
             $nonce = substr($nonce, 0, 256);
         }
         $accessToken->setNonce($nonce);
+
+        // Store PKCE challenge if provided
+        if (!empty($code_challenge)) {
+            $accessToken->setCodeChallenge(substr($code_challenge, 0, 128));
+            $accessToken->setCodeChallengeMethod(substr($code_challenge_method, 0, 16));
+        }
 
         try {
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
