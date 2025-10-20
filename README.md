@@ -10,6 +10,7 @@ This is the an OIDC App for Nextcloud. This application allows to use your Nextc
 Provided features:
 
 - Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow - Implicite Flow must be activated per client.
+- Support for PKCE.
 - Public and confidential types of clients are supported.
 - Creation of ID Token with claims based on requested scope. (Currently supported scopes openid, profile, email, roles and groups)
 - Supported signing algorithms RS256 (default) and HS256

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.10.0] - 2025-10-20
+
+### Added
+
+- Added PKCE support (thanks to @cbcoutinho)
+- Updated dependencies
+- Updated translations
+
 ## [1.9.0] - 2025-09-24
 
 ### Added
