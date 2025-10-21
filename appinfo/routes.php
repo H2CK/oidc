@@ -133,6 +133,21 @@ return [
             'verb' => 'GET',
         ],
         [
+            'name' => 'Consent#show',
+            'url' => '/consent',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'Consent#grant',
+            'url' => '/consent/grant',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Consent#deny',
+            'url' => '/consent/deny',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'OIDCApi#getToken',
             'url' => '/token',
             'verb' => 'POST'
@@ -165,6 +180,36 @@ return [
         [
             'name' => 'Cors#registerCorsResponse',
             'url' => '/register',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Introspection#introspectToken',
+            'url' => '/introspect',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'Cors#introspectionCorsResponse',
+            'url' => '/introspect',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'DynamicRegistration#getClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'DynamicRegistration#updateClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'PUT'
+        ],
+        [
+            'name' => 'DynamicRegistration#deleteClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'DELETE'
+        ],
+        [
+            'name' => 'Cors#clientManagementCorsResponse',
+            'url' => '/register/{clientId}',
             'verb' => 'OPTIONS',
         ],
         [
