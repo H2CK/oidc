@@ -168,22 +168,44 @@ export default {
 }
 </script>
 
+<style>
+/* Global styles to override Nextcloud page background */
+body:has(#oidc-consent) #content-wrapper,
+body:has(#oidc-consent) #content,
+body:has(#oidc-consent) .content-wrapper,
+body:has(#oidc-consent) {
+	background: transparent !important;
+}
+</style>
+
 <style scoped>
 #oidc-consent-container {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	min-height: 60vh;
 	padding: 20px;
+	box-sizing: border-box;
+	background: rgba(0, 0, 0, 0.5);
+	backdrop-filter: blur(3px);
+	z-index: 2000;
 }
 
 .consent-box {
 	max-width: 600px;
 	width: 100%;
+	max-height: calc(100vh - 40px);
+	display: flex;
+	flex-direction: column;
 	padding: 30px;
 	background: var(--color-main-background);
 	border-radius: var(--border-radius-large);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	box-sizing: border-box;
 }
 
 .consent-box h2 {
@@ -191,28 +213,39 @@ export default {
 	margin-bottom: 20px;
 	font-size: 24px;
 	text-align: center;
+	flex-shrink: 0;
 }
 
 .consent-intro {
-	margin-bottom: 30px;
+	margin-bottom: 20px;
 	text-align: center;
 	font-size: 16px;
 	line-height: 1.5;
+	flex-shrink: 0;
 }
 
 .consent-scopes {
-	margin-bottom: 30px;
+	margin-bottom: 20px;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
 }
 
 .consent-scopes h3 {
 	font-size: 18px;
 	margin-bottom: 15px;
+	flex-shrink: 0;
 }
 
 .scope-list {
 	display: flex;
 	flex-direction: column;
 	gap: 15px;
+	overflow-y: auto;
+	padding-right: 5px;
+	flex: 1;
+	min-height: 0;
 }
 
 .scope-item {
@@ -257,6 +290,7 @@ export default {
 	justify-content: space-between;
 	gap: 15px;
 	margin-bottom: 20px;
+	flex-shrink: 0;
 }
 
 .consent-actions button {
@@ -298,5 +332,6 @@ export default {
 	font-size: 12px;
 	color: var(--color-text-maxcontrast);
 	margin: 0;
+	flex-shrink: 0;
 }
 </style>

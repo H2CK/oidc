@@ -148,6 +148,16 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Consent#listUserConsents',
+            'url' => '/api/consents',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'Consent#revokeConsent',
+            'url' => '/api/consents/{clientId}',
+            'verb' => 'DELETE',
+        ],
+        [
             'name' => 'OIDCApi#getToken',
             'url' => '/token',
             'verb' => 'POST'

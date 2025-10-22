@@ -107,7 +107,7 @@ class ConsentController extends Controller {
             'clientId' => $clientId,
         ];
 
-        return new TemplateResponse('oidc', 'consent', $parameters);
+        return new TemplateResponse('oidc', 'consent', $parameters, TemplateResponse::RENDER_AS_USER);
     }
 
     /**
@@ -186,6 +186,65 @@ class ConsentController extends Controller {
         // Redirect back to authorize endpoint to complete the flow
         $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []);
         return new RedirectResponse($authorizeUrl);
+    }
+
+    /**
+     * @NoAdminRequired
+     *
+     * Get all consents for the current user
+     */
+    #[NoAdminRequired]
+    public function listUserConsents(): JSONResponse {
+        if (!$this->userSession->isLoggedIn()) {
+            return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
+        }
+
+        $uid = $this->userSession->getUser()->getUID();
+        $consents = $this->userConsentMapper->findByUserId($uid);
+
+        $result = [];
+        foreach ($consents as $consent) {
+            try {
+                $client = $this->clientMapper->getByUid($consent->getClientId());
+                $result[] = [
+                    'id' => $consent->getId(),
+                    'clientId' => $consent->getClientId(),
+                    'clientName' => $client->getName(),
+                    'clientIdentifier' => $client->getClientIdentifier(),
+                    'scopesGranted' => $consent->getScopesGranted(),
+                    'createdAt' => $consent->getCreatedAt(),
+                    'updatedAt' => $consent->getUpdatedAt(),
+                ];
+            } catch (\Exception $e) {
+                // Skip if client no longer exists
+                $this->logger->warning('Consent references non-existent client: ' . $consent->getClientId());
+            }
+        }
+
+        return new JSONResponse($result);
+    }
+
+    /**
+     * @NoAdminRequired
+     *
+     * Revoke a user consent
+     */
+    #[NoAdminRequired]
+    public function revokeConsent(int $clientId): JSONResponse {
+        if (!$this->userSession->isLoggedIn()) {
+            return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
+        }
+
+        $uid = $this->userSession->getUser()->getUID();
+
+        try {
+            $this->userConsentMapper->deleteByUserAndClient($uid, $clientId);
+            $this->logger->info('User ' . $uid . ' revoked consent for client ID: ' . $clientId);
+            return new JSONResponse(['success' => true]);
+        } catch (\Exception $e) {
+            $this->logger->error('Error revoking consent: ' . $e->getMessage());
+            return new JSONResponse(['error' => 'Failed to revoke consent'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
