@@ -171,6 +171,13 @@ class DiscoveryGenerator
             $discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);
         }
 
+        // Add token introspection endpoint
+        $discoveryPayload['introspection_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.Introspection.introspectToken', []);
+        $discoveryPayload['introspection_endpoint_auth_methods_supported'] = [
+            'client_secret_post',
+            'client_secret_basic'
+        ];
+
         // Add PKCE support to discovery endpoint
 		$discoveryPayload['code_challenge_methods_supported'] = ['S256', 'plain'];
 
