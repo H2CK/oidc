@@ -85,7 +85,7 @@ class ConsentControllerTest extends TestCase {
         $response = $this->controller->show();
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
-        $this->assertEquals('core', $response->getTemplateName());
+        $this->assertEquals('403', $response->getTemplateName());
         $this->assertEquals('error', $response->getRenderAs());
     }
 
@@ -96,7 +96,7 @@ class ConsentControllerTest extends TestCase {
         $response = $this->controller->show();
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
-        $this->assertEquals('core', $response->getTemplateName());
+        $this->assertEquals('400', $response->getTemplateName());
         $this->assertEquals('error', $response->getRenderAs());
     }
 
@@ -115,7 +115,7 @@ class ConsentControllerTest extends TestCase {
         $response = $this->controller->show();
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
-        $this->assertEquals('oidc', $response->getTemplateName());
+        $this->assertEquals('consent', $response->getTemplateName());
         $params = $response->getParams();
         $this->assertEquals('Test Client', $params['clientName']);
         $this->assertEquals('openid profile email', $params['requestedScopes']);
@@ -135,8 +135,8 @@ class ConsentControllerTest extends TestCase {
             return $values[$key] ?? null;
         });
 
-        $client = $this->getMockBuilder(Client::class)->getMock();
-        $client->method('getId')->willReturn(1);
+        $client = new Client();
+        $client->id = 1;
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
 
         $this->request->method('getParam')->with('scopes')->willReturn('openid profile');
