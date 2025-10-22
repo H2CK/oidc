@@ -370,6 +370,7 @@ class LoginRedirectorController extends ApiController
             // IMPORTANT: Preserve ALL OAuth parameters, not just consent-specific ones
             // These will be needed when redirecting back to authorize after consent
             $this->session->set('oidc_consent_pending', true);
+            $this->session->set('oidc_client_id', $client_id);
             $this->session->set('oidc_client_name', $client->getName());
             $this->session->set('oidc_requested_scopes', $scope);
             // Also preserve other OAuth parameters for post-consent redirect
