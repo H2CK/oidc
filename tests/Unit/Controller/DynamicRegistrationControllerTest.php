@@ -198,4 +198,137 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals($ts + 3600, $client['client_secret_expires_at']);
     }
 
+    public function testClientCreatedWithValidScope() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600']
+            ]);
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    return $arg;
+                }
+            );
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT',
+            'RS256',
+            ['code'],
+            'web',
+            'openid profile email custom:read custom:write'
+        );
+        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
+
+        $client = $result->getData();
+        $this->assertEquals('openid profile email custom:read custom:write', $client['scope']);
+    }
+
+    public function testClientCreatedWithNoScope() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600']
+            ]);
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    return $arg;
+                }
+            );
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT'
+        );
+        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
+
+        $client = $result->getData();
+        $this->assertEquals('', $client['scope']);
+    }
+
+    public function testScopeWithInvalidCharacters() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturn('true');
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT',
+            'RS256',
+            ['code'],
+            'web',
+            'openid profile email@invalid scope#bad'
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_scope', $result->getData()['error']);
+    }
+
+    public function testScopeTruncation() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600']
+            ]);
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    return $arg;
+                }
+            );
+
+        // Create a scope longer than 255 characters
+        $longScope = str_repeat('scope ', 60); // This creates a 360 character string
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT',
+            'RS256',
+            ['code'],
+            'web',
+            $longScope
+        );
+
+        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
+
+        $client = $result->getData();
+        // Verify scope was truncated to 255 characters
+        $this->assertEquals(255, strlen($client['scope']));
+    }
+
 }
