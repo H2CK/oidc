@@ -11,6 +11,7 @@ namespace OCA\OIDCIdentityProvider\Command\Clients;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\CliException;
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 
 use OCP\AppFramework\Services\IAppConfig;
 
@@ -110,6 +111,15 @@ class OIDCCreate extends Command {
 
   protected function execute(InputInterface $input, OutputInterface $output): int {
       try {
+          // Get token type from option or use configured default
+          $tokenType = $input->getOption('token_type');
+          if (empty($tokenType)) {
+              $tokenType = $this->appconf->getAppValueString(
+                  Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
+                  Application::DEFAULT_TOKEN_TYPE
+              );
+          }
+
           // create new client
           $client = new Client(
             $input->getArgument('name'),
@@ -117,7 +127,7 @@ class OIDCCreate extends Command {
             $input->getOption('algorithm'),
             $input->getOption('type'),
             $input->getOption('flow'),
-            $input->getOption('token_type'),
+            $tokenType,
             $input->getOption('allowed_scopes'),
             $input->getOption('email_regex')
           );
