@@ -165,7 +165,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
-                ['client_expire_time', '3600', '3600']
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
             ]);
 
         // Return max number of clients 1000
@@ -204,7 +205,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
-                ['client_expire_time', '3600', '3600']
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
             ]);
 
         // Return max number of clients 100
@@ -240,7 +242,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
-                ['client_expire_time', '3600', '3600']
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
             ]);
 
         // Return max number of clients 100
@@ -296,7 +299,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
-                ['client_expire_time', '3600', '3600']
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
             ]);
 
         // Return max number of clients 100
