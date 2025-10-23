@@ -615,7 +615,12 @@ export default {
 					allowedScopes,
 				},
 			).then(response => {
-				// Nothing to do
+				// Update local clients list with response data
+				this.localClients.splice(0, this.localClients.length)
+				for (const entry of response.data) {
+					this.localClients.push(entry)
+				}
+				this.version += 1
 			}).catch(reason => {
 				this.error = true
 				this.errorMsg = reason

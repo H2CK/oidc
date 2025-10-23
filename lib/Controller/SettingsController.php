@@ -222,15 +222,60 @@ class SettingsController extends Controller
     {
         $allowedScopes = trim($allowedScopes);
         $allowedScopes = mb_substr($allowedScopes, 0, 255);
-        if (!preg_match('/^[a-zA-Z0-9 _-]*$/u', $allowedScopes)) {
-             return new JSONResponse(['error' => 'Not allowed characters were used.']);
+        // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
+        // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
+        if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $allowedScopes)) {
+             return new JSONResponse(['error' => 'Scope contains invalid characters. Allowed: alphanumeric, spaces, underscores, hyphens, colons, periods, and forward slashes.']);
          }
 
         $this->logger->debug("Updating allowedScopes for client " . $id . " with value " .$allowedScopes);
         $client = $this->clientMapper->getByUid($id);
         $client->setAllowedScopes($allowedScopes);
         $this->clientMapper->update($client);
-        return new JSONResponse([]);
+
+        // Return updated clients list to refresh UI
+        $clients = $this->clientMapper->getClients();
+        $result = [];
+
+        foreach ($clients as $client) {
+            $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+            $resultRedirectUris = [];
+            foreach ($redirectUris as $redirectUri) {
+                $resultRedirectUris[] = [
+                    'id' => $redirectUri->getId(),
+                    'client_id' => $redirectUri->getClientId(),
+                    'redirect_uri' => $redirectUri->getRedirectUri(),
+                ];
+            }
+
+            $groups = $this->groupMapper->getGroupsByClientId($client->getId());
+            $resultGroups = [];
+            foreach ($groups as $group) {
+                array_push($resultGroups, $group->getGroupId());
+            }
+            $flowTypeLabel = $this->l->t(SettingsController::CODE_AUTHORIZATION_FLOW);
+            $responseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
+            if (in_array('id_token', $responseTypeEntries)) {
+                $flowTypeLabel = $this->l->t(SettingsController::CODE_IMPLICIT_AUTHORIZATION_FLOW);
+            }
+
+            $result[] = [
+                'id' => $client->getId(),
+                'name' => $client->getName(),
+                'redirectUris' => $resultRedirectUris,
+                'clientId' => $client->getClientIdentifier(),
+                'clientSecret' => $client->getSecret(),
+                'signingAlg' => $client->getSigningAlg(),
+                'type' => $client->getType(),
+                'flowType' => $client->getFlowType(),
+                'flowTypeLabel' => $flowTypeLabel,
+                'groups' => $resultGroups,
+                'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+                'allowedScopes' => $client->getAllowedScopes(),
+                'emailRegex' => $client->getEmailRegex(),
+            ];
+        }
+        return new JSONResponse($result);
     }
 
         public function updateEmailRegex(
