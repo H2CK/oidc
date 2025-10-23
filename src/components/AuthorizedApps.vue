@@ -251,10 +251,16 @@ export default {
 				this.modalSelectedScopes.push('openid')
 			}
 
+			console.log('[savePermissions] Saving scopes:', this.modalSelectedScopes)
+			console.log('[savePermissions] Client ID:', this.editingConsent.clientId)
+
 			this.saving = true
 
 			try {
 				const url = generateUrl('/apps/oidc/api/consents/' + this.editingConsent.clientId + '/scopes')
+				console.log('[savePermissions] Sending PATCH to:', url)
+				console.log('[savePermissions] Request body:', JSON.stringify({ scopes: this.modalSelectedScopes }))
+
 				const response = await fetch(url, {
 					method: 'PATCH',
 					headers: {

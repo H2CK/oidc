@@ -284,14 +284,22 @@ class ConsentController extends Controller {
 
         // Get scopes from request
         $scopes = $this->request->getParam('scopes');
+        $this->logger->info('[updateScopes] Received scope update - raw param: ' . json_encode($scopes) . ' (type: ' . gettype($scopes) . ')');
+
         if (!is_array($scopes)) {
+            $this->logger->error('[updateScopes] Invalid scopes format - not an array');
             return new JSONResponse(['error' => 'Invalid scopes format'], Http::STATUS_BAD_REQUEST);
         }
+
+        $this->logger->info('[updateScopes] Scopes array received: ' . json_encode($scopes) . ' (count: ' . count($scopes) . ')');
 
         // Ensure openid is always included (mandatory scope)
         if (!in_array('openid', $scopes)) {
             $scopes[] = 'openid';
+            $this->logger->info('[updateScopes] Added openid scope');
         }
+
+        $this->logger->info('[updateScopes] Final scopes array: ' . json_encode($scopes));
 
         // Get the client to validate allowed scopes
         try {
