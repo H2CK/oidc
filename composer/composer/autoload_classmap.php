@@ -18,6 +18,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\Controller\\CorsController' => $baseDir . '/../lib/Controller/CorsController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\DiscoveryController' => $baseDir . '/../lib/Controller/DiscoveryController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\DynamicRegistrationController' => $baseDir . '/../lib/Controller/DynamicRegistrationController.php',
+    'OCA\\OIDCIdentityProvider\\Controller\\IntrospectionController' => $baseDir . '/../lib/Controller/IntrospectionController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => $baseDir . '/../lib/Controller/JwksController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LoginRedirectorController' => $baseDir . '/../lib/Controller/LoginRedirectorController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => $baseDir . '/../lib/Controller/LogoutController.php',

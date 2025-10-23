@@ -33,6 +33,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Controller\\CorsController' => __DIR__ . '/..' . '/../lib/Controller/CorsController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\DiscoveryController' => __DIR__ . '/..' . '/../lib/Controller/DiscoveryController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\DynamicRegistrationController' => __DIR__ . '/..' . '/../lib/Controller/DynamicRegistrationController.php',
+        'OCA\\OIDCIdentityProvider\\Controller\\IntrospectionController' => __DIR__ . '/..' . '/../lib/Controller/IntrospectionController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => __DIR__ . '/..' . '/../lib/Controller/JwksController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\LoginRedirectorController' => __DIR__ . '/..' . '/../lib/Controller/LoginRedirectorController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => __DIR__ . '/..' . '/../lib/Controller/LogoutController.php',
