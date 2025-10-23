@@ -321,19 +321,23 @@ class ConsentController extends Controller {
             return new JSONResponse(['error' => 'Consent not found'], Http::STATUS_NOT_FOUND);
         }
 
+        // Log before update
+        $oldScopes = $consent->getScopesGranted();
+        $this->logger->info('Updating scopes for user ' . $uid . ', client ' . $clientId . ': ' . $oldScopes . ' -> ' . implode(' ', $scopes));
+
         // Update scopes
         $scopesString = implode(' ', $scopes);
         $consent->setScopesGranted($scopesString);
         $consent->setUpdatedAt($this->time->getTime());
 
         try {
-            $this->userConsentMapper->createOrUpdate($consent);
-            $this->logger->info('User ' . $uid . ' updated scopes for client ID ' . $clientId . ' to: ' . $scopesString);
+            $updatedConsent = $this->userConsentMapper->createOrUpdate($consent);
+            $this->logger->info('Successfully updated scopes. DB now has: ' . $updatedConsent->getScopesGranted());
 
             return new JSONResponse([
                 'success' => true,
-                'scopesGranted' => $scopesString,
-                'updatedAt' => $consent->getUpdatedAt()
+                'scopesGranted' => $updatedConsent->getScopesGranted(),
+                'updatedAt' => $updatedConsent->getUpdatedAt()
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Error updating consent scopes: ' . $e->getMessage());

@@ -29,32 +29,78 @@
 					</p>
 					<div class="scopes">
 						<strong>{{ t('oidc', 'Permissions:') }}</strong>
-						<div class="scope-toggles">
-							<label
-								v-for="scope in getAllowedScopes(consent)"
+						<div class="scope-badges">
+							<span
+								v-for="scope in getScopes(consent.scopesGranted)"
 								:key="scope"
-								class="scope-toggle"
-								:class="{ updating: updatingScopes[consent.clientId] }">
-								<input
-									type="checkbox"
-									:checked="isScopeGranted(consent, scope)"
-									:disabled="scope === 'openid' || updatingScopes[consent.clientId]"
-									@change="toggleScope(consent, scope, $event.target.checked)">
-								<span :class="{ mandatory: scope === 'openid' }">{{ scope }}</span>
-							</label>
+								class="scope-badge"
+								:class="{ mandatory: scope === 'openid' }">
+								{{ scope }}
+							</span>
 						</div>
 					</div>
 					<p class="date">
 						{{ t('oidc', 'Authorized on:') }} {{ formatDate(consent.createdAt) }}
 					</p>
 				</div>
-				<button
-					class="button secondary"
-					:disabled="revoking === consent.clientId"
-					@click="revokeAccess(consent.clientId, consent.clientName)">
-					<span v-if="revoking === consent.clientId" class="icon-loading-small"></span>
-					<span v-else>{{ t('oidc', 'Revoke Access') }}</span>
-				</button>
+				<div class="consent-actions">
+					<button
+						class="button"
+						@click="openModifyModal(consent)">
+						{{ t('oidc', 'Modify Permissions') }}
+					</button>
+					<button
+						class="button secondary"
+						:disabled="revoking === consent.clientId"
+						@click="revokeAccess(consent.clientId, consent.clientName)">
+						<span v-if="revoking === consent.clientId" class="icon-loading-small"></span>
+						<span v-else>{{ t('oidc', 'Revoke Access') }}</span>
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modify Permissions Modal -->
+		<div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h3>{{ t('oidc', 'Modify Permissions') }}</h3>
+					<button class="close-button" @click="closeModal">&times;</button>
+				</div>
+				<div class="modal-body">
+					<p class="modal-client-name">{{ editingConsent ? editingConsent.clientName : '' }}</p>
+					<p class="modal-description">
+						{{ t('oidc', 'Select the permissions you want to grant to this application:') }}
+					</p>
+					<div class="scope-list">
+						<label
+							v-for="scope in modalScopes"
+							:key="scope"
+							class="scope-checkbox-label">
+							<input
+								type="checkbox"
+								:checked="modalSelectedScopes.includes(scope)"
+								:disabled="scope === 'openid'"
+								@change="toggleModalScope(scope, $event.target.checked)">
+							<span :class="{ mandatory: scope === 'openid' }">
+								{{ scope }}
+								<span v-if="scope === 'openid'" class="mandatory-note">({{ t('oidc', 'required') }})</span>
+							</span>
+						</label>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="button secondary" @click="closeModal">
+						{{ t('oidc', 'Cancel') }}
+					</button>
+					<button
+						class="button primary"
+						:disabled="saving"
+						@click="savePermissions">
+						<span v-if="saving" class="icon-loading-small"></span>
+						<span v-else>{{ t('oidc', 'Save') }}</span>
+					</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -71,7 +117,11 @@ export default {
 			consents: [],
 			loading: true,
 			revoking: null,
-			updatingScopes: {}, // Track which consent is being updated
+			showModal: false,
+			editingConsent: null,
+			modalScopes: [],
+			modalSelectedScopes: [],
+			saving: false,
 		}
 	},
 	mounted() {
@@ -80,6 +130,7 @@ export default {
 	methods: {
 		t,
 		async loadConsents() {
+			console.log('[loadConsents] Loading consents...')
 			this.loading = true
 			try {
 				const response = await fetch(generateUrl('/apps/oidc/api/consents'), {
@@ -90,15 +141,16 @@ export default {
 
 				if (!response.ok) {
 					const text = await response.text()
-					console.error('API Error:', response.status, text)
+					console.error('[loadConsents] API Error:', response.status, text)
 					OC.Notification.showTemporary(t('oidc', 'Failed to load authorized applications') + ': ' + response.status)
 					return
 				}
 
 				const data = await response.json()
+				console.log('[loadConsents] Loaded consents:', data)
 				this.consents = data
 			} catch (error) {
-				console.error('Error loading consents:', error)
+				console.error('[loadConsents] Exception:', error)
 				OC.Notification.showTemporary(t('oidc', 'Failed to load authorized applications') + ': ' + error.message)
 			} finally {
 				this.loading = false
@@ -135,67 +187,73 @@ export default {
 		getScopes(scopesString) {
 			return scopesString.split(' ').filter(s => s.trim())
 		},
-		getAllowedScopes(consent) {
-			// Return all scopes allowed by the client
-			if (consent.allowedScopes) {
-				return consent.allowedScopes.split(' ').filter(s => s.trim())
-			}
-			// Fallback to granted scopes if allowedScopes not available
-			return this.getScopes(consent.scopesGranted)
+		openModifyModal(consent) {
+			this.editingConsent = consent
+			// Get all allowed scopes for this client
+			this.modalScopes = consent.allowedScopes ? consent.allowedScopes.split(' ').filter(s => s.trim()) : []
+			// Pre-select currently granted scopes
+			this.modalSelectedScopes = [...this.getScopes(consent.scopesGranted)]
+			this.showModal = true
 		},
-		isScopeGranted(consent, scope) {
-			const grantedScopes = this.getScopes(consent.scopesGranted)
-			return grantedScopes.includes(scope)
+		closeModal() {
+			this.showModal = false
+			this.editingConsent = null
+			this.modalScopes = []
+			this.modalSelectedScopes = []
 		},
-		async toggleScope(consent, scope, checked) {
-			// Get current scopes
-			const currentScopes = this.getScopes(consent.scopesGranted)
-
-			// Calculate new scopes based on checkbox state
-			let newScopes
+		toggleModalScope(scope, checked) {
 			if (checked) {
-				// Add scope if not already present
-				if (!currentScopes.includes(scope)) {
-					newScopes = [...currentScopes, scope]
-				} else {
-					return // Already present, nothing to do
+				// Add scope if not already selected
+				if (!this.modalSelectedScopes.includes(scope)) {
+					this.modalSelectedScopes.push(scope)
 				}
 			} else {
 				// Remove scope
-				newScopes = currentScopes.filter(s => s !== scope)
+				this.modalSelectedScopes = this.modalSelectedScopes.filter(s => s !== scope)
+			}
+		},
+		async savePermissions() {
+			if (!this.editingConsent) return
+
+			// Ensure openid is always included
+			if (!this.modalSelectedScopes.includes('openid')) {
+				this.modalSelectedScopes.push('openid')
 			}
 
-			// Set updating state
-			this.$set(this.updatingScopes, consent.clientId, true)
+			this.saving = true
 
 			try {
-				const response = await fetch(generateUrl('/apps/oidc/api/consents/' + consent.clientId + '/scopes'), {
+				const url = generateUrl('/apps/oidc/api/consents/' + this.editingConsent.clientId + '/scopes')
+				const response = await fetch(url, {
 					method: 'PATCH',
 					headers: {
 						'Content-Type': 'application/json',
 						requesttoken: OC.requestToken,
 					},
-					body: JSON.stringify({ scopes: newScopes }),
+					body: JSON.stringify({ scopes: this.modalSelectedScopes }),
 				})
 
 				if (response.ok) {
 					const data = await response.json()
-					// Update the consent with new scopes
-					consent.scopesGranted = data.scopesGranted
-					OC.Notification.showTemporary(t('oidc', 'Permissions updated'))
+
+					// Update the consent in the list
+					const consentIndex = this.consents.findIndex(c => c.clientId === this.editingConsent.clientId)
+					if (consentIndex !== -1) {
+						this.consents[consentIndex].scopesGranted = data.scopesGranted
+						this.consents[consentIndex].updatedAt = data.updatedAt
+					}
+
+					OC.Notification.showTemporary(t('oidc', 'Permissions updated successfully'))
+					this.closeModal()
 				} else {
 					const error = await response.json()
 					OC.Notification.showTemporary(t('oidc', 'Failed to update permissions') + ': ' + (error.error || response.status))
-					// Revert checkbox state by reloading
-					this.loadConsents()
 				}
 			} catch (error) {
-				console.error('Error updating scopes:', error)
+				console.error('Error updating permissions:', error)
 				OC.Notification.showTemporary(t('oidc', 'Failed to update permissions'))
-				// Revert checkbox state by reloading
-				this.loadConsents()
 			} finally {
-				this.$set(this.updatingScopes, consent.clientId, false)
+				this.saving = false
 			}
 		},
 		formatScopes(scopesString) {
@@ -296,39 +354,31 @@ export default {
 	font-size: 14px;
 }
 
-.scope-toggles {
+.scope-badges {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 10px;
+	gap: 8px;
 	margin-top: 8px;
 }
 
-.scope-toggle {
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-	cursor: pointer;
-	padding: 4px 8px;
-	border-radius: 3px;
+.scope-badge {
+	display: inline-block;
+	padding: 4px 10px;
+	border-radius: 12px;
 	background: var(--color-background-dark);
-	transition: opacity 0.2s;
+	font-size: 13px;
+	border: 1px solid var(--color-border);
 }
 
-.scope-toggle.updating {
-	opacity: 0.6;
-	cursor: wait;
-}
-
-.scope-toggle input[type="checkbox"] {
-	cursor: pointer;
-}
-
-.scope-toggle input[type="checkbox"]:disabled {
-	cursor: not-allowed;
-}
-
-.scope-toggle span.mandatory {
+.scope-badge.mandatory {
 	font-weight: bold;
+}
+
+.consent-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: stretch;
 }
 
 .consent-info .date {
@@ -348,5 +398,133 @@ button {
 button:disabled {
 	opacity: 0.6;
 	cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 10000;
+}
+
+.modal-content {
+	background: var(--color-main-background);
+	border-radius: var(--border-radius-large);
+	box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+	max-width: 500px;
+	width: 90%;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+}
+
+.modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 20px;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h3 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+.close-button {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	color: var(--color-text-maxcontrast);
+	padding: 0;
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.close-button:hover {
+	color: var(--color-main-text);
+	background: var(--color-background-hover);
+	border-radius: 50%;
+}
+
+.modal-body {
+	padding: 20px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.modal-client-name {
+	font-weight: bold;
+	font-size: 16px;
+	margin: 0 0 10px 0;
+}
+
+.modal-description {
+	color: var(--color-text-maxcontrast);
+	margin: 0 0 20px 0;
+}
+
+.scope-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.scope-checkbox-label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	cursor: pointer;
+	padding: 10px;
+	border-radius: var(--border-radius);
+	transition: background 0.2s;
+}
+
+.scope-checkbox-label:hover {
+	background: var(--color-background-hover);
+}
+
+.scope-checkbox-label input[type="checkbox"] {
+	cursor: pointer;
+	margin: 0;
+}
+
+.scope-checkbox-label input[type="checkbox"]:disabled {
+	cursor: not-allowed;
+}
+
+.scope-checkbox-label span.mandatory {
+	font-weight: bold;
+}
+
+.mandatory-note {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	font-weight: normal;
+	margin-left: 5px;
+}
+
+.modal-footer {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	padding: 20px;
+	border-top: 1px solid var(--color-border);
+}
+
+.modal-footer button {
+	padding: 10px 20px;
 }
 </style>
