@@ -161,7 +161,7 @@ class IntrospectionControllerTest extends TestCase {
     }
 
     public function testValidTokenIntrospection() {
-        // Setup valid client credentials
+        // Setup valid client credentials - client owns the token
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
@@ -180,6 +180,7 @@ class IntrospectionControllerTest extends TestCase {
         $accessToken->setUserId('user1');
         $accessToken->setClientId(1);
         $accessToken->setScope('openid profile email');
+        $accessToken->setResource('https://resource.example.com');
 
         $this->accessTokenMapper
             ->method('getByAccessToken')
@@ -201,7 +202,7 @@ class IntrospectionControllerTest extends TestCase {
             ->method('get')
             ->willReturn($user);
 
-        // Mock token client
+        // Mock token client - same as requesting client (client owns token)
         $tokenClient = new Client('token-client', ['https://app.org'], 'RS256');
         $tokenClient->setClientIdentifier('client123');
 
@@ -219,6 +220,120 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertEquals('user1', $data['username']);
         $this->assertEquals('Bearer', $data['token_type']);
         $this->assertEquals('user1', $data['sub']);
+    }
+
+    public function testTokenIntrospectionAsResourceServer() {
+        // Setup client credentials for resource server
+        $resourceClient = new Client('resource-server', ['https://resource.example.com'], 'RS256');
+        $resourceClient->setSecret('resource-secret');
+        $resourceClient->setClientIdentifier('resource-server-id');
+
+        $this->request
+            ->method('getHeader')
+            ->willReturn('Basic ' . base64_encode('resource-server:resource-secret'));
+
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->willReturn($resourceClient);
+
+        // Create a valid token with resource matching the requesting client
+        $accessToken = new AccessToken();
+        $accessToken->setCreated(1000000);
+        $accessToken->setUserId('user1');
+        $accessToken->setClientId(1);
+        $accessToken->setScope('openid profile email');
+        $accessToken->setResource('resource-server-id'); // Matches requesting client
+
+        $this->accessTokenMapper
+            ->method('getByAccessToken')
+            ->willReturn($accessToken);
+
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturn('900');
+
+        $this->time
+            ->method('getTime')
+            ->willReturn(1000500);
+
+        // Mock user
+        $user = $this->getMockBuilder(IUser::class)->getMock();
+        $user->method('getUID')->willReturn('user1');
+
+        $this->userManager
+            ->method('get')
+            ->willReturn($user);
+
+        // Mock token client - different from requesting client
+        $tokenClient = new Client('token-owner', ['https://app.org'], 'RS256');
+        $tokenClient->setClientIdentifier('client123');
+
+        $this->clientMapper
+            ->method('getByUid')
+            ->willReturn($tokenClient);
+
+        $result = $this->controller->introspectToken('valid_token');
+
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $data = $result->getData();
+        $this->assertTrue($data['active']);
+    }
+
+    public function testTokenIntrospectionDeniedWrongAudience() {
+        // Setup client credentials for unauthorized client
+        $unauthorizedClient = new Client('unauthorized-client', ['https://evil.com'], 'RS256');
+        $unauthorizedClient->setSecret('evil-secret');
+        $unauthorizedClient->setClientIdentifier('evil-client-id');
+
+        $this->request
+            ->method('getHeader')
+            ->willReturn('Basic ' . base64_encode('unauthorized-client:evil-secret'));
+
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->willReturn($unauthorizedClient);
+
+        // Create a valid token with different resource and client
+        $accessToken = new AccessToken();
+        $accessToken->setCreated(1000000);
+        $accessToken->setUserId('user1');
+        $accessToken->setClientId(1);
+        $accessToken->setScope('openid profile email');
+        $accessToken->setResource('different-resource-server'); // Does not match requesting client
+
+        $this->accessTokenMapper
+            ->method('getByAccessToken')
+            ->willReturn($accessToken);
+
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturn('900');
+
+        $this->time
+            ->method('getTime')
+            ->willReturn(1000500);
+
+        // Mock user
+        $user = $this->getMockBuilder(IUser::class)->getMock();
+        $user->method('getUID')->willReturn('user1');
+
+        $this->userManager
+            ->method('get')
+            ->willReturn($user);
+
+        // Mock token client - different from requesting client
+        $tokenClient = new Client('token-owner', ['https://app.org'], 'RS256');
+        $tokenClient->setClientIdentifier('legitimate-client-id');
+
+        $this->clientMapper
+            ->method('getByUid')
+            ->willReturn($tokenClient);
+
+        $result = $this->controller->introspectToken('valid_token');
+
+        // Should return inactive to not reveal token exists
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $this->assertFalse($result->getData()['active']);
     }
 
     public function testClientAuthenticationWithPostBody() {

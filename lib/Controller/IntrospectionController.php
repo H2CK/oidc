@@ -89,7 +89,8 @@ class IntrospectionController extends ApiController
 
         try {
             $client = $this->clientMapper->getByIdentifier($clientId);
-            if ($client->getSecret() === $clientSecret) {
+            // Use constant-time comparison to prevent timing attacks
+            if (hash_equals($client->getSecret(), $clientSecret)) {
                 return $client;
             }
         } catch (\Exception $e) {
@@ -113,15 +114,31 @@ class IntrospectionController extends ApiController
         string $token = '',
         string|null $token_type_hint = null
     ): JSONResponse {
+        // Log introspection attempt
+        $this->logger->info('Token introspection attempt received', [
+            'token_hint' => $token_type_hint,
+            'has_token' => !empty($token),
+            'remote_addr' => $this->request->getRemoteAddress(),
+            'user_agent' => $this->request->getHeader('User-Agent')
+        ]);
+
         // Authenticate the client
         $client = $this->authenticateClient();
         if ($client === null) {
-            $this->logger->info('Token introspection failed: invalid client credentials');
+            $this->logger->warning('Token introspection failed: invalid client credentials', [
+                'remote_addr' => $this->request->getRemoteAddress(),
+                'attempted_client_id' => $this->request->getParam('client_id') ?? 'unknown'
+            ]);
             return new JSONResponse([
                 'error' => 'invalid_client',
                 'error_description' => 'Client authentication failed.'
             ], Http::STATUS_UNAUTHORIZED);
         }
+
+        $this->logger->info('Client authenticated for introspection', [
+            'client_id' => $client->getClientIdentifier(),
+            'client_name' => $client->getName()
+        ]);
 
         // Validate token parameter
         if (empty($token)) {
@@ -136,7 +153,10 @@ class IntrospectionController extends ApiController
             $accessToken = $this->accessTokenMapper->getByAccessToken($token);
         } catch (\Exception $e) {
             // Token not found - return inactive
-            $this->logger->debug('Token not found during introspection');
+            $this->logger->info('Token not found during introspection', [
+                'client_id' => $client->getClientIdentifier(),
+                'token_prefix' => substr($token, 0, 8) . '...'
+            ]);
             return new JSONResponse(['active' => false]);
         }
 
@@ -146,7 +166,12 @@ class IntrospectionController extends ApiController
         $currentTime = $this->time->getTime();
 
         if ($currentTime > $tokenExpiryTime) {
-            $this->logger->debug('Token expired during introspection');
+            $this->logger->info('Token expired during introspection', [
+                'client_id' => $client->getClientIdentifier(),
+                'token_created' => $accessToken->getCreated(),
+                'token_expired_at' => $tokenExpiryTime,
+                'current_time' => $currentTime
+            ]);
             return new JSONResponse(['active' => false]);
         }
 
@@ -165,6 +190,53 @@ class IntrospectionController extends ApiController
             return new JSONResponse(['active' => false]);
         }
 
+        // Authorization check: Only allow introspection if the requesting client
+        // is the intended audience (resource server) for this token
+        $tokenResource = $accessToken->getResource();
+        $requestingClientId = $client->getClientIdentifier();
+
+        // Allow introspection if:
+        // 1. The requesting client matches the token's resource (intended audience)
+        // 2. The requesting client owns the token (issued to them)
+        $isAuthorized = false;
+
+        if (!empty($tokenResource) && $tokenResource === $requestingClientId) {
+            // Client is the intended resource server
+            $isAuthorized = true;
+            $this->logger->info(
+                'Token introspection authorized: requesting client is token audience',
+                [
+                    'requesting_client' => $requestingClientId,
+                    'token_resource' => $tokenResource,
+                    'token_owner_client' => $tokenClient->getClientIdentifier()
+                ]
+            );
+        } elseif ($tokenClient->getClientIdentifier() === $requestingClientId) {
+            // Client owns the token
+            $isAuthorized = true;
+            $this->logger->info(
+                'Token introspection authorized: requesting client owns the token',
+                [
+                    'requesting_client' => $requestingClientId,
+                    'token_resource' => $tokenResource
+                ]
+            );
+        }
+
+        if (!$isAuthorized) {
+            $this->logger->warning(
+                'Token introspection denied: requesting client not authorized',
+                [
+                    'requesting_client' => $requestingClientId,
+                    'token_resource' => $tokenResource,
+                    'token_owner_client' => $tokenClient->getClientIdentifier(),
+                    'user_id' => $accessToken->getUserId()
+                ]
+            );
+            // Return inactive per RFC 7662 Section 2.2 - don't reveal token exists
+            return new JSONResponse(['active' => false]);
+        }
+
         // Build successful response
         $response = [
             'active' => true,
@@ -178,7 +250,13 @@ class IntrospectionController extends ApiController
             'aud' => $tokenClient->getClientIdentifier()
         ];
 
-        $this->logger->info('Token introspection successful for client: ' . $client->getClientIdentifier());
+        $this->logger->info('Token introspection successful', [
+            'requesting_client' => $client->getClientIdentifier(),
+            'token_owner_client' => $tokenClient->getClientIdentifier(),
+            'user_id' => $accessToken->getUserId(),
+            'scopes' => $accessToken->getScope(),
+            'token_resource' => $tokenResource
+        ]);
 
         $jsonResponse = new JSONResponse($response);
         $jsonResponse->addHeader('Access-Control-Allow-Origin', '*');
