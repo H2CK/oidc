@@ -183,8 +183,16 @@ class ConsentController extends Controller {
         // Clear consent pending flag (but keep OIDC params for authorize to continue)
         $this->session->set('oidc_consent_pending', false);
 
+        // Update the scope in session to use granted scopes instead of requested
+        $this->session->set('oidc_scope', $grantedScopes);
+
         // Redirect back to authorize endpoint to complete the flow
-        $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []);
+        // LoginRedirectorController will read all parameters from session (fallback mechanism)
+        // We only pass client_id and scope in URL, others will be read from session
+        $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', [
+            'client_id' => $this->session->get('oidc_client_id'),
+            'scope' => $grantedScopes,
+        ]);
         return new RedirectResponse($authorizeUrl);
     }
 

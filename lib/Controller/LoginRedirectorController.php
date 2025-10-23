@@ -367,9 +367,19 @@ class LoginRedirectorController extends ApiController
 
         if ($consentRequired) {
             // Store authorization request parameters in session for consent page
+            // IMPORTANT: Preserve ALL OAuth parameters, not just consent-specific ones
+            // These will be needed when redirecting back to authorize after consent
             $this->session->set('oidc_consent_pending', true);
             $this->session->set('oidc_client_name', $client->getName());
             $this->session->set('oidc_requested_scopes', $scope);
+            // Also preserve other OAuth parameters for post-consent redirect
+            $this->session->set('oidc_state', $state);
+            $this->session->set('oidc_response_type', $response_type);
+            $this->session->set('oidc_redirect_uri', $redirect_uri);
+            $this->session->set('oidc_nonce', $nonce);
+            $this->session->set('oidc_resource', $resource);
+            $this->session->set('oidc_code_challenge', $code_challenge);
+            $this->session->set('oidc_code_challenge_method', $code_challenge_method);
 
             // Redirect to consent page
             $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', []);
