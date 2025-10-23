@@ -89,6 +89,7 @@ class TokenValidationRequestListener implements IEventListener {
             ],
         ];
 
+        $decodedJwt = null;
         try {
             $decodedStdClass = JWT::decode($tokenString, JWK::parseKeySet($jwks));
             $decodedJwt = (array) $decodedStdClass;
@@ -122,6 +123,7 @@ class TokenValidationRequestListener implements IEventListener {
         if ($decodedJwt === null) {
             $this->logger->error('Provided JWT could not be decoded.');
             $event->setIsValid(false);
+            return;
         }
 
         // check audience
