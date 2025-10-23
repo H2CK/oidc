@@ -31,9 +31,13 @@
 						<strong>{{ t('oidc', 'Permissions:') }}</strong>
 						<div class="scope-badges">
 							<span
-								v-for="scope in getScopes(consent.scopesGranted)"
+								v-for="scope in getAllowedScopes(consent)"
 								:key="scope"
-								class="scope-badge">
+								class="scope-badge"
+								:class="{
+									active: isScopeGranted(consent, scope),
+									inactive: !isScopeGranted(consent, scope),
+								}">
 								{{ scope }}
 							</span>
 						</div>
@@ -131,6 +135,18 @@ export default {
 		},
 		getScopes(scopesString) {
 			return scopesString.split(' ').filter(s => s.trim())
+		},
+		getAllowedScopes(consent) {
+			// Return all scopes allowed by the client
+			if (consent.allowedScopes) {
+				return consent.allowedScopes.split(' ').filter(s => s.trim())
+			}
+			// Fallback to granted scopes if allowedScopes not available
+			return this.getScopes(consent.scopesGranted)
+		},
+		isScopeGranted(consent, scope) {
+			const grantedScopes = this.getScopes(consent.scopesGranted)
+			return grantedScopes.includes(scope)
 		},
 		formatScopes(scopesString) {
 			const scopeLabels = {
@@ -242,9 +258,21 @@ export default {
 	padding: 4px 10px;
 	border-radius: 12px;
 	font-size: 13px;
+	transition: all 0.2s ease;
+}
+
+.scope-badge.active {
 	background: var(--color-primary-element-light);
-	border: 1px solid var(--color-primary-element);
+	border: 2px solid var(--color-primary-element);
 	color: var(--color-main-text);
+	font-weight: 500;
+}
+
+.scope-badge.inactive {
+	background: var(--color-background-dark);
+	border: 1px solid var(--color-border);
+	color: var(--color-text-maxcontrast);
+	opacity: 0.7;
 }
 
 .consent-actions {
