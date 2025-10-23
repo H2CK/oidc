@@ -31,13 +31,13 @@
 						<strong>{{ t('oidc', 'Permissions:') }}</strong>
 						<div class="scope-toggles">
 							<label
-								v-for="scope in getScopes(consent.scopesGranted)"
+								v-for="scope in getAllowedScopes(consent)"
 								:key="scope"
 								class="scope-toggle"
 								:class="{ updating: updatingScopes[consent.clientId] }">
 								<input
 									type="checkbox"
-									:checked="true"
+									:checked="isScopeGranted(consent, scope)"
 									:disabled="scope === 'openid' || updatingScopes[consent.clientId]"
 									@change="toggleScope(consent, scope, $event.target.checked)">
 								<span :class="{ mandatory: scope === 'openid' }">{{ scope }}</span>
@@ -134,6 +134,18 @@ export default {
 		},
 		getScopes(scopesString) {
 			return scopesString.split(' ').filter(s => s.trim())
+		},
+		getAllowedScopes(consent) {
+			// Return all scopes allowed by the client
+			if (consent.allowedScopes) {
+				return consent.allowedScopes.split(' ').filter(s => s.trim())
+			}
+			// Fallback to granted scopes if allowedScopes not available
+			return this.getScopes(consent.scopesGranted)
+		},
+		isScopeGranted(consent, scope) {
+			const grantedScopes = this.getScopes(consent.scopesGranted)
+			return grantedScopes.includes(scope)
 		},
 		async toggleScope(consent, scope, checked) {
 			// Get current scopes
@@ -317,7 +329,6 @@ export default {
 
 .scope-toggle span.mandatory {
 	font-weight: bold;
-	color: var(--color-primary);
 }
 
 .consent-info .date {

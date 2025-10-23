@@ -233,6 +233,7 @@ class ConsentController extends Controller {
                     'clientName' => $client->getName(),
                     'clientIdentifier' => $client->getClientIdentifier(),
                     'scopesGranted' => $consent->getScopesGranted(),
+                    'allowedScopes' => $client->getAllowedScopes(),
                     'createdAt' => $consent->getCreatedAt(),
                     'updatedAt' => $consent->getUpdatedAt(),
                 ];
@@ -313,10 +314,10 @@ class ConsentController extends Controller {
         }
 
         // Get existing consent
-        try {
-            $consent = $this->userConsentMapper->findByUserAndClient($uid, $clientId);
-        } catch (\Exception $e) {
-            $this->logger->error('Consent not found for update: ' . $e->getMessage());
+        $consent = $this->userConsentMapper->findByUserAndClient($uid, $clientId);
+
+        if ($consent === null) {
+            $this->logger->error('Consent not found for update - user: ' . $uid . ', client: ' . $clientId);
             return new JSONResponse(['error' => 'Consent not found'], Http::STATUS_NOT_FOUND);
         }
 
