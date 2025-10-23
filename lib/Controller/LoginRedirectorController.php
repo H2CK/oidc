@@ -208,8 +208,14 @@ class LoginRedirectorController extends ApiController
         if (empty($redirect_uri)) {
             $redirect_uri = $this->session->get('oidc_redirect_uri');
         }
+
+        // Debug: Log scope before and after fallback
+        $scopeFromParam = $scope ?? 'null';
+        $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
+
         if (empty($scope)) {
             $scope = $this->session->get('oidc_scope');
+            $this->logger->debug('[SCOPE DEBUG] Scope from session fallback: ' . ($scope ?? 'null'));
         }
         if (empty($nonce)) {
             $nonce = $this->session->get('oidc_nonce');
@@ -257,6 +263,9 @@ class LoginRedirectorController extends ApiController
 
         // Adapt scopes to configured values
         $allowedScopes = $client->getAllowedScopes();
+        $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
+        $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
+
         if (trim($allowedScopes) !== '') {
             $newScope = '';
             $allowedScopesArr = explode(' ', strtolower(trim($allowedScopes)));
@@ -271,6 +280,7 @@ class LoginRedirectorController extends ApiController
                 $newScope = Application::DEFAULT_SCOPE;
             }
             $scope = $newScope;
+            $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
         }
 
         // Check if redirect URI is configured for client

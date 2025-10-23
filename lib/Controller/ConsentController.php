@@ -98,6 +98,8 @@ class ConsentController extends Controller {
         $requestedScopes = $this->session->get('oidc_requested_scopes') ?? 'openid';
         $clientId = $this->session->get('oidc_client_id') ?? '';
 
+        // Debug: Log key session values when showing consent
+        $this->logger->debug('Showing consent page - oidc_consent_pending: ' . var_export($this->session->get('oidc_consent_pending'), true));
         $this->logger->debug('Showing consent page for client: ' . $clientName . ', scopes: ' . $requestedScopes);
 
         // Prepare parameters for template
@@ -124,6 +126,12 @@ class ConsentController extends Controller {
             $this->logger->warning('Consent grant attempt without being logged in');
             return new RedirectResponse($this->urlGenerator->linkToRoute('core.login.showLoginForm'));
         }
+
+        // Debug: Log key session values
+        $consentPending = $this->session->get('oidc_consent_pending');
+        $this->logger->debug('Consent grant - oidc_consent_pending: ' . var_export($consentPending, true));
+        $this->logger->debug('Consent grant - oidc_client_id: ' . var_export($this->session->get('oidc_client_id'), true));
+        $this->logger->debug('Consent grant - oidc_client_name: ' . var_export($this->session->get('oidc_client_name'), true));
 
         // Check if consent is pending
         if (!$this->session->get('oidc_consent_pending')) {
@@ -186,13 +194,18 @@ class ConsentController extends Controller {
         // Update the scope in session to use granted scopes instead of requested
         $this->session->set('oidc_scope', $grantedScopes);
 
-        // Redirect back to authorize endpoint to complete the flow
-        // LoginRedirectorController will read all parameters from session (fallback mechanism)
-        // We only pass client_id and scope in URL, others will be read from session
+        // Build authorize URL BEFORE closing session (need to read oidc_client_id)
         $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', [
             'client_id' => $this->session->get('oidc_client_id'),
             'scope' => $grantedScopes,
         ]);
+
+        // IMPORTANT: Close the session to commit changes before redirecting
+        // Without this, the authorize endpoint won't see the updated session values
+        $this->session->close();
+
+        // Redirect back to authorize endpoint to complete the flow
+        // LoginRedirectorController will read all parameters from session (fallback mechanism)
         return new RedirectResponse($authorizeUrl);
     }
 
