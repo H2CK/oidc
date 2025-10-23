@@ -31,10 +31,14 @@
 						<strong>{{ t('oidc', 'Permissions:') }}</strong>
 						<div class="scope-badges">
 							<span
-								v-for="scope in getScopes(consent.scopesGranted)"
+								v-for="scope in getAllowedScopes(consent)"
 								:key="scope"
 								class="scope-badge"
-								:class="{ mandatory: scope === 'openid' }">
+								:class="{
+									active: isScopeGranted(consent, scope),
+									inactive: !isScopeGranted(consent, scope),
+									mandatory: scope === 'openid'
+								}">
 								{{ scope }}
 							</span>
 						</div>
@@ -187,10 +191,37 @@ export default {
 		getScopes(scopesString) {
 			return scopesString.split(' ').filter(s => s.trim())
 		},
+		getAllowedScopes(consent) {
+			// Return all scopes allowed by the client
+			if (consent.allowedScopes) {
+				return consent.allowedScopes.split(' ').filter(s => s.trim())
+			}
+			// Fallback to granted scopes if allowedScopes not available
+			return this.getScopes(consent.scopesGranted)
+		},
+		isScopeGranted(consent, scope) {
+			const grantedScopes = this.getScopes(consent.scopesGranted)
+			return grantedScopes.includes(scope)
+		},
 		openModifyModal(consent) {
 			this.editingConsent = consent
 			// Get all allowed scopes for this client
 			this.modalScopes = consent.allowedScopes ? consent.allowedScopes.split(' ').filter(s => s.trim()) : []
+
+			// Debug logging
+			console.log('Opening modal for client:', consent.clientName)
+			console.log('Allowed scopes:', consent.allowedScopes)
+			console.log('Parsed modal scopes:', this.modalScopes)
+			console.log('Currently granted scopes:', consent.scopesGranted)
+
+			// If no allowed scopes, show error and don't open modal
+			if (this.modalScopes.length === 0) {
+				OC.Notification.showTemporary(
+					t('oidc', 'This client has no allowed scopes configured. Please contact the administrator.')
+				)
+				return
+			}
+
 			// Pre-select currently granted scopes
 			this.modalSelectedScopes = [...this.getScopes(consent.scopesGranted)]
 			this.showModal = true
@@ -365,9 +396,22 @@ export default {
 	display: inline-block;
 	padding: 4px 10px;
 	border-radius: 12px;
-	background: var(--color-background-dark);
 	font-size: 13px;
+	transition: all 0.2s ease;
+}
+
+.scope-badge.active {
+	background: var(--color-primary-element-light);
+	border: 2px solid var(--color-primary-element);
+	color: var(--color-primary-element-text);
+	font-weight: 500;
+}
+
+.scope-badge.inactive {
+	background: var(--color-background-dark);
 	border: 1px solid var(--color-border);
+	color: var(--color-text-maxcontrast);
+	opacity: 0.7;
 }
 
 .scope-badge.mandatory {
