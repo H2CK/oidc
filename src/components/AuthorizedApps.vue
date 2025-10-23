@@ -27,10 +27,23 @@
 						<strong>{{ t('oidc', 'Client ID:') }}</strong>
 						<code>{{ consent.clientIdentifier }}</code>
 					</p>
-					<p class="scopes">
+					<div class="scopes">
 						<strong>{{ t('oidc', 'Permissions:') }}</strong>
-						{{ formatScopes(consent.scopesGranted) }}
-					</p>
+						<div class="scope-toggles">
+							<label
+								v-for="scope in getScopes(consent.scopesGranted)"
+								:key="scope"
+								class="scope-toggle"
+								:class="{ updating: updatingScopes[consent.clientId] }">
+								<input
+									type="checkbox"
+									:checked="true"
+									:disabled="scope === 'openid' || updatingScopes[consent.clientId]"
+									@change="toggleScope(consent, scope, $event.target.checked)">
+								<span :class="{ mandatory: scope === 'openid' }">{{ scope }}</span>
+							</label>
+						</div>
+					</div>
 					<p class="date">
 						{{ t('oidc', 'Authorized on:') }} {{ formatDate(consent.createdAt) }}
 					</p>
@@ -58,6 +71,7 @@ export default {
 			consents: [],
 			loading: true,
 			revoking: null,
+			updatingScopes: {}, // Track which consent is being updated
 		}
 	},
 	mounted() {
@@ -116,6 +130,60 @@ export default {
 				OC.Notification.showTemporary(t('oidc', 'Failed to revoke access'))
 			} finally {
 				this.revoking = null
+			}
+		},
+		getScopes(scopesString) {
+			return scopesString.split(' ').filter(s => s.trim())
+		},
+		async toggleScope(consent, scope, checked) {
+			// Get current scopes
+			const currentScopes = this.getScopes(consent.scopesGranted)
+
+			// Calculate new scopes based on checkbox state
+			let newScopes
+			if (checked) {
+				// Add scope if not already present
+				if (!currentScopes.includes(scope)) {
+					newScopes = [...currentScopes, scope]
+				} else {
+					return // Already present, nothing to do
+				}
+			} else {
+				// Remove scope
+				newScopes = currentScopes.filter(s => s !== scope)
+			}
+
+			// Set updating state
+			this.$set(this.updatingScopes, consent.clientId, true)
+
+			try {
+				const response = await fetch(generateUrl('/apps/oidc/api/consents/' + consent.clientId + '/scopes'), {
+					method: 'PATCH',
+					headers: {
+						'Content-Type': 'application/json',
+						requesttoken: OC.requestToken,
+					},
+					body: JSON.stringify({ scopes: newScopes }),
+				})
+
+				if (response.ok) {
+					const data = await response.json()
+					// Update the consent with new scopes
+					consent.scopesGranted = data.scopesGranted
+					OC.Notification.showTemporary(t('oidc', 'Permissions updated'))
+				} else {
+					const error = await response.json()
+					OC.Notification.showTemporary(t('oidc', 'Failed to update permissions') + ': ' + (error.error || response.status))
+					// Revert checkbox state by reloading
+					this.loadConsents()
+				}
+			} catch (error) {
+				console.error('Error updating scopes:', error)
+				OC.Notification.showTemporary(t('oidc', 'Failed to update permissions'))
+				// Revert checkbox state by reloading
+				this.loadConsents()
+			} finally {
+				this.$set(this.updatingScopes, consent.clientId, false)
 			}
 		},
 		formatScopes(scopesString) {
@@ -214,6 +282,42 @@ export default {
 .consent-info .scopes {
 	margin: 5px 0;
 	font-size: 14px;
+}
+
+.scope-toggles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 8px;
+}
+
+.scope-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	cursor: pointer;
+	padding: 4px 8px;
+	border-radius: 3px;
+	background: var(--color-background-dark);
+	transition: opacity 0.2s;
+}
+
+.scope-toggle.updating {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.scope-toggle input[type="checkbox"] {
+	cursor: pointer;
+}
+
+.scope-toggle input[type="checkbox"]:disabled {
+	cursor: not-allowed;
+}
+
+.scope-toggle span.mandatory {
+	font-weight: bold;
+	color: var(--color-primary);
 }
 
 .consent-info .date {

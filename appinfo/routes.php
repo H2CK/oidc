@@ -158,6 +158,11 @@ return [
             'verb' => 'DELETE',
         ],
         [
+            'name' => 'Consent#updateScopes',
+            'url' => '/api/consents/{clientId}/scopes',
+            'verb' => 'PATCH',
+        ],
+        [
             'name' => 'OIDCApi#getToken',
             'url' => '/token',
             'verb' => 'POST'

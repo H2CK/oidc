@@ -270,6 +270,78 @@ class ConsentController extends Controller {
 
     /**
      * @NoAdminRequired
+     *
+     * Update scopes for an existing consent
+     */
+    #[NoAdminRequired]
+    public function updateScopes(int $clientId): JSONResponse {
+        if (!$this->userSession->isLoggedIn()) {
+            return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
+        }
+
+        $uid = $this->userSession->getUser()->getUID();
+
+        // Get scopes from request
+        $scopes = $this->request->getParam('scopes');
+        if (!is_array($scopes)) {
+            return new JSONResponse(['error' => 'Invalid scopes format'], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Ensure openid is always included (mandatory scope)
+        if (!in_array('openid', $scopes)) {
+            $scopes[] = 'openid';
+        }
+
+        // Get the client to validate allowed scopes
+        try {
+            $client = $this->clientMapper->getByUid($clientId);
+        } catch (\Exception $e) {
+            $this->logger->error('Client not found during scope update: ' . $clientId);
+            return new JSONResponse(['error' => 'Client not found'], Http::STATUS_NOT_FOUND);
+        }
+
+        // Validate all scopes are in client's allowedScopes
+        $allowedScopes = explode(' ', $client->getAllowedScopes());
+        foreach ($scopes as $scope) {
+            if (!in_array($scope, $allowedScopes)) {
+                $this->logger->warning('User attempted to enable scope not allowed by client: ' . $scope);
+                return new JSONResponse(
+                    ['error' => 'Scope not allowed: ' . $scope],
+                    Http::STATUS_BAD_REQUEST
+                );
+            }
+        }
+
+        // Get existing consent
+        try {
+            $consent = $this->userConsentMapper->findByUserAndClient($uid, $clientId);
+        } catch (\Exception $e) {
+            $this->logger->error('Consent not found for update: ' . $e->getMessage());
+            return new JSONResponse(['error' => 'Consent not found'], Http::STATUS_NOT_FOUND);
+        }
+
+        // Update scopes
+        $scopesString = implode(' ', $scopes);
+        $consent->setScopesGranted($scopesString);
+        $consent->setUpdatedAt($this->time->getTime());
+
+        try {
+            $this->userConsentMapper->createOrUpdate($consent);
+            $this->logger->info('User ' . $uid . ' updated scopes for client ID ' . $clientId . ' to: ' . $scopesString);
+
+            return new JSONResponse([
+                'success' => true,
+                'scopesGranted' => $scopesString,
+                'updatedAt' => $consent->getUpdatedAt()
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Error updating consent scopes: ' . $e->getMessage());
+            return new JSONResponse(['error' => 'Failed to update scopes'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @NoAdminRequired
      * @UseSession
      *
      * Handle user denying consent
