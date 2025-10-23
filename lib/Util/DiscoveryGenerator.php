@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Util;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -28,17 +29,60 @@ class DiscoveryGenerator
     private $appConfig;
     /** @var LoggerInterface */
     private $logger;
+    /** @var ClientMapper */
+    private $clientMapper;
 
     public function __construct(
                     ITimeFactory $time,
                     IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
-                    LoggerInterface $logger
+                    LoggerInterface $logger,
+                    ClientMapper $clientMapper
     ) {
         $this->time = $time;
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
         $this->logger = $logger;
+        $this->clientMapper = $clientMapper;
+    }
+
+    /**
+     * Aggregates scopes from all registered OAuth clients
+     *
+     * @return array Deduplicated list of scopes from all clients
+     */
+    private function getAggregatedScopes(): array
+    {
+        $aggregatedScopes = [];
+
+        try {
+            $clients = $this->clientMapper->getClients();
+
+            foreach ($clients as $client) {
+                $allowedScopes = trim($client->getAllowedScopes());
+
+                // Skip clients with no allowed_scopes configured
+                if ($allowedScopes === '') {
+                    continue;
+                }
+
+                // Parse space-separated scopes
+                $scopesArr = explode(' ', strtolower($allowedScopes));
+
+                // Add to aggregated list (array_merge will handle duplicates via array_unique later)
+                $aggregatedScopes = array_merge($aggregatedScopes, $scopesArr);
+            }
+
+            // Remove duplicates and empty values
+            $aggregatedScopes = array_filter(array_unique($aggregatedScopes), function($scope) {
+                return trim($scope) !== '';
+            });
+
+        } catch (\Exception $e) {
+            $this->logger->warning('Failed to aggregate scopes from OAuth clients: ' . $e->getMessage());
+        }
+
+        return array_values($aggregatedScopes); // Re-index array
     }
 
     /**
@@ -50,13 +94,21 @@ class DiscoveryGenerator
     {
         $host = $request->getServerProtocol() . '://' . $request->getServerHost();
         $issuer = $host . $this->urlGenerator->getWebroot();
-        $scopesSupported = [
+
+        // Default OIDC scopes
+        $defaultScopes = [
             'openid',
             'profile',
             'email',
             'roles',
             'groups',
         ];
+
+        // Aggregate custom scopes from all registered OAuth clients
+        $customScopes = $this->getAggregatedScopes();
+
+        // Merge default and custom scopes, removing duplicates
+        $scopesSupported = array_values(array_unique(array_merge($defaultScopes, $customScopes)));
         $responseTypesSupported = [
             'code',
             'code id_token',
