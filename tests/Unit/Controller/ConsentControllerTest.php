@@ -152,7 +152,10 @@ class ConsentControllerTest extends TestCase {
             }));
 
         $this->urlGenerator->method('linkToRoute')
-            ->with('oidc.LoginRedirector.authorize', [])
+            ->with('oidc.LoginRedirector.authorize', [
+                'client_id' => 'test-client-id',
+                'scope' => 'openid profile',
+            ])
             ->willReturn('/apps/oidc/authorize');
 
         $response = $this->controller->grant();
