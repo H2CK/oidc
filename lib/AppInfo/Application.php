@@ -29,6 +29,7 @@ class Application extends App implements IBootstrap {
     public const DEFAULT_RESOURCE_IDENTIFIER = 'https://rs.local/';
     public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
     public const DEFAULT_RESTRICT_USER_INFORMATION = 'no';
+    public const DEFAULT_TOKEN_TYPE = 'opaque';
 
     public const GROUP_CLAIM_TYPE_GID = 'gid';
     public const GROUP_CLAIM_TYPE_DISPLAYNAME = 'displayname';
@@ -42,6 +43,7 @@ class Application extends App implements IBootstrap {
     public const APP_CONFIG_ALLOW_USER_SETTINGS = 'allow_user_settings';
     public const APP_CONFIG_RESTRICT_USER_INFORMATION = 'restrict_user_information';
     public const APP_CONFIG_GROUP_CLAIM_TYPE = 'group_claim_type';
+    public const APP_CONFIG_DEFAULT_TOKEN_TYPE = 'default_token_type';
 
     private $backend;
 

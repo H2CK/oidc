@@ -159,10 +159,19 @@ class DynamicRegistrationController extends ApiController
             $name = substr($client_name, 0, 64);
         }
 
+        // Get configured default token type for access tokens
+        $accessTokenType = $this->appConfig->getAppValueString(
+            Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
+            Application::DEFAULT_TOKEN_TYPE
+        );
+
         $client = new Client(
             $name,
             $redirect_uris,
             $id_token_signed_response_alg,
+            'confidential',  // type
+            'code',          // flowType
+            $accessTokenType // Use configured default token type
         );
 
         $client->setDcr(true);
@@ -183,18 +192,10 @@ class DynamicRegistrationController extends ApiController
             $client->setAllowedScopes($scope);
         }
 
-        // Validate and set token type
-        $token_type = trim($token_type);
-        if (!in_array($token_type, ['Bearer', 'JWT', 'bearer', 'jwt'])) {
-            $this->logger->info('Invalid token_type during dynamic client registration: ' . $token_type);
-            return new JSONResponse([
-                'error' => 'invalid_token_type',
-                'error_description' => 'Invalid token_type. Must be either "Bearer" or "JWT".',
-            ], Http::STATUS_BAD_REQUEST);
-        }
-        // Normalize to capitalized form
-        $token_type = ucfirst(strtolower($token_type));
-        $client->setTokenType($token_type);
+        // Validate and set access token type if provided
+        // The $token_type parameter here is legacy and refers to the OAuth2 token_type (Bearer)
+        // not the access token format (jwt vs opaque), so we ignore it
+        // Access token format is always the configured default for DCR clients
 
         $response_types_arr = array();
         array_push($response_types_arr, 'code');

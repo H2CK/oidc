@@ -68,6 +68,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setDefaultTokenType',
+            'url' => '/defaultTokenType',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#setAllowUserSettings',
             'url' => '/allowUserSettings',
             'verb' => 'POST',

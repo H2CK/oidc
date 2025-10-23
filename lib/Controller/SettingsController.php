@@ -95,7 +95,7 @@ class SettingsController extends Controller
                     string $signingAlg,
                     string $type,
                     string $flowType,
-                    string $tokenType,
+                    string $tokenType = '',
                     string|null $clientId = null,
                     string|null $clientSecret = null,
                     ): JSONResponse
@@ -104,6 +104,14 @@ class SettingsController extends Controller
 
         if (filter_var($redirectUri, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/.*:\/\/.*/"))) === false) {
             return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Use configured default if token type is not specified
+        if (empty($tokenType)) {
+            $tokenType = $this->appConfig->getAppValueString(
+                Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
+                Application::DEFAULT_TOKEN_TYPE
+            );
         }
 
         $client = new Client(
@@ -478,6 +486,19 @@ class SettingsController extends Controller
         }
         $result = [
             'dynamic_client_registration' => $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION),
+        ];
+        return new JSONResponse($result);
+    }
+
+    public function setDefaultTokenType(
+                    string $defaultTokenType
+                    ): JSONResponse
+    {
+        $this->logger->debug("Setting default token type to " . $defaultTokenType);
+        $normalizedTokenType = ($defaultTokenType === 'jwt') ? 'jwt' : 'opaque';
+        $this->appConfig->setAppValueString(Application::APP_CONFIG_DEFAULT_TOKEN_TYPE, $normalizedTokenType);
+        $result = [
+            'default_token_type' => $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_TOKEN_TYPE, Application::DEFAULT_TOKEN_TYPE),
         ];
         return new JSONResponse($result);
     }
