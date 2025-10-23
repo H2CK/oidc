@@ -409,7 +409,7 @@ export default {
 .scope-badge.active {
 	background: var(--color-primary-element-light);
 	border: 2px solid var(--color-primary-element);
-	color: var(--color-primary-element-text);
+	color: var(--color-main-text);
 	font-weight: 500;
 }
 
