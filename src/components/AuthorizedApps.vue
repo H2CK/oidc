@@ -222,8 +222,16 @@ export default {
 				return
 			}
 
-			// Pre-select currently granted scopes
-			this.modalSelectedScopes = [...this.getScopes(consent.scopesGranted)]
+			// Pre-select currently granted scopes, but only those that are still allowed
+			const grantedScopes = this.getScopes(consent.scopesGranted)
+			this.modalSelectedScopes = grantedScopes.filter(scope => this.modalScopes.includes(scope))
+
+			// Log if any scopes were filtered out (no longer allowed)
+			const removedScopes = grantedScopes.filter(scope => !this.modalScopes.includes(scope))
+			if (removedScopes.length > 0) {
+				console.log('Scopes no longer allowed by client (filtered out):', removedScopes)
+			}
+
 			this.showModal = true
 		},
 		closeModal() {
