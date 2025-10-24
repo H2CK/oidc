@@ -15,6 +15,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
+use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
 use OCP\Security\ISecureRandom;
 use OCP\IURLGenerator;
 use OCP\IConfig;
@@ -39,6 +40,8 @@ class DynamicRegistrationControllerTest extends TestCase {
     protected $redirectUriMapper;
     /** @var LogoutRedirectUriMapper  */
     protected $logoutRedirectUriMapper;
+    /** @var RegistrationTokenService */
+    protected $registrationTokenService;
     /** @var ITimeFactory */
     protected $time;
     /** @var IBackend */
@@ -81,6 +84,10 @@ class DynamicRegistrationControllerTest extends TestCase {
                                                                                                                     $this->time,
                                                                                                                     $this->appConfig])->getMock();
 
+        $this->registrationTokenService = $this->getMockBuilder(RegistrationTokenService::class)
+                                                ->disableOriginalConstructor()
+                                                ->getMock();
+
         $this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
                                                                                         $this->logger,
                                                                                         $this->config,
@@ -103,6 +110,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             $this->accessTokenMapper,
             $this->redirectUriMapper,
             $this->logoutRedirectUriMapper,
+            $this->registrationTokenService,
             $this->time,
             $this->throttler,
             $this->urlGenerator,
