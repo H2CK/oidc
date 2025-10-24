@@ -434,7 +434,7 @@ class LoginRedirectorController extends ApiController
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($uid);
         $accessToken->setHashedCode(hash('sha512', $code));
-        $accessToken->setScope(substr($scope, 0, 128));
+        $accessToken->setScope(substr($scope, 0, 512));
         $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());

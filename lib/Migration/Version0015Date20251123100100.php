@@ -63,6 +63,27 @@ class Version0015Date20251123100100 extends SimpleMigrationStep {
             $table->addIndex(['client_id'], 'oidc_consent_client_id_idx');
         }
 
+        // Increase scope column sizes to support modern OAuth2 applications with many scopes
+        // This addresses truncation issues when clients request many fine-grained permissions
+
+        // Increase oidc_clients.allowed_scopes from 256 to 512
+        if ($schema->hasTable('oidc_clients')) {
+            $table = $schema->getTable('oidc_clients');
+            $table->changeColumn('allowed_scopes', [
+                'notnull' => false,
+                'length' => 512,
+            ]);
+        }
+
+        // Increase oidc_access_tokens.scope from 128 to 512
+        if ($schema->hasTable('oidc_access_tokens')) {
+            $table = $schema->getTable('oidc_access_tokens');
+            $table->changeColumn('scope', [
+                'notnull' => true,
+                'length' => 512,
+            ]);
+        }
+
         return $schema;
     }
 }
