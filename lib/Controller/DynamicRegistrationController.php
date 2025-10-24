@@ -562,14 +562,10 @@ class DynamicRegistrationController extends ApiController
         $this->accessTokenMapper->deleteByClientId($client->getId());
 
         // Delete associated redirect URIs
-        foreach ($this->redirectUriMapper->findByClientId($client->getId()) as $redirectUri) {
-            $this->redirectUriMapper->delete($redirectUri);
-        }
+        $this->redirectUriMapper->deleteByClientId($client->getId());
 
-        // Delete associated logout redirect URIs
-        foreach ($this->logoutRedirectUriMapper->findByClientId($client->getId()) as $logoutUri) {
-            $this->logoutRedirectUriMapper->delete($logoutUri);
-        }
+        // Note: Logout redirect URIs are not associated with specific clients in the schema
+        // so we don't delete them here
 
         // Delete the client
         $this->clientMapper->delete($client);
