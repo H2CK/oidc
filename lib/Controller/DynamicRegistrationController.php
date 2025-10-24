@@ -159,11 +159,16 @@ class DynamicRegistrationController extends ApiController
             $name = substr($client_name, 0, 64);
         }
 
-        // Get configured default token type for access tokens
-        $accessTokenType = $this->appConfig->getAppValueString(
-            Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
-            Application::DEFAULT_TOKEN_TYPE
-        );
+        // Honor client's requested token type from DCR, fall back to server default if not specified or invalid
+        $accessTokenType = $token_type;
+
+        // Validate token_type and fall back to server default if invalid
+        if (!in_array($accessTokenType, ['Bearer', 'JWT'], true)) {
+            $accessTokenType = $this->appConfig->getAppValueString(
+                Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
+                Application::DEFAULT_TOKEN_TYPE
+            );
+        }
 
         $client = new Client(
             $name,
@@ -171,7 +176,7 @@ class DynamicRegistrationController extends ApiController
             $id_token_signed_response_alg,
             'confidential',  // type
             'code',          // flowType
-            $accessTokenType // Use configured default token type
+            $accessTokenType // Use client's requested token type (or server default if invalid)
         );
 
         $client->setDcr(true);
@@ -192,10 +197,8 @@ class DynamicRegistrationController extends ApiController
             $client->setAllowedScopes($scope);
         }
 
-        // Validate and set access token type if provided
-        // The $token_type parameter here is legacy and refers to the OAuth2 token_type (Bearer)
-        // not the access token format (jwt vs opaque), so we ignore it
-        // Access token format is always the configured default for DCR clients
+        // Note: token_type parameter controls access token format (JWT vs Bearer/opaque)
+        // Client's choice is honored above, with server default as fallback for invalid values
 
         $response_types_arr = array();
         array_push($response_types_arr, 'code');
