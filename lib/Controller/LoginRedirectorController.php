@@ -33,6 +33,8 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
+use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
@@ -54,6 +56,8 @@ class LoginRedirectorController extends ApiController
     private $accessTokenMapper;
     /** @var RedirectUriMapper */
     private $redirectUriMapper;
+    /** @var UserConsentMapper */
+    private $userConsentMapper;
     /** @var ISecureRandom */
     private $random;
     /** @var ISession */
@@ -87,6 +91,7 @@ class LoginRedirectorController extends ApiController
      * @param IGroupManager $groupManager
      * @param AccessTokenMapper $accessTokenMapper
      * @param RedirectUriMapper $redirectUriMapper
+     * @param UserConsentMapper $userConsentMapper
      * @param IAppConfig $appConfig
      * @param JwtGenerator $jwtGenerator
      * @param LoggerInterface $loggerInterface
@@ -105,6 +110,7 @@ class LoginRedirectorController extends ApiController
                     IGroupManager $groupManager,
                     AccessTokenMapper $accessTokenMapper,
                     RedirectUriMapper $redirectUriMapper,
+                    UserConsentMapper $userConsentMapper,
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
                     LoggerInterface $logger
@@ -124,6 +130,7 @@ class LoginRedirectorController extends ApiController
         $this->groupManager = $groupManager;
         $this->accessTokenMapper = $accessTokenMapper;
         $this->redirectUriMapper = $redirectUriMapper;
+        $this->userConsentMapper = $userConsentMapper;
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
         $this->logger = $logger;
@@ -201,8 +208,14 @@ class LoginRedirectorController extends ApiController
         if (empty($redirect_uri)) {
             $redirect_uri = $this->session->get('oidc_redirect_uri');
         }
+
+        // Debug: Log scope before and after fallback
+        $scopeFromParam = $scope ?? 'null';
+        $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
+
         if (empty($scope)) {
             $scope = $this->session->get('oidc_scope');
+            $this->logger->debug('[SCOPE DEBUG] Scope from session fallback: ' . ($scope ?? 'null'));
         }
         if (empty($nonce)) {
             $nonce = $this->session->get('oidc_nonce');
@@ -250,6 +263,9 @@ class LoginRedirectorController extends ApiController
 
         // Adapt scopes to configured values
         $allowedScopes = $client->getAllowedScopes();
+        $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
+        $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
+
         if (trim($allowedScopes) !== '') {
             $newScope = '';
             $allowedScopesArr = explode(' ', strtolower(trim($allowedScopes)));
@@ -264,6 +280,7 @@ class LoginRedirectorController extends ApiController
                 $newScope = Application::DEFAULT_SCOPE;
             }
             $scope = $newScope;
+            $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
         }
 
         // Check if redirect URI is configured for client
@@ -339,6 +356,55 @@ class LoginRedirectorController extends ApiController
 
         $uid = $this->userSession->getUser()->getUID();
 
+        // Check if user consent is required
+        $existingConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
+
+        $consentRequired = false;
+        if ($existingConsent === null) {
+            // No prior consent
+            $consentRequired = true;
+            $this->logger->debug('No existing consent found for user ' . $uid . ' and client ' . $client_id);
+        } elseif ($existingConsent->getScopesGranted() !== $scope) {
+            // Scopes changed since last consent
+            $consentRequired = true;
+            $this->logger->debug('Scopes changed for user ' . $uid . ' and client ' . $client_id . '. Old: ' . $existingConsent->getScopesGranted() . ', New: ' . $scope);
+        } elseif ($existingConsent->getExpiresAt() !== null &&
+                  $this->time->getTime() > $existingConsent->getExpiresAt()) {
+            // Consent expired
+            $consentRequired = true;
+            $this->logger->debug('Consent expired for user ' . $uid . ' and client ' . $client_id);
+        }
+
+        if ($consentRequired) {
+            // Store authorization request parameters in session for consent page
+            // IMPORTANT: Preserve ALL OAuth parameters, not just consent-specific ones
+            // These will be needed when redirecting back to authorize after consent
+            $this->session->set('oidc_consent_pending', true);
+            $this->session->set('oidc_client_id', $client_id);
+            $this->session->set('oidc_client_name', $client->getName());
+            $this->session->set('oidc_requested_scopes', $scope);
+            // Also preserve other OAuth parameters for post-consent redirect
+            $this->session->set('oidc_state', $state);
+            $this->session->set('oidc_response_type', $response_type);
+            $this->session->set('oidc_redirect_uri', $redirect_uri);
+            $this->session->set('oidc_nonce', $nonce);
+            $this->session->set('oidc_resource', $resource);
+            $this->session->set('oidc_code_challenge', $code_challenge);
+            $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+
+            // Redirect to consent page
+            $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', []);
+            $this->logger->debug('Redirecting to consent page for user ' . $uid . ' and client ' . $client_id);
+            return new RedirectResponse($consentUrl);
+        }
+
+        // If consent exists and is valid, use the scopes from consent
+        // (user may have approved a subset of requested scopes)
+        if ($existingConsent !== null) {
+            $scope = $existingConsent->getScopesGranted();
+            $this->logger->debug('Using consented scopes for user ' . $uid . ' and client ' . $client_id . ': ' . $scope);
+        }
+
         // PKCE validation (RFC 7636)
         if (!empty($code_challenge)) {
             // Validate code_challenge format: 43-128 characters, unreserved chars only
@@ -368,7 +434,7 @@ class LoginRedirectorController extends ApiController
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($uid);
         $accessToken->setHashedCode(hash('sha512', $code));
-        $accessToken->setScope(substr($scope, 0, 128));
+        $accessToken->setScope(substr($scope, 0, 512));
         $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());

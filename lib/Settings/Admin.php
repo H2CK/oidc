@@ -115,7 +115,7 @@ class Admin implements ISettings {
                 'flowType' => $client->getFlowType(),
                 'flowTypeLabel' => $flowTypeLabel,
                 'groups' => $resultGroups,
-                'tokenType' => $client->getTokenType()==='jwt' ? 'jwt' : 'opaque',
+                'tokenType' => strtolower($client->getTokenType())==='jwt' ? 'jwt' : 'opaque',
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
             ];

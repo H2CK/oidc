@@ -32,6 +32,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 
 use Psr\Log\LoggerInterface;
@@ -48,6 +49,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $accessTokenMapper;
     /** @var RedirectUriMapper  */
     private $redirectUriMapper;
+    /** @var UserConsentMapper  */
+    private $userConsentMapper;
     /** @var GroupMapper  */
     private $groupMapper;
     /** @var IGroupManager  */
@@ -117,6 +120,9 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->groupMapper = $this->getMockBuilder(GroupMapper::class)->setConstructorArgs([
             $this->db,
             $this->groupManager])->getMock();
+        $this->userConsentMapper = $this->getMockBuilder(UserConsentMapper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->l = $this->getMockBuilder(IL10N::class)->getMock();
         $this->jwtGenerator = new JwtGenerator(
             $this->crypto,
@@ -146,6 +152,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->groupManager,
             $this->accessTokenMapper,
             $this->redirectUriMapper,
+            $this->userConsentMapper,
             $this->appConfig,
             $this->jwtGenerator,
             $this->logger

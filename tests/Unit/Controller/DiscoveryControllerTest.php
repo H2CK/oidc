@@ -20,6 +20,7 @@ use OCP\ILogger;
 
 use OCA\OIDCIdentityProvider\Controller\DiscoveryController;
 use OCA\OIDCIdentityProvider\Util\DiscoveryGenerator;
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
 
 class DiscoveryControllerTest extends TestCase {
     protected $controller;
@@ -45,6 +46,8 @@ class DiscoveryControllerTest extends TestCase {
     private $discoveryGenerator;
     /** @var BruteforceAllowList */
     private $bruteforceAllowList;
+    /** @var ClientMapper */
+    private $clientMapper;
 
     public function setUp(): void {
         $this->request = $this->getMockBuilder(IRequest::class)->getMock();
@@ -62,11 +65,15 @@ class DiscoveryControllerTest extends TestCase {
                                                                                         $this->throttlerBackend,
                                                                                         $this->bruteforceAllowList])->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
+        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->discoveryGenerator = new DiscoveryGenerator(
                                                             $this->time,
                                                             $this->urlGenerator,
                                                             $this->appConfig,
-                                                            $this->logger
+                                                            $this->logger,
+                                                            $this->clientMapper
         );
 
         $this->controller = new DiscoveryController(
