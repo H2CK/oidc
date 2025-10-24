@@ -18,6 +18,7 @@ const overwriteEmailVerified = loadState('oidc', 'overwriteEmailVerified')
 const dynamicClientRegistration = loadState('oidc', 'dynamicClientRegistration')
 const allowUserSettings = loadState('oidc', 'allowUserSettings')
 const restrictUserInformation = loadState('oidc', 'restrictUserInformation')
+const defaultTokenType = loadState('oidc', 'defaultTokenType')
 
 const app = createApp(App, {
 	clients,
@@ -30,6 +31,7 @@ const app = createApp(App, {
 	dynamicClientRegistration,
 	allowUserSettings,
 	restrictUserInformation,
+	defaultTokenType,
 })
 
 app.config.globalProperties.$OC = window.OC

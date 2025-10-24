@@ -304,7 +304,7 @@ class JwtGenerator
      * @throws JwtCreationErrorException
      */
     public function generateAccessToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost): string {
-        if ($client->getTokenType()!=='jwt') {
+        if (strtolower($client->getTokenType())!=='jwt') {
             $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
             return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         }
