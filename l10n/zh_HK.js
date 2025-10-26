@@ -7,6 +7,8 @@ OC.L10N.register(
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "用戶不是為客戶端定義的群組的成員。您無權檢索登錄權杖。",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT 創建過程中出現故障。請通知您的客戶端管理員。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "重導向 URL 必須為完整的 URL，如範例所示：https://yourdomain.com/path",
+    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "您的客戶端 ID 必須符合以下規則：僅限字元 A-Za-z0-9，最小長度 32 個字元，最大長度 64 個字元。",
+    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "您的客戶端密鑰必須符合以下規則：僅限字元 A-Za-z0-9，最小長度 32 個字元，最大長度 64 個字元。",
     "Code Authorization Flow" : "代碼授權流程",
     "Code & Implicit Authorization Flow" : "代碼和隱式授權流程",
     "OpenID Connect Provider" : "OpenID 連接提供者",
