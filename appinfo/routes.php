@@ -173,6 +173,21 @@ return [
             'verb' => 'OPTIONS',
         ],
         [
+            'name' => 'DynamicRegistration#getClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'DynamicRegistration#updateClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'PUT'
+        ],
+        [
+            'name' => 'Cors#clientManagementCorsResponse',
+            'url' => '/register/{clientId}',
+            'verb' => 'OPTIONS',
+        ],
+        [
             'name' => 'Discovery#getInfo',
             'url' => '/openid-configuration',
             'verb' => 'GET'
