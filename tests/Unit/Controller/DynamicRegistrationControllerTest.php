@@ -195,12 +195,12 @@ class DynamicRegistrationControllerTest extends TestCase {
                 }
             );
 
-        // Mock RegistrationToken
-        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
-        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
         $this->registrationTokenService
             ->method('generateToken')
-            ->willReturn($mockToken);
+            ->willReturn($registrationToken);
 
         $ts = time();
         $result = $this->controller->registerClient(['https://test.org/redirect'], 'TEST-CLIENT');
@@ -247,12 +247,12 @@ class DynamicRegistrationControllerTest extends TestCase {
                 }
             );
 
-        // Mock RegistrationToken
-        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
-        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
         $this->registrationTokenService
             ->method('generateToken')
-            ->willReturn($mockToken);
+            ->willReturn($registrationToken);
 
         $result = $this->controller->registerClient(
             ['https://test.org/redirect'],
@@ -296,12 +296,12 @@ class DynamicRegistrationControllerTest extends TestCase {
                 }
             );
 
-        // Mock RegistrationToken
-        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
-        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
         $this->registrationTokenService
             ->method('generateToken')
-            ->willReturn($mockToken);
+            ->willReturn($registrationToken);
 
         $result = $this->controller->registerClient(
             ['https://test.org/redirect'],
@@ -365,12 +365,12 @@ class DynamicRegistrationControllerTest extends TestCase {
                 }
             );
 
-        // Mock RegistrationToken
-        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
-        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
         $this->registrationTokenService
             ->method('generateToken')
-            ->willReturn($mockToken);
+            ->willReturn($registrationToken);
 
         // Create a scope longer than 255 characters
         $longScope = str_repeat('scope ', 60); // This creates a 360 character string
