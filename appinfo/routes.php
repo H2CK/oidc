@@ -183,6 +183,11 @@ return [
             'verb' => 'PUT'
         ],
         [
+            'name' => 'DynamicRegistration#deleteClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'DELETE'
+        ],
+        [
             'name' => 'Cors#clientManagementCorsResponse',
             'url' => '/register/{clientId}',
             'verb' => 'OPTIONS',
@@ -215,6 +220,16 @@ return [
         [
             'name' => 'Cors#logoutCorsResponse',
             'url' => '/logout',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Introspection#introspectToken',
+            'url' => '/introspect',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'Cors#introspectionCorsResponse',
+            'url' => '/introspect',
             'verb' => 'OPTIONS',
         ],
     ],
