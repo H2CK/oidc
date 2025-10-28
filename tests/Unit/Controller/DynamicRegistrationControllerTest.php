@@ -186,9 +186,21 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('insert')
             ->willReturnCallBack (
                 function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
                     return $arg;
                 }
             );
+
+        // Mock RegistrationToken
+        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
+        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($mockToken);
 
         $ts = time();
         $result = $this->controller->registerClient(['https://test.org/redirect'], 'TEST-CLIENT');
@@ -226,9 +238,21 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('insert')
             ->willReturnCallBack (
                 function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
                     return $arg;
                 }
             );
+
+        // Mock RegistrationToken
+        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
+        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($mockToken);
 
         $result = $this->controller->registerClient(
             ['https://test.org/redirect'],
@@ -263,9 +287,21 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('insert')
             ->willReturnCallBack (
                 function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
                     return $arg;
                 }
             );
+
+        // Mock RegistrationToken
+        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
+        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($mockToken);
 
         $result = $this->controller->registerClient(
             ['https://test.org/redirect'],
@@ -320,9 +356,21 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('insert')
             ->willReturnCallBack (
                 function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
                     return $arg;
                 }
             );
+
+        // Mock RegistrationToken
+        $mockToken = $this->getMockBuilder(\OCA\OIDCIdentityProvider\Db\RegistrationToken::class)->getMock();
+        $mockToken->method('getToken')->willReturn('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($mockToken);
 
         // Create a scope longer than 255 characters
         $longScope = str_repeat('scope ', 60); // This creates a 360 character string
