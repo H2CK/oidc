@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\BackgroundJob;
 
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use OCP\IConfig;
@@ -17,18 +18,23 @@ class CleanupExpiredTokens extends TimedJob {
 
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
+    /** @var RegistrationTokenMapper */
+    private $registrationTokenMapper;
     /** @var IConfig */
     private $settings;
 
     /**
      * @param ITimeFactory $time
      * @param AccessTokenMapper $accessTokenMapper
+     * @param RegistrationTokenMapper $registrationTokenMapper
      */
     public function __construct(ITimeFactory $time,
                                 AccessTokenMapper $accessTokenMapper,
+                                RegistrationTokenMapper $registrationTokenMapper,
                                 IConfig $settings) {
         parent::__construct($time);
         $this->accessTokenMapper = $accessTokenMapper;
+        $this->registrationTokenMapper = $registrationTokenMapper;
         $this->settings = $settings;
 
         // Run four times a day
@@ -40,5 +46,6 @@ class CleanupExpiredTokens extends TimedJob {
         // Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
         // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
         $this->accessTokenMapper->cleanUp();
+        $this->registrationTokenMapper->cleanUp($this->time->getTime());
     }
 }
