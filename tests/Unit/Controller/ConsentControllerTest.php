@@ -11,6 +11,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
@@ -38,6 +39,8 @@ class ConsentControllerTest extends TestCase {
     protected $time;
     /** @var IL10N */
     protected $l;
+    /** @var IAppConfig */
+    protected $appConfig;
     /** @var LoggerInterface */
     protected $logger;
     /** @var IUser */
@@ -58,6 +61,7 @@ class ConsentControllerTest extends TestCase {
             ->getMock();
         $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
         $this->l = $this->getMockBuilder(IL10N::class)->getMock();
+        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
         $this->user = $this->getMockBuilder(IUser::class)->getMock();
 
@@ -75,6 +79,7 @@ class ConsentControllerTest extends TestCase {
             $this->clientMapper,
             $this->time,
             $this->l,
+            $this->appConfig,
             $this->logger
         );
     }
