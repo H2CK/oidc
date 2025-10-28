@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -22,6 +23,7 @@ use OCP\ISession;
 use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\IL10N;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\UseSession;
@@ -42,6 +44,8 @@ class ConsentController extends Controller {
     private $time;
     /** @var IL10N */
     private $l;
+    /** @var IAppConfig */
+    private $appConfig;
     /** @var LoggerInterface */
     private $logger;
 
@@ -55,6 +59,7 @@ class ConsentController extends Controller {
         ClientMapper $clientMapper,
         ITimeFactory $time,
         IL10N $l,
+        IAppConfig $appConfig,
         LoggerInterface $logger
     ) {
         parent::__construct($appName, $request);
@@ -65,6 +70,7 @@ class ConsentController extends Controller {
         $this->clientMapper = $clientMapper;
         $this->time = $time;
         $this->l = $l;
+        $this->appConfig = $appConfig;
         $this->logger = $logger;
     }
 
@@ -257,6 +263,20 @@ class ConsentController extends Controller {
             return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
         }
 
+        // Check if user settings are allowed by administrator
+        $allowUserSettings = $this->appConfig->getAppValueString(
+            Application::APP_CONFIG_ALLOW_USER_SETTINGS,
+            Application::DEFAULT_ALLOW_USER_SETTINGS
+        );
+
+        if ($allowUserSettings === 'no') {
+            $this->logger->warning('User attempted to revoke consent but user settings are disabled by admin');
+            return new JSONResponse(
+                ['error' => 'Consent revocation is disabled by your administrator'],
+                Http::STATUS_FORBIDDEN
+            );
+        }
+
         $uid = $this->userSession->getUser()->getUID();
 
         try {
@@ -278,6 +298,20 @@ class ConsentController extends Controller {
     public function updateScopes(int $clientId): JSONResponse {
         if (!$this->userSession->isLoggedIn()) {
             return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
+        }
+
+        // Check if user settings are allowed by administrator
+        $allowUserSettings = $this->appConfig->getAppValueString(
+            Application::APP_CONFIG_ALLOW_USER_SETTINGS,
+            Application::DEFAULT_ALLOW_USER_SETTINGS
+        );
+
+        if ($allowUserSettings === 'no') {
+            $this->logger->warning('User attempted to update consent scopes but user settings are disabled by admin');
+            return new JSONResponse(
+                ['error' => 'Consent modification is disabled by your administrator'],
+                Http::STATUS_FORBIDDEN
+            );
         }
 
         $uid = $this->userSession->getUser()->getUID();

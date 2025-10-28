@@ -33,7 +33,7 @@
 					@update:modelValue="updateRestrictUserInformation" />
 			</div>
 
-			<AuthorizedApps />
+			<AuthorizedApps :allow-user-settings="localAllowUserSettings" />
 		</NcSettingsSection>
 	</div>
 </template>

@@ -6,7 +6,12 @@
 	<div class="authorized-apps">
 		<h3>{{ t('oidc', 'Authorized Applications') }}</h3>
 		<p class="description">
-			{{ t('oidc', 'These applications have access to your account. You can revoke access at any time.') }}
+			<span v-if="allowUserSettings === 'no'">
+				{{ t('oidc', 'These applications have access to your account. Access is managed by your administrator.') }}
+			</span>
+			<span v-else>
+				{{ t('oidc', 'These applications have access to your account. You can revoke access at any time.') }}
+			</span>
 		</p>
 
 		<div v-if="loading" class="loading">
@@ -46,7 +51,7 @@
 						{{ t('oidc', 'Authorized on:') }} {{ formatDate(consent.createdAt) }}
 					</p>
 				</div>
-				<div class="consent-actions">
+				<div v-if="allowUserSettings !== 'no'" class="consent-actions">
 					<button
 						class="button secondary"
 						:disabled="revoking === consent.clientId"
@@ -66,6 +71,12 @@ import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'AuthorizedApps',
+	props: {
+		allowUserSettings: {
+			type: String,
+			required: true,
+		},
+	},
 	data() {
 		return {
 			consents: [],

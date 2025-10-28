@@ -356,53 +356,87 @@ class LoginRedirectorController extends ApiController
 
         $uid = $this->userSession->getUser()->getUID();
 
-        // Check if user consent is required
-        $existingConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
+        // Check if user consent/settings are allowed by administrator
+        $allowUserSettings = $this->appConfig->getAppValueString(
+            Application::APP_CONFIG_ALLOW_USER_SETTINGS,
+            Application::DEFAULT_ALLOW_USER_SETTINGS
+        );
 
-        $consentRequired = false;
-        if ($existingConsent === null) {
-            // No prior consent
-            $consentRequired = true;
-            $this->logger->debug('No existing consent found for user ' . $uid . ' and client ' . $client_id);
-        } elseif ($existingConsent->getScopesGranted() !== $scope) {
-            // Scopes changed since last consent
-            $consentRequired = true;
-            $this->logger->debug('Scopes changed for user ' . $uid . ' and client ' . $client_id . '. Old: ' . $existingConsent->getScopesGranted() . ', New: ' . $scope);
-        } elseif ($existingConsent->getExpiresAt() !== null &&
-                  $this->time->getTime() > $existingConsent->getExpiresAt()) {
-            // Consent expired
-            $consentRequired = true;
-            $this->logger->debug('Consent expired for user ' . $uid . ' and client ' . $client_id);
-        }
+        if ($allowUserSettings === 'no') {
+            // Administrator has disabled user consent - auto-grant all scopes
+            $this->logger->debug('User consent disabled by admin for user ' . $uid . ' and client ' . $client_id . ' - auto-granting all scopes');
 
-        if ($consentRequired) {
-            // Store authorization request parameters in session for consent page
-            // IMPORTANT: Preserve ALL OAuth parameters, not just consent-specific ones
-            // These will be needed when redirecting back to authorize after consent
-            $this->session->set('oidc_consent_pending', true);
-            $this->session->set('oidc_client_id', $client_id);
-            $this->session->set('oidc_client_name', $client->getName());
-            $this->session->set('oidc_requested_scopes', $scope);
-            // Also preserve other OAuth parameters for post-consent redirect
-            $this->session->set('oidc_state', $state);
-            $this->session->set('oidc_response_type', $response_type);
-            $this->session->set('oidc_redirect_uri', $redirect_uri);
-            $this->session->set('oidc_nonce', $nonce);
-            $this->session->set('oidc_resource', $resource);
-            $this->session->set('oidc_code_challenge', $code_challenge);
-            $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+            // Check if consent record exists
+            $existingConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
 
-            // Redirect to consent page
-            $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', []);
-            $this->logger->debug('Redirecting to consent page for user ' . $uid . ' and client ' . $client_id);
-            return new RedirectResponse($consentUrl);
-        }
+            // Create or update consent record for display on personal settings page
+            if ($existingConsent === null) {
+                $consent = new UserConsent();
+                $consent->setUserId($uid);
+                $consent->setClientId($client->getId());
+                $consent->setScopesGranted($scope);
+                $consent->setCreatedAt($this->time->getTime());
+                $consent->setUpdatedAt($this->time->getTime());
+                $consent->setExpiresAt(null);
+                $this->userConsentMapper->createOrUpdate($consent);
+                $this->logger->debug('Auto-created consent record for user ' . $uid . ' and client ' . $client_id);
+            } elseif ($existingConsent->getScopesGranted() !== $scope) {
+                // Update consent if scopes changed
+                $existingConsent->setScopesGranted($scope);
+                $existingConsent->setUpdatedAt($this->time->getTime());
+                $this->userConsentMapper->createOrUpdate($existingConsent);
+                $this->logger->debug('Auto-updated consent record for user ' . $uid . ' and client ' . $client_id);
+            }
+            // Continue with authorization flow using all requested scopes
+        } else {
+            // User consent is enabled - check if consent is required
+            $existingConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
 
-        // If consent exists and is valid, use the scopes from consent
-        // (user may have approved a subset of requested scopes)
-        if ($existingConsent !== null) {
-            $scope = $existingConsent->getScopesGranted();
-            $this->logger->debug('Using consented scopes for user ' . $uid . ' and client ' . $client_id . ': ' . $scope);
+            $consentRequired = false;
+            if ($existingConsent === null) {
+                // No prior consent
+                $consentRequired = true;
+                $this->logger->debug('No existing consent found for user ' . $uid . ' and client ' . $client_id);
+            } elseif ($existingConsent->getScopesGranted() !== $scope) {
+                // Scopes changed since last consent
+                $consentRequired = true;
+                $this->logger->debug('Scopes changed for user ' . $uid . ' and client ' . $client_id . '. Old: ' . $existingConsent->getScopesGranted() . ', New: ' . $scope);
+            } elseif ($existingConsent->getExpiresAt() !== null &&
+                      $this->time->getTime() > $existingConsent->getExpiresAt()) {
+                // Consent expired
+                $consentRequired = true;
+                $this->logger->debug('Consent expired for user ' . $uid . ' and client ' . $client_id);
+            }
+
+            if ($consentRequired) {
+                // Store authorization request parameters in session for consent page
+                // IMPORTANT: Preserve ALL OAuth parameters, not just consent-specific ones
+                // These will be needed when redirecting back to authorize after consent
+                $this->session->set('oidc_consent_pending', true);
+                $this->session->set('oidc_client_id', $client_id);
+                $this->session->set('oidc_client_name', $client->getName());
+                $this->session->set('oidc_requested_scopes', $scope);
+                // Also preserve other OAuth parameters for post-consent redirect
+                $this->session->set('oidc_state', $state);
+                $this->session->set('oidc_response_type', $response_type);
+                $this->session->set('oidc_redirect_uri', $redirect_uri);
+                $this->session->set('oidc_nonce', $nonce);
+                $this->session->set('oidc_resource', $resource);
+                $this->session->set('oidc_code_challenge', $code_challenge);
+                $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+
+                // Redirect to consent page
+                $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', []);
+                $this->logger->debug('Redirecting to consent page for user ' . $uid . ' and client ' . $client_id);
+                return new RedirectResponse($consentUrl);
+            }
+
+            // If consent exists and is valid, use the scopes from consent
+            // (user may have approved a subset of requested scopes)
+            if ($existingConsent !== null) {
+                $scope = $existingConsent->getScopesGranted();
+                $this->logger->debug('Using consented scopes for user ' . $uid . ' and client ' . $client_id . ': ' . $scope);
+            }
         }
 
         // PKCE validation (RFC 7636)
