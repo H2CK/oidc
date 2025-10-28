@@ -25,7 +25,6 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
-use OCP\IRequest;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
 use UnexpectedValueException;
@@ -42,22 +41,11 @@ class TokenValidationRequestListener implements IEventListener {
         private IUserManager $userManager,
         private AccessTokenMapper $accessTokenMapper,
         private ClientMapper $clientMapper,
-        private IRequest $request,
     ) {
     }
 
     public function handle(Event $event): void {
         if (!$event instanceof TokenValidationRequestEvent) {
-            return;
-        }
-
-        // Skip token validation for introspection endpoint
-        // The introspection endpoint has its own client authentication mechanism
-        // and validates tokens from other clients, so this listener should not intercept it
-        $requestPath = $this->request->getPathInfo();
-        if ($requestPath === '/apps/oidc/introspect') {
-            $this->logger->debug('[TokenValidationRequestListener] Skipping validation for introspection endpoint');
-            $event->setIsValid(true);
             return;
         }
 
