@@ -108,7 +108,7 @@ class DynamicRegistrationController extends ApiController
         array $response_types = ['code'],
         string $application_type = 'web',
         string|null $scope = null,
-        string $token_type = 'Bearer',
+        string $token_type = 'opaque',
         ): JSONResponse
     {
         if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
@@ -167,8 +167,9 @@ class DynamicRegistrationController extends ApiController
         // Honor client's requested token type from DCR, fall back to server default if not specified or invalid
         $accessTokenType = $token_type;
 
-        // Validate token_type and fall back to server default if invalid
-        if (!in_array($accessTokenType, ['Bearer', 'JWT'], true)) {
+        // Validate token_type - only accept internal lowercase values: 'opaque' or 'jwt'
+        // Fall back to server default if invalid
+        if (!in_array($accessTokenType, ['opaque', 'jwt'], true)) {
             $accessTokenType = $this->appConfig->getAppValueString(
                 Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
                 Application::DEFAULT_TOKEN_TYPE
