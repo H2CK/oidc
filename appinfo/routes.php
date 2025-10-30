@@ -198,16 +198,6 @@ return [
             'verb' => 'OPTIONS',
         ],
         [
-            'name' => 'Introspection#introspectToken',
-            'url' => '/introspect',
-            'verb' => 'POST'
-        ],
-        [
-            'name' => 'Cors#introspectionCorsResponse',
-            'url' => '/introspect',
-            'verb' => 'OPTIONS',
-        ],
-        [
             'name' => 'DynamicRegistration#getClientConfiguration',
             'url' => '/register/{clientId}',
             'verb' => 'GET'
