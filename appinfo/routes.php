@@ -68,6 +68,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setDefaultTokenType',
+            'url' => '/defaultTokenType',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#setAllowUserSettings',
             'url' => '/allowUserSettings',
             'verb' => 'POST',
@@ -168,6 +173,26 @@ return [
             'verb' => 'OPTIONS',
         ],
         [
+            'name' => 'DynamicRegistration#getClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'DynamicRegistration#updateClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'PUT'
+        ],
+        [
+            'name' => 'DynamicRegistration#deleteClientConfiguration',
+            'url' => '/register/{clientId}',
+            'verb' => 'DELETE'
+        ],
+        [
+            'name' => 'Cors#clientManagementCorsResponse',
+            'url' => '/register/{clientId}',
+            'verb' => 'OPTIONS',
+        ],
+        [
             'name' => 'Discovery#getInfo',
             'url' => '/openid-configuration',
             'verb' => 'GET'
@@ -195,6 +220,16 @@ return [
         [
             'name' => 'Cors#logoutCorsResponse',
             'url' => '/logout',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Introspection#introspectToken',
+            'url' => '/introspect',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'Cors#introspectionCorsResponse',
+            'url' => '/introspect',
             'verb' => 'OPTIONS',
         ],
     ],

@@ -154,6 +154,8 @@ class Admin implements ISettings {
                 'allowUserSettings', $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS));
         $this->initialState->provideInitialState(
                 'restrictUserInformation', $this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION));
+        $this->initialState->provideInitialState(
+                'defaultTokenType', $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_TOKEN_TYPE, Application::DEFAULT_TOKEN_TYPE));
 
         return new TemplateResponse(
                         Application::APP_ID,

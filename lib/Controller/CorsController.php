@@ -120,6 +120,30 @@ class CorsController extends ApiController
         return $this->corsResponse();
     }
 
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function introspectionCorsResponse(): Response {
+        return $this->corsResponse();
+    }
+
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     *
+     * @return Response
+     */
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function clientManagementCorsResponse(): Response {
+        return $this->corsResponse();
+    }
+
 
     private function corsResponse(): Response {
         $response = new Response();
