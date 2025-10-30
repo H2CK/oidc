@@ -20,6 +20,8 @@ Provided features:
 - Discovery & WebFinger endpoint provided
 - Logout endpoint
 - Dynamic Client Registration
+- Client Configuration Management (RFC 7592)
+- Token Introspection (RFC 7662)
 - Administration of clients via CLI
 - Generation and validation of access tokens using events
 - User specific settings to define which data is passed to clients in ID token and via userinfo endpoint
@@ -75,6 +77,8 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - JWKS: `jwks`(GET)
 - Logout: `logout` (GET)
 - Dynamic Client Registration: `register` (POST) - Disabled by default. Must be enabled in settings.
+- Client Configuration Management: `register/<client_id>` (PUT / GET / DELETE) - Authenticate with retrieved registration token during creation as Bearer.
+- Instrospection: `introspect`(POST) - Validation of access tokens
 
 CORS is enabled for all domains on all the above endpoints. Except the webfinger endpoint for which the CORS settings cannot be controlled by the oidc app.
 
@@ -108,6 +112,8 @@ The registration endpoint is accessible for everybody without any authentication
 ## Scopes
 
 Following the supported scopes are described. If no scope is defined during the authorization request, the following scopes will be used: `openid profile email roles`. Based in the defined scope different information about the user will be provided in the id token or at the userinfo endpoint.
+
+Further scopes are passed transparently. Also namescaped scopes are supported. E.g. read:messages, api:admin.
 
 | Scope | Description |
 |---|---|

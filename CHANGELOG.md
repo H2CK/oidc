@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [x.x.x] - 2025-11-xx
+
+### Added
+
+- Token Introspection (RFC 7662) (thanks to @cbcoutinho)
+  - IntrospectionController: Complete introspection endpoint implementation
+  - Client authentication: Supports both client_secret_basic and client_secret_post
+  - Token validation: Checks token existence, expiration, and user validity
+  - Metadata response: Returns active, scope, client_id, exp, iat, sub, aud
+  - Secure defaults: Returns {active: false} for invalid/expired tokens without leaking info
+- Client Configuration Management (RFC 7592) (thanks to @cbcoutinho)
+  - RegistrationTokenService: Manages registration access tokens for client configuration endpoints
+  - Registration access tokens: Cryptographically secure tokens (64 chars, ~380 bits entropy) for client management
+  - Token lifecycle: Support for token generation, validation, rotation with grace period
+  - Security: Tokens stored hashed, time-based expiration support
+  - Future-ready: Enables client self-service for reading/updating their own configuration
+- Dynamic Client Registration Enhancements (thanks to @cbcoutinho)
+  - JWT token type: New token_type parameter accepting opaque or jwt
+  - Enhanced scope validation: Allows OAuth-standard characters: :, ., /
+  - Input validation: Proper normalization and error responses
+  - Namespaced scopes: Support for patterns like read:messages, api:admin, org.example.scope
+  - Registration tokens: Clients receive registration_access_token and registration_client_uri on creation
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [1.10.0] - 2025-10-20
 
 ### Added
@@ -492,7 +520,6 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Fixed integrity check problem
-
 
 ## [0.1.3] - 2022-05-11
 
