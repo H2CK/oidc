@@ -77,7 +77,7 @@ class OIDCCreate extends Command {
         null,
         InputOption::VALUE_OPTIONAL,
         'The type of the access token created for the client. If set to ´jwt´ a RFC9068 conforming access token is generated.',
-        'opaque'
+        null
       )
       ->addOption(
         'allowed_scopes',
