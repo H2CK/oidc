@@ -124,4 +124,18 @@ class UserConsentMapper extends QBMapper {
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
         $qb->executeStatement();
     }
+
+    /**
+     * Clean up expired consents
+     * Deletes all consents where expires_at is not null and is in the past
+     */
+    public function cleanUp(): void {
+        $currentTime = time();
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->isNotNull('expires_at'))
+            ->andWhere($qb->expr()->lt('expires_at', $qb->createNamedParameter($currentTime, IQueryBuilder::PARAM_INT)));
+        $qb->executeStatement();
+    }
 }

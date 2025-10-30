@@ -151,9 +151,15 @@ class ConsentControllerTest extends TestCase {
         $this->userConsentMapper->expects($this->once())
             ->method('createOrUpdate')
             ->with($this->callback(function ($consent) {
-                return $consent->getUserId() === 'testuser' &&
-                       $consent->getClientId() === 1 &&
-                       $consent->getScopesGranted() === 'openid profile';
+                // Verify basic consent fields
+                if ($consent->getUserId() !== 'testuser' ||
+                    $consent->getClientId() !== 1 ||
+                    $consent->getScopesGranted() !== 'openid profile') {
+                    return false;
+                }
+                // Verify expiration is set (90 days = 7776000 seconds from now)
+                $expectedExpiration = 1234567890 + 7776000;
+                return $consent->getExpiresAt() === $expectedExpiration;
             }));
 
         $this->urlGenerator->method('linkToRoute')

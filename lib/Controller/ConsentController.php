@@ -187,8 +187,9 @@ class ConsentController extends Controller {
         $consent->setScopesGranted($grantedScopes);
         $consent->setCreatedAt($this->time->getTime());
         $consent->setUpdatedAt($this->time->getTime());
-        // No expiration for now (can be added later as admin config)
-        $consent->setExpiresAt(null);
+        // Set consent to expire after 90 days (7776000 seconds)
+        // This provides a balance between security and user convenience
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
 
         $this->userConsentMapper->createOrUpdate($consent);
 
@@ -371,6 +372,8 @@ class ConsentController extends Controller {
         $scopesString = implode(' ', $scopes);
         $consent->setScopesGranted($scopesString);
         $consent->setUpdatedAt($this->time->getTime());
+        // Reset expiration to 90 days from now when consent is updated
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
 
         try {
             $updatedConsent = $this->userConsentMapper->createOrUpdate($consent);
