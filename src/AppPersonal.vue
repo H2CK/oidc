@@ -3,35 +3,39 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 <template>
-	<NcSettingsSection :name="t('oidc', 'OpenID Connect Provider')"
-		:description="
-			t(
-				'oidc',
-				'OpenID Connect allows you to log in to external services with your {instanceName} user account.',
-				{ instanceName: oc.theme.name }
-			)
-		">
-		<span v-if="error" class="msg error">{{ errorMsg }}</span>
+	<div>
+		<NcSettingsSection :name="t('oidc', 'OpenID Connect Provider')"
+			:description="
+				t(
+					'oidc',
+					'OpenID Connect allows you to log in to external services with your {instanceName} user account.',
+					{ instanceName: oc.theme.name }
+				)
+			">
+			<span v-if="error" class="msg error">{{ errorMsg }}</span>
 
-		<div v-if="localAllowUserSettings == 'no'">
-			<p>
-				{{ t('oidc', 'All settings for the login at other services are managed by your administrator.') }}
-			</p>
-		</div>
+			<div v-if="localAllowUserSettings == 'no'">
+				<p>
+					{{ t('oidc', 'All settings for the login at other services are managed by your administrator.') }}
+				</p>
+			</div>
 
-		<div v-if="localAllowUserSettings != 'no'">
-			<h4>
-				{{ t("oidc", "Restrict Personal Information") }}
-			</h4>
-			<NcSelect v-bind="userDataRestriction.props"
-				v-model="userDataRestriction.props.value"
-				:no-wrap="false"
-				:input-label="t('oidc', 'Removed information from ID token and userinfo endpoint')"
-				:placeholder="t('oidc', 'Select information to be omitted')"
-				class="nc_select"
-				@update:modelValue="updateRestrictUserInformation" />
-		</div>
-	</NcSettingsSection>
+			<div v-if="localAllowUserSettings != 'no'">
+				<h4>
+					{{ t("oidc", "Restrict Personal Information") }}
+				</h4>
+				<NcSelect v-bind="userDataRestriction.props"
+					v-model="userDataRestriction.props.value"
+					:no-wrap="false"
+					:input-label="t('oidc', 'Removed information from ID token and userinfo endpoint')"
+					:placeholder="t('oidc', 'Select information to be omitted')"
+					class="nc_select"
+					@update:modelValue="updateRestrictUserInformation" />
+			</div>
+
+			<AuthorizedApps :allow-user-settings="localAllowUserSettings" />
+		</NcSettingsSection>
+	</div>
 </template>
 
 <script>
@@ -40,12 +44,14 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import NcSettingsSection from '@nextcloud/vue/components/NcSettingsSection'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
+import AuthorizedApps from './components/AuthorizedApps.vue'
 
 export default {
 	name: 'AppPersonal',
 	components: {
 		NcSettingsSection,
 		NcSelect,
+		AuthorizedApps,
 	},
 	props: {
 		allowUserSettings: {

@@ -52,6 +52,7 @@ Full documentation can be found at:
   <background-jobs>
     <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens</job>
     <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredClients</job>
+    <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredConsents</job>
     <job>OCA\OIDCIdentityProvider\BackgroundJob\CleanupGroups</job>
   </background-jobs>
 

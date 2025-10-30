@@ -80,7 +80,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($userId);
         $accessToken->setHashedCode(hash('sha512', $code));
-        $accessToken->setScope(substr($scopes, 0, 128));
+        $accessToken->setScope(substr($scopes, 0, 512));
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime() + $expireTime);
         $accessToken->setNonce('');

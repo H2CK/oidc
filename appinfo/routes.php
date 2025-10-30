@@ -138,6 +138,36 @@ return [
             'verb' => 'GET',
         ],
         [
+            'name' => 'Consent#show',
+            'url' => '/consent',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'Consent#grant',
+            'url' => '/consent/grant',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Consent#deny',
+            'url' => '/consent/deny',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'Consent#listUserConsents',
+            'url' => '/api/consents',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'Consent#revokeConsent',
+            'url' => '/api/consents/{clientId}',
+            'verb' => 'DELETE',
+        ],
+        [
+            'name' => 'Consent#updateScopes',
+            'url' => '/api/consents/{clientId}/scopes',
+            'verb' => 'PATCH',
+        ],
+        [
             'name' => 'OIDCApi#getToken',
             'url' => '/token',
             'verb' => 'POST'
