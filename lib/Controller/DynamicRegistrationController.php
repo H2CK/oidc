@@ -381,7 +381,7 @@ class DynamicRegistrationController extends ApiController
 
         // Get redirect URIs
         $redirectUris = [];
-        foreach ($this->redirectUriMapper->findByClientId($client->getId()) as $redirectUri) {
+        foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $redirectUri) {
             $redirectUris[] = $redirectUri->getRedirectUri();
         }
 
@@ -482,7 +482,7 @@ class DynamicRegistrationController extends ApiController
         // Update redirect URIs if provided
         if ($redirect_uris !== null && !empty($redirect_uris)) {
             // Delete existing redirect URIs
-            foreach ($this->redirectUriMapper->findByClientId($client->getId()) as $redirectUri) {
+            foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $redirectUri) {
                 $this->redirectUriMapper->delete($redirectUri);
             }
 
@@ -502,7 +502,7 @@ class DynamicRegistrationController extends ApiController
 
         // Get current redirect URIs for response
         $currentRedirectUris = [];
-        foreach ($this->redirectUriMapper->findByClientId($client->getId()) as $redirectUri) {
+        foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $redirectUri) {
             $currentRedirectUris[] = $redirectUri->getRedirectUri();
         }
 
