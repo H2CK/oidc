@@ -348,7 +348,7 @@ export default {
 				signingAlg: 'RS256',
 				type: 'confidential',
 				flowType: 'code',
-				tokenType: 'opaque',
+				tokenType: '',
 				allowedScopes: '',
 				emailRegex: '',
 				errorMsg: '',
@@ -518,7 +518,7 @@ export default {
 				this.newClient.signingAlg = 'RS256'
 				this.newClient.type = 'confidential'
 				this.newClient.flowType = 'code'
-				this.newClient.tokenType = 'opaque'
+				this.newClient.tokenType = ''
 			}).catch(reason => {
 				this.newClient.error = true
 				this.newClient.errorMsg = reason.response.data.message
