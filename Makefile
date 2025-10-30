@@ -32,9 +32,9 @@ endif
 
 # Translations are now done via Transifex, therefore the three tasks 'make translationtool',
 # 'make generate-po-translation' and 'make generate-nc-translation' are no longer necessary.
-# Previously the translations were made with a local translation tool. For installation of 
-# the necessary tools execute `make translationtool`. To create the pot file from the source 
-# code execute `make generate-po-translation`. After creating the po translation files under 
+# Previously the translations were made with a local translation tool. For installation of
+# the necessary tools execute `make translationtool`. To create the pot file from the source
+# code execute `make generate-po-translation`. After creating the po translation files under
 # translationfiles/...LANGUAGE-CODE.../oidc.po you must execute `make generate-nc-translation`
 # to generate the necessary nextcloud translation files.
 # Install translationtool from https://github.com/nextcloud/docker-ci/tree/master/translations/translationtool
@@ -127,11 +127,6 @@ assemble:
 	--exclude=.php_cs.* \
 	--exclude=phpunit*xml \
 	--exclude=.scrutinizer.yml \
-	--exclude=src/main.js \
-	--exclude=src/redirect.js \
-	--exclude=src/Redirect.vue \
-	--exclude=src/App.vue \
-	--exclude=src/components/OIDCItem.vue\
 	--exclude=.stylelintrc.js \
 	--exclude=tests \
 	--exclude=.travis.yml \
