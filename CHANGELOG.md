@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [x.x.x] - 2025-11-xx
+## [1.11.0] - 2025-11-01
 
 ### Added
 
@@ -24,6 +24,12 @@ All notable changes to this project will be documented in this file.
   - Input validation: Proper normalization and error responses
   - Namespaced scopes: Support for patterns like read:messages, api:admin, org.example.scope
   - Registration tokens: Clients receive registration_access_token and registration_client_uri on creation
+- User Consent Management (thanks to @cbcoutinho)
+  - AuthorizedApps component: New settings panel showing all authorized applications
+  - List endpoint (GET /api/consents): Retrieve all active consent grants for current user
+  - Revoke endpoint (DELETE /api/consents/{clientId}): Self-service consent revocation
+  - Displays client name, ID, granted scopes, and authorization date
+  - Integrated into personal settings page
 
 ### Changed
 
