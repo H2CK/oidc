@@ -34,6 +34,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Controller\\CorsController' => __DIR__ . '/..' . '/../lib/Controller/CorsController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\DiscoveryController' => __DIR__ . '/..' . '/../lib/Controller/DiscoveryController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\DynamicRegistrationController' => __DIR__ . '/..' . '/../lib/Controller/DynamicRegistrationController.php',
+        'OCA\\OIDCIdentityProvider\\Controller\\IntrospectionController' => __DIR__ . '/..' . '/../lib/Controller/IntrospectionController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => __DIR__ . '/..' . '/../lib/Controller/JwksController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\LoginRedirectorController' => __DIR__ . '/..' . '/../lib/Controller/LoginRedirectorController.php',
         'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => __DIR__ . '/..' . '/../lib/Controller/LogoutController.php',
@@ -53,6 +54,8 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => __DIR__ . '/..' . '/../lib/Db/RedirectUriMapper.php',
         'OCA\\OIDCIdentityProvider\\Db\\UserConsent' => __DIR__ . '/..' . '/../lib/Db/UserConsent.php',
         'OCA\\OIDCIdentityProvider\\Db\\UserConsentMapper' => __DIR__ . '/..' . '/../lib/Db/UserConsentMapper.php',
+        'OCA\\OIDCIdentityProvider\\Db\\RegistrationToken' => __DIR__ . '/..' . '/../lib/Db/RegistrationToken.php',
+        'OCA\\OIDCIdentityProvider\\Db\\RegistrationTokenMapper' => __DIR__ . '/..' . '/../lib/Db/RegistrationTokenMapper.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/AccessTokenNotFoundException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\CliException' => __DIR__ . '/..' . '/../lib/Exceptions/CliException.php',
         'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => __DIR__ . '/..' . '/../lib/Exceptions/ClientNotFoundException.php',
@@ -76,11 +79,17 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Migration\\Version0012Date20250402100100' => __DIR__ . '/..' . '/../lib/Migration/Version0012Date20250402100100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0013Date20250623100100' => __DIR__ . '/..' . '/../lib/Migration/Version0013Date20250623100100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0014Date20251019100100' => __DIR__ . '/..' . '/../lib/Migration/Version0014Date20251019100100.php',
+<<<<<<< HEAD
         'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251123100100' => __DIR__ . '/..' . '/../lib/Migration/Version0015Date20251123100100.php',
+||||||| 36c9a47
+=======
+        'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251024100100' => __DIR__ . '/..' . '/../lib/Migration/Version0015Date20251024100100.php',
+>>>>>>> upstream/master
         'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
         'OCA\\OIDCIdentityProvider\\Settings\\AdminSection' => __DIR__ . '/..' . '/../lib/Settings/AdminSection.php',
         'OCA\\OIDCIdentityProvider\\Settings\\Personal' => __DIR__ . '/..' . '/../lib/Settings/Personal.php',
         'OCA\\OIDCIdentityProvider\\Settings\\PersonalSection' => __DIR__ . '/..' . '/../lib/Settings/PersonalSection.php',
+        'OCA\\OIDCIdentityProvider\\Service\\RegistrationTokenService' => __DIR__ . '/..' . '/../lib/Service/RegistrationTokenService.php',
         'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => __DIR__ . '/..' . '/../lib/Util/DiscoveryGenerator.php',
         'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => __DIR__ . '/..' . '/../lib/Util/JwtGenerator.php',
         'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => __DIR__ . '/..' . '/../lib/Event/TokenGenerationRequestEvent.php',

@@ -19,6 +19,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\Controller\\CorsController' => $baseDir . '/../lib/Controller/CorsController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\DiscoveryController' => $baseDir . '/../lib/Controller/DiscoveryController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\DynamicRegistrationController' => $baseDir . '/../lib/Controller/DynamicRegistrationController.php',
+    'OCA\\OIDCIdentityProvider\\Controller\\IntrospectionController' => $baseDir . '/../lib/Controller/IntrospectionController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\JwksController' => $baseDir . '/../lib/Controller/JwksController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LoginRedirectorController' => $baseDir . '/../lib/Controller/LoginRedirectorController.php',
     'OCA\\OIDCIdentityProvider\\Controller\\LogoutController' => $baseDir . '/../lib/Controller/LogoutController.php',
@@ -38,6 +39,8 @@ return array(
     'OCA\\OIDCIdentityProvider\\Db\\RedirectUriMapper' => $baseDir . '/../lib/Db/RedirectUriMapper.php',
     'OCA\\OIDCIdentityProvider\\Db\\UserConsent' => $baseDir . '/../lib/Db/UserConsent.php',
     'OCA\\OIDCIdentityProvider\\Db\\UserConsentMapper' => $baseDir . '/../lib/Db/UserConsentMapper.php',
+    'OCA\\OIDCIdentityProvider\\Db\\RegistrationToken' => $baseDir . '/../lib/Db/RegistrationToken.php',
+    'OCA\\OIDCIdentityProvider\\Db\\RegistrationTokenMapper' => $baseDir . '/../lib/Db/RegistrationTokenMapper.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\AccessTokenNotFoundException' => $baseDir . '/../lib/Exceptions/AccessTokenNotFoundException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\CliException' => $baseDir . '/../lib/Exceptions/CliException.php',
     'OCA\\OIDCIdentityProvider\\Exceptions\\ClientNotFoundException' => $baseDir . '/../lib/Exceptions/ClientNotFoundException.php',
@@ -61,11 +64,17 @@ return array(
     'OCA\\OIDCIdentityProvider\\Migration\\Version0012Date20250402100100' => $baseDir . '/../lib/Migration/Version0012Date20250402100100.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0013Date20250623100100' => $baseDir . '/../lib/Migration/Version0013Date20250623100100.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0014Date20251019100100' => $baseDir . '/../lib/Migration/Version0014Date20251019100100.php',
+<<<<<<< HEAD
     'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251123100100' => $baseDir . '/../lib/Migration/Version0015Date20251123100100.php',
+||||||| 36c9a47
+=======
+    'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251024100100' => $baseDir . '/../lib/Migration/Version0015Date20251024100100.php',
+>>>>>>> upstream/master
     'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
     'OCA\\OIDCIdentityProvider\\Settings\\AdminSection' => $baseDir . '/../lib/Settings/AdminSection.php',
     'OCA\\OIDCIdentityProvider\\Settings\Personal' => $baseDir . '/../lib/Settings/Personal.php',
     'OCA\\OIDCIdentityProvider\\Settings\\PersonalSection' => $baseDir . '/../lib/Settings/PersonalSection.php',
+    'OCA\\OIDCIdentityProvider\\Service\\RegistrationTokenService' => $baseDir . '/../lib/Service/RegistrationTokenService.php',
     'OCA\\OIDCIdentityProvider\\Util\\DiscoveryGenerator' => $baseDir . '/../lib/Util/DiscoveryGenerator.php',
     'OCA\\OIDCIdentityProvider\\Util\\JwtGenerator' => $baseDir . '/../lib/Util/JwtGenerator.php',
     'OCA\\OIDCIdentityProvider\\Event\\TokenGenerationRequestEvent' => $baseDir . '/../lib/Event/TokenGenerationRequestEvent.php',

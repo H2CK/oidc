@@ -175,6 +175,24 @@
 			</select>
 
 			<p style="margin-top: 1.5em;">
+				{{ t('oidc', 'Default Access Token Type') }}
+			</p>
+			<select id="defaultTokenType"
+				v-model="localDefaultTokenType"
+				:placeholder="t('oidc', 'Default token type for new clients')"
+				@change="setDefaultTokenType">
+				<option disabled value="">
+					{{ t('oidc', 'Select default token type for new clients') }}
+				</option>
+				<option value="opaque">
+					{{ t('oidc', 'Opaque Access Token') }}
+				</option>
+				<option value="jwt">
+					{{ t('oidc', 'JWT Access Token (RFC9068)') }}
+				</option>
+			</select>
+
+			<p style="margin-top: 1.5em;">
 				{{ t('oidc', 'Email Verified Flag') }}
 			</p>
 			<select id="overwriteEmailVerified"
@@ -316,6 +334,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		defaultTokenType: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -342,6 +364,7 @@ export default {
 			localOverwriteEmailVerified: this.overwriteEmailVerified,
 			localDynamicClientRegistration: this.dynamicClientRegistration,
 			localAllowUserSettings: this.allowUserSettings,
+			localDefaultTokenType: this.defaultTokenType,
 			error: false,
 			errorMsg: '',
 			version: 0,
@@ -544,6 +567,15 @@ export default {
 					allowUserSettings: this.localAllowUserSettings,
 				}).then((response) => {
 				this.localAllowUserSettings = response.data.allow_user_settings
+			})
+		},
+		setDefaultTokenType() {
+			axios.post(
+				generateUrl('apps/oidc/defaultTokenType'),
+				{
+					defaultTokenType: this.localDefaultTokenType,
+				}).then((response) => {
+				this.localDefaultTokenType = response.data.default_token_type
 			})
 		},
 		regenerateKeys() {

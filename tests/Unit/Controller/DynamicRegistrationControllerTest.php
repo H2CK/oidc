@@ -15,6 +15,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
+use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
 use OCP\Security\ISecureRandom;
 use OCP\IURLGenerator;
 use OCP\IConfig;
@@ -39,6 +40,8 @@ class DynamicRegistrationControllerTest extends TestCase {
     protected $redirectUriMapper;
     /** @var LogoutRedirectUriMapper  */
     protected $logoutRedirectUriMapper;
+    /** @var RegistrationTokenService */
+    protected $registrationTokenService;
     /** @var ITimeFactory */
     protected $time;
     /** @var IBackend */
@@ -81,6 +84,10 @@ class DynamicRegistrationControllerTest extends TestCase {
                                                                                                                     $this->time,
                                                                                                                     $this->appConfig])->getMock();
 
+        $this->registrationTokenService = $this->getMockBuilder(RegistrationTokenService::class)
+                                                ->disableOriginalConstructor()
+                                                ->getMock();
+
         $this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
                                                                                         $this->logger,
                                                                                         $this->config,
@@ -103,6 +110,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             $this->accessTokenMapper,
             $this->redirectUriMapper,
             $this->logoutRedirectUriMapper,
+            $this->registrationTokenService,
             $this->time,
             $this->throttler,
             $this->urlGenerator,
@@ -165,7 +173,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('getAppValueString')
             ->willReturnMap([
                 ['dynamic_client_registration', 'false', 'true'],
-                ['client_expire_time', '3600', '3600']
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
             ]);
 
         // Return max number of clients 1000
@@ -177,9 +186,21 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('insert')
             ->willReturnCallBack (
                 function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
                     return $arg;
                 }
             );
+
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($registrationToken);
 
         $ts = time();
         $result = $this->controller->registerClient(['https://test.org/redirect'], 'TEST-CLIENT');
@@ -196,6 +217,178 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('web', $client['application_type']);
         $this->assertEquals($ts, $client['client_id_issued_at']);
         $this->assertEquals($ts + 3600, $client['client_secret_expires_at']);
+    }
+
+    public function testClientCreatedWithValidScope() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
+            ]);
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
+                    return $arg;
+                }
+            );
+
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($registrationToken);
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT',
+            'RS256',
+            ['code'],
+            'web',
+            'openid profile email custom:read custom:write'
+        );
+        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
+
+        $client = $result->getData();
+        $this->assertEquals('openid profile email custom:read custom:write', $client['scope']);
+    }
+
+    public function testClientCreatedWithNoScope() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
+            ]);
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
+                    return $arg;
+                }
+            );
+
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($registrationToken);
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT'
+        );
+        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
+
+        $client = $result->getData();
+        $this->assertEquals('', $client['scope']);
+    }
+
+    public function testScopeWithInvalidCharacters() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturn('true');
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT',
+            'RS256',
+            ['code'],
+            'web',
+            'openid profile email@invalid scope#bad'
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_scope', $result->getData()['error']);
+    }
+
+    public function testScopeTruncation() {
+        // Return true for getAppValue('dynamic_client_registration', 'false')
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnMap([
+                ['dynamic_client_registration', 'false', 'true'],
+                ['client_expire_time', '3600', '3600'],
+                ['default_token_type', 'opaque', 'opaque']
+            ]);
+
+        // Return max number of clients 100
+        $this->clientMapper
+            ->method('getNumDcrClients')
+            ->willReturn(50);
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallBack (
+                function ($arg) {
+                    // Set ID on the client to simulate database insert
+                    $reflection = new \ReflectionClass($arg);
+                    $property = $reflection->getProperty('id');
+                    $property->setAccessible(true);
+                    $property->setValue($arg, 1);
+                    return $arg;
+                }
+            );
+
+        // Create real RegistrationToken object
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('mock_registration_token_12345');
+        $this->registrationTokenService
+            ->method('generateToken')
+            ->willReturn($registrationToken);
+
+        // Create a scope longer than 255 characters
+        $longScope = str_repeat('scope ', 60); // This creates a 360 character string
+
+        $result = $this->controller->registerClient(
+            ['https://test.org/redirect'],
+            'TEST-CLIENT',
+            'RS256',
+            ['code'],
+            'web',
+            $longScope
+        );
+
+        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
+
+        $client = $result->getData();
+        // Verify scope was truncated to 255 characters
+        $this->assertEquals(255, strlen($client['scope']));
     }
 
 }

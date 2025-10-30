@@ -3,10 +3,12 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Váš klient není autorizován pro připojení. Informujte správce svého klienta.",
     "Your client is expired. Please inform the administrator of your client." : "Platnost vašeho klienta skončila. Prosím informujte správce vašeho klienta.",
-    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené URI přesměrování není přijato pro připojení. Informujte o tom správce vašeho klienta.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené URI přesměrování není přijato pro připojení. Informujte o tom správce svého klienta.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Uživatel není členem skupin určených pro klienta. Nemáte oprávnění získat přihlašovací token.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Došlo k nezdaru při vytváření JWT. Sdělte to správci vašeho klienta.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL adresu přesměrování je třeba uvádět celou, např. https://yourdomain.com/umisteni",
+    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Je třeba, aby váš identif. klienta splňoval následující pravidla: znaky A-Za-z0-9 a délka z rozmezí 32 až 64 znaků",
+    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Je třeba, aby vaše tajemství klienta splňovalo následující pravidla: znaky A-Za-z0-9 a délka z rozmezí 32 až 64 znaků",
     "Code Authorization Flow" : "Tok pověřování kódu",
     "Code & Implicit Authorization Flow" : "Kód a tok výslovného pověřování",
     "OpenID Connect Provider" : "Poskytovatel OpenID Connect",

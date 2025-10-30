@@ -68,6 +68,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setDefaultTokenType',
+            'url' => '/defaultTokenType',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#setAllowUserSettings',
             'url' => '/allowUserSettings',
             'verb' => 'POST',
@@ -245,6 +250,16 @@ return [
         [
             'name' => 'Cors#logoutCorsResponse',
             'url' => '/logout',
+            'verb' => 'OPTIONS',
+        ],
+        [
+            'name' => 'Introspection#introspectToken',
+            'url' => '/introspect',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'Cors#introspectionCorsResponse',
+            'url' => '/introspect',
             'verb' => 'OPTIONS',
         ],
     ],

@@ -187,6 +187,12 @@ class UserInfoController extends ApiController
         // Check for scopes
         $scopeArray = preg_split('/ +/', $accessToken->getScope());
 
+        // Add scope field to userinfo response (RFC 8693 & OpenID Connect Core 1.0 Section 5.3.2)
+        // This allows resource servers to validate token scopes without introspection
+        if ($accessToken->getScope() !== null && $accessToken->getScope() !== '') {
+            $userInfoPayload['scope'] = $accessToken->getScope();
+        }
+
         $roles = [];
         $groupClaimType = (string)$this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
         foreach ($groups as $group) {
