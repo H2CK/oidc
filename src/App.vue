@@ -228,6 +228,27 @@
 				</option>
 			</select>
 
+			<p style="margin-top: 1.5em;">
+				{{ t('oidc', 'Refresh Token Behavior') }}
+			</p>
+			<select id="provideRefreshTokenAlways"
+				v-model="localProvideRefreshTokenAlways"
+				:placeholder="t('oidc', 'Define refresh token issuance behavior')"
+				@change="setProvideRefreshTokenAlways">
+				<option disabled value="">
+					{{ t('oidc', 'Select refresh token behavior') }}
+				</option>
+				<option value="false">
+					{{ t('oidc', 'OIDC Compliant (require offline_access scope)') }}
+				</option>
+				<option value="true">
+					{{ t('oidc', 'Always provide refresh tokens (legacy mode)') }}
+				</option>
+			</select>
+			<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+				{{ t('oidc', 'OIDC-compliant clients must request the offline_access scope to receive refresh tokens. Enable legacy mode only if you have non-compliant clients that cannot be updated.') }}
+			</p>
+
 			<h4>
 				{{ t('oidc', 'Restrict User Information') }}
 			</h4>
@@ -338,6 +359,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		provideRefreshTokenAlways: {
+			type: String,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -365,6 +390,7 @@ export default {
 			localDynamicClientRegistration: this.dynamicClientRegistration,
 			localAllowUserSettings: this.allowUserSettings,
 			localDefaultTokenType: this.defaultTokenType,
+			localProvideRefreshTokenAlways: this.provideRefreshTokenAlways,
 			error: false,
 			errorMsg: '',
 			version: 0,
@@ -576,6 +602,15 @@ export default {
 					defaultTokenType: this.localDefaultTokenType,
 				}).then((response) => {
 				this.localDefaultTokenType = response.data.default_token_type
+			})
+		},
+		setProvideRefreshTokenAlways() {
+			axios.post(
+				generateUrl('apps/oidc/provideRefreshTokenAlways'),
+				{
+					provideRefreshTokenAlways: this.localProvideRefreshTokenAlways,
+				}).then((response) => {
+				this.localProvideRefreshTokenAlways = response.data.provide_refresh_token_always
 			})
 		},
 		regenerateKeys() {
