@@ -12,7 +12,7 @@ Provided features:
 - Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow - Implicite Flow must be activated per client
 - Support for PKCE
 - Public and confidential types of clients are supported
-- Creation of ID Token with claims based on requested scope (Currently supported scopes openid, profile, email, roles and groups)
+- Creation of ID Token with claims based on requested scope (Currently supported scopes: openid, profile, email, roles, groups, and offline_access)
 - Supported signing algorithms RS256 (default) and HS256
 - Group memberships are passed as roles in ID token
 - Clients can be assigned to dedicated user groups - Only users in the configured group are allowed to retrieve an access token to fetch the ID token
@@ -123,6 +123,7 @@ Further scopes are passed transparently. Also namescaped scopes are supported. E
 | email | Adds the email address of the user to the claim `email`. Furthermore the claim `email_verified` is added. |
 | roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. The content of the claim `roles` is identical to the claim `groups`. |
 | groups | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID might not be identical to the group name (display name) shown in the UI (especially after renaming groups or depending on your ldap configuration). To provide the display name of a group in the claim it is possible to change an application setting via the `occ` command. You can use the following commands to switch between GID and displayname: `occ config:app:set oidc group_claim_type --value "gid"` or  `occ config:app:set oidc group_claim_type --value "displayname"`. |
+| offline_access | **Required for refresh tokens** (OpenID Connect Core 1.0 Section 11). When this scope is requested and granted, a refresh token will be issued that allows obtaining new access tokens even when the user is not present. If this scope is not requested, no refresh token will be issued in OIDC-compliant mode. Administrators can enable "Legacy mode" in settings to always issue refresh tokens for backward compatibility with non-compliant clients. |
 
 ## Access Token & ID Token generation and validation via events by other Nextcloud apps
 
