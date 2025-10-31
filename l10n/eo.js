@@ -10,6 +10,8 @@ OC.L10N.register(
     "Never" : "Neniam",
     "Disable" : "Malŝalti",
     "Enable" : "Ŝalti",
+    "Deny" : "Rifuzi",
+    "Allow" : "Permesi",
     "Delete" : "Forigi",
     "Secret" : "Sekreta",
     "Type" : "Tipo",

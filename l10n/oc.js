@@ -22,6 +22,7 @@ OC.L10N.register(
     "7 days" : "7 jorns",
     "Never" : "Jamai",
     "Disable" : "Desactivar",
+    "Email address" : "Adreça mail",
     "Delete" : "Suprimir",
     "Client Identifier" : "Identificador client",
     "Secret" : "Secret",

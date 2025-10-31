@@ -1,9 +1,0 @@
-{ "translations": {
-    "Settings" : "Կարգավորումներ",
-    "Name" : "Անուն",
-    "Never" : "Երբեք",
-    "Delete" : "հեռացնել",
-    "Type" : "Տիպ",
-    "Save" : "Պահպանել"
-},"pluralForm" :"nplurals=2; plural=(n != 1);"
-}

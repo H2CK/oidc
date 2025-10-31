@@ -16,6 +16,7 @@ OC.L10N.register(
     "12 hours" : "12 horas",
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
+    "Loading..." : "Cargando...",
     "Delete" : "Eliminar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",

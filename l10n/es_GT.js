@@ -17,6 +17,8 @@ OC.L10N.register(
     "12 hours" : "12 horas",
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
+    "Email address" : "Dirección de correo electrónico",
+    "Loading..." : "Cargando...",
     "Delete" : "Borrar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",

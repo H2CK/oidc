@@ -8,6 +8,8 @@ OC.L10N.register(
     "Name" : "ຊື່",
     "30 minutes" : "30 ນາທີ",
     "Disable" : "ປິດ",
+    "Deny" : "ປະຕິເສດ",
+    "Allow" : "ອະນຸຍາດ",
     "Delete" : "ລຶບ",
     "Type" : "ພິມ",
     "Save" : "ບັນທຶກ"

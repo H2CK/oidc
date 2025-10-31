@@ -7,6 +7,8 @@ OC.L10N.register(
     "Name" : "Ady",
     "30 minutes" : "30 minut",
     "Disable" : "Öçürmek",
+    "Deny" : "inkär et",
+    "Allow" : "Rugsat ber",
     "Delete" : "Pozmak",
     "Type" : "Görnüşi",
     "Save" : "Saklamak"

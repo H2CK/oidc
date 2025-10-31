@@ -16,6 +16,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
     "Enable" : "Habilitar",
+    "Loading..." : "Cargando...",
     "Delete" : "Borrar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",

@@ -14,6 +14,9 @@ OC.L10N.register(
     "1 day" : "1 n wass",
     "7 days" : "7 n wussan",
     "Disable" : "Désactiver",
+    "Email address" : "Tansa imayl",
+    "Deny" : "Agwi",
+    "Allow" : "Sireg",
     "Delete" : "Kkes",
     "Type" : "Anaw",
     "Save" : "Sekles"

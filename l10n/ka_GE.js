@@ -14,6 +14,7 @@ OC.L10N.register(
     "12 hours" : "12 საათი",
     "Never" : "არასდროს",
     "Disable" : "გამორთვა",
+    "Loading..." : "იტვირთება…",
     "Delete" : "წაშლა",
     "Client Identifier" : "კლიენტის იდენტიფიკატორი",
     "Secret" : "საიდუმლო",

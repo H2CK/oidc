@@ -13,6 +13,8 @@ OC.L10N.register(
     "12 hours" : "12 sati",
     "Never" : "Nikad",
     "Disable" : "Isključi",
+    "Deny" : "Odbij",
+    "Allow" : "Dozvoli",
     "Delete" : "Obriši",
     "Type" : "Tip",
     "Save" : "Sačuvaj"

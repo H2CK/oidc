@@ -28,6 +28,8 @@ OC.L10N.register(
     "Never" : "Ніколі",
     "Disable" : "Адключыць",
     "Enable" : "Уключыць",
+    "Opaque Access Token" : "Непразрысты токен доступу",
+    "JWT Access Token (RFC9068)" : "Токен доступу JWT (RFC9068)",
     "Source for email verified flag in token" : "Крыніца для сцяжка спраўджання адраса электроннай пошты ў токене",
     "Removed information from ID token and userinfo endpoint" : "Выдалена інфармацыя з токена ідэнтыфікацыі і канцавой кропкі userinfo",
     "Delete" : "Выдаліць",
@@ -35,8 +37,6 @@ OC.L10N.register(
     "Show client secret" : "Паказаць сакрэтны ключ кліента",
     "Type" : "Тып",
     "Access Token Type" : "Тып токена доступу",
-    "Opaque Access Token" : "Непразрысты токен доступу",
-    "JWT Access Token (RFC9068)" : "Токен доступу JWT (RFC9068)",
     "Save" : "Захаваць"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

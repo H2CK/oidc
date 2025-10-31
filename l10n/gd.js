@@ -8,6 +8,8 @@ OC.L10N.register(
     "Name" : "Ainm",
     "30 minutes" : "Leth-uair a thìde",
     "Disable" : "Cuir à comas",
+    "Deny" : "Diùlt",
+    "Allow" : "Ceadaich",
     "Delete" : "Sguab às",
     "Type" : "Seòrsa",
     "Save" : "Sàbhail"

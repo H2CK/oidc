@@ -16,6 +16,8 @@ OC.L10N.register(
     "Never" : "Hech qachon",
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
+    "Email address" : "E-pochta manzili",
+    "Deny" : "Rad etish",
     "Delete" : "O'chirish",
     "Type" : "Turi",
     "Save" : "Saqlash"
