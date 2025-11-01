@@ -14,6 +14,8 @@ OC.L10N.register(
     "Never" : "James",
     "Disable" : "Diweredekaat",
     "Enable" : "Aotreañ",
+    "Deny" : "Difennet",
+    "Allow" : "Aotrañ",
     "Delete" : "Dilemel",
     "Client Identifier" : "Anavezer Kliant",
     "Secret" : "Sekret",

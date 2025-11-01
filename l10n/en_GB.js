@@ -71,6 +71,8 @@ OC.L10N.register(
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect allows you to log in to external services with your {instanceName} user account.",
     "All settings for the login at other services are managed by your administrator." : "All settings for the login at other services are managed by your administrator.",
     "Restrict Personal Information" : "Restrict Personal Information",
+    "Profile information" : "Profile information",
+    "Email address" : "Email address",
     "Deny" : "Deny",
     "Allow" : "Allow",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",

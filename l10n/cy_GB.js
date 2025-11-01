@@ -5,6 +5,7 @@ OC.L10N.register(
     "Settings" : "Gosodiadau",
     "Name" : "Enw",
     "Disable" : "Analluogi",
+    "Email address" : "Cyfeiriad e-bost",
     "Delete" : "Dileu",
     "Type" : "Math",
     "Save" : "Cadw"

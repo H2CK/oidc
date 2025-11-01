@@ -40,6 +40,7 @@ OC.L10N.register(
     "Enable" : "Habilitar",
     "Accepted Logout Redirect URIs" : "URIs de Redirección Aceptadas para Cerrar Sesión",
     "Regenerate Keys" : "Regenerar Claves",
+    "Profile information" : "Información del perfil",
     "Email address" : "Dirección de correo electrónico",
     "Deny" : "Denegar",
     "Allow" : "Permitir",

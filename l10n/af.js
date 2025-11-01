@@ -6,6 +6,7 @@ OC.L10N.register(
     "Redirection URI" : "Herverwysings-URI",
     "Add" : "Voeg toe",
     "Disable" : "Deaktiveer",
+    "Email address" : "E-posadres",
     "Delete" : "Skrap",
     "Client Identifier" : "Kliëntidentifiseerder",
     "Secret" : "Geheim",

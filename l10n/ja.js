@@ -19,6 +19,7 @@ OC.L10N.register(
     "Add client" : "クライアントの追加",
     "Name" : "名前",
     "Redirection URI" : "リダイレクトURI",
+    "Confidential" : "機密",
     "Public" : "公開",
     "Add" : "追加",
     "Token Expire Time" : "トークンの有効期限",

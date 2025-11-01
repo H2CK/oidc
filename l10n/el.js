@@ -71,6 +71,8 @@ OC.L10N.register(
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "Το OpenID Connect σας επιτρέπει να συνδεθείτε σε εξωτερικές υπηρεσίες με το λογαριασμό χρήστη {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Όλες οι ρυθμίσεις για τη σύνδεση σε άλλες υπηρεσίες διαχειρίζεται ο διαχειριστής σας.",
     "Restrict Personal Information" : "Περιορισμός προσωπικών πληροφοριών",
+    "Profile information" : "Πληροφορίες προφίλ",
+    "Email address" : "Διεύθυνση αλληλογραφίας",
     "Deny" : "Απόρριψη",
     "Allow" : "Επιτρέπεται",
     "OpenID Connect Redirect" : "Ανακατεύθυνση OpenID Connect",

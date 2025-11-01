@@ -10,6 +10,7 @@ OC.L10N.register(
     "Never" : "Neniam",
     "Disable" : "Malŝalti",
     "Enable" : "Ŝalti",
+    "Email address" : "Retpoŝtadreso",
     "Deny" : "Rifuzi",
     "Allow" : "Permesi",
     "Delete" : "Forigi",

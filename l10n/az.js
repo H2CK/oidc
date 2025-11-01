@@ -6,6 +6,7 @@ OC.L10N.register(
     "Public" : "İctimai",
     "Never" : "Heç vaxt",
     "Disable" : "Dayandır",
+    "Profile information" : "Profil məlumatı",
     "Delete" : "Sil",
     "Save" : "Saxla"
 },
