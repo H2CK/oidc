@@ -30,6 +30,7 @@ class Application extends App implements IBootstrap {
     public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
     public const DEFAULT_RESTRICT_USER_INFORMATION = 'no';
     public const DEFAULT_TOKEN_TYPE = 'opaque';
+    public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
 
     public const GROUP_CLAIM_TYPE_GID = 'gid';
     public const GROUP_CLAIM_TYPE_DISPLAYNAME = 'displayname';
@@ -44,6 +45,7 @@ class Application extends App implements IBootstrap {
     public const APP_CONFIG_RESTRICT_USER_INFORMATION = 'restrict_user_information';
     public const APP_CONFIG_GROUP_CLAIM_TYPE = 'group_claim_type';
     public const APP_CONFIG_DEFAULT_TOKEN_TYPE = 'default_token_type';
+    public const APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS = 'provide_refresh_token_always';
 
     private $backend;
 

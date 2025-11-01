@@ -102,6 +102,7 @@ class DiscoveryGenerator
             'email',
             'roles',
             'groups',
+            'offline_access',
         ];
 
         // Aggregate custom scopes from all registered OAuth clients

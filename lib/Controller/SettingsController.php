@@ -561,6 +561,19 @@ class SettingsController extends Controller
         return new JSONResponse($result);
     }
 
+    public function setProvideRefreshTokenAlways(
+                    string $provideRefreshTokenAlways
+                    ): JSONResponse
+    {
+        $this->logger->debug("Setting provide_refresh_token_always to " . $provideRefreshTokenAlways);
+        $normalizedValue = ($provideRefreshTokenAlways === 'true') ? 'true' : 'false';
+        $this->appConfig->setAppValueString(Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS, $normalizedValue);
+        $result = [
+            'provide_refresh_token_always' => $this->appConfig->getAppValueString(Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS, Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS),
+        ];
+        return new JSONResponse($result);
+    }
+
     public function restrictUserInformation(
                     string $restrictUserInformation
                     ): JSONResponse

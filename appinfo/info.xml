@@ -60,6 +60,9 @@ Full documentation can be found at:
     <install>
       <step>OCA\OIDCIdentityProvider\Migration\CreateKeys</step>
     </install>
+    <post-migration>
+      <step>OCA\OIDCIdentityProvider\Migration\AddOfflineAccessToClients</step>
+    </post-migration>
   </repair-steps>
 
   <settings>

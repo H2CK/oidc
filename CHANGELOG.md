@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.0] - Unreleased
+
+### Added
+
+- **OIDC Compliance: offline_access Scope Support (OpenID Connect Core 1.0 Section 11)**
+  - Refresh tokens now require the `offline_access` scope to be requested
+  - Discovery endpoint now advertises `offline_access` in `scopes_supported`
+  - Enhanced consent screen displays offline_access permission with user-friendly description
+  - Admin setting: "Refresh Token Behavior" toggle for legacy compatibility
+    - Default (OIDC Compliant): Requires `offline_access` scope for refresh tokens
+    - Legacy mode: Always provides refresh tokens (for non-compliant clients)
+  - Automatic migration: Adds `offline_access` to all existing clients' allowed scopes
+  - Comprehensive logging of refresh token issuance decisions
+
+### Changed
+
+- **Breaking Change for Non-Compliant Clients**: Clients must now explicitly request the `offline_access` scope to receive refresh tokens. This brings the OIDC provider into full compliance with OpenID Connect Core 1.0 specification. OIDC-compliant clients are unaffected. For clients that cannot be updated, enable "Legacy mode" in admin settings.
+
+### Migration Guide
+
+- **For OIDC-Compliant Clients**: No action required if you're already requesting `offline_access` scope
+- **For Custom Clients**: Add `offline_access` to your authorization request scope parameter:
+  - Before: `scope=openid profile email`
+  - After: `scope=openid profile email offline_access`
+- **For Non-Compliant Clients**: If updating the client is not possible, enable "Legacy mode" in Settings > OIDC > Refresh Token Behavior
+
 ## [1.11.0] - 2025-11-01
 
 ### Added

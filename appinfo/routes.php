@@ -78,6 +78,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setProvideRefreshTokenAlways',
+            'url' => '/provideRefreshTokenAlways',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#restrictUserInformation',
             'url' => '/restrictUserInformation',
             'verb' => 'POST',

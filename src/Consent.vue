@@ -107,6 +107,10 @@ export default {
 					label: t('oidc', 'Group memberships'),
 					description: t('oidc', 'Access your Nextcloud group information'),
 				},
+				offline_access: {
+					label: t('oidc', 'Access when you\'re away'),
+					description: t('oidc', 'Allow this app to access your data even when you\'re not signed in'),
+				},
 			}
 
 			return scopeString.split(' ').filter(s => s.trim() !== '').map(scope => ({
