@@ -16,8 +16,7 @@
 
 				<div class="scope-list">
 					<div v-for="scope in scopes" :key="scope.name" class="scope-item">
-						<input
-							:id="'scope-' + scope.name"
+						<input :id="'scope-' + scope.name"
 							v-model="selectedScopes"
 							type="checkbox"
 							:value="scope.name"
@@ -32,13 +31,11 @@
 			</div>
 
 			<div class="consent-actions">
-				<button
-					class="button secondary"
+				<button class="button secondary"
 					@click="handleDeny">
 					{{ t('oidc', 'Deny') }}
 				</button>
-				<button
-					class="button primary"
+				<button class="button primary"
 					:disabled="selectedScopes.length === 0"
 					@click="handleGrant">
 					{{ t('oidc', 'Allow') }}
