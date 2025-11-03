@@ -11,6 +11,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredClients' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredClients.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
     'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => $baseDir . '/../lib/BackgroundJob/CleanupGroups.php',
+    'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredConsents' => $baseDir . '/../lib/BackgroundJob/CleanupExpiredConsents.php',
     'OCA\\OIDCIdentityProvider\\BasicAuthBackend' => $baseDir . '/../lib/BasicAuthBackend.php',
     'OCA\\OIDCIdentityProvider\\Command\\Clients\\OIDCCreate' => $baseDir . '/../lib/Command/Clients/OIDCCreate.php',
     'OCA\\OIDCIdentityProvider\\Command\\Clients\\OIDCList' => $baseDir . '/../lib/Command/Clients/OIDCList.php',

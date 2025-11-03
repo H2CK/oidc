@@ -26,6 +26,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredClients' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredClients.php',
         'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredTokens' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredTokens.php',
         'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupGroups' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupGroups.php',
+        'OCA\\OIDCIdentityProvider\\BackgroundJob\\CleanupExpiredConsents' => __DIR__ . '/..' . '/../lib/BackgroundJob/CleanupExpiredConsents.php',
         'OCA\\OIDCIdentityProvider\\BasicAuthBackend' => __DIR__ . '/..' . '/../lib/BasicAuthBackend.php',
         'OCA\\OIDCIdentityProvider\\Command\\Clients\\OIDCCreate' => __DIR__ . '/..' . '/../lib/Command/Clients/OIDCCreate.php',
         'OCA\\OIDCIdentityProvider\\Command\\Clients\\OIDCList' => __DIR__ . '/..' . '/../lib/Command/Clients/OIDCList.php',
