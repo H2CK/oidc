@@ -95,6 +95,7 @@ class DiscoveryControllerTest extends TestCase {
             'email',
             'roles',
             'groups',
+            'offline_access',
         ];
         $responseTypesSupported = [
             'code',

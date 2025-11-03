@@ -301,11 +301,27 @@ class OIDCApiController extends ApiController {
             'access_token' => $accessToken->getAccessToken(),
             'token_type' => 'Bearer',
             'expires_in' => $expireTime,
-            'refresh_token' => $newCode,
             'id_token' => $jwt,
         ];
-        if ($refreshExpireTime !== 'never') {
-            $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+
+        // Check if refresh token should be issued (OIDC Core 1.0 Section 11)
+        $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
+            Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS,
+            Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
+        ) === 'true';
+
+        $scopeArray = preg_split('/ +/', trim($accessToken->getScope()));
+        $hasOfflineAccess = in_array('offline_access', $scopeArray);
+
+        if ($provideRefreshTokenAlways || $hasOfflineAccess) {
+            $responseData['refresh_token'] = $newCode;
+            if ($refreshExpireTime !== 'never') {
+                $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+            }
+            $reason = $provideRefreshTokenAlways ? 'always_provide=true' : 'offline_access granted';
+            $this->logger->info('Issued refresh token - User: ' . $uid . ', Client: ' . $client_id . ', Reason: ' . $reason);
+        } else {
+            $this->logger->info('Denied refresh token - missing offline_access scope - User: ' . $uid . ', Client: ' . $client_id);
         }
         $response = new JSONResponse($responseData);
         $response->addHeader('Access-Control-Allow-Origin', '*');
