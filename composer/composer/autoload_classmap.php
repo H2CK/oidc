@@ -66,6 +66,7 @@ return array(
     'OCA\\OIDCIdentityProvider\\Migration\\Version0014Date20251019100100' => $baseDir . '/../lib/Migration/Version0014Date20251019100100.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251123100100' => $baseDir . '/../lib/Migration/Version0015Date20251123100100.php',
     'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251024100100' => $baseDir . '/../lib/Migration/Version0015Date20251024100100.php',
+    'OCA\\OIDCIdentityProvider\\Migration\\Version0016Date20251103100100' => $baseDir . '/../lib/Migration/Version0016Date20251103100100.php',
     'OCA\\OIDCIdentityProvider\\Settings\\Admin' => $baseDir . '/../lib/Settings/Admin.php',
     'OCA\\OIDCIdentityProvider\\Settings\\AdminSection' => $baseDir . '/../lib/Settings/AdminSection.php',
     'OCA\\OIDCIdentityProvider\\Settings\Personal' => $baseDir . '/../lib/Settings/Personal.php',
