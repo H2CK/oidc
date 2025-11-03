@@ -32,6 +32,20 @@ Full documentation can be found at:
 - [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
+## Attention - Potential Breaking Change
+
+With version 1.12 the OIDC compliance for offline_access scope was added (OpenID Connect Core 1.0 Section 11)
+
+- **Breaking Change for Non-Compliant Clients**: Clients must now explicitly request the `offline_access` scope to receive refresh tokens. This brings the OIDC provider into full compliance with OpenID Connect Core 1.0 specification. OIDC-compliant clients are unaffected. For clients that cannot be updated, enable "Legacy mode" in admin settings.
+
+### Migration Guide
+
+- **For OIDC-Compliant Clients**: No action required if you're already requesting `offline_access` scope
+- **For Custom Clients**: Add `offline_access` to your authorization request scope parameter:
+  - Before: `scope=openid profile email`
+  - After: `scope=openid profile email offline_access`
+- **For Non-Compliant Clients**: If updating the client is not possible, enable "Legacy mode" in Settings > OIDC > Refresh Token Behavior
+
 ## Configuration
 
 It is possible to modify the settings of this application in Nextcloud admin settings. There is a dedicated section for the OpenID Connect provider app in the menu on the left.
@@ -59,12 +73,14 @@ Use the option `--help` to retrieve more information on how to use the commands.
 
 ### User specific settings
 
-The administrator can give the user the right to personally select, which information is passed to the clients via the ID token and the userinfo endpoint. The following limitations are possible:
+The administrator can give the user the right to personally select, which information is passed to the clients via the ID token and the userinfo endpoint. The following limitations are possible to define what is passed in the id token:
 
 - Restrict passing the link to avatar picture
 - Restrict passing address
 - Restrict passing phone number
 - Restrict passing website
+
+Furthermore this setting activates the user consent management, so that the user has to explicitly define which scopes are allowed on first login. The consent must be renewed every 90 days.
 
 ## Endpoints
 
