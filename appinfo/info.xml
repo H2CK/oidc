@@ -14,7 +14,7 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
     ]]></description>
-  <version>1.11.0</version>
+  <version>1.12.0</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -60,9 +60,6 @@ Full documentation can be found at:
     <install>
       <step>OCA\OIDCIdentityProvider\Migration\CreateKeys</step>
     </install>
-    <post-migration>
-      <step>OCA\OIDCIdentityProvider\Migration\AddOfflineAccessToClients</step>
-    </post-migration>
   </repair-steps>
 
   <settings>

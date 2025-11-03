@@ -26315,6 +26315,10 @@ __webpack_require__.r(__webpack_exports__);
     defaultTokenType: {
       type: String,
       required: true
+    },
+    provideRefreshTokenAlways: {
+      type: String,
+      required: true
     }
   },
   data() {
@@ -26343,6 +26347,7 @@ __webpack_require__.r(__webpack_exports__);
       localDynamicClientRegistration: this.dynamicClientRegistration,
       localAllowUserSettings: this.allowUserSettings,
       localDefaultTokenType: this.defaultTokenType,
+      localProvideRefreshTokenAlways: this.provideRefreshTokenAlways,
       error: false,
       errorMsg: '',
       version: 0,
@@ -26526,6 +26531,13 @@ __webpack_require__.r(__webpack_exports__);
         defaultTokenType: this.localDefaultTokenType
       }).then(response => {
         this.localDefaultTokenType = response.data.default_token_type;
+      });
+    },
+    setProvideRefreshTokenAlways() {
+      _nextcloud_axios__WEBPACK_IMPORTED_MODULE_1__["default"].post((0,_nextcloud_router__WEBPACK_IMPORTED_MODULE_4__.generateUrl)('apps/oidc/provideRefreshTokenAlways'), {
+        provideRefreshTokenAlways: this.localProvideRefreshTokenAlways
+      }).then(response => {
+        this.localProvideRefreshTokenAlways = response.data.provide_refresh_token_always;
       });
     },
     regenerateKeys() {
@@ -27019,15 +27031,39 @@ const _hoisted_54 = {
   value: "enabled"
 };
 const _hoisted_55 = {
+  style: {
+    "margin-top": "1.5em"
+  }
+};
+const _hoisted_56 = ["placeholder"];
+const _hoisted_57 = {
+  disabled: "",
+  value: ""
+};
+const _hoisted_58 = {
+  value: "false"
+};
+const _hoisted_59 = {
+  value: "true"
+};
+const _hoisted_60 = {
+  class: "hint",
+  style: {
+    "margin-top": "0.5em",
+    "font-size": "0.9em",
+    "color": "var(--color-text-maxcontrast)"
+  }
+};
+const _hoisted_61 = {
   class: "grid-inner-2"
 };
-const _hoisted_56 = {
+const _hoisted_62 = {
   id: "oidc_keys",
   style: {
     "display": "none"
   }
 };
-const _hoisted_57 = ["value"];
+const _hoisted_63 = ["value"];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   const _component_NcButton = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("NcButton");
   const _component_OIDCItem = (0,vue__WEBPACK_IMPORTED_MODULE_0__.resolveComponent)("OIDCItem");
@@ -27091,9 +27127,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }, null, 8 /* PROPS */, _hoisted_7), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.newClient.redirectUri]])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_8, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
       id: "signingAlg",
       "onUpdate:modelValue": _cache[2] || (_cache[2] = $event => $data.newClient.signingAlg = $event)
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_9, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Select Signing Algorithm')), 1 /* TEXT */), _cache[20] || (_cache[20] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_9, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Select Signing Algorithm')), 1 /* TEXT */), _cache[22] || (_cache[22] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
       value: "RS256"
-    }, " RS256 ", -1 /* CACHED */)), _cache[21] || (_cache[21] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
+    }, " RS256 ", -1 /* CACHED */)), _cache[23] || (_cache[23] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", {
       value: "HS256"
     }, " HS256 ", -1 /* CACHED */))], 512 /* NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.newClient.signingAlg]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
       id: "type",
@@ -27148,9 +27184,14 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       "onUpdate:modelValue": _cache[15] || (_cache[15] = $event => $data.localAllowUserSettings = $event),
       placeholder: $options.t('oidc', 'Define if user can make own user specific changes to settings'),
       onChange: _cache[16] || (_cache[16] = (...args) => $options.setAllowUserSettings && $options.setAllowUserSettings(...args))
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_52, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Select if user is able to modify user specific settings')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_53, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'User cannot edit any settings')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'User can edit settings')), 1 /* TEXT */)], 40 /* PROPS, NEED_HYDRATION */, _hoisted_51), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.localAllowUserSettings]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h4", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Restrict User Information')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_NcSelect, (0,vue__WEBPACK_IMPORTED_MODULE_0__.mergeProps)($data.userDataRestriction.props, {
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_52, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Select if user is able to modify user specific settings')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_53, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'User cannot edit any settings')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_54, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'User can edit settings')), 1 /* TEXT */)], 40 /* PROPS, NEED_HYDRATION */, _hoisted_51), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.localAllowUserSettings]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_55, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Refresh Token Behavior')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.withDirectives)((0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("select", {
+      id: "provideRefreshTokenAlways",
+      "onUpdate:modelValue": _cache[17] || (_cache[17] = $event => $data.localProvideRefreshTokenAlways = $event),
+      placeholder: $options.t('oidc', 'Define refresh token issuance behavior'),
+      onChange: _cache[18] || (_cache[18] = (...args) => $options.setProvideRefreshTokenAlways && $options.setProvideRefreshTokenAlways(...args))
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_57, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Select refresh token behavior')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_58, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'OIDC Compliant (require offline_access scope)')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("option", _hoisted_59, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Always provide refresh tokens (legacy mode)')), 1 /* TEXT */)], 40 /* PROPS, NEED_HYDRATION */, _hoisted_56), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelSelect, $data.localProvideRefreshTokenAlways]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_60, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'OIDC-compliant clients must request the offline_access scope to receive refresh tokens. Enable legacy mode only if you have non-compliant clients that cannot be updated.')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h4", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Restrict User Information')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_NcSelect, (0,vue__WEBPACK_IMPORTED_MODULE_0__.mergeProps)($data.userDataRestriction.props, {
       modelValue: $data.userDataRestriction.props.value,
-      "onUpdate:modelValue": [_cache[17] || (_cache[17] = $event => $data.userDataRestriction.props.value = $event), $options.updateRestrictUserInformation],
+      "onUpdate:modelValue": [_cache[19] || (_cache[19] = $event => $data.userDataRestriction.props.value = $event), $options.updateRestrictUserInformation],
       "no-wrap": false,
       "input-label": $options.t('oidc', 'Removed information from ID token and userinfo endpoint'),
       placeholder: $options.t('oidc', 'Select information to be omitted'),
@@ -27165,9 +27206,9 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
         "redirect-uri": redirectUri.redirectUri,
         onDelete: $options.deleteLogoutRedirectUri
       }, null, 8 /* PROPS */, ["id", "redirect-uri", "onDelete"]);
-    }), 128 /* KEYED_FRAGMENT */))])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_55, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_NcTextField, {
+    }), 128 /* KEYED_FRAGMENT */))])) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_61, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createVNode)(_component_NcTextField, {
       modelValue: $data.newLogoutRedirectUri.redirectUri,
-      "onUpdate:modelValue": _cache[18] || (_cache[18] = $event => $data.newLogoutRedirectUri.redirectUri = $event),
+      "onUpdate:modelValue": _cache[20] || (_cache[20] = $event => $data.newLogoutRedirectUri.redirectUri = $event),
       style: {
         "width": "100%"
       },
@@ -27179,13 +27220,13 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       text: $options.t('oidc', 'Add'),
       variant: "secondary",
       onClick: $options.addLogoutRedirectUri
-    }, null, 8 /* PROPS */, ["aria-label", "text", "onClick"])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_56, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h4", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Public Key')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("code", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.localPublicKey), 1 /* TEXT */), _cache[22] || (_cache[22] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("br", null, null, -1 /* CACHED */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("form", {
-      onSubmit: _cache[19] || (_cache[19] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)((...args) => $options.regenerateKeys && $options.regenerateKeys(...args), ["prevent"]))
+    }, null, 8 /* PROPS */, ["aria-label", "text", "onClick"])])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_62, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h4", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Public Key')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("code", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.localPublicKey), 1 /* TEXT */), _cache[24] || (_cache[24] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("br", null, null, -1 /* CACHED */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("form", {
+      onSubmit: _cache[21] || (_cache[21] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withModifiers)((...args) => $options.regenerateKeys && $options.regenerateKeys(...args), ["prevent"]))
     }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("input", {
       type: "submit",
       class: "button",
       value: $options.t('oidc', 'Regenerate Keys')
-    }, null, 8 /* PROPS */, _hoisted_57)], 32 /* NEED_HYDRATION */)])]),
+    }, null, 8 /* PROPS */, _hoisted_63)], 32 /* NEED_HYDRATION */)])]),
     _: 1 /* STABLE */
   }, 8 /* PROPS */, ["name", "description"]);
 }
@@ -36388,6 +36429,7 @@ const dynamicClientRegistration = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_
 const allowUserSettings = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_2__.loadState)('oidc', 'allowUserSettings');
 const restrictUserInformation = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_2__.loadState)('oidc', 'restrictUserInformation');
 const defaultTokenType = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_2__.loadState)('oidc', 'defaultTokenType');
+const provideRefreshTokenAlways = (0,_nextcloud_initial_state__WEBPACK_IMPORTED_MODULE_2__.loadState)('oidc', 'provideRefreshTokenAlways');
 const app = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createApp)(_App_vue__WEBPACK_IMPORTED_MODULE_1__["default"], {
   clients,
   expireTime,
@@ -36399,7 +36441,8 @@ const app = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createApp)(_App_vue__WEBPACK_IMP
   dynamicClientRegistration,
   allowUserSettings,
   restrictUserInformation,
-  defaultTokenType
+  defaultTokenType,
+  provideRefreshTokenAlways
 });
 app.config.globalProperties.$OC = window.OC;
 app.mount('#oidc');
@@ -36407,4 +36450,4 @@ app.mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=358b8d03eaaf07e93814
+//# sourceMappingURL=oidc-main.js.map?v=6630491b85f8f15fc6a4

@@ -14004,6 +14004,10 @@ __webpack_require__.r(__webpack_exports__);
         groups: {
           label: (0,_nextcloud_l10n__WEBPACK_IMPORTED_MODULE_0__.t)('oidc', 'Group memberships'),
           description: (0,_nextcloud_l10n__WEBPACK_IMPORTED_MODULE_0__.t)('oidc', 'Access your Nextcloud group information')
+        },
+        offline_access: {
+          label: (0,_nextcloud_l10n__WEBPACK_IMPORTED_MODULE_0__.t)('oidc', 'Access when you\'re away'),
+          description: (0,_nextcloud_l10n__WEBPACK_IMPORTED_MODULE_0__.t)('oidc', 'Allow this app to access your data even when you\'re not signed in')
         }
       };
       return scopeString.split(' ').filter(s => s.trim() !== '').map(scope => ({
@@ -16725,4 +16729,4 @@ if (consentEl) {
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-consent.js.map?v=47217d16e70111c80cf8
+//# sourceMappingURL=oidc-consent.js.map?v=95e4976c535591a9b59f
