@@ -8,35 +8,50 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Migration;
 
+use Closure;
+use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
-use OCP\Migration\IRepairStep;
+use OCP\Migration\SimpleMigrationStep;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use Psr\Log\LoggerInterface;
 
-class AddOfflineAccessToClients implements IRepairStep {
+class Version0016Date20251103100100 extends SimpleMigrationStep {
     /** @var ClientMapper */
     private $clientMapper;
 
     /** @var LoggerInterface */
     private $logger;
 
-    public function __construct(
-        ClientMapper $clientMapper,
-        LoggerInterface $logger
-    ) {
-        $this->clientMapper = $clientMapper;
-        $this->logger = $logger;
+	public function __construct(
+		ClientMapper $clientMapper,
+		LoggerInterface $logger
+	) {
+		$this->clientMapper = $clientMapper;
+		$this->logger = $logger;
+	}
+
+    /**
+     * @param IOutput $output
+     * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
+     * @param array $options
+     * @return null|ISchemaWrapper
+     */
+    public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
+        /** @var ISchemaWrapper $schema */
+        return $schemaClosure();
     }
 
-    public function getName(): string {
-        return 'Add offline_access scope to existing OIDC clients';
-    }
-
-    public function run(IOutput $output) {
-        $output->info("Adding offline_access scope to all existing OIDC clients");
+    /**
+     * @param IOutput $output
+     * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
+     * @param array $options
+     * @return null|ISchemaWrapper
+     */
+    public function postSchemaChange(IOutput $output, \Closure $schemaClosure, array $options) {
+      $output->info("Adding offline_access scope to all existing OIDC clients");
 
         try {
-            $clients = $this->clientMapper->findAll();
+            $clients = $this->clientMapper->getClients();
             $updatedCount = 0;
 
             foreach ($clients as $client) {
@@ -50,7 +65,8 @@ class AddOfflineAccessToClients implements IRepairStep {
 
                 // Add offline_access to the allowed scopes
                 if (empty($allowedScopes) || trim($allowedScopes) === '') {
-                    $newScopes = 'offline_access';
+                    $this->logger->debug('Client ' . $client->getClientIdentifier() . ' has no scope limitation, skipping addition of offline_access');
+                    continue;
                 } else {
                     $newScopes = trim($allowedScopes) . ' offline_access';
                 }
@@ -73,5 +89,5 @@ class AddOfflineAccessToClients implements IRepairStep {
             $this->logger->error('Error adding offline_access to clients: ' . $e->getMessage());
             $output->warning('Error occurred: ' . $e->getMessage());
         }
-    }
+   }
 }

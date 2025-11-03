@@ -19,6 +19,7 @@ const dynamicClientRegistration = loadState('oidc', 'dynamicClientRegistration')
 const allowUserSettings = loadState('oidc', 'allowUserSettings')
 const restrictUserInformation = loadState('oidc', 'restrictUserInformation')
 const defaultTokenType = loadState('oidc', 'defaultTokenType')
+const provideRefreshTokenAlways = loadState('oidc', 'provideRefreshTokenAlways')
 
 const app = createApp(App, {
 	clients,
@@ -32,6 +33,7 @@ const app = createApp(App, {
 	allowUserSettings,
 	restrictUserInformation,
 	defaultTokenType,
+	provideRefreshTokenAlways,
 })
 
 app.config.globalProperties.$OC = window.OC
