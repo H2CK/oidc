@@ -26383,6 +26383,27 @@ __webpack_require__.r(__webpack_exports__);
   },
   methods: {
     t: _nextcloud_l10n__WEBPACK_IMPORTED_MODULE_0__.t,
+    // helper to extract a human readable message from axios errors
+    extractErrorMessage(error) {
+      // axios typical response: error.response.data.message or error.response.data
+      if (error && error.response) {
+        const data = error.response.data;
+        // common patterns:
+        if (data && typeof data === 'object' && data.message) {
+          return data.message;
+        }
+        if (data && typeof data === 'string') {
+          return data;
+        }
+        // sometimes Nextcloud returns an object with 'error' or other fields
+        if (data && typeof data === 'object') {
+          // try common keys
+          return data.error || data.message || JSON.stringify(data);
+        }
+      }
+      // fallback to axios error message or stringified object
+      return error && error.message ? error.message : String(error);
+    },
     openOIDCTabClients() {
       document.getElementById('oidc_clients').style.display = 'block';
       document.getElementById('oidc_settings').style.display = 'none';
@@ -26416,9 +26437,9 @@ __webpack_require__.r(__webpack_exports__);
           this.localClients.push(entry);
         }
         this.version += 1;
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     addRedirectUri(id, uri) {
@@ -26432,9 +26453,9 @@ __webpack_require__.r(__webpack_exports__);
           this.localClients.push(entry);
         }
         this.version += 1;
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     deleteLogoutRedirectUri(id) {
@@ -26444,9 +26465,9 @@ __webpack_require__.r(__webpack_exports__);
       })).then(response => {
         this.localLogoutRedirectUris = response.data;
         this.version += 1;
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        tthis.errorMsg = this.extractErrorMessage(error_);
       });
     },
     addLogoutRedirectUri() {
@@ -26457,9 +26478,9 @@ __webpack_require__.r(__webpack_exports__);
         this.localLogoutRedirectUris = response.data;
         this.newLogoutRedirectUri.redirectUri = '';
         this.version += 1;
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     deleteClient(id) {
@@ -26486,9 +26507,9 @@ __webpack_require__.r(__webpack_exports__);
         this.newClient.type = 'confidential';
         this.newClient.flowType = 'code';
         this.newClient.tokenType = '';
-      }).catch(reason => {
+      }).catch(error_ => {
         this.newClient.error = true;
-        this.newClient.errorMsg = reason.response.data.message;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     setTokenExpireTime() {
@@ -26554,9 +26575,9 @@ __webpack_require__.r(__webpack_exports__);
         groups
       }).then(response => {
         // Nothing to do
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     updateFlowTypes(id, flowTypes) {
@@ -26572,9 +26593,9 @@ __webpack_require__.r(__webpack_exports__);
         flowType: resultingFlowTypes
       }).then(response => {
         // Nothing to do
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     updateTokenType(id, tokenType) {
@@ -26586,9 +26607,9 @@ __webpack_require__.r(__webpack_exports__);
         tokenType
       }).then(response => {
         // Nothing to do
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     setAllowedScopes(id, allowedScopes) {
@@ -26605,9 +26626,9 @@ __webpack_require__.r(__webpack_exports__);
           this.localClients.push(entry);
         }
         this.version += 1;
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     setEmailRegex(id, emailRegex) {
@@ -26619,9 +26640,9 @@ __webpack_require__.r(__webpack_exports__);
         emailRegex
       }).then(response => {
         // Nothing to do
-      }).catch(reason => {
+      }).catch(error_ => {
         this.error = true;
-        this.errorMsg = reason;
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     updateRestrictUserInformation() {
@@ -36450,4 +36471,4 @@ app.mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=6630491b85f8f15fc6a4
+//# sourceMappingURL=oidc-main.js.map?v=0f7dd34b6519e41b77c8

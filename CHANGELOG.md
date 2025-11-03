@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
     - Legacy mode: Always provides refresh tokens (for non-compliant clients)
   - Automatic migration: Adds `offline_access` to all existing clients' allowed scopes
   - Comprehensive logging of refresh token issuance decisions
+- Redirect uri wildcard support
+  - End of path wildcard support (`.../*`)
+  - Port wildcard for localhost (e.g. `http://localhost:*`)
+  - Subdomain wildcard support (e.g. `https://*.example.com/callback`) - Must be activated via `occ config:app:set oidc allow_subdomain_wildcards --value "true"` Deactivation is possible with value `false`.
 
 ### Changed
 

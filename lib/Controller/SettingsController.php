@@ -18,6 +18,8 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -45,6 +47,8 @@ class SettingsController extends Controller
     private $groupMapper;
     /** @var IGroupManager  */
     private $groupManager;
+    /** @var RedirectUriService  */
+    private $redirectUriService;
     /** @var IL10N */
     private $l;
     /** @var IUserSession */
@@ -67,6 +71,7 @@ class SettingsController extends Controller
                     RedirectUriMapper $redirectUriMapper,
                     LogoutRedirectUriMapper $logoutRedirectUriMapper,
                     GroupMapper $groupMapper,
+                    RedirectUriService $redirectUriService,
                     IGroupManager $groupManager,
                     IL10N $l,
                     IUserSession $userSession,
@@ -81,6 +86,7 @@ class SettingsController extends Controller
         $this->redirectUriMapper = $redirectUriMapper;
         $this->logoutRedirectUriMapper = $logoutRedirectUriMapper;
         $this->groupMapper = $groupMapper;
+        $this->redirectUriService = $redirectUriService;
         $this->groupManager = $groupManager;
         $this->l = $l;
         $this->userSession =$userSession;
@@ -102,9 +108,13 @@ class SettingsController extends Controller
     {
         $this->logger->debug("Adding client " . $name. " with Redirect URI " .$redirectUri);
 
-        if (filter_var($redirectUri, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/.*:\/\/.*/"))) === false) {
-            return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
-        }
+		try {
+			if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
+				return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
+			}
+		} catch (RedirectUriValidationException $e) {
+			return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
 
         // Use configured default if token type is not specified
         if (empty($tokenType)) {
@@ -317,10 +327,13 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         $this->logger->debug("Adding Redirect URI " . $redirectUri . " for client " . $id);
-
-        if (filter_var($redirectUri, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/.*:\/\/.*/"))) === false) {
-            return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
-        }
+		try {
+			if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
+				return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
+			}
+		} catch (RedirectUriValidationException $e) {
+			return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
 
         $redirectUriObj = new RedirectUri();
         $redirectUriObj->setClientId($id);

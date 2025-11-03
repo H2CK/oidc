@@ -34,6 +34,7 @@ use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 
 use Psr\Log\LoggerInterface;
 
@@ -67,7 +68,7 @@ class LoginRedirectorControllerTest extends TestCase {
     private $userSession;
     /** @var IAppConfig */
     private $appConfig;
-	/** @var IConfig */
+    /** @var IConfig */
     private $config;
     /** @var LoggerInterface */
     private $logger;
@@ -79,6 +80,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $db;
     /** @var JwtGenerator */
     private $jwtGenerator;
+    /** @var RedirectUriService */
+    private $redirectUriService;
     /** @var IUserManager */
     private $userManager;
     /** @var IAccountManager */
@@ -134,7 +137,10 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->accountManager,
             $this->urlGenerator,
             $this->appConfig,
-			$this->config,
+            $this->config,
+            $this->logger
+        );
+        $this->redirectUriService = new RedirectUriService(
             $this->logger
         );
 
@@ -155,6 +161,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userConsentMapper,
             $this->appConfig,
             $this->jwtGenerator,
+            $this->redirectUriService,
             $this->logger
         );
     }

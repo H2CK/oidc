@@ -11,6 +11,8 @@ namespace OCA\OIDCIdentityProvider\Controller;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
+use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -74,6 +76,8 @@ class LoginRedirectorController extends ApiController
     private $appConfig;
     /** @var JwtGenerator */
     private $jwtGenerator;
+    /** @var RedirectUriService */
+    private $redirectUriService;
     /** @var LoggerInterface */
     private $logger;
 
@@ -94,6 +98,7 @@ class LoginRedirectorController extends ApiController
      * @param UserConsentMapper $userConsentMapper
      * @param IAppConfig $appConfig
      * @param JwtGenerator $jwtGenerator
+     * @param RedirectUriService $redirectUriService
      * @param LoggerInterface $loggerInterface
      */
     public function __construct(
@@ -113,6 +118,7 @@ class LoginRedirectorController extends ApiController
                     UserConsentMapper $userConsentMapper,
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
+                    RedirectUriService $redirectUriService,
                     LoggerInterface $logger
                     )
         {
@@ -133,6 +139,7 @@ class LoginRedirectorController extends ApiController
         $this->userConsentMapper = $userConsentMapper;
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
+		$this->redirectUriService = $redirectUriService;	
         $this->logger = $logger;
     }
 
@@ -287,7 +294,7 @@ class LoginRedirectorController extends ApiController
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
         $redirectUriFound = false;
         foreach ($redirectUris as $redirectUri) {
-            if ($redirect_uri === $redirectUri->getRedirectUri()) {
+            if ($this->redirectUriService->matchRedirectUri($redirect_uri, $redirectUri->getRedirectUri())) {
                 $redirectUriFound = true;
                 break;
             }

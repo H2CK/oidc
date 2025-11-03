@@ -3,6 +3,7 @@
 namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 use OCP\IRequest;
 use OCP\IL10N;
@@ -23,6 +24,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 
 use Psr\Log\LoggerInterface;
 
@@ -58,6 +60,8 @@ class SettingsControllerTest extends TestCase {
     private $time;
     /** @var IDBConnection */
     private $db;
+	/** @var RedirectUriService */
+    private $redirectUriService;
 
     private $client;
 
@@ -94,6 +98,9 @@ class SettingsControllerTest extends TestCase {
             $this->db,
             $this->groupManager])->getMock();
         $this->l = $this->getMockBuilder(IL10N::class)->getMock();
+		$this->redirectUriService = new RedirectUriService(
+			$this->logger
+		);
 
         $this->controller = new SettingsController(
             'oidc',
@@ -103,6 +110,7 @@ class SettingsControllerTest extends TestCase {
             $this->redirectUriMapper,
             $this->logoutRedirectUriMapper,
             $this->groupMapper,
+			$this->redirectUriService,
             $this->groupManager,
             $this->l,
             $this->userSession,
@@ -256,7 +264,7 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
     }
 
-	public function testAddClientwWrongCreds2() {
+    public function testAddClientwWrongCreds2() {
         $name = 'TEST';
         $redirectUri = 'https://local.lo';
         $signingAlg = 'RS256';
@@ -303,7 +311,7 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
     }
 
-	public function testAddClientwWrongCreds3() {
+    public function testAddClientwWrongCreds3() {
         $name = 'TEST';
         $redirectUri = 'https://local.lo';
         $signingAlg = 'RS256';

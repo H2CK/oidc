@@ -10,6 +10,7 @@ namespace OCA\OIDCIdentityProvider\Command\Clients;
 
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Exceptions\CliException;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 
@@ -27,14 +28,18 @@ class OIDCCreate extends Command {
 
   /** @var ClientMapper */
   private $mapper;
+  /** @var RedirectUriSevice */
+  private $redirectUriService;
 
   public function __construct(
     IAppConfig $appconf,
-    ClientMapper $mapper
+    ClientMapper $mapper,
+    RedirectUriService $redirectUriService,
   ) {
       parent::__construct();
       $this->appconf = $appconf;
       $this->mapper = $mapper;
+      $this->redirectUriService = $redirectUriService;
   }
 
   protected function configure(): void {
@@ -120,10 +125,17 @@ class OIDCCreate extends Command {
               );
           }
 
+          $redirect_uris = $input->getArgument('redirect_uris');
+          foreach ($redirect_uris as $uri) {
+              if (!$this->redirectUriService->isValidRedirectUri($uri, $this->appconf->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true')) {
+                  throw new CliException("The redirect uri '$uri' is not valid according to the configured redirect uri rules.");
+              }
+          }
+
           // create new client
           $client = new Client(
             $input->getArgument('name'),
-            $input->getArgument('redirect_uris'),
+            $redirect_uris,
             $input->getOption('algorithm'),
             $input->getOption('type'),
             $input->getOption('flow'),

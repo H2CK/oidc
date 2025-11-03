@@ -71,6 +71,14 @@ $ php occ
 
 Use the option `--help` to retrieve more information on how to use the commands.
 
+### Wildcard support in Redirect Uris
+
+Wildcards in configured redirect uris are allowed as described in the following.
+
+- End of path wildcard support (`.../*`)
+- Port wildcard for localhost (e.g. `http://localhost:*`)
+- Subdomain wildcard support (e.g. `https://*.example.com/callback`) - Must be activated via `occ config:app:set oidc allow_subdomain_wildcards --value "true"` Deactivation is possible with value `false`.
+
 ### User specific settings
 
 The administrator can give the user the right to personally select, which information is passed to the clients via the ID token and the userinfo endpoint. The following limitations are possible to define what is passed in the id token:
