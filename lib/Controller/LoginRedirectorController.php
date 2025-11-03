@@ -139,7 +139,7 @@ class LoginRedirectorController extends ApiController
         $this->userConsentMapper = $userConsentMapper;
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
-		$this->redirectUriService = $redirectUriService;	
+        $this->redirectUriService = $redirectUriService;
         $this->logger = $logger;
     }
 
@@ -273,22 +273,21 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
         $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
 
-        if (trim($allowedScopes) !== '') {
-            $newScope = '';
-            $allowedScopesArr = explode(' ', strtolower(trim($allowedScopes)));
-            $scopesArr = explode(' ', strtolower(trim($scope)));
-            foreach ($scopesArr as $scopeEntry) {
-                if (in_array($scopeEntry, $allowedScopesArr)) {
-                    $newScope = $newScope . $scopeEntry . ' ';
-                }
+
+        $newScope = '';
+        $allowedScopesArr = array_values(array_unique(array_filter(array_map('trim', explode(' ', strtolower(trim($allowedScopes)))))));
+        $scopesArr = array_values(array_unique(array_filter(array_map('trim', explode(' ', strtolower(trim($scope)))))));
+        foreach ($scopesArr as $scopeEntry) {
+            if (in_array($scopeEntry, $allowedScopesArr) || empty($allowedScopesArr)) {
+                $newScope = $newScope . $scopeEntry . ' ';
             }
-            $newScope = trim($newScope);
-            if ($newScope === '') {
-                $newScope = Application::DEFAULT_SCOPE;
-            }
-            $scope = $newScope;
-            $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
         }
+        $newScope = trim($newScope);
+        if ($newScope === '') {
+            $newScope = Application::DEFAULT_SCOPE;
+        }
+        $scope = $newScope;
+        $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
         // Check if redirect URI is configured for client
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());

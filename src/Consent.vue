@@ -8,7 +8,7 @@
 			<h2>{{ t('oidc', 'Application Authorization Request') }}</h2>
 
 			<p class="consent-intro">
-				<span v-html="t('oidc', '%s is requesting access to your account.', ['<strong>' + clientName + '</strong>'])"></span>
+				<span>{{ t('oidc', '{clientName} is requesting access to your account.', { clientName: clientName }) }}</span>
 			</p>
 
 			<div class="consent-scopes">

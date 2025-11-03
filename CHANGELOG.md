@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.12.1] - 2025-11-03
+
+### Changed
+
+- Fixed UI and translation issues
+- Fixed DB migration steps
+- Updated dependencies
+- Updated translations
+
 ## [1.12.0] - 2025-11-03
 
 ### Added

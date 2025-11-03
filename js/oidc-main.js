@@ -26467,7 +26467,7 @@ __webpack_require__.r(__webpack_exports__);
         this.version += 1;
       }).catch(error_ => {
         this.error = true;
-        tthis.errorMsg = this.extractErrorMessage(error_);
+        this.errorMsg = this.extractErrorMessage(error_);
       });
     },
     addLogoutRedirectUri() {
@@ -36471,4 +36471,4 @@ app.mount('#oidc');
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-main.js.map?v=0f7dd34b6519e41b77c8
+//# sourceMappingURL=oidc-main.js.map?v=ac3d61ca116485b1a0b6

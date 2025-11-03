@@ -2,6 +2,7 @@
  * SPDX-FileCopyrightText: 2022-2025 Thorsten Jagel <dev@jagel.net>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+// eslint-disable-next-line n/no-extraneous-import
 import { createApp } from 'vue'
 import Consent from './Consent.vue'
 

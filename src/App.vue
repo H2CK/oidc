@@ -435,13 +435,13 @@ export default {
 		extractErrorMessage(error) {
 			// axios typical response: error.response.data.message or error.response.data
 			if (error && error.response) {
-				const data = error.response.data;
+				const data = error.response.data
 				// common patterns:
 				if (data && typeof data === 'object' && data.message) {
-					return data.message;
+					return data.message
 				}
 				if (data && typeof data === 'string') {
-					return data;
+					return data
 				}
 				// sometimes Nextcloud returns an object with 'error' or other fields
 				if (data && typeof data === 'object') {
@@ -518,7 +518,7 @@ export default {
 					this.version += 1
 				}).catch(error_ => {
 					this.error = true
-					tthis.errorMsg = this.extractErrorMessage(error_)
+					this.errorMsg = this.extractErrorMessage(error_)
 				})
 		},
 		addLogoutRedirectUri() {

@@ -14090,32 +14090,31 @@ const _hoisted_2 = {
 const _hoisted_3 = {
   class: "consent-intro"
 };
-const _hoisted_4 = ["innerHTML"];
-const _hoisted_5 = {
+const _hoisted_4 = {
   class: "consent-scopes"
 };
-const _hoisted_6 = {
+const _hoisted_5 = {
   class: "scope-list"
 };
-const _hoisted_7 = ["id", "value", "disabled"];
-const _hoisted_8 = ["for"];
-const _hoisted_9 = {
+const _hoisted_6 = ["id", "value", "disabled"];
+const _hoisted_7 = ["for"];
+const _hoisted_8 = {
   class: "scope-title"
 };
-const _hoisted_10 = {
+const _hoisted_9 = {
   class: "scope-description"
 };
-const _hoisted_11 = {
+const _hoisted_10 = {
   class: "consent-actions"
 };
-const _hoisted_12 = ["disabled"];
-const _hoisted_13 = {
+const _hoisted_11 = ["disabled"];
+const _hoisted_12 = {
   class: "consent-note"
 };
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h2", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Application Authorization Request')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_3, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
-    innerHTML: $options.t('oidc', '%s is requesting access to your account.', ['<strong>' + $props.clientName + '</strong>'])
-  }, null, 8 /* PROPS */, _hoisted_4)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_5, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h3", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'This application will be able to:')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_6, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.scopes, scope => {
+  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h2", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Application Authorization Request')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_3, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', '{clientName} is requesting access to your account.', {
+    clientName: $props.clientName
+  })), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_4, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h3", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'This application will be able to:')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_5, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($data.scopes, scope => {
     return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
       key: scope.name,
       class: "scope-item"
@@ -14126,18 +14125,18 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
       value: scope.name,
       disabled: scope.name === 'openid',
       class: "checkbox"
-    }, null, 8 /* PROPS */, _hoisted_7), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedScopes]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", {
+    }, null, 8 /* PROPS */, _hoisted_6), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelCheckbox, $data.selectedScopes]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("label", {
       for: 'scope-' + scope.name,
       class: "scope-label"
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_9, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(scope.label), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_10, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(scope.description), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_8)]);
-  }), 128 /* KEYED_FRAGMENT */))])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_11, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_8, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(scope.label), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_9, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(scope.description), 1 /* TEXT */)], 8 /* PROPS */, _hoisted_7)]);
+  }), 128 /* KEYED_FRAGMENT */))])]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_10, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     class: "button secondary",
     onClick: _cache[1] || (_cache[1] = (...args) => $options.handleDeny && $options.handleDeny(...args))
   }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Deny')), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     class: "button primary",
     disabled: $data.selectedScopes.length === 0,
     onClick: _cache[2] || (_cache[2] = (...args) => $options.handleGrant && $options.handleGrant(...args))
-  }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Allow')), 9 /* TEXT, PROPS */, _hoisted_12)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_13, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'You can revoke this access at any time from your account settings.')), 1 /* TEXT */)])]);
+  }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'Allow')), 9 /* TEXT, PROPS */, _hoisted_11)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_12, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($options.t('oidc', 'You can revoke this access at any time from your account settings.')), 1 /* TEXT */)])]);
 }
 
 /***/ }),
@@ -16715,6 +16714,7 @@ __webpack_require__.r(__webpack_exports__);
  * SPDX-FileCopyrightText: 2022-2025 Thorsten Jagel <dev@jagel.net>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+// eslint-disable-next-line n/no-extraneous-import
 
 
 
@@ -16732,4 +16732,4 @@ if (consentEl) {
 
 /******/ })()
 ;
-//# sourceMappingURL=oidc-consent.js.map?v=547bac24e3a866175314
+//# sourceMappingURL=oidc-consent.js.map?v=e2ff3fcea7637f0e422f
