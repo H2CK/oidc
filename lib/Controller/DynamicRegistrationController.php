@@ -489,12 +489,14 @@ class DynamicRegistrationController extends ApiController
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
-            $scope = mb_substr($scope, 0, 255);
-            if (!preg_match('/^[a-zA-Z0-9 _-]*$/u', $scope)) {
+            $scope = mb_substr($scope, 0, 512);  // Match database column size
+            // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
+            // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
+            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $scope)) {
                 $this->logger->info('Invalid scope characters during client configuration update.');
                 return new JSONResponse([
                     'error' => 'invalid_scope',
-                    'error_description' => 'Scope contains invalid characters. Only alphanumeric characters, spaces, underscores, and hyphens are allowed.',
+                    'error_description' => 'Scope contains invalid characters. Allowed: alphanumeric, spaces, underscores, hyphens, colons, periods, and forward slashes.',
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setAllowedScopes($scope);
