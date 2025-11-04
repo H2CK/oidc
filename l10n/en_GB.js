@@ -86,7 +86,6 @@ OC.L10N.register(
     "Access your Nextcloud groups and roles" : "Access your Nextcloud groups and roles",
     "Access your Nextcloud group information" : "Access your Nextcloud group information",
     "Application Authorization Request" : "Application Authorisation Request",
-    "is requesting access to your account." : "is requesting access to your account.",
     "This application will be able to:" : "This application will be able to:",
     "Deny" : "Deny",
     "Allow" : "Allow",

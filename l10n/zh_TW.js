@@ -86,7 +86,6 @@ OC.L10N.register(
     "Access your Nextcloud groups and roles" : "存取您的 Nextcloud 群組與角色",
     "Access your Nextcloud group information" : "存取您的 Nextcloud 群組資訊",
     "Application Authorization Request" : "應用程式授權請求",
-    "is requesting access to your account." : "正在請求存取您的帳號。",
     "This application will be able to:" : "此應用程式將可以：",
     "Deny" : "拒絕",
     "Allow" : "允許",

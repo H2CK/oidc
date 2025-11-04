@@ -73,7 +73,6 @@ OC.L10N.register(
     "Group memberships" : "Grupi liikmelisus",
     "Access your Nextcloud groups and roles" : "Ligipääs sinu Nextcloudi gruppidele ja rollidele",
     "Access your Nextcloud group information" : "Ligipääs sinu Nextcloudi grupi teabele",
-    "is requesting access to your account." : "küsib ligipääsu sinu kasutajakontole.",
     "This application will be able to:" : "See rakendus võib:",
     "Deny" : "Keela",
     "Allow" : "Luba",

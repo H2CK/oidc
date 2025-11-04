@@ -86,7 +86,6 @@ OC.L10N.register(
     "Access your Nextcloud groups and roles" : "Rochtain ar do ghrúpaí agus róil Nextcloud",
     "Access your Nextcloud group information" : "Rochtain ar fhaisnéis do ghrúpa Nextcloud",
     "Application Authorization Request" : "Iarratas ar Údarú Iarratais",
-    "is requesting access to your account." : "ag iarraidh rochtana ar do chuntas.",
     "This application will be able to:" : "Beidh an feidhmchlár seo in ann:",
     "Deny" : "shéanadh",
     "Allow" : "Ceadaigh",
