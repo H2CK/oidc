@@ -84,6 +84,7 @@ class ComposerStaticInitOIDCIdentityProvider
         'OCA\\OIDCIdentityProvider\\Migration\\Version0015Date20251024100100' => __DIR__ . '/..' . '/../lib/Migration/Version0015Date20251024100100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0016Date20251103100100' => __DIR__ . '/..' . '/../lib/Migration/Version0016Date20251103100100.php',
         'OCA\\OIDCIdentityProvider\\Migration\\Version0017Date20251104100100' => __DIR__ . '/..' . '/../lib/Migration/Version0017Date20251104100100.php',
+        'OCA\\OIDCIdentityProvider\\Migration\\Version0018Date20251104100100' => __DIR__ . '/..' . '/../lib/Migration/Version0018Date20251104100100.php',
         'OCA\\OIDCIdentityProvider\\Settings\\Admin' => __DIR__ . '/..' . '/../lib/Settings/Admin.php',
         'OCA\\OIDCIdentityProvider\\Settings\\AdminSection' => __DIR__ . '/..' . '/../lib/Settings/AdminSection.php',
         'OCA\\OIDCIdentityProvider\\Settings\\Personal' => __DIR__ . '/..' . '/../lib/Settings/Personal.php',
