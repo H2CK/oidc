@@ -171,7 +171,7 @@ class LoginRedirectorController extends ApiController
                     $redirect_uri,
                     $scope,
                     $nonce,
-                    $resource,
+                    $resource = null,
                     $code_challenge = null,
                     $code_challenge_method = null
                     ): Response
@@ -244,7 +244,7 @@ class LoginRedirectorController extends ApiController
 
         // Set default resource if resource is not set at all
         if (!isset($resource) || trim($resource)==='') {
-            $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            $resource = null;
         }
 
         $this->clientMapper->cleanUp();
@@ -475,7 +475,11 @@ class LoginRedirectorController extends ApiController
         $accessToken->setUserId($uid);
         $accessToken->setHashedCode(hash('sha512', $code));
         $accessToken->setScope(substr($scope, 0, 512));
-        $accessToken->setResource(substr($resource, 0, 2000));
+        if ($resource === null) {
+            $accessToken->setResource(null);
+        } else {
+            $accessToken->setResource(substr($resource, 0, 2000));
+        }
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         if (empty($nonce) || !isset($nonce)) {

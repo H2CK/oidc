@@ -210,7 +210,3 @@ You could set those values with following CLI commands:
 ## JWT Access Tokens (RFC9068)
 
 It is possible to activate the use of JWT based access tokens according to RFC9068. This can be done in the settings UI or while creating a client in the CLI. If not activated an opaque access token will be generated (as it was done previously).
-The generation of the JWT based access token requires in some situations that a default resource identifier is used. If there is the need
-to change the predefined value you could set it via the CLI with the following command.
-
-`occ config:app:set oidc default_resource_identifier --value "https://rs.local/"`
