@@ -316,7 +316,14 @@ class JwtGenerator
         $groups = $this->groupManager->getUserGroups($user);
         $resource = $accessToken->getResource();
         if (!isset($resource) || trim($resource)==='') {
-            $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            // Try client-specific resource_url first (RFC 9728)
+            $clientResourceUrl = $client->getResourceUrl();
+            if (isset($clientResourceUrl) && trim($clientResourceUrl) !== '') {
+                $resource = $clientResourceUrl;
+            } else {
+                // Fall back to global default
+                $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            }
         }
 
         $jwt_payload = [

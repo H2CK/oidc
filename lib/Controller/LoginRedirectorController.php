@@ -242,11 +242,6 @@ class LoginRedirectorController extends ApiController
             $scope = Application::DEFAULT_SCOPE;
         }
 
-        // Set default resource if resource is not set at all
-        if (!isset($resource) || trim($resource)==='') {
-            $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
-        }
-
         $this->clientMapper->cleanUp();
 
         try {
@@ -266,6 +261,18 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
             ];
             return new TemplateResponse('core', '400', $params, 'error');
+        }
+
+        // Set default resource if resource is not set at all
+        if (!isset($resource) || trim($resource)==='') {
+            // Try client-specific resource_url first (RFC 9728)
+            $clientResourceUrl = $client->getResourceUrl();
+            if (isset($clientResourceUrl) && trim($clientResourceUrl) !== '') {
+                $resource = $clientResourceUrl;
+            } else {
+                // Fall back to global default
+                $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            }
         }
 
         // Adapt scopes to configured values

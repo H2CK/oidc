@@ -86,7 +86,14 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setNonce('');
 
         if (!isset($resource) || trim($resource)==='') {
-            $resource = (string)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            // Try client-specific resource_url first (RFC 9728)
+            $clientResourceUrl = $client->getResourceUrl();
+            if (isset($clientResourceUrl) && trim($clientResourceUrl) !== '') {
+                $resource = $clientResourceUrl;
+            } else {
+                // Fall back to global default
+                $resource = (string)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+            }
         }
         $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
