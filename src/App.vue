@@ -88,7 +88,8 @@
 						@updateflowtypes="updateFlowTypes"
 						@updatetokentype="updateTokenType"
 						@saveallowedscopes="setAllowedScopes"
-						@saveemailregex="setEmailRegex" />
+						@saveemailregex="setEmailRegex"
+						@saveresourceurl="setResourceUrl" />
 				</div>
 			</div>
 		</div>
@@ -725,6 +726,27 @@ export default {
 				},
 			).then(response => {
 				// Nothing to do
+			}).catch(error_ => {
+				this.error = true
+				this.errorMsg = this.extractErrorMessage(error_)
+			})
+		},
+		setResourceUrl(id, resourceUrl) {
+			this.error = false
+
+			axios.patch(
+				generateUrl('apps/oidc/clients/resource_url/{id}', { id }),
+				{
+					id,
+					resourceUrl,
+				},
+			).then(response => {
+				// Update local state
+				const clientIndex = this.localClients.findIndex(c => c.id === id)
+				if (clientIndex !== -1) {
+					this.localClients[clientIndex].resourceUrl = resourceUrl
+					this.version += 1
+				}
 			}).catch(error_ => {
 				this.error = true
 				this.errorMsg = this.extractErrorMessage(error_)

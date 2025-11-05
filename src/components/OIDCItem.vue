@@ -158,6 +158,30 @@
 				</div>
 			</div>
 		</div>
+		<div />
+		<div class="label">
+			<label for="resourceUrl">
+				{{ t('oidc', 'Resource URL (RFC 9728)') }}
+			</label>
+		</div>
+		<div class="data">
+			<div class="grid-inner-2">
+				<NcTextField id="resourceUrl"
+					v-model="resourceUrl"
+					:label-outside="true"
+					style="width: 100%"
+					:placeholder="t('oidc', 'Resource URL')"
+					type="url" />
+				<NcButton :aria-label="t('oidc', 'Save resource URL')"
+					:text="t('oidc', 'Save')"
+					style="width: 100%"
+					variant="secondary"
+					@click="saveResourceUrl" />
+				<div class="helper_text">
+					{{ t('oidc', 'Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource.') }}
+				</div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -200,6 +224,7 @@ export default {
 			tokenType: this.client.tokenType,
 			allowedScopes: this.client.allowedScopes,
 			emailRegex: this.client.emailRegex,
+			resourceUrl: this.client.resourceUrl || '',
 			flowData: {
 				props: {
 					inputId: this.client.id + '-flow-select',
@@ -267,6 +292,9 @@ export default {
 		},
 		saveEmailRegex() {
 			this.$emit('saveemailregex', this.id, this.emailRegex)
+		},
+		saveResourceUrl() {
+			this.$emit('saveresourceurl', this.id, this.resourceUrl)
 		},
 	},
 }

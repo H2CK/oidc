@@ -123,6 +123,11 @@ return [
             'verb' => 'PATCH'
         ],
         [
+            'name' => 'Settings#updateResourceUrl',
+            'url' => '/clients/resource_url/{id}',
+            'verb' => 'PATCH'
+        ],
+        [
             'name' => 'Settings#deleteClient',
             'url' => '/clients/{id}',
             'verb' => 'DELETE'

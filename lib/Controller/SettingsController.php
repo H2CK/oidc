@@ -183,6 +183,7 @@ class SettingsController extends Controller
             'tokenType' => strtolower($client->getTokenType())==='jwt' ? 'jwt' : 'opaque',
             'allowedScopes' => $client->getAllowedScopes(),
             'emailRegex' => $client->getEmailRegex(),
+            'resourceUrl' => $client->getResourceUrl(),
         ]);
     }
 
@@ -291,6 +292,7 @@ class SettingsController extends Controller
                 'tokenType' => strtolower($client->getTokenType())==='jwt' ? 'jwt' : 'opaque',
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
+                'resourceUrl' => $client->getResourceUrl(),
             ];
         }
         return new JSONResponse($result);
@@ -307,6 +309,34 @@ class SettingsController extends Controller
         $this->logger->debug("Updating emailRegex for client " . $id . " with value " .$emailRegex);
         $client = $this->clientMapper->getByUid($id);
         $client->setEmailRegex($emailRegex);
+        $this->clientMapper->update($client);
+        return new JSONResponse([]);
+    }
+
+    public function updateResourceUrl(
+        int $id,
+        string $resourceUrl
+        ): JSONResponse
+    {
+        $resourceUrl = trim($resourceUrl);
+
+        // Allow empty string to clear the resource URL
+        if ($resourceUrl === '') {
+            $resourceUrl = null;
+        } else {
+            // Validate URL format
+            if (!filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
+                return new JSONResponse([
+                    'error' => 'Invalid resource URL format. Must be a valid URL.'
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            // Enforce 512 character limit
+            $resourceUrl = mb_substr($resourceUrl, 0, 512);
+        }
+
+        $this->logger->debug("Updating resourceUrl for client " . $id . " with value " . ($resourceUrl ?? 'null'));
+        $client = $this->clientMapper->getByUid($id);
+        $client->setResourceUrl($resourceUrl);
         $this->clientMapper->update($client);
         return new JSONResponse([]);
     }
@@ -379,6 +409,7 @@ class SettingsController extends Controller
                 'tokenType' => strtolower($client->getTokenType())==='jwt' ? 'jwt' : 'opaque',
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
+                'resourceUrl' => $client->getResourceUrl(),
             ];
         }
         return new JSONResponse($result);
@@ -431,6 +462,7 @@ class SettingsController extends Controller
                 'tokenType' => strtolower($client->getTokenType())==='jwt' ? 'jwt' : 'opaque',
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
+                'resourceUrl' => $client->getResourceUrl(),
             ];
         }
         return new JSONResponse($result);
