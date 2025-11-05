@@ -240,7 +240,7 @@ class SettingsController extends Controller
         ): JSONResponse
     {
         $allowedScopes = trim($allowedScopes);
-        $allowedScopes = mb_substr($allowedScopes, 0, 511);
+        $allowedScopes = mb_substr($allowedScopes, 0, 512);
         // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
         // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
         if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $allowedScopes)) {

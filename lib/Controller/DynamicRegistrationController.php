@@ -207,6 +207,14 @@ class DynamicRegistrationController extends ApiController
         // Validate and set resource_url if provided (RFC 9728)
         if ($resource_url !== null) {
             $resource_url = trim($resource_url);
+            // Enforce 512 character limit (matching database schema)
+            if (mb_strlen($resource_url) > 512) {
+                $this->logger->info('Resource URL exceeds 512 character limit during dynamic client registration.');
+                return new JSONResponse([
+                    'error' => 'invalid_resource_url',
+                    'error_description' => 'Resource URL exceeds maximum length of 512 characters.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
             // Validate it's a proper URL
             if (!filter_var($resource_url, FILTER_VALIDATE_URL)) {
                 $this->logger->info('Invalid resource_url format during dynamic client registration: ' . $resource_url);
