@@ -314,22 +314,15 @@ class JwtGenerator
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
-        $resource = $accessToken->getResource();
-        if (!isset($resource) || trim($resource)==='') {
-            // Try client-specific resource_url first (RFC 9728)
-            $clientResourceUrl = $client->getResourceUrl();
-            if (isset($clientResourceUrl) && trim($clientResourceUrl) !== '') {
-                $resource = $clientResourceUrl;
-            } else {
-                // Fall back to global default
-                $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
-            }
+        $aud = $accessToken->getResource();
+        if (!isset($aud) || trim($aud)==='') {
+			$aud = $client->getClientIdentifier();
         }
 
         $jwt_payload = [
             'iss' => $issuer,
             'sub' => $uid,
-            'aud' => $resource,
+            'aud' => $aud,
             'exp' => $this->time->getTime() + $expireTime,
             'auth_time' => $accessToken->getCreated(),
             'iat' => $this->time->getTime(),
@@ -384,11 +377,11 @@ class JwtGenerator
 
         // Check length - should not exceed 65535 - DB Limit - not expected to be reached with a JWT access token
         if (strlen($jwt) > 65535) {
-            $this->logger->error('Too big JWT Access token with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . JwtGenerator::AUD_OUTPUT . $accessToken->getResource() . JwtGenerator::CLIENT_ID_OUTPUT . $client->getClientIdentifier());
+            $this->logger->error('Too big JWT Access token with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . JwtGenerator::AUD_OUTPUT . $aud . JwtGenerator::CLIENT_ID_OUTPUT . $client->getClientIdentifier());
             throw new JwtCreationErrorException('Created JWT exceeds limits of 65535 characters. JWT can not be stored in database.', 0, null);
         }
 
-        $this->logger->debug('Generated JWT Access token with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . JwtGenerator::AUD_OUTPUT . $accessToken->getResource() . JwtGenerator::CLIENT_ID_OUTPUT . $client->getClientIdentifier());
+        $this->logger->debug('Generated JWT Access token with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . JwtGenerator::AUD_OUTPUT . $aud . JwtGenerator::CLIENT_ID_OUTPUT . $client->getClientIdentifier());
         return $jwt;
     }
 }
