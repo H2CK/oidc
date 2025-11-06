@@ -22,6 +22,7 @@ Provided features:
 - Dynamic Client Registration
 - Client Configuration Management (RFC 7592)
 - Token Introspection (RFC 7662)
+- Support for resource url (RFC 9728) at introspection
 - User Consent Management
 - Administration of clients via CLI
 - Generation and validation of access tokens using events

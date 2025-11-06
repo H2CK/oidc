@@ -242,11 +242,6 @@ class LoginRedirectorController extends ApiController
             $scope = Application::DEFAULT_SCOPE;
         }
 
-        // Set default resource if resource is not set at all
-        if (!isset($resource) || trim($resource)==='') {
-            $resource = null;
-        }
-
         $this->clientMapper->cleanUp();
 
         try {
@@ -275,8 +270,8 @@ class LoginRedirectorController extends ApiController
             if (isset($clientResourceUrl) && trim($clientResourceUrl) !== '') {
                 $resource = $clientResourceUrl;
             } else {
-                // Fall back to global default
-                $resource = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER, Application::DEFAULT_RESOURCE_IDENTIFIER);
+                // Fall back to client identifier
+                $resource = null;
             }
         }
 

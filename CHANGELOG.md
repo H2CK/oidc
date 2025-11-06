@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.0] - 2025-11-06
+
+### Added
+
+- RFC 9728 resource_url support
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [1.12.1] - 2025-11-03
 
 ### Changed

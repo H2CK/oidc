@@ -316,7 +316,7 @@ class JwtGenerator
         $groups = $this->groupManager->getUserGroups($user);
         $aud = $accessToken->getResource();
         if (!isset($aud) || trim($aud)==='') {
-			$aud = $client->getClientIdentifier();
+            $aud = $client->getClientIdentifier();
         }
 
         $jwt_payload = [
