@@ -111,6 +111,13 @@ class OIDCCreate extends Command {
         InputOption::VALUE_OPTIONAL,
         'The client secret to be used. If not provided the client secret will be generated internally. Requirements: chars A-Za-z0-9 & min length 32 & max length 64',
         ''
+      )
+      ->addOption(
+        'resource_url',
+        null,
+        InputOption::VALUE_OPTIONAL,
+        'The resource URL for this client (RFC 9728). Must be a valid URL with max length 512 characters.',
+        ''
       );
   }
 
@@ -157,6 +164,23 @@ class OIDCCreate extends Command {
                 throw new CliException ("Your clientSecret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64");
             }
             $client->setSecret($clientSecret);
+          }
+
+          $resourceUrl = $input->getOption('resource_url');
+          if (isset($resourceUrl) && trim($resourceUrl) !== '') {
+            $resourceUrl = trim($resourceUrl);
+
+            // Enforce 512 character limit (matching database schema)
+            if (mb_strlen($resourceUrl) > 512) {
+                throw new CliException("The resource URL exceeds the maximum length of 512 characters.");
+            }
+
+            // Validate URL format
+            if (!filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
+                throw new CliException("The resource URL '$resourceUrl' is not a valid URL.");
+            }
+
+            $client->setResourceUrl($resourceUrl);
           }
           // insert new client into database
           $client = $this->mapper->insert($client);

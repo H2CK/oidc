@@ -36,6 +36,8 @@ use JsonSerializable;
  * @method void setAllowedScopes(string $allowedScopes)
  * @method string getEmailRegex()
  * @method void setEmailRegex(string $emailRegex)
+ * @method string|null getResourceUrl()
+ * @method void setResourceUrl(string|null $resourceUrl)
  */
 class Client extends Entity implements JsonSerializable {
     /** @var int */
@@ -64,6 +66,8 @@ class Client extends Entity implements JsonSerializable {
     protected $allowedScopes;
     /** @var string */
     protected $emailRegex;
+    /** @var string|null */
+    protected $resourceUrl;
 
     public function __construct(
         $name = '',
@@ -99,6 +103,7 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('token_type', Types::STRING);
         $this->addType('allowed_scopes', Types::STRING);
         $this->addType('email_regex', Types::STRING);
+        $this->addType('resource_url', Types::STRING);
     }
 
     public function getRedirectUris(): array {
@@ -126,7 +131,8 @@ class Client extends Entity implements JsonSerializable {
             'issued_at' => $this->getIssuedAt(),
             'token_type' => $this->getTokenType(),
             'allowed_scopes' => $this->getAllowedScopes(),
-            'email_regex' => $this->getEmailRegex()
+            'email_regex' => $this->getEmailRegex(),
+            'resource_url' => $this->getResourceUrl()
         ];
     }
 }

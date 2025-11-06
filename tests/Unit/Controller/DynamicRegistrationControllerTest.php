@@ -372,8 +372,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->method('generateToken')
             ->willReturn($registrationToken);
 
-        // Create a scope longer than 255 characters
-        $longScope = str_repeat('scope ', 60); // This creates a 360 character string
+        // Create a scope longer than 512 characters
+        $longScope = str_repeat('scope ', 100); // This creates a 600 character string
 
         $result = $this->controller->registerClient(
             ['https://test.org/redirect'],
@@ -387,8 +387,8 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
 
         $client = $result->getData();
-        // Verify scope was truncated to 255 characters
-        $this->assertEquals(255, strlen($client['scope']));
+        // Verify scope was truncated to 512 characters (database column size)
+        $this->assertEquals(512, strlen($client['scope']));
     }
 
 }

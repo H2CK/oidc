@@ -109,6 +109,7 @@ class DynamicRegistrationController extends ApiController
         string $application_type = 'web',
         string|null $scope = null,
         string $token_type = 'opaque',
+        string|null $resource_url = null,
         ): JSONResponse
     {
         if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
@@ -190,7 +191,7 @@ class DynamicRegistrationController extends ApiController
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
-            $scope = mb_substr($scope, 0, 255);
+            $scope = mb_substr($scope, 0, 512);  // Match database column size
             // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
             // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
             if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $scope)) {
@@ -201,6 +202,29 @@ class DynamicRegistrationController extends ApiController
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setAllowedScopes($scope);
+        }
+
+        // Validate and set resource_url if provided (RFC 9728)
+        if ($resource_url !== null) {
+            $resource_url = trim($resource_url);
+            // Enforce 512 character limit (matching database schema)
+            if (mb_strlen($resource_url) > 512) {
+                $this->logger->info('Resource URL exceeds 512 character limit during dynamic client registration.');
+                return new JSONResponse([
+                    'error' => 'invalid_resource_url',
+                    'error_description' => 'Resource URL exceeds maximum length of 512 characters.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            // Validate it's a proper URL
+            if (!filter_var($resource_url, FILTER_VALIDATE_URL)) {
+                $this->logger->info('Invalid resource_url format during dynamic client registration: ' . $resource_url);
+                return new JSONResponse([
+                    'error' => 'invalid_resource_url',
+                    'error_description' => 'Resource URL must be a valid URL (RFC 9728).',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setResourceUrl($resource_url);
+            $this->logger->info('Client registered with resource_url: ' . $resource_url);
         }
 
         // Note: token_type parameter controls access token format (JWT vs Bearer/opaque)
@@ -243,6 +267,11 @@ class DynamicRegistrationController extends ApiController
             'scope' => $client->getAllowedScopes(),
             'token_type' => $client->getTokenType()
         ];
+
+        // Include resource_url in response if it was provided
+        if ($client->getResourceUrl() !== null) {
+            $jsonResponse['resource_url'] = $client->getResourceUrl();
+        }
 
         $response = new JSONResponse($jsonResponse, Http::STATUS_CREATED);
         $response->addHeader('Access-Control-Allow-Origin', '*');
@@ -468,12 +497,14 @@ class DynamicRegistrationController extends ApiController
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
-            $scope = mb_substr($scope, 0, 255);
-            if (!preg_match('/^[a-zA-Z0-9 _-]*$/u', $scope)) {
+            $scope = mb_substr($scope, 0, 512);  // Match database column size
+            // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
+            // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
+            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $scope)) {
                 $this->logger->info('Invalid scope characters during client configuration update.');
                 return new JSONResponse([
                     'error' => 'invalid_scope',
-                    'error_description' => 'Scope contains invalid characters. Only alphanumeric characters, spaces, underscores, and hyphens are allowed.',
+                    'error_description' => 'Scope contains invalid characters. Allowed: alphanumeric, spaces, underscores, hyphens, colons, periods, and forward slashes.',
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setAllowedScopes($scope);

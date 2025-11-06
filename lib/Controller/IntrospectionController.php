@@ -194,24 +194,44 @@ class IntrospectionController extends ApiController
         // is the intended audience (resource server) for this token
         $tokenResource = $accessToken->getResource();
         $requestingClientId = $client->getClientIdentifier();
+        $requestingClientResourceUrl = $client->getResourceUrl();
 
         // Allow introspection if:
         // 1. The requesting client matches the token's resource (intended audience)
+        //    - Direct match: token_resource == client_id (legacy behavior)
+        //    - URL match: token_resource == client's resource_url (RFC 9728)
         // 2. The requesting client owns the token (issued to them)
         $isAuthorized = false;
 
-        if (!empty($tokenResource) && $tokenResource === $requestingClientId) {
-            // Client is the intended resource server
-            $isAuthorized = true;
-            $this->logger->info(
-                'Token introspection authorized: requesting client is token audience',
-                [
-                    'requesting_client' => $requestingClientId,
-                    'token_resource' => $tokenResource,
-                    'token_owner_client' => $tokenClient->getClientIdentifier()
-                ]
-            );
-        } elseif ($tokenClient->getClientIdentifier() === $requestingClientId) {
+        if (!empty($tokenResource)) {
+            // Check if token resource matches client ID (legacy behavior)
+            if ($tokenResource === $requestingClientId) {
+                $isAuthorized = true;
+                $this->logger->info(
+                    'Token introspection authorized: token resource matches client ID',
+                    [
+                        'requesting_client' => $requestingClientId,
+                        'token_resource' => $tokenResource,
+                        'token_owner_client' => $tokenClient->getClientIdentifier()
+                    ]
+                );
+            }
+            // Check if token resource matches client's resource URL (RFC 9728)
+            elseif ($requestingClientResourceUrl !== null && $tokenResource === $requestingClientResourceUrl) {
+                $isAuthorized = true;
+                $this->logger->info(
+                    'Token introspection authorized: token resource matches client resource URL',
+                    [
+                        'requesting_client' => $requestingClientId,
+                        'requesting_client_resource_url' => $requestingClientResourceUrl,
+                        'token_resource' => $tokenResource,
+                        'token_owner_client' => $tokenClient->getClientIdentifier()
+                    ]
+                );
+            }
+        }
+
+        if (!$isAuthorized && $tokenClient->getClientIdentifier() === $requestingClientId) {
             // Client owns the token
             $isAuthorized = true;
             $this->logger->info(
