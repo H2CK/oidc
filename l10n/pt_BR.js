@@ -132,6 +132,10 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Defina os escopos permitidos para o cliente separados por um espaço em branco, p. ex., openid profile roles. Não insira nenhum valor para permitir todos os escopos.",
     "Email Selection" : "Seleção de E-mail",
     "Save email selection regex" : "Salvar a regex de seleção de e-mail",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalmente, o endereço de e-mail principal é usado durante os fluxos de controle do OpenID. Se desejar usar outros endereços de e-mail (definidos como endereço de e-mail secundário nas configurações pessoais), você poderá definir uma expressão regular para selecionar o endereço de e-mail usado. P. ex., .*@domínio.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalmente, o endereço de e-mail principal é usado durante os fluxos de controle do OpenID. Se desejar usar outros endereços de e-mail (definidos como endereço de e-mail secundário nas configurações pessoais), você poderá definir uma expressão regular para selecionar o endereço de e-mail usado. P. ex., .*@domínio.tld",
+    "Resource URL (RFC 9728)" : "URL de Recurso (RFC 9728)",
+    "Resource URL" : "URL de Recurso",
+    "Save resource URL" : "Salvar URL de recurso",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "URL de recurso (RFC 9728) para autorização de introspecção de token. Clientes com este URL podem introspectar tokens emitidos para este recurso."
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

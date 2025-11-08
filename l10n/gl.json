@@ -130,6 +130,10 @@
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Defina os ámbitos permitidos para o cliente separados por un espazo en branco, p. ex. openid perfil roles. Non introduza ningún valor para permitir todos os ámbitos.",
     "Email Selection" : "Selección do correo",
     "Save email selection regex" : "Gardar as expresións regulares (regex) de selección de correo",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalmente empregase o enderezo de correo principal durante os fluxos de control de OpenID. Se quere empregar outros enderezos de correo (definidos como enderezos de correo secundarios nos axustes persoais) pode definir unha expresión regular para seleccionar o enderezo de correo empregado. P. ex., .*@dominio.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalmente empregase o enderezo de correo principal durante os fluxos de control de OpenID. Se quere empregar outros enderezos de correo (definidos como enderezos de correo secundarios nos axustes persoais) pode definir unha expresión regular para seleccionar o enderezo de correo empregado. P. ex., .*@dominio.tld",
+    "Resource URL (RFC 9728)" : "URL do recurso (RFC 9728)",
+    "Resource URL" : "URL do recurso",
+    "Save resource URL" : "Gardar o URL do recurso",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "URL do recurso (RFC 9728) para a autorización de introspección de testemuños. Os clientes con este URL poden facer a introspección de testemuños emitidos para este recurso."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

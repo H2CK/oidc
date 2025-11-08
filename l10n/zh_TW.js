@@ -132,6 +132,10 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "定義客戶端的允許範圍，以空格分隔，例如：openid profile roles。若允許所有範圍，請不要輸入任何值。",
     "Email Selection" : "電子郵件選取",
     "Save email selection regex" : "儲存電子郵件選取正規表示式",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "通常在 OpenID 控制流程中會使用主要電子郵件地址。若您希望使用其他電子郵件地址（在個人設定中定義為次要電子郵件地址）您可以定義正規表示式來選取使用的電子郵件地址。例如：.*@domain.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "通常在 OpenID 控制流程中會使用主要電子郵件地址。若您希望使用其他電子郵件地址（在個人設定中定義為次要電子郵件地址）您可以定義正規表示式來選取使用的電子郵件地址。例如：.*@domain.tld",
+    "Resource URL (RFC 9728)" : "資源 URL (RFC 9728)",
+    "Resource URL" : "資源 URL",
+    "Save resource URL" : "儲存資源 URL",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "資源 URL (RFC 9728) 用於憑證檢視授權。具備此網址的客戶端可檢視發給此資源的憑證。"
 },
 "nplurals=1; plural=0;");

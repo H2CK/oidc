@@ -132,6 +132,10 @@ OC.L10N.register(
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Definiere die zulässigen Berechtigungsbereiche für den Client, getrennt durch ein Leerzeichen, z. B. openid profile roles. Gib keinen Wert ein, um alle Berechtigungsbereiche zuzulassen.",
     "Email Selection" : "E-Mail-Auswahl",
     "Save email selection regex" : "E-Mail-Auswahl-Regex speichern",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalerweise wird die primäre E-Mail-Adresse bei OpenID-Kontrollabläufen verwendet. Wenn du andere E-Mail-Adressen verwenden möchtest (definiert als sekundäre E-Mail-Adresse in den persönlichen Einstellungen), kannst du einen regulären Ausdruck für die Auswahl der verwendeten E-Mail-Adresse definieren. Z. B. .*@domain.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Normalerweise wird die primäre E-Mail-Adresse bei OpenID-Kontrollabläufen verwendet. Wenn du andere E-Mail-Adressen verwenden möchtest (definiert als sekundäre E-Mail-Adresse in den persönlichen Einstellungen), kannst du einen regulären Ausdruck für die Auswahl der verwendeten E-Mail-Adresse definieren. Z. B. .*@domain.tld",
+    "Resource URL (RFC 9728)" : "Ressourcen-URL (RFC 9728)",
+    "Resource URL" : "Ressourcen-URL",
+    "Save resource URL" : "Ressourcen-URL speichern",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "Ressourcen-URL (RFC 9728) für die Token-Introspektionsautorisierung. Clients mit dieser URL können Token, die an diese Ressource ausgegeben wurden, introspektieren."
 },
 "nplurals=2; plural=(n != 1);");

@@ -65,6 +65,12 @@
     "Select if user is able to modify user specific settings" : "Select if user is able to modify user specific settings",
     "User cannot edit any settings" : "User cannot edit any settings",
     "User can edit settings" : "User can edit settings",
+    "Refresh Token Behavior" : "Refresh Token Behaviour",
+    "Define refresh token issuance behavior" : "Define refresh token issuance behavior",
+    "Select refresh token behavior" : "Select refresh token behaviour",
+    "OIDC Compliant (require offline_access scope)" : "OIDC Compliant (require offline_access scope)",
+    "Always provide refresh tokens (legacy mode)" : "Always provide refresh tokens (legacy mode)",
+    "OIDC-compliant clients must request the offline_access scope to receive refresh tokens. Enable legacy mode only if you have non-compliant clients that cannot be updated." : "OIDC-compliant clients must request the offline_access scope to receive refresh tokens. Enable legacy mode only if you have non-compliant clients that cannot be updated.",
     "Restrict User Information" : "Restrict User Information",
     "Removed information from ID token and userinfo endpoint" : "Removed information from ID token and userinfo endpoint",
     "Select information to be omitted" : "Select information to be omitted",
@@ -83,7 +89,10 @@
     "Group memberships" : "Group memberships",
     "Access your Nextcloud groups and roles" : "Access your Nextcloud groups and roles",
     "Access your Nextcloud group information" : "Access your Nextcloud group information",
+    "Access when you're away" : "Access when you're away",
+    "Allow this app to access your data even when you're not signed in" : "Allow this app to access your data even when you're not signed in",
     "Application Authorization Request" : "Application Authorisation Request",
+    "{clientName} is requesting access to your account." : "{clientName} is requesting access to your account.",
     "This application will be able to:" : "This application will be able to:",
     "Deny" : "Deny",
     "Allow" : "Allow",
@@ -121,6 +130,10 @@
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes.",
     "Email Selection" : "Email Selection",
     "Save email selection regex" : "Save email selection regex",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld",
+    "Resource URL (RFC 9728)" : "Resource URL (RFC 9728)",
+    "Resource URL" : "Resource URL",
+    "Save resource URL" : "Save resource URL",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "Resource URL (RFC 9728) for token introspection authorisation. Clients with this URL can introspect tokens issued to this resource."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

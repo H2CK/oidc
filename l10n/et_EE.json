@@ -74,7 +74,7 @@
     "Access when you're away" : "Ligipääs, kui oled eemal",
     "Allow this app to access your data even when you're not signed in" : "Luba sellele rakendusele ligipääs sinu andmetele ka siis, kui sa pole loginud sisse",
     "{clientName} is requesting access to your account." : "{clientName} küsib ligipääsu sinu kasutajakontole.",
-    "This application will be able to:" : "See rakendus võib:",
+    "This application will be able to:" : "Sellel rakendusel on alljärgnev ligipääs ja õigused:",
     "Deny" : "Keela",
     "Allow" : "Luba",
     "You can revoke this access at any time from your account settings." : "Sa saad oma kasutajakonto seadistustest ligipääsuõiguse alati tühistada.",
@@ -110,6 +110,9 @@
     "Save" : "Salvesta",
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Määratle kliendile lubatud kehtivusalad (nt OpenID profiilide rollid), eraldajaks kasuta tühikut. Kõikide kehtivusalade lubamiseks ära sisesta midagi.",
     "Email Selection" : "E-posti valik",
-    "Save email selection regex" : "Salvesta e-posti valiku regulaaravaldis"
+    "Save email selection regex" : "Salvesta e-posti valiku regulaaravaldis",
+    "Resource URL (RFC 9728)" : "Ressursi võrguaadress URL (RFC 9728)",
+    "Resource URL" : "Ressursi võrguaadress",
+    "Save resource URL" : "Salvesta ressursi võrguaadress"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
