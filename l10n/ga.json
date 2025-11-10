@@ -65,6 +65,12 @@
     "Select if user is able to modify user specific settings" : "Roghnaigh más féidir leis an úsáideoir socruithe sonracha úsáideora a mhodhnú",
     "User cannot edit any settings" : "Ní féidir leis an úsáideoir aon socruithe a chur in eagar",
     "User can edit settings" : "Is féidir leis an úsáideoir socruithe a chur in eagar",
+    "Refresh Token Behavior" : "Iompar Comhartha Athnuachana",
+    "Define refresh token issuance behavior" : "Sainmhínigh iompar eisiúna comharthaí athnuachana",
+    "Select refresh token behavior" : "Roghnaigh iompar comhartha athnuachana",
+    "OIDC Compliant (require offline_access scope)" : "Comhlíontach le OIDC (teastaíonn raon feidhme rochtain_aslíne)",
+    "Always provide refresh tokens (legacy mode)" : "Cuir comharthaí athnuachana ar fáil i gcónaí (mód oidhreachta)",
+    "OIDC-compliant clients must request the offline_access scope to receive refresh tokens. Enable legacy mode only if you have non-compliant clients that cannot be updated." : "Ní mór do chliaint atá comhlíontach le OIDC an raon feidhme offline_access a iarraidh chun comharthaí athnuachana a fháil. Ná cumasaigh an modh oidhreachta ach amháin má tá cliaint neamhchomhlíontacha agat nach féidir a nuashonrú.",
     "Restrict User Information" : "Srian a chur ar Fhaisnéis Úsáideora",
     "Removed information from ID token and userinfo endpoint" : "Baineadh faisnéis as an gcomhartha aitheantais agus as an gcríochphointe faisnéise úsáideora",
     "Select information to be omitted" : "Roghnaigh faisnéis le fágáil ar lár",
@@ -83,7 +89,10 @@
     "Group memberships" : "Ballraíocht ghrúpa",
     "Access your Nextcloud groups and roles" : "Rochtain ar do ghrúpaí agus róil Nextcloud",
     "Access your Nextcloud group information" : "Rochtain ar fhaisnéis do ghrúpa Nextcloud",
+    "Access when you're away" : "Rochtain nuair a bhíonn tú as baile",
+    "Allow this app to access your data even when you're not signed in" : "Lig don aip seo rochtain a fháil ar do shonraí fiú nuair nach bhfuil tú logáilte isteach",
     "Application Authorization Request" : "Iarratas ar Údarú Iarratais",
+    "{clientName} is requesting access to your account." : "Tá {clientName} ag iarraidh rochtain ar do chuntas.",
     "This application will be able to:" : "Beidh an feidhmchlár seo in ann:",
     "Deny" : "shéanadh",
     "Allow" : "Ceadaigh",
@@ -121,6 +130,10 @@
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Sainmhínigh na raonta ceadaithe don chliant scartha le spás bán, m.sh. róil phróifíle openid. Ná cuir isteach aon luach chun gach raon a cheadú.",
     "Email Selection" : "Roghnú Ríomhphoist",
     "Save email selection regex" : "Sábháil regex roghnúcháin ríomhphoist",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "De ghnáth, úsáidtear an príomhsheoladh ríomhphoist le linn sreabha rialaithe OpenID. Más mian leat seoltaí ríomhphoist eile a úsáid (a shainmhínítear mar sheoladh ríomhphoist tánaisteach i socruithe pearsanta) d'fhéadfá slonn rialta a shainiú chun an seoladh ríomhphoist a úsáidtear a roghnú. M.sh. .*@domain.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "De ghnáth, úsáidtear an príomhsheoladh ríomhphoist le linn sreabha rialaithe OpenID. Más mian leat seoltaí ríomhphoist eile a úsáid (a shainmhínítear mar sheoladh ríomhphoist tánaisteach i socruithe pearsanta) d'fhéadfá slonn rialta a shainiú chun an seoladh ríomhphoist a úsáidtear a roghnú. M.sh. .*@domain.tld",
+    "Resource URL (RFC 9728)" : "URL Acmhainne (RFC 9728)",
+    "Resource URL" : "URL na hacmhainne",
+    "Save resource URL" : "Sábháil URL na hacmhainne",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "URL Acmhainne (RFC 9728) le haghaidh údarú introspection comharthaí. Is féidir le cliaint a bhfuil an URL seo acu introspection comharthaí a eisíodh chuig an acmhainn seo."
 },"pluralForm" :"nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);"
 }
