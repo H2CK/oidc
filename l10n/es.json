@@ -130,6 +130,10 @@
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Defina los scopes permitidos para el cliente separados por un espacio en blanco, por ejemplo, openid profile roles. No introduzca ningún valor para permitir todos los scopes.",
     "Email Selection" : " Selección de correo electrónico",
     "Save email selection regex" : " Guardar regex de selección de correo electrónico",
-    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : " Normalmente, la dirección de correo electrónico principal se utiliza durante los flujos de control de OpenID. Si desea utilizar otras direcciones de correo electrónico (definidas como secundarias en la configuración personal), puede definir una expresión regular para seleccionar la dirección de correo electrónico utilizada. Por ejemplo .*@dominio.tld"
+    "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : " Normalmente, la dirección de correo electrónico principal se utiliza durante los flujos de control de OpenID. Si desea utilizar otras direcciones de correo electrónico (definidas como secundarias en la configuración personal), puede definir una expresión regular para seleccionar la dirección de correo electrónico utilizada. Por ejemplo .*@dominio.tld",
+    "Resource URL (RFC 9728)" : "URL del recurso (RFC 9728)",
+    "Resource URL" : "URL del recurso",
+    "Save resource URL" : "Guardar URL del recurso",
+    "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "URL del recurso (RFC 9728) para la autorización de introspección de tokens. Los clientes con esta URL pueden realizar la introspección de los tokens emitidos para este recurso."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
