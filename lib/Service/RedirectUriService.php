@@ -14,6 +14,7 @@ use Psr\Log\LoggerInterface;
 
 class RedirectUriService {
 
+    private const INVALID_REDIRECT_URI = 'Invalid redirect URI retrieved ';
 
     public function __construct(
         private LoggerInterface $logger
@@ -39,108 +40,120 @@ class RedirectUriService {
                 $scheme = 'http';
             } else {
                 $scheme = null;
-                $this->logger->info('Invalid redirect URI retrieved ', [
+                $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
                         'app' => 'oidc',
                         'redirect_uri' => $uri,
                         'reason' => 'Invalid or missing scheme for localhost with port wildcard',
                     ]);
                 throw new RedirectUriValidationException('Invalid or missing scheme for localhost');
-                return false;
             }
         } else {
-            $parsed = parse_url($uri);
-            if (!$parsed || !isset($parsed['host'])) {
-                $this->logger->info('Invalid redirect URI retrieved ', [
+            if (strpos($uri, ':///') !== false) {
+                // Handle scheme-only URIs like "app.immich:///oauth-callback"
+                $parts = explode(':///', $uri, 2);
+                $scheme = $parts[0];
+                $host = '';
+                $path = '/' . ltrim($parts[1], '/');
+                $port = null;
+            } else {
+                $parsed = parse_url($uri);
+                if ($parsed === false) {
+                    $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
                         'app' => 'oidc',
                         'redirect_uri' => $uri,
-                        'reason' => 'Could not parse URL or missing host',
+                        'reason' => 'Could not parse URL',
                     ]);
-                throw new RedirectUriValidationException('Could not parse URL or missing host');
-                return false;
+                    throw new RedirectUriValidationException('Could not parse URL or missing host');
+                }
+
+                $scheme = $parsed['scheme'] ?? null;
+                $host = $parsed['host'] ?? '';
+                $path = $parsed['path'] ?? '';
+                $port = $parsed['port'] ?? null;
             }
-            $scheme = $parsed['scheme'] ?? null;
-            $host = $parsed['host'];
-            $path = $parsed['path'] ?? '';
-            $port = $parsed['port'] ?? null;
+
+            // Accept app-specific schemes like "app.immich:///oauth-callback" (no host, path-only)
+            if ($host === '' && ($scheme === null || $path === '')) {
+                $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
+                    'app' => 'oidc',
+                    'redirect_uri' => $uri,
+                    'reason' => 'Could not parse URL or missing host/path for scheme-only URI',
+                ]);
+                throw new RedirectUriValidationException('Could not parse URL or missing host/path for scheme-only URI');
+            }
         }
 
         if ($host === 'localhost' && !($scheme === 'http' || $scheme === 'https')) {
-            $this->logger->info('Invalid redirect URI retrieved ', [
-                    'app' => 'oidc',
-                    'redirect_uri' => $uri,
-                    'reason' => 'Invalid scheme for localhost, must be http or https',
-                ]);
-                throw new RedirectUriValidationException('Invalid scheme for localhost, must be http or https');
-            return false;
+            $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
+                'app' => 'oidc',
+                'redirect_uri' => $uri,
+                'reason' => 'Invalid scheme for localhost, must be http or https',
+            ]);
+            throw new RedirectUriValidationException('Invalid scheme for localhost, must be http or https');
         }
 
         // Check for Port-Wildcard (only for localhost allowed)
         if ($port !== null && $host !== 'localhost' && $port === '*') {
-            $this->logger->info('Invalid redirect URI retrieved ', [
-                    'app' => 'oidc',
-                    'redirect_uri' => $uri,
-                    'reason' => 'Wildcard port only allowed for localhost',
-                ]);
-                throw new RedirectUriValidationException('Wildcard port only allowed for localhost');
-            return false;
+            $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
+                'app' => 'oidc',
+                'redirect_uri' => $uri,
+                'reason' => 'Wildcard port only allowed for localhost',
+            ]);
+            throw new RedirectUriValidationException('Wildcard port only allowed for localhost');
         }
 
         // Check for Subdomain-Wildcard (optional)
         if (strpos($host, '*.') === 0) {
             if (!$allowSubdomainWildcards) {
-                $this->logger->info('Invalid redirect URI retrieved ', [
+                $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
                     'app' => 'oidc',
                     'redirect_uri' => $uri,
                     'reason' => 'Not allowed to use subdomain wildcards',
                 ]);
                 throw new RedirectUriValidationException('Not allowed to use subdomain wildcards');
-                return false;
             }
             // Check if rest of domain is valid (e.g. *.example.com)
             $subdomainWildcardPart = substr($host, 2);
             if (!filter_var($subdomainWildcardPart, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME)) {
-                $this->logger->info('Invalid redirect URI retrieved ', [
+                $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
                     'app' => 'oidc',
                     'redirect_uri' => $uri,
                     'reason' => 'Invalid domain part after subdomain wildcard',
                 ]);
-
-                return false;
+                throw new RedirectUriValidationException('Invalid domain part after subdomain wildcard');
             }
         }
 
         // Check for path-Wildcard (only at the end allowed)
         if (strpos($path, '*') !== false) {
             if (substr($path, -2) !== '/*') {
-                $this->logger->info('Invalid redirect URI retrieved ', [
+                $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
                     'app' => 'oidc',
                     'redirect_uri' => $uri,
                     'reason' => 'Wildcard only allowed at the end of the path',
                 ]);
                 throw new RedirectUriValidationException('Wildcard only allowed at the end of the path');
-                return false;
             }
             $pathWithoutWildcard = rtrim($path, '*');
             if (!preg_match('#^[/a-zA-Z0-9\-_]*$#', $pathWithoutWildcard)) {
-                $this->logger->info('Invalid redirect URI retrieved ', [
+                $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
                     'app' => 'oidc',
                     'redirect_uri' => $uri,
                     'reason' => 'Invalid characters in path before wildcard',
                 ]);
                 throw new RedirectUriValidationException('Invalid characters in path before wildcard');
-                return false;
+
             }
         }
 
         // Check if domain is valid (no wildcards except the ones allowed above)
         if (strpos($host, '*') !== false && strpos($host, '*.') !== 0) {
-            $this->logger->info('Invalid redirect URI retrieved ', [
-                    'app' => 'oidc',
-                    'redirect_uri' => $uri,
-                    'reason' => 'Invalid wildcard position in domain',
-                ]);
-                throw new RedirectUriValidationException('Invalid wildcard position in domain');
-            return false;
+            $this->logger->info(RedirectUriService::INVALID_REDIRECT_URI, [
+                'app' => 'oidc',
+                'redirect_uri' => $uri,
+                'reason' => 'Invalid wildcard position in domain',
+            ]);
+            throw new RedirectUriValidationException('Invalid wildcard position in domain');
         }
 
         return true;
@@ -168,20 +181,29 @@ class RedirectUriService {
      * @throws RedirectUriValidationException
      */
     public function matchRedirectUri(string $concreteUri, string $wildcardPattern): bool {
-        // Parse concrete URI
-        $concrete = parse_url($concreteUri);
-        if ($concrete === false || !isset($concrete['host'])) {
-            $this->logger->debug('Invalid concrete redirect URI', ['concreteUri' => $concreteUri]);
-            return false;
+        if (strpos($concreteUri, ':///') !== false) {
+            // Handle scheme-only URIs like "app.immich:///oauth-callback"
+            $parts = explode(':///', $concreteUri, 2);
+            $concreteScheme = isset($parts[0]) ? strtolower($parts[0]) : null;
+            $concreteHost = '';
+            $concretePath = '/' . ltrim($parts[1], '/');
+            $concretePort = null;
+        } else {
+            // Parse concrete URI
+            $concrete = parse_url($concreteUri);
+            if ($concrete === false || !isset($concrete['host'])) {
+                $this->logger->debug('Invalid concrete redirect URI', ['concreteUri' => $concreteUri]);
+                return false;
+            }
+            $concreteScheme = isset($concrete['scheme']) ? strtolower($concrete['scheme']) : null;
+            $concreteHost = strtolower($concrete['host']);
+            $concretePort = isset($concrete['port']) ? (int)$concrete['port'] : null;
+            $concretePath = $concrete['path'] ?? '/';
+            $concretePath = '/' . ltrim(preg_replace('#/+#', '/', $concretePath), '/');
         }
-        $concreteScheme = isset($concrete['scheme']) ? strtolower($concrete['scheme']) : null;
-        $concreteHost = strtolower($concrete['host']);
-        $concretePort = isset($concrete['port']) ? (int)$concrete['port'] : null;
-        $concretePath = $concrete['path'] ?? '/';
-        $concretePath = '/' . ltrim(preg_replace('#/+#', '/', $concretePath), '/');
 
         // Parse wildcard pattern: allow optional scheme
-        if (!preg_match('#^(?:([a-zA-Z][a-zA-Z0-9+\-.]*):\/\/)?([^\/]+)(\/.*)?$#', $wildcardPattern, $m)) {
+        if (!preg_match('#^(?:([a-zA-Z][a-zA-Z0-9+\-.]*):\/\/)?([^\/]*)(\/.*)?$#', $wildcardPattern, $m)) {
             $this->logger->debug('Invalid wildcard pattern format', ['pattern' => $wildcardPattern]);
             return false;
         }
@@ -211,7 +233,7 @@ class RedirectUriService {
                 }
             }
         }
-        $patternHost = strtolower($patternHostRaw === '' ? $patternHostRaw : $patternHostRaw);
+        $patternHost = strtolower((string) $patternHostRaw);
 
         // Scheme check: if both defined, require equality
         if ($patternScheme !== null && $concreteScheme !== null && $patternScheme !== $concreteScheme) {
@@ -223,6 +245,11 @@ class RedirectUriService {
         $hostMatches = false;
         if ($patternHost === '*') {
             $hostMatches = true;
+        } elseif ($patternHost === '') {
+            // pattern has no host (scheme-only URI)
+            if ($concreteHost === '') {
+                $hostMatches = true;
+            }
         } elseif (strpos($patternHost, '*.') === 0) {
             $base = substr($patternHost, 2);
             if ($base === '') {
@@ -281,7 +308,7 @@ class RedirectUriService {
 
         // Path matching
         if (str_ends_with($patternPath, '/*')) {
-            $basePath = substr($patternPath, 0, -2);
+            $basePath = substr($patternPath, 0, -1); // keep trailing slash
             if ($basePath === '') {
                 $basePath = '/';
             }

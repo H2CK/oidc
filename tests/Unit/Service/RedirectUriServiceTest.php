@@ -23,7 +23,7 @@ class RedirectUriServiceTest extends TestCase {
         );
     }
 
-	    public static function wildcardProviderPositive(): array
+        public static function wildcardProviderPositive(): array
     {
         return [
             'Case 1-1' => ['https://example.com/callback', false],
@@ -36,6 +36,9 @@ class RedirectUriServiceTest extends TestCase {
             'Case 5-1' => ['https://*.example.com/callback/*', true],
             'Case 6-1' => ['app://example.com:8080/callback', false],
             'Case 6-2' => ['app://example.com:8080/callback', true],
+            'Case 7-1' => ['app.immich:///oauth-callback', false],
+            'Case 7-2' => ['app.immich:///oauth-callback', true],
+            'Case 8-1' => ['app.immich:///oauth-callback/*', false],
         ];
     }
 
@@ -48,39 +51,45 @@ class RedirectUriServiceTest extends TestCase {
             'Case 3-1' => ['https://*.example.com/callback', false],
             'Case 4-1' => ['https://example.*.com/callback', true],
             'Case 5-1' => ['https://*.example.com:*/callback', true],
-			'Case 6-1' => ['https://example.com/callback*', false],
+            'Case 6-1' => ['https://example.com/callback*', false],
+            'Case 7-1' => ['app.immich:///callback*', false],
         ];
     }
 
-	public static function redirectUriProviderPositive(): array
-	{
-		return [
-			'Case 1-1' => ['https://example.com/callback', 'https://example.com/callback'],
-			'Case 2-1' => ['http://localhost:8080/callback', 'http://localhost:8080/callback'],
-			'Case 3-1' => ['https://sub.example.com/callback', 'https://*.example.com/callback'],
-			'Case 4-1' => ['https://example.com/callback/more', 'https://example.com/callback/*'],
-			'Case 5-1' => ['https://sub.example.com/callback/more', 'https://*.example.com/callback/*'],
-			'Case 6-1' => ['app://example.com:8080/callback', 'app://example.com:8080/callback'],
-			'Case 7-1' => ['app://example.com:8080/callback/YESS', 'app://example.com:8080/callback/*'],
-		];
-	}
+    public static function redirectUriProviderPositive(): array
+    {
+        return [
+            'Case 1-1' => ['https://example.com/callback', 'https://example.com/callback'],
+            'Case 2-1' => ['http://localhost:8080/callback', 'http://localhost:8080/callback'],
+            'Case 3-1' => ['https://sub.example.com/callback', 'https://*.example.com/callback'],
+            'Case 4-1' => ['https://example.com/callback/more', 'https://example.com/callback/*'],
+            'Case 5-1' => ['https://sub.example.com/callback/more', 'https://*.example.com/callback/*'],
+            'Case 6-1' => ['app://example.com:8080/callback', 'app://example.com:8080/callback'],
+            'Case 7-1' => ['app://example.com:8080/callback/YESS', 'app://example.com:8080/callback/*'],
+            'Case 8-1' => ['app.immich:///oauth-callback', 'app.immich:///oauth-callback'],
+            'Case 9-1' => ['app.immich:///oauth-callback/extra', 'app.immich:///oauth-callback/*'],
+        ];
+    }
 
-	public static function redirectUriProviderNegative(): array
-	{
-		return [
-			'Case 1-1' => ['https://example.com/callback', 'https://example.org/callback'],
-			'Case 2-1' => ['http://localhost:8080/callback', 'http://localhost:9090/callback'],
-			'Case 3-1' => ['https://example.com/callback', 'https://*.example.com/callback'],
-			'Case 4-1' => ['https://sub.example.com/callback', 'https://example.com/callback'],
-			'Case 5-1' => ['https://example.com/callback/more', 'https://example.com/callback'],
-			'Case 6-1' => ['https://sub.example.com/callback/more', 'https://*.example.com/callback'],
-			'Case 7-1' => ['app://example.com:8080/callback', 'app://example.com:9090/callback'],
-			'Case 8-1' => ['app://example.com:8080/callback', 'app://*.example.com:8080/callback'],
-			'Case 9-1' => ['app://example.com:8080/callback/more', 'app://example.com:8080/callback'],
-		];
-	}
+    public static function redirectUriProviderNegative(): array
+    {
+        return [
+            'Case 1-1' => ['https://example.com/callback', 'https://example.org/callback'],
+            'Case 2-1' => ['http://localhost:8080/callback', 'http://localhost:9090/callback'],
+            'Case 3-1' => ['https://example.com/callback', 'https://*.example.com/callback'],
+            'Case 4-1' => ['https://sub.example.com/callback', 'https://example.com/callback'],
+            'Case 5-1' => ['https://example.com/callback/more', 'https://example.com/callback'],
+            'Case 6-1' => ['https://sub.example.com/callback/more', 'https://*.example.com/callback'],
+            'Case 7-1' => ['app://example.com:8080/callback', 'app://example.com:9090/callback'],
+            'Case 8-1' => ['app://example.com:8080/callback', 'app://*.example.com:8080/callback'],
+            'Case 9-1' => ['app://example.com:8080/callback/more', 'app://example.com:8080/callback'],
+            'Case 10-1' => ['app.immich:///oauth-callback', 'app.immich:///other-callback'],
+            'Case 10-2' => ['app.immich:///oauth-callback', 'app.immich:///oauth-callback/*'],
+            'Case 11-1' => ['app.immich:///oauth-:///callback', 'app.immich:///oauth-callback'],
+        ];
+    }
 
-	#[DataProvider('wildcardProviderPositive')]
+    #[DataProvider('wildcardProviderPositive')]
     public function testRedirectUriWildcardsPositive(string $uri, bool $subdomain = false) {
         $this->assertTrue($this->service->isValidRedirectUri($uri, $subdomain), "Check for ".$uri." failed");
     }
@@ -91,12 +100,12 @@ class RedirectUriServiceTest extends TestCase {
         $this->service->isValidRedirectUri($uri, $subdomain);
     }
 
-	#[DataProvider('redirectUriProviderPositive')]
+    #[DataProvider('redirectUriProviderPositive')]
     public function testRedirectUriMatchPositive(string $uri, string $pattern) {
         $this->assertTrue($this->service->matchRedirectUri($uri, $pattern), "Match for ".$uri." failed");
     }
 
-	#[DataProvider('redirectUriProviderNegative')]
+    #[DataProvider('redirectUriProviderNegative')]
     public function testRedirectUriMatchNegative(string $uri, string $pattern) {
         $this->assertFalse($this->service->matchRedirectUri($uri, $pattern), "Check for ".$uri." failed");
     }

@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.13.1] - 2025-11-17
+
+### Changed
+
+- Fixed schema only urls [#595](https://github.com/H2CK/oidc/issues/595)
+- Updated dependencies
+- Updated translations
+
 ## [1.13.0] - 2025-11-06
 
 ### Added
