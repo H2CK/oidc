@@ -20,6 +20,7 @@ OC.L10N.register(
     "30 minutes" : "30 ນາທີ",
     "12 hours" : "12 hours",
     "1 day" : "1 day",
+    "7 days" : "7 ມື້",
     "Never" : "Never",
     "Disable" : "ປິດ",
     "Enable" : "Enable",
