@@ -28,6 +28,7 @@ OC.L10N.register(
     "Email address" : "ທີ່ຢູ່ອີເມວ",
     "Deny" : "ປະຕິເສດ",
     "Allow" : "ອະນຸຍາດ",
+    "Loading..." : "ກຳລັງໂຫລດ...",
     "Delete" : "ລຶບ",
     "Client Identifier" : "Client Identifier",
     "Secret" : "Secret",
