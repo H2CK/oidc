@@ -91,9 +91,13 @@ stylelint-fix:
 	npm run stylelint:fix
 
 # Tests
-test:
+test: test-unit test-integration
+
+test-unit:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
-#	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+
+test-integration:
+	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
 
 ##### Building #####
 
