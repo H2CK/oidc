@@ -16,7 +16,6 @@
         "nextcloud/coding-standard": "^1.0.0"
     },
     "config": {
-        "vendor-dir": ".",
         "optimize-autoloader": true,
         "classmap-authoritative": true,
         "autoloader-suffix": "OIDCIdentityProvider",
