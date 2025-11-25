@@ -108,13 +108,13 @@ class SettingsController extends Controller
     {
         $this->logger->debug("Adding client " . $name. " with Redirect URI " .$redirectUri);
 
-		try {
-			if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
-				return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
-			}
-		} catch (RedirectUriValidationException $e) {
-			return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
-		}
+        try {
+            if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
+                return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
+            }
+        } catch (RedirectUriValidationException $e) {
+            return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+        }
 
         // Use configured default if token type is not specified
         if (empty($tokenType)) {
@@ -357,13 +357,13 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         $this->logger->debug("Adding Redirect URI " . $redirectUri . " for client " . $id);
-		try {
-			if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
-				return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
-			}
-		} catch (RedirectUriValidationException $e) {
-			return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
-		}
+        try {
+            if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
+                return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
+            }
+        } catch (RedirectUriValidationException $e) {
+            return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+        }
 
         $redirectUriObj = new RedirectUri();
         $redirectUriObj->setClientId($id);
