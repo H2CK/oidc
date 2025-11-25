@@ -24,6 +24,7 @@ Provided features:
 - Token Introspection (RFC 7662)
 - Support for resource url (RFC 9728) at introspection
 - User Consent Management
+- Support for custom claims
 - Administration of clients via CLI
 - Generation and validation of access tokens using events
 - User specific settings to define which data is passed to clients in ID token and via userinfo endpoint
@@ -67,6 +68,10 @@ $ php occ
   oidc:create                            Create oidc client
   oidc:list                              List oidc clients
   oidc:remove                            Remove an oidc client
+  oidc:create-claim                      Create a custom claim for a client
+  oidc:list-claim                        List custom claims
+  oidc:remove-claim                      Remove a custom claim
+  oidc:list-claim-functions              Lists available functions to provide content for custom claims
 ...
 ```
 
@@ -149,6 +154,17 @@ Further scopes are passed transparently. Also namescaped scopes are supported. E
 | roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. The content of the claim `roles` is identical to the claim `groups`. |
 | groups | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID might not be identical to the group name (display name) shown in the UI (especially after renaming groups or depending on your ldap configuration). To provide the display name of a group in the claim it is possible to change an application setting via the `occ` command. You can use the following commands to switch between GID and displayname: `occ config:app:set oidc group_claim_type --value "gid"` or  `occ config:app:set oidc group_claim_type --value "displayname"`. |
 | offline_access | **Required for refresh tokens** (OpenID Connect Core 1.0 Section 11). When this scope is requested and granted, a refresh token will be issued that allows obtaining new access tokens even when the user is not present. If this scope is not requested, no refresh token will be issued in OIDC-compliant mode. Administrators can enable "Legacy mode" in settings to always issue refresh tokens for backward compatibility with non-compliant clients. |
+
+## Custom claims
+
+It is possible to define custom claims per client (Currently only via CLI). A custom claim is defined per client and will be added to the ID token and the userinfo endpoint if the specified scope is requested. The following functions can be used provide date to the custom claims.
+| Function | Description |
+|---|---|
+| isAdmin | Provides true or false (boolean) if the user is Nextcloud administrator. |
+| hasRole | A single parameter must be provided which contains the Nextcloud group name against which the check is performed. Provides true or false (boolean) if the user is in the specified group. |
+| isInGroup | Same as `hasRole` |
+| getUserEmail | Returns the users primary email address as string |
+| getUserGroups | Returns the gruops the user is in as string[] |
 
 ## Access Token & ID Token generation and validation via events by other Nextcloud apps
 

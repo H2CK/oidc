@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.0] - 2025-11-25
+
+### Added
+
+- Added support for custom claims - Administration currently only via CLI
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [1.13.1] - 2025-11-17
 
 ### Changed
