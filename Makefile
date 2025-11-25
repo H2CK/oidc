@@ -30,6 +30,13 @@ else
 	$(composer) update --prefer-dist
 endif
 
+composer-autoload:
+ifeq (, $(composer))
+	php $(build_tools_directory)/composer.phar dump-autoload
+else
+	$(composer) dump-autoload
+endif
+
 # Translations are now done via Transifex, therefore the three tasks 'make translationtool',
 # 'make generate-po-translation' and 'make generate-nc-translation' are no longer necessary.
 # Previously the translations were made with a local translation tool. For installation of

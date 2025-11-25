@@ -17,6 +17,7 @@ use OCP\AppFramework\Http;
 use OCP\Security\ISecureRandom;
 
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Controller\SettingsController;
 use OCA\OIDCIdentityProvider\Db\Client;
@@ -30,37 +31,39 @@ use Psr\Log\LoggerInterface;
 
 class SettingsControllerTest extends TestCase {
     protected $controller;
-    /** @var IRequest */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IRequest */
     protected $request;
-    /** @var ClientMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     private $clientMapper;
-    /** @var AccessTokenMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimMapper */
+    private $customClaimMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper  */
     private $accessTokenMapper;
-    /** @var RedirectUriMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriMapper  */
     private $redirectUriMapper;
-    /** @var LogoutRedirectUriMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|LogoutRedirectUriMapper  */
     private $logoutRedirectUriMapper;
-    /** @var GroupMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|GroupMapper  */
     private $groupMapper;
-    /** @var IGroupManager  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager  */
     private $groupManager;
-    /** @var IL10N */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10N */
     private $l;
-    /** @var IUserSession */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUserSession */
     private $userSession;
-    /** @var IAppConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     private $appConfig;
-    /** @var IConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
     /** @var LoggerInterface */
     private $logger;
     /** @var ISecureRandom */
     private $secureRandom;
-    /** @var ITimeFactory */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
     /** @var IDBConnection */
     private $db;
-	/** @var RedirectUriService */
+	/** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriService */
     private $redirectUriService;
 
     private $client;
@@ -78,11 +81,15 @@ class SettingsControllerTest extends TestCase {
             $this->db,
             $this->time,
             $this->appConfig])->getMock();
+		$this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
             $this->db,
             $this->time,
             $this->appConfig,
             $this->redirectUriMapper,
+			$this->customClaimMapper,
             $this->secureRandom,
             $this->logger])->getMock();
         $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([

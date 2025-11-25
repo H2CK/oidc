@@ -49,7 +49,6 @@ class OIDCList extends Command {
         $output->writeln("<error>Error: {$e->getMessage()}</error>");
         return Command::FAILURE;
       }
-      return 0;
   }
 
 }

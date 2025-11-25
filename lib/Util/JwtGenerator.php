@@ -15,6 +15,7 @@ use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
+use OCA\OIDCIdentityProvider\Service\CustomClaimService;
 use OCA\DAV\CardDAV\Converter;
 use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
@@ -60,6 +61,8 @@ class JwtGenerator
     private $logger;
     /** @var Converter */
     private $converter;
+    /** @var CustomClaimService */
+    private $customClaimService;
 
     public const SUB_OUTPUT = ' sub=> ';
     public const AUD_OUTPUT = ' aud=> ';
@@ -76,6 +79,7 @@ class JwtGenerator
                     IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
                     IConfig $config,
+                    CustomClaimService $customClaimService,
                     LoggerInterface $logger
     ) {
         $this->crypto = $crypto;
@@ -88,6 +92,7 @@ class JwtGenerator
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
         $this->config = $config;
+        $this->customClaimService = $customClaimService;
         $this->logger = $logger;
         $this->converter = Server::get(Converter::class);
     }
@@ -113,7 +118,9 @@ class JwtGenerator
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
 
-        $jwt_payload = [
+        $jwt_payload = $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid);
+
+        $jwt_payload_base = [
             'iss' => $issuer,
             'sub' => $uid,
             'aud' => $client->getClientIdentifier(),
@@ -127,6 +134,8 @@ class JwtGenerator
             'nbf' => $this->time->getTime(),
             'jti' => strval($accessToken->getId()),
         ];
+
+        $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
 
         if ($atHash) {
             $atHashData = str_replace(
@@ -222,7 +231,6 @@ class JwtGenerator
             // Possible further values currently not provided by Nextcloud
             // 'nickname' => ,
             // 'profile' => ,
-            // 'picture' => , usually contains a URL linking to picture for download
             // 'gender' => ,
             // 'birthdate' => ,
             // 'zoneinfo' => ,

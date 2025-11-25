@@ -6,5 +6,5 @@ $vendorDir = dirname(__DIR__);
 $baseDir = $vendorDir;
 
 return array(
-    'OCA\\OIDCIdentityProvider\\' => array($baseDir . '/../lib'),
+    'OCA\\OIDCIdentityProvider\\' => array($vendorDir . '/lib'),
 );
