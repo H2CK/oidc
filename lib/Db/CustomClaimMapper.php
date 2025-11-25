@@ -121,10 +121,6 @@ class CustomClaimMapper extends QBMapper {
 
     /**
      * Create or update a custom claim
-     * Check to be performed before inserting/updating
-     * - if a custom claim with the same name for the same client ID exists, update it instead of creating a new one
-     * - check for valid scope
-     * - check for valid characters in name, scope
      *
      * @param CustomClaim $customClaim
      * @return CustomClaim
@@ -138,12 +134,21 @@ class CustomClaimMapper extends QBMapper {
         if (strlen($customClaim->getName()) > 255) {
             throw new \InvalidArgumentException('Claim name '.$customClaim->getName().' exceeds maximum length of 255 characters');
         }
-        // check for allowed names
-        $customClaim->setName(strtolower(trim($customClaim->getName())));
+        // check for forbidden names
+        $normalized_name = strtolower(trim($customClaim->getName()));
         foreach (self::FORBIDDEN_CLAIM_NAMES as $value) {
-            if ($customClaim->getName() === $value) {
+            if ($normalized_name === $value) {
                 throw new \InvalidArgumentException('Claim name '.$customClaim->getName().' is forbidden');
             }
+        }
+        // Check for valid characters in name
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $customClaim->getName())) {
+            throw new \InvalidArgumentException('Claim name '.$customClaim->getName().' contains invalid characters. Only alphanumeric characters and underscore are allowed.');
+        }
+        // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
+        // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
+        if (!preg_match('/^[a-zA-Z0-9_:\.\/-]*$/u', $customClaim->getScope())) {
+            throw new \InvalidArgumentException('Scope '.$customClaim->getScope().' contains invalid characters. RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote.');
         }
         // check for function
         $functionFound = false;
@@ -152,6 +157,9 @@ class CustomClaimMapper extends QBMapper {
                 $functionFound = true;
                 // function found, check parameters
                 if (isset($function['parameters']) && is_array($function['parameters']) && count($function['parameters']) > 0) {
+                    if ($customClaim->getParameter() == null) {
+                        throw new \InvalidArgumentException('Function '.$customClaim->getFunction().' requires '.count($function['parameters']).' parameters, none given');
+                    }
                     $arguments = explode(',', $customClaim->getParameter());
                     if (count($arguments) !== count($function['parameters'])) {
                         throw new \InvalidArgumentException('Function '.$customClaim->getFunction().' requires '.count($function['parameters']).' parameters, '.count($arguments).' given');
