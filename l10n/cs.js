@@ -107,7 +107,7 @@ OC.L10N.register(
     "Authorized Applications" : "Pověřené aplikace",
     "These applications have access to your account. Access is managed by your administrator." : "Tyto aplikace mají přístup k vašemu účtu. Přístup je spravován vaším správcem.",
     "These applications have access to your account. You can revoke access at any time." : "Tyto aplikace mají přístup k vašemu účtu. Tento přístup můžete kdykoli odvolat.",
-    "Loading..." : "Načítání…",
+    "Loading..." : "Načítání …",
     "No authorized applications" : "Žádné pověřené aplikace",
     "Client ID:" : "Identif. klienta:",
     "Permissions:" : "Oprávnění:",
