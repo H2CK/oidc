@@ -1,7 +1,12 @@
 .idea
 .vscode
 *.iml
-/vendor/
+vendor/*
+!/vendor/composer/
+!/vendor/composer/**
+!/vendor/firebase/
+!/vendor/firebase/**
+!/vendor/autoload.php
 /build/
 node_modules/
 /.php_cs.cache

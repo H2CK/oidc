@@ -228,6 +228,26 @@ return [
             'verb' => 'DELETE'
         ],
         [
+            'name' => 'CustomClaim#getCustomClaim',
+            'url' => '/customClaim',
+            'verb' => 'GET'
+        ],
+        [
+            'name' => 'CustomClaim#addCustomClaim',
+            'url' => '/customClaim',
+            'verb' => 'POST'
+        ],
+        [
+            'name' => 'CustomClaim#updateCustomClaim',
+            'url' => '/customClaim',
+            'verb' => 'PATCH'
+        ],
+        [
+            'name' => 'CustomClaim#deleteCustomClaim',
+            'url' => '/customClaim',
+            'verb' => 'DELETE'
+        ],
+        [
             'name' => 'Cors#clientManagementCorsResponse',
             'url' => '/register/{clientId}',
             'verb' => 'OPTIONS',

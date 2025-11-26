@@ -76,7 +76,7 @@ class CustomClaimMapper extends QBMapper {
      * Find custom claim by client ID and name
      *
      * @param int $clientId
-     * @param string $snme
+     * @param string $name
      * @return CustomClaim|null
      */
     public function findByClientAndName(int $clientId, string $name): ?CustomClaim {
@@ -86,6 +86,26 @@ class CustomClaimMapper extends QBMapper {
             ->from($this->tableName)
             ->where($qb->expr()->eq('name', $qb->createNamedParameter($name)))
             ->andWhere($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
+
+        try {
+            return $this->findEntity($qb);
+        } catch (DoesNotExistException $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Find custom claim by id
+     *
+     * @param int $id
+     * @return CustomClaim|null
+     */
+    public function findById(int $id): ?CustomClaim {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
 
         try {
             return $this->findEntity($qb);

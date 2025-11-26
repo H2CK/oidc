@@ -1,10 +1,11 @@
 <?php
 
-namespace OCA\OIDCIdentityProvider\Tests\Integration\Controller;
+namespace OCA\OIDCIdentityProvider\Tests\Integration;
 
 use OCP\AppFramework\App;
 use PHPUnit\Framework\TestCase;
 
+use Psr\Log\LoggerInterface;
 
 /**
  * This test just checks if the application is installed and enabled.
