@@ -14,6 +14,9 @@ all: dev-setup lint build-js-production assemble
 # Dev env management
 dev-setup: clean clean-dev composer npm-init
 
+# Install all dependencies an build js bundles to just run the app
+install: clean clean-dev composer-check composer-install-update-no-dev npm-init build-js-production
+
 composer: composer-check clean-vendor composer-install-update
 
 composer-check:

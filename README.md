@@ -48,6 +48,12 @@ With version 1.12 the OIDC compliance for offline_access scope was added (OpenID
   - After: `scope=openid profile email offline_access`
 - **For Non-Compliant Clients**: If updating the client is not possible, enable "Legacy mode" in Settings > OIDC > Refresh Token Behavior
 
+## Installation
+
+It is preferred to install the app via the Nextcloud App Store. If you prefer a manual installation please use the package provided in a release at Github (e.g. https://github.com/H2CK/oidc/releases/download/1.13.1/oidc-1.13.1.tar.gz).
+
+Just cloning the git repository will provide only the source code of the application. You will not be able to use the application out of the box. 3rd party php libraries and js webpack bundles are missing and must first be generated using the commands `make install`.
+
 ## Configuration
 
 It is possible to modify the settings of this application in Nextcloud admin settings. There is a dedicated section for the OpenID Connect provider app in the menu on the left.
