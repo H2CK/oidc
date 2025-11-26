@@ -92,8 +92,8 @@ OC.L10N.register(
     "Save allowed scopes" : "Sauvegarder les portées autorisées",
     "Save" : "Enregistrer",
     "Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes." : "Définissez les portées autorisés pour le client en les séparant par un espace, par exemple les openid profile roles. N'entrez aucune valeur pour autoriser tous les portées.",
-    "Email Selection" : "Sélection des courriels",
-    "Save email selection regex" : "Enregistrer l'expression rationnelle de sélection des courriels",
+    "Email Selection" : "Sélection des e-mails",
+    "Save email selection regex" : "Enregistrer l'expression rationnelle de sélection des e-mails",
     "Usually the primary email address is used during OpenID control flows. If you wish to use other email adresses (defined as secondary email address in personal settings) you could define a regular expression for selecting the used email address. E.g. .*@domain.tld" : "En général, l'adresse électronique principale est utilisée lors des flux de contrôle OpenID. Si vous souhaitez utiliser d'autres adresses électroniques (définies comme adresse électronique secondaire dans les paramètres personnels), vous pouvez définir une expression régulière pour sélectionner l'adresse électronique utilisée. Par exemple : .*@domaine.tld"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
