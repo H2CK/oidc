@@ -63,7 +63,7 @@ class SettingsControllerTest extends TestCase {
     private $time;
     /** @var IDBConnection */
     private $db;
-	/** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriService */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriService */
     private $redirectUriService;
 
     private $client;
@@ -81,7 +81,7 @@ class SettingsControllerTest extends TestCase {
             $this->db,
             $this->time,
             $this->appConfig])->getMock();
-		$this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
+        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
             ->disableOriginalConstructor()
             ->getMock();
         $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
@@ -89,7 +89,7 @@ class SettingsControllerTest extends TestCase {
             $this->time,
             $this->appConfig,
             $this->redirectUriMapper,
-			$this->customClaimMapper,
+            $this->customClaimMapper,
             $this->secureRandom,
             $this->logger])->getMock();
         $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([
@@ -105,9 +105,9 @@ class SettingsControllerTest extends TestCase {
             $this->db,
             $this->groupManager])->getMock();
         $this->l = $this->getMockBuilder(IL10N::class)->getMock();
-		$this->redirectUriService = new RedirectUriService(
-			$this->logger
-		);
+        $this->redirectUriService = new RedirectUriService(
+            $this->logger
+        );
 
         $this->controller = new SettingsController(
             'oidc',
@@ -117,7 +117,7 @@ class SettingsControllerTest extends TestCase {
             $this->redirectUriMapper,
             $this->logoutRedirectUriMapper,
             $this->groupMapper,
-			$this->redirectUriService,
+            $this->redirectUriService,
             $this->groupManager,
             $this->l,
             $this->userSession,
