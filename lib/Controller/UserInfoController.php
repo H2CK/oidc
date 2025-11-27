@@ -15,6 +15,8 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\DAV\CardDAV\Converter;
+use OCA\OIDCIdentityProvider\Db\CustomClaim;
+use OCA\OIDCIdentityProvider\Service\CustomClaimService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
@@ -57,6 +59,8 @@ class UserInfoController extends ApiController
     private $appConfig;
     /** @var IConfig */
     private $config;
+    /** @var CustomClaimService */
+    private $customClaimService;
     /** @var LoggerInterface */
     private $logger;
     /** @var Converter */
@@ -77,6 +81,7 @@ class UserInfoController extends ApiController
                     IAccountManager $accountManager,
                     IAppConfig $appConfig,
                     IConfig $config,
+                    CustomClaimService $customClaimService,
                     LoggerInterface $logger
                     )
     {
@@ -90,6 +95,7 @@ class UserInfoController extends ApiController
         $this->accountManager = $accountManager;
         $this->appConfig = $appConfig;
         $this->config = $config;
+        $this->customClaimService = $customClaimService;
         $this->logger = $logger;
         $this->converter = Server::get(Converter::class);
         $this->urlGenerator = $urlGenerator;
@@ -178,11 +184,15 @@ class UserInfoController extends ApiController
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
 
-        $userInfoPayload = [
+        $userInfoPayload = $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid);
+
+        $userInfoPayloadBase = [
             'sub' => $uid,
             'preferred_username' => $uid,
 
         ];
+
+        $userInfoPayload = array_merge($userInfoPayload, $userInfoPayloadBase);
 
         // Check for scopes
         $scopeArray = preg_split('/ +/', $accessToken->getScope());

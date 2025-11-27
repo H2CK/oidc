@@ -24,14 +24,20 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\DAV\CardDAV\Converter;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
+use OCA\OIDCIdentityProvider\Service\CustomClaimService;
+use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
 use OCP\IUser;
+use OCP\IUserSession;
 use OCP\IUserManager;
 use OCP\IGroupManager;
 use OCP\Server;
 use OCP\IURLGenerator;
 use OCP\IConfig;
+use OCP\IDBConnection;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\Security\ICrypto;
@@ -44,34 +50,45 @@ use OCP\EventDispatcher\IEventDispatcher;
 
 class JwtGeneratorTest extends TestCase {
         protected $generator;
-        /** @var ICrypto */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ICrypto */
         private $crypto;
-        /** @var TokenProvider */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|TokenProvider */
         private $tokenProvider;
-        /** @var ISecureRandom */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ISecureRandom */
         private $secureRandom;
-        /** @var ITimeFactory */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
         private $time;
-        /** @var IUserManager */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
         private $userManager;
-        /** @var IGroupManager */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
         private $groupManager;
-        /** @var IAccountManager */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
         private $accountManager;
-        /** @var IURLGenerator */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IURLGenerator */
         private $urlGenerator;
-        /** @var IAppConfig */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
         private $appConfig;
-		/** @var IConfig */
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
         private $config;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimMapper  */
+        private $customClaimMapper;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimService */
+        private $customClaimService;
         /** @var LoggerInterface */
         private $logger;
         /** @var Converter */
         private $converter;
         /** @var IEventDispatcher */
         private $eventDispatcher;
+        /** @var IDBConnection */
+        private $db;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriMapper  */
+        private $redirectUriMapper;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper  */
+        private $clientMapper;
 
     public function setUp(): void {
+        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
         $this->crypto = $this->getMockBuilder(ICrypto::class)->getMock();
         $this->tokenProvider = Server::get(TokenProvider::class);
         $this->secureRandom = Server::get(SecureRandom::class);
@@ -81,8 +98,30 @@ class JwtGeneratorTest extends TestCase {
         $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
         $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
+        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
         $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+        $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([
+            $this->db,
+            $this->time,
+            $this->appConfig])->getMock();
+        // avoid the circular constructor dependency by creating one mock without running its constructor
+        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        // now construct the customClaimMapper with the clientMapper mock
+        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
+            ->setConstructorArgs([
+                $this->db,
+                $this->clientMapper,
+                $this->logger
+            ])->getMock();
+        $this->customClaimService = new CustomClaimService(
+            $this->customClaimMapper,
+            $this->userManager,
+            $this->groupManager,
+			$this->accountManager,
+            $this->logger
+        );
         $this->converter = Server::get(Converter::class);
         $this->eventDispatcher = $this->getMockBuilder(IEventDispatcher::class)->getMock();
 
@@ -96,7 +135,8 @@ class JwtGeneratorTest extends TestCase {
             $this->accountManager,
             $this->urlGenerator,
             $this->appConfig,
-			$this->config,
+            $this->config,
+            $this->customClaimService,
             $this->logger,
             $this->converter
         );

@@ -12,6 +12,7 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Db\Entity;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Services\IAppConfig;
@@ -31,6 +32,8 @@ class ClientMapper extends QBMapper {
     private $appConfig;
     /** @var RedirectUriMapper */
     private $redirectUriMapper;
+    /** @var CustomClaimMapper */
+    private $customClaimMapper;
     /** @var ISecureRandom */
     private $secureRandom;
     /** @var LoggerInterface */
@@ -46,6 +49,7 @@ class ClientMapper extends QBMapper {
         ITimeFactory $time,
         IAppConfig $appConfig,
         RedirectUriMapper $redirectUriMapper,
+        CustomClaimMapper $customClaimMapper,
         ISecureRandom $secureRandom,
         LoggerInterface $logger
     ) {
@@ -53,6 +57,7 @@ class ClientMapper extends QBMapper {
         $this->time = $time;
         $this->appConfig = $appConfig;
         $this->redirectUriMapper = $redirectUriMapper;
+        $this->customClaimMapper = $customClaimMapper;
         $this->secureRandom = $secureRandom;
         $this->logger = $logger;
     }
@@ -87,6 +92,9 @@ class ClientMapper extends QBMapper {
         foreach ($uris as $uri) {
             $this->redirectUriMapper->delete($uri);
         }
+        // remove custom claims
+        $this->customClaimMapper->deleteByClientId($entity->getId());
+
         // remove the client
         $entity = parent::delete($entity);
         return $entity;
@@ -171,6 +179,15 @@ class ClientMapper extends QBMapper {
      * @throws ClientNotFoundException
      */
     public function deleteByIdentifier(string $clientIdentifier): bool {
+        $entity = $this->getByIdentifier($clientIdentifier);
+        // remove redirect uris first
+        $uris = $this->redirectUriMapper->getByClientId($entity->getId());
+        foreach ($uris as $uri) {
+            $this->redirectUriMapper->delete($uri);
+        }
+        // remove custom claims
+        $this->customClaimMapper->deleteByClientId($entity->getId());
+
         $qb = $this->db->getQueryBuilder();
         $qb
             ->delete($this->tableName)
@@ -202,6 +219,8 @@ class ClientMapper extends QBMapper {
         foreach ($entities as $entity) {
             // Delete the corresponding redirect uris
             $this->redirectUriMapper->deleteByClientId($entity->getId());
+            // remove custom claims
+            $this->customClaimMapper->deleteByClientId($entity->getId());
         }
 
         $qb = $this->db->getQueryBuilder();

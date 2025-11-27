@@ -171,11 +171,16 @@ class DiscoveryGenerator
             'nbf',
             'jti',
             'roles',
+            'groups',
             'name',
+            'given_name',
+            'family_name',
+            'middle_name',
             'updated_at',
             'website',
             'email',
             'email_verified',
+            'website',
             'phone_number',
             'address',
             'picture',
@@ -232,7 +237,7 @@ class DiscoveryGenerator
         ];
 
         // Add PKCE support to discovery endpoint
-		$discoveryPayload['code_challenge_methods_supported'] = ['S256', 'plain'];
+        $discoveryPayload['code_challenge_methods_supported'] = ['S256', 'plain'];
 
         $this->logger->info('Request to Discovery Endpoint.');
 

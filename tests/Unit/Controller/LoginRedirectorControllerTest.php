@@ -35,61 +35,68 @@ use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Service\CustomClaimService;
+use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 
 use Psr\Log\LoggerInterface;
 
 class LoginRedirectorControllerTest extends TestCase {
     protected $controller;
-    /** @var IRequest */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IRequest */
     protected $request;
-    /** @var IURLGenerator */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IURLGenerator */
     private $urlGenerator;
-    /** @var ClientMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     private $clientMapper;
-    /** @var AccessTokenMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper  */
     private $accessTokenMapper;
-    /** @var RedirectUriMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriMapper  */
     private $redirectUriMapper;
-    /** @var UserConsentMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper  */
     private $userConsentMapper;
-    /** @var GroupMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|GroupMapper  */
     private $groupMapper;
-    /** @var IGroupManager  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager  */
     private $groupManager;
-    /** @var IL10N */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10N */
     private $l;
-    /** @var ICrypto */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ICrypto */
     private $crypto;
-    /** @var IProvider */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IProvider */
     private $tokenProvider;
-    /** @var ISession */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ISession */
     private $session;
-    /** @var IUserSession */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUserSession */
     private $userSession;
-    /** @var IAppConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     private $appConfig;
-    /** @var IConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
     /** @var LoggerInterface */
     private $logger;
-    /** @var ISecureRandom */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ISecureRandom */
     private $secureRandom;
-    /** @var ITimeFactory */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
     /** @var IDBConnection */
     private $db;
     /** @var JwtGenerator */
     private $jwtGenerator;
-    /** @var RedirectUriService */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriService */
     private $redirectUriService;
-    /** @var IUserManager */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     private $userManager;
-    /** @var IAccountManager */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
     private $accountManager;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimMapper  */
+    private $customClaimMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimService */
+    private $customClaimService;
 
     private $client;
 
     public function setUp(): void {
+        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
         $this->request = $this->getMockBuilder(IRequest::class)->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
         $this->crypto = $this->getMockBuilder(ICrypto::class)->getMock();
@@ -109,11 +116,15 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->db,
             $this->time,
             $this->appConfig])->getMock();
+        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
             $this->db,
             $this->time,
             $this->appConfig,
             $this->redirectUriMapper,
+            $this->customClaimMapper,
             $this->secureRandom,
             $this->logger])->getMock();
         $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([
@@ -127,6 +138,13 @@ class LoginRedirectorControllerTest extends TestCase {
             ->disableOriginalConstructor()
             ->getMock();
         $this->l = $this->getMockBuilder(IL10N::class)->getMock();
+        $this->customClaimService = new CustomClaimService(
+            $this->customClaimMapper,
+            $this->userManager,
+            $this->groupManager,
+            $this->accountManager,
+            $this->logger
+        );
         $this->jwtGenerator = new JwtGenerator(
             $this->crypto,
             $this->tokenProvider,
@@ -138,6 +156,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->urlGenerator,
             $this->appConfig,
             $this->config,
+            $this->customClaimService,
             $this->logger
         );
         $this->redirectUriService = new RedirectUriService(

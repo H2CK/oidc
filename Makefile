@@ -14,20 +14,44 @@ all: dev-setup lint build-js-production assemble
 # Dev env management
 dev-setup: clean clean-dev composer npm-init
 
+# Install all dependencies an build js bundles to just run the app
+install: clean clean-dev composer-check composer-install-update-no-dev npm-init build-js-production
 
-# Installs and updates the composer dependencies. If composer is not installed
-# a copy is fetched from the web
-composer:
+composer: composer-check clean-vendor composer-install-update
+
+composer-check:
 ifeq (, $(composer))
 	@echo "No composer command available, downloading a copy from the web"
 	mkdir -p $(build_tools_directory)
 	curl -sS https://getcomposer.org/installer | php
 	mv composer.phar $(build_tools_directory)
+endif
+
+composer-install-update:
+ifeq (, $(composer))
 	php $(build_tools_directory)/composer.phar install --prefer-dist
 	php $(build_tools_directory)/composer.phar update --prefer-dist
 else
 	$(composer) install --prefer-dist
 	$(composer) update --prefer-dist
+endif
+
+composer-build: clean-vendor composer-install-update-no-dev
+
+composer-install-update-no-dev:
+ifeq (, $(composer))
+	php $(build_tools_directory)/composer.phar install --no-dev --prefer-dist --optimize-autoloader
+	php $(build_tools_directory)/composer.phar update --no-dev --prefer-dist --optimize-autoloader
+else
+	$(composer) install --no-dev --prefer-dist --optimize-autoloader
+	$(composer) update --no-dev --prefer-dist --optimize-autoloader
+endif
+
+composer-autoload:
+ifeq (, $(composer))
+	php $(build_tools_directory)/composer.phar dump-autoload
+else
+	$(composer) dump-autoload
 endif
 
 # Translations are now done via Transifex, therefore the three tasks 'make translationtool',
@@ -84,9 +108,13 @@ stylelint-fix:
 	npm run stylelint:fix
 
 # Tests
-test:
+test: test-unit test-integration
+
+test-unit:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
-#	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+
+test-integration:
+	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
 
 ##### Building #####
 
@@ -146,6 +174,10 @@ clean:
 	rm -rf js/
 	rm -rf $(build_dir)
 
-clean-dev:
+clean-dev: clean-node-modules clean-vendor
+
+clean-node-modules:
 	rm -rf node_modules
+
+clean-vendor:
 	rm -rf vendor

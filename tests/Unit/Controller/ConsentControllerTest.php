@@ -23,27 +23,27 @@ use Psr\Log\LoggerInterface;
 class ConsentControllerTest extends TestCase {
     /** @var ConsentController */
     protected $controller;
-    /** @var IRequest */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IRequest */
     protected $request;
-    /** @var ISession */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ISession */
     protected $session;
-    /** @var IUserSession */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUserSession */
     protected $userSession;
-    /** @var IURLGenerator */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IURLGenerator */
     protected $urlGenerator;
-    /** @var UserConsentMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper */
     protected $userConsentMapper;
-    /** @var ClientMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     protected $clientMapper;
-    /** @var ITimeFactory */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     protected $time;
-    /** @var IL10N */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10N */
     protected $l;
-    /** @var IAppConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     protected $appConfig;
     /** @var LoggerInterface */
     protected $logger;
-    /** @var IUser */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUser */
     protected $user;
 
     public function setUp(): void {

@@ -4,6 +4,7 @@
  * SPDX-FileCopyrightText: 2022-2025 Thorsten Jagel <dev@jagel.net>
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
+
 namespace OCA\OIDCIdentityProvider\AppInfo;
 
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
@@ -19,7 +20,8 @@ use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 
-class Application extends App implements IBootstrap {
+class Application extends App implements IBootstrap
+{
     public const APP_ID = 'oidc';
 
     public const DEFAULT_SCOPE = 'openid profile email roles';
@@ -31,7 +33,7 @@ class Application extends App implements IBootstrap {
     public const DEFAULT_RESTRICT_USER_INFORMATION = 'no';
     public const DEFAULT_TOKEN_TYPE = 'opaque';
     public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
-	public const DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS = 'false';
+    public const DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS = 'false';
 
     public const GROUP_CLAIM_TYPE_GID = 'gid';
     public const GROUP_CLAIM_TYPE_DISPLAYNAME = 'displayname';
@@ -51,11 +53,13 @@ class Application extends App implements IBootstrap {
 
     private $backend;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct(self::APP_ID);
     }
 
-    public function register(IRegistrationContext $context): void {
+    public function register(IRegistrationContext $context): void
+    {
         // Register the composer autoloader for packages shipped by this app
         require_once __DIR__ . '/../../vendor/autoload.php';
         // Register WebFingerHandler
@@ -70,8 +74,8 @@ class Application extends App implements IBootstrap {
         OC_User::useBackend($this->backend);
     }
 
-    public function boot(IBootContext $context): void {
+    public function boot(IBootContext $context): void
+    {
         // Currently not needed
     }
-
 }

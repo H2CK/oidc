@@ -1,10 +1,11 @@
 <?php
 
-namespace OCA\OIDCIdentityProvider\Tests\Integration\Controller;
+namespace OCA\OIDCIdentityProvider\Tests\Integration;
 
 use OCP\AppFramework\App;
-use Test\TestCase;
+use PHPUnit\Framework\TestCase;
 
+use Psr\Log\LoggerInterface;
 
 /**
  * This test just checks if the application is installed and enabled.
@@ -12,15 +13,11 @@ use Test\TestCase;
 class AppTest extends TestCase {
 
     private $appContainer;
-	private $serverContainer;
-	private $appConfig;
 
     public function setUp(): void {
         parent::setUp();
         $app = new App('oidc');
         $this->appContainer = $app->getContainer();
-		$this->serverContainer = $this->appContainer->getServer();
-		$this->appConfig = $this->serverContainer->getAppConfig();
     }
 
     public function testAppInstalled() {

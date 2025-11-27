@@ -14,6 +14,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
 use OCP\Security\ISecureRandom;
@@ -30,17 +31,19 @@ class DynamicRegistrationControllerTest extends TestCase {
     protected $controller;
     /** @var IRequest */
     protected $request;
-    /** @var ClientMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     protected $clientMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimMapper */
+    protected $customClaimMapper;
     /** @var ISecureRandom */
     protected $secureRandom;
-    /** @var AccessTokenMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper  */
     protected $accessTokenMapper;
-    /** @var RedirectUriMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriMapper  */
     protected $redirectUriMapper;
-    /** @var LogoutRedirectUriMapper  */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|LogoutRedirectUriMapper  */
     protected $logoutRedirectUriMapper;
-    /** @var RegistrationTokenService */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RegistrationTokenService */
     protected $registrationTokenService;
     /** @var ITimeFactory */
     protected $time;
@@ -52,7 +55,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     protected $urlGenerator;
     /** @var IConfig */
     protected $config;
-    /** @var IAppConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     protected $appConfig;
     /** @var IDBConnection */
     protected $db;
@@ -94,10 +97,14 @@ class DynamicRegistrationControllerTest extends TestCase {
                                                                                         $this->throttlerBackend,
                                                                                         $this->bruteforceAllowList])->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
+        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
+            ->disableOriginalConstructor()
+            ->getMock();
         $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([$this->db,
                                                                                               $this->time,
                                                                                               $this->appConfig,
                                                                                               $this->redirectUriMapper,
+                                                                                              $this->customClaimMapper,
                                                                                               $this->secureRandom,
                                                                                               $this->logger])->getMock();
 

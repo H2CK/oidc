@@ -124,7 +124,7 @@ class DiscoveryControllerTest extends TestCase {
             'RS256',
             'HS256',
         ];
-        // $userinfoSigningAlgValuesSupported = [
+        // Removed sice not supported $userinfoSigningAlgValuesSupported = [
         //     'none',
         // ];
         $tokenEndpointAuthMethodsSupported = [
@@ -158,11 +158,16 @@ class DiscoveryControllerTest extends TestCase {
             'nbf',
             'jti',
             'roles',
+            'groups',
             'name',
+            'given_name',
+            'family_name',
+            'middle_name',
             'updated_at',
             'website',
             'email',
             'email_verified',
+            'website',
             'phone_number',
             'address',
             'picture',

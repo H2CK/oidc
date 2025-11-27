@@ -14,7 +14,7 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
     ]]></description>
-  <version>1.13.1</version>
+  <version>1.14.0-beta1</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -47,6 +47,10 @@ Full documentation can be found at:
     <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCList</command>
     <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCCreate</command>
     <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCRemove</command>
+    <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCList</command>
+    <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCListFunctions</command>
+    <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCCreate</command>
+    <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCRemove</command>
   </commands>
 
   <background-jobs>

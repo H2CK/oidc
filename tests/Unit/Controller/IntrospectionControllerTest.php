@@ -21,17 +21,17 @@ use OCA\OIDCIdentityProvider\Controller\IntrospectionController;
 
 class IntrospectionControllerTest extends TestCase {
     protected $controller;
-    /** @var IRequest */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IRequest */
     protected $request;
-    /** @var ClientMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     protected $clientMapper;
-    /** @var AccessTokenMapper */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper */
     protected $accessTokenMapper;
-    /** @var IUserManager */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
-    /** @var ITimeFactory */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     protected $time;
-    /** @var IAppConfig */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     protected $appConfig;
     /** @var IDBConnection */
     protected $db;
