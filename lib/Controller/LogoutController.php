@@ -127,10 +127,9 @@ class LogoutController extends ApiController
     #[UseSession]
     #[PublicPage]
     public function logout(
-                    $client_id, // Optional
-                    $refresh_token, // Not standardized - deprecated will not be used any more
+                    string|null $client_id = null, // Optional
                     $id_token_hint, // Recommended to be used
-                    $post_logout_redirect_uri // Optional url to be redirected to after logout
+                    string|null $post_logout_redirect_uri = null // Optional url to be redirected to after logout
                     ): Response
     {
         $userId = null;
@@ -239,9 +238,11 @@ class LogoutController extends ApiController
             $this->userSession->logout();
         }
 
-        $this->accessTokenMapper->deleteByUserId($userId);
+        if ($userId != null) {
+            $this->accessTokenMapper->deleteByUserId($userId);
 
-        $this->logger->debug('Logout for user ' . $userId . ' performed.');
+            $this->logger->debug('Logout for user ' . $userId . ' performed.');
+        }
 
         $defaultLogoutRedirectUrl = $this->urlGenerator->linkToRoute(
                         'core.login.showLoginForm',
@@ -249,7 +250,7 @@ class LogoutController extends ApiController
                         ]
         );
 
-        if ($post_logout_redirect_uri) {
+        if (!empty($post_logout_redirect_uri)) {
             $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
             foreach ($logoutRedirectUris as $logoutRedirectUri) {
                 if (str_starts_with($post_logout_redirect_uri, $logoutRedirectUri->getRedirectUri())) {
