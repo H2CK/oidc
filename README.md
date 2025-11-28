@@ -63,9 +63,9 @@ In the settings you can:
 - Add/Modify/Remove Clients
 - Add/Modify/Remove Logout URLs
 - Change some overall settings
-- Regenerate your public/private key for signeing the id token.
+- Regenerate your public/private key for signing the id token.
 
-It is also possible to configure the clients via the cli. The following commands are available:
+It is also possible to configure the clients and claims via the cli. The following commands are available:
 
 ```
 $ php occ
@@ -163,7 +163,7 @@ Further scopes are passed transparently. Also namescaped scopes are supported. E
 
 ## Custom claims
 
-It is possible to define custom claims per client (Currently only via CLI). A custom claim is defined per client and will be added to the ID token and the userinfo endpoint if the specified scope is requested. The following functions can be used provide date to the custom claims.
+It is possible to define custom claims per client (Currently only via CLI and API). A custom claim is defined per client and will be added to the ID token and the userinfo endpoint if the specified scope is requested. The following functions can be used provide date to the custom claims.
 | Function | Description |
 |---|---|
 | isAdmin | Provides true or false (boolean) if the user is Nextcloud administrator. |
