@@ -1,6 +1,9 @@
 { "translations": {
     "You must be logged in to view this page." : "Debe ter accedido para ver esta páxina.",
     "No consent request pending." : "Non hai ningunha solicitude de consentimento pendente.",
+    "Client Identifier is missung in the request" : "Falta o identificador do cliente na solicitude",
+    "Could not find client for the given uid or client identifier" : "Non foi posíbel o cliente para o uid ou identificador de cliente dado",
+    "Custom claim name is missung in the request" : "Falta o nome da reclamación personalizada na solicitude",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "O seu cliente non ten autorización para conectarse. Informe do seu cliente á administración da instancia",
     "Your client is expired. Please inform the administrator of your client." : "O seu cliente caducou. Informe do seu cliente á administración da instancia.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "O URI de redirección recibido non é aceptado para conectarse. Informe do seu cliente á administración da instancia",
