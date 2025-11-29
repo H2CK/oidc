@@ -73,7 +73,7 @@ class CustomClaimController extends Controller
     {
         if ($clientId == null && $clientUid == null) {
             $this->logger->warning("Adding custom claim " . $name. " failed. Missing client identifier.");
-            return new JSONResponse(['message' => $this->l->t('Client Identifier is missung in the request')], Http::STATUS_BAD_REQUEST);
+            return new JSONResponse(['message' => $this->l->t('Client Identifier is missing in the request')], Http::STATUS_BAD_REQUEST);
         }
         try {
             if ($clientId == null) {
@@ -125,7 +125,7 @@ class CustomClaimController extends Controller
     {
         if ($clientId == null && $clientUid == null) {
             $this->logger->warning("Updating custom claim " . $name. " failed. Missing client identifier.");
-            return new JSONResponse(['message' => $this->l->t('Client Identifier is missung in the request')], Http::STATUS_BAD_REQUEST);
+            return new JSONResponse(['message' => $this->l->t('Client Identifier is missing in the request')], Http::STATUS_BAD_REQUEST);
         }
         try {
             if ($clientId == null) {
@@ -186,7 +186,7 @@ class CustomClaimController extends Controller
         } else {
             if ($clientId == null && $clientUid == null) {
                 $this->logger->warning("Deleting custom claim " . $name. " failed. Missing client identifier.");
-                return new JSONResponse(['message' => $this->l->t('Client Identifier is missung in the request')], Http::STATUS_BAD_REQUEST);
+                return new JSONResponse(['message' => $this->l->t('Client Identifier is missing in the request')], Http::STATUS_BAD_REQUEST);
             }
             try {
                 if ($clientId == null) {
@@ -203,7 +203,7 @@ class CustomClaimController extends Controller
             }
             if (empty($name)) {
                 $this->logger->warning("Deleting custom claim " . $name. " failed. Missing custom claim name.");
-                return new JSONResponse(['message' => $this->l->t('Custom claim name is missung in the request')], Http::STATUS_BAD_REQUEST);
+                return new JSONResponse(['message' => $this->l->t('Custom claim name is missing in the request')], Http::STATUS_BAD_REQUEST);
             }
 
             $this->logger->debug("Deleting custom claim " . $name. " for client " .$clientId);
@@ -257,7 +257,7 @@ class CustomClaimController extends Controller
                 }
                 if (empty($name)) {
                     $this->logger->warning("Providing custom claim " . $name. " failed. Missing custom claim name.");
-                    return new JSONResponse(['message' => $this->l->t('Custom claim name is missung in the request')], Http::STATUS_BAD_REQUEST);
+                    return new JSONResponse(['message' => $this->l->t('Custom claim name is missing in the request')], Http::STATUS_BAD_REQUEST);
                 }
                 try {
                     $customClaim = $this->customClaimMapper->findByClientAndName($clientUid, $name);
