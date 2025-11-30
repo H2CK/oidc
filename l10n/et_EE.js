@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "You must be logged in to view this page." : "Selle leha vaatamiseks pead olema sisse logitud.",
     "No consent request pending." : "Ühtegi nõusolekupäringut pole ootel.",
-    "Client Identifier is missung in the request" : "Klienditunnus on päringust puudu",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su klient ei ole ühenduseks autoriseeritud. Palun teavita oma kliendi administraatorit.",
     "Your client is expired. Please inform the administrator of your client." : "Sinu klient on aegunud. Palun teavita oma kliendi administraatorit.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT tunnusloa loomisel tekkis viga. Palun teavita sellest oma teenuse peakasutajat.",

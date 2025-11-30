@@ -3,9 +3,7 @@ OC.L10N.register(
     {
     "You must be logged in to view this page." : "Ní mór duit a bheith logáilte isteach chun an leathanach seo a fheiceáil.",
     "No consent request pending." : "Níl aon iarratas toiliú ar feitheamh.",
-    "Client Identifier is missung in the request" : "Tá Aitheantóir Cliant ar iarraidh san iarratas",
     "Could not find client for the given uid or client identifier" : "Níorbh fhéidir cliant a aimsiú don uid nó don aitheantóir cliaint tugtha",
-    "Custom claim name is missung in the request" : "Tá ainm an éilimh saincheaptha ar iarraidh san iarratas",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Níl do chliant údaraithe chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
     "Your client is expired. Please inform the administrator of your client." : "Tá do chliant imithe in éag. Cuir do chliant ar an eolas do riarthóir le do thoil.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Ní ghlactar leis an URI atreoraithe faighte chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
