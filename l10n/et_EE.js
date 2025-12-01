@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "You must be logged in to view this page." : "Selle leha vaatamiseks pead olema sisse logitud.",
     "No consent request pending." : "Ühtegi nõusolekupäringut pole ootel.",
+    "Client Identifier is missing in the request" : "Klienditunnus on päringust puudu",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su klient ei ole ühenduseks autoriseeritud. Palun teavita oma kliendi administraatorit.",
     "Your client is expired. Please inform the administrator of your client." : "Sinu klient on aegunud. Palun teavita oma kliendi administraatorit.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT tunnusloa loomisel tekkis viga. Palun teavita sellest oma teenuse peakasutajat.",
@@ -47,6 +48,9 @@ OC.L10N.register(
     "Select to enable/disable the Dynamic Client Registration" : "Vali kliendi dünaamilise registreerimise sisse- või väljalülitamiseks",
     "Disable" : "Lülita välja",
     "Enable" : "Lülita sisse",
+    "Default Access Token Type" : "Vaikimisi tunnusloa tüüp ligipääsu jaoks",
+    "Default token type for new clients" : "Vaikimisi tunnusloa tüüp uute klientide jaoks",
+    "Select default token type for new clients" : "Vali vaikimisi tunnusloa tüüp uute klientide jaoks",
     "Opaque Access Token" : "Opaque Access Token",
     "JWT Access Token (RFC9068)" : "JWT Access Token (RFC9068)",
     "Use Nextcloud account information" : "Kasuta Nextcloudi konto teavet",
