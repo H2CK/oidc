@@ -1,7 +1,9 @@
 { "translations": {
     "You must be logged in to view this page." : "您必須登入才能檢視此頁面。",
     "No consent request pending." : "沒有待處理的同意請求。",
+    "Client Identifier is missing in the request" : "請求中缺少客戶端識別字串",
     "Could not find client for the given uid or client identifier" : "找不到指定 uid 或客戶端識別字串對應的客戶端",
+    "Custom claim name is missing in the request" : "請求中缺少客戶端申報名稱",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "此客戶端無權連結，請通知此客戶端的管理員。",
     "Your client is expired. Please inform the administrator of your client." : "您的客戶端已過期，請通知此客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "不接受接收到的重定向 uri 進行連接。 請通知您客戶的管理員。",
