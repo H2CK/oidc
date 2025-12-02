@@ -170,7 +170,8 @@ It is possible to define custom claims per client (Currently only via CLI and AP
 | hasRole | A single parameter must be provided which contains the Nextcloud group name against which the check is performed. Provides true or false (boolean) if the user is in the specified group. |
 | isInGroup | Same as `hasRole` |
 | getUserEmail | Returns the users primary email address as string |
-| getUserGroups | Returns the gruops the user is in as string[] |
+| getUserGroups | Returns the groups of the user as string[] |
+| getUserGroupsDisplayName | Returns the display name of the groups of the user as string[] |
 
 ## Access Token & ID Token generation and validation via events by other Nextcloud apps
 

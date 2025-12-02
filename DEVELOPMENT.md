@@ -42,6 +42,8 @@ Execute `make test` to run phpunit tests.
 
 ### Manual testing of BackgroundJobs
 
-Execute  `php -dxdebug.remote_host=localhost -f cron.php`
+Execute  `php -dxdebug.remote_host=localhost -f cron.php` or use `php occ background-job:execute --force-execute <id>`.
+
+Use `php occ background-job:list` to get necessary id for execution.
 
 To run the job again if you have errors, however, you may have to remove it from the oc_jobs table and disable/reenable the app.

@@ -25,7 +25,8 @@ class CustomClaimService {
         [ 'name' => 'hasRole', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::hasRole', 'parameters' => ['role'] ],
         [ 'name' => 'isInGroup', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::hasRole', 'parameters' => ['group'] ],
         [ 'name' => 'getUserEmail', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserEmail', 'parameters' => [] ],
-        [ 'name' => 'getUserGroups', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroups', 'parameters' => [] ]
+        [ 'name' => 'getUserGroups', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroups', 'parameters' => [] ],
+		[ 'name' => 'getUserGroupsDisplayName', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroupsDisplayName', 'parameters' => [] ]
     ];
 
     /** @var CustomClaimMapper */
@@ -166,6 +167,24 @@ class CustomClaimService {
         $groupNames = [];
         foreach ($groups as $group) {
             $groupNames[] = $group->getGID();
+        }
+        return $groupNames;
+    }
+
+    /**
+     * Summary of getGroups
+     *
+     * @return array|null
+     */
+    public function getUserGroupsDisplayName(IUser $user): array|null {
+        if ($user === null) {
+            return null;
+        }
+        $groups = $this->groupManager->getUserGroups($user);
+
+        $groupNames = [];
+        foreach ($groups as $group) {
+            $groupNames[] = $group->getDisplayName();
         }
         return $groupNames;
     }

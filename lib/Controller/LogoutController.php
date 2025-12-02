@@ -128,7 +128,7 @@ class LogoutController extends ApiController
     #[PublicPage]
     public function logout(
                     string|null $client_id = null, // Optional
-                    $id_token_hint, // Recommended to be used
+                    string|null $id_token_hint = null, // Recommended to be used
                     string|null $post_logout_redirect_uri = null // Optional url to be redirected to after logout
                     ): Response
     {
