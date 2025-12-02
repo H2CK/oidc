@@ -112,14 +112,13 @@ class JwtGeneratorTest extends TestCase {
         $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
             ->setConstructorArgs([
                 $this->db,
-                $this->clientMapper,
                 $this->logger
             ])->getMock();
         $this->customClaimService = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
-			$this->accountManager,
+            $this->accountManager,
             $this->logger
         );
         $this->converter = Server::get(Converter::class);

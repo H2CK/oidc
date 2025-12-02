@@ -12,7 +12,6 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
-use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
 use Psr\Log\LoggerInterface;
 
@@ -21,8 +20,6 @@ use Psr\Log\LoggerInterface;
  */
 class CustomClaimMapper extends QBMapper {
 
-    /** @var ClientMapper */
-    private $clientMapper;
     /** @var LoggerInterface */
     private $logger;
 
@@ -31,10 +28,8 @@ class CustomClaimMapper extends QBMapper {
      */
     public function __construct(
         IDBConnection $db,
-        ClientMapper $clientMapper,
         LoggerInterface $logger) {
         parent::__construct($db, 'oidc_custom_claims', CustomClaim::class);
-        $this->clientMapper = $clientMapper;
         $this->logger = $logger;
     }
 
@@ -146,10 +141,6 @@ class CustomClaimMapper extends QBMapper {
      * @return CustomClaim
      */
     public function createOrUpdate(CustomClaim $customClaim): CustomClaim {
-        $existingClient = $this->clientMapper->getByUid($customClaim->getClientId()) ?? null;
-        if ($existingClient === null) {
-            throw new \InvalidArgumentException('Client ID '.$customClaim->getClientId().' does not exist');
-        }
         // check for names length
         if (strlen($customClaim->getName()) > 255) {
             throw new \InvalidArgumentException('Claim name '.$customClaim->getName().' exceeds maximum length of 255 characters');

@@ -65,7 +65,6 @@ class CustomClaimServiceTest extends TestCase {
             ->getMock();
         $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)->setConstructorArgs([
             $this->db,
-            $this->clientMapper,
             $this->logger
             ])->getMock();
         $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
