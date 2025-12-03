@@ -3,7 +3,9 @@ OC.L10N.register(
     {
     "You must be logged in to view this page." : "You must be logged in to view this page.",
     "No consent request pending." : "No consent request pending.",
+    "Client Identifier is missing in the request" : "Client Identifier is missing in the request",
     "Could not find client for the given uid or client identifier" : "Could not find client for the given uid or client identifier",
+    "Custom claim name is missing in the request" : "Custom claim name is missing in the request",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Your client is not authorised to connect. Please inform the administrator of your client.",
     "Your client is expired. Please inform the administrator of your client." : "Your client has expired. Please inform the administrator of your client.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "The received redirect URI is not accepted to connect. Please inform the administrator of your client.",
