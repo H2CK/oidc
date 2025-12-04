@@ -61,7 +61,7 @@ class PersonalSection implements IIconSection {
          * @return string
          */
         public function getIcon() {
-                return $this->urlGenerator->imagePath('oidc', 'openid-dark.svg');
+                return $this->urlGenerator->imagePath('oidc', 'oidc-dark.svg');
         }
 
 }
