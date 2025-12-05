@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Fixed Basic authentication add token endpoint with PKCE
+- Fixed Basic authentication at token endpoint with PKCE
 
 ## [1.14.2] - 2025-12-04
 
