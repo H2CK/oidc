@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.3] - 2025-12-05
+
+### Changed
+
+- Fixed Basic authentication add token endpoint with PKCE
+
 ## [1.14.2] - 2025-12-04
 
 ### Added

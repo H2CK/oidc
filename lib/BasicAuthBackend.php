@@ -90,6 +90,8 @@ class BasicAuthBackend extends \OC\User\Backend {
 
         // Limit access to token and introspection endpoints only
         $requestUri = $this->request->getRequestUri();
+        $requestUri = strtok($requestUri,"?");
+        $requestUri = rtrim($requestUri, "/");
         if (!str_ends_with($requestUri, 'token') && !str_ends_with($requestUri, 'introspect')) {
             $this->logger->warning('OIDCIdentityProvider BasicAuthBackend: RequestUri was: ' . $requestUri . ' Allowed endpoints are: token, introspect');
             return false;
