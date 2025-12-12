@@ -157,18 +157,21 @@ class JwtGenerator
         }
 
         $roles = [];
-        $groupClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
+        $rolesDisplayName = [];
         foreach ($groups as $group) {
-            if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
-                $displayName = $group->getDisplayName();
-                if ($displayName !== null && $displayName !== '') {
-                    array_push($roles, $displayName);
-                } else {
-                    array_push($roles, $group->getGID());
-                }
+            array_push($roles, $group->getGID());
+            $displayName = $group->getDisplayName();
+            if ($displayName !== null && $displayName !== '') {
+                array_push($rolesDisplayName, $displayName);
             } else {
-                array_push($roles, $group->getGID());
+                array_push($rolesDisplayName, $group->getGID());
             }
+        }
+
+        $groupClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
+        $rolesClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_ROLES_CLAIM_TYPE, 'null');
+        if ($rolesClaimType !== null && $rolesClaimType === 'null') {
+            $rolesClaimType = $groupClaimType;
         }
 
         // Check for scopes
@@ -176,15 +179,27 @@ class JwtGenerator
         // OPTIONAL scope values of profile, email, address, phone, and offline_access are also defined.
         $scopeArray = preg_split('/ +/', $accessToken->getScope());
         if (in_array("roles", $scopeArray)) {
-            $roles_payload = [
-                'roles' => $roles
-            ];
+            if ($rolesClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $roles_payload = [
+                    'roles' => $rolesDisplayName
+                ];
+            } else {
+                $roles_payload = [
+                    'roles' => $roles
+                ];
+            }
             $jwt_payload = array_merge($jwt_payload, $roles_payload);
         }
         if (in_array("groups", $scopeArray)) {
-            $roles_payload = [
-                'groups' => $roles
-            ];
+            if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $roles_payload = [
+                    'groups' => $rolesDisplayName
+                ];
+            } else {
+                $roles_payload = [
+                    'groups' => $roles
+                ];
+            }
             $jwt_payload = array_merge($jwt_payload, $roles_payload);
         }
 

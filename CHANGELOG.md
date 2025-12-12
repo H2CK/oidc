@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.4] - 2025-12-12
+
+### Added
+
+- Added support to select GID or displayname as content for claims groups and roles differently
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [1.14.3] - 2025-12-05
 
 ### Changed
