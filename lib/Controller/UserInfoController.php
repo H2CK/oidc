@@ -204,32 +204,46 @@ class UserInfoController extends ApiController
         }
 
         $roles = [];
-        $groupClaimType = (string)$this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
+        $rolesDisplayName = [];
         foreach ($groups as $group) {
-            if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
-                $displayName = $group->getDisplayName();
-                if ($displayName !== null && $displayName !== '') {
-                    array_push($roles, $displayName);
-                } else {
-                    array_push($roles, $group->getGID());
-                }
+            array_push($roles, $group->getGID());
+            $displayName = $group->getDisplayName();
+            if ($displayName !== null && $displayName !== '') {
+                array_push($rolesDisplayName, $displayName);
             } else {
-                array_push($roles, $group->getGID());
+                array_push($rolesDisplayName, $group->getGID());
             }
         }
 
-        if (in_array("roles", $scopeArray)) {
-            $rolesPayload = [
-                'roles' => $roles
-            ];
-            $userInfoPayload = array_merge($userInfoPayload, $rolesPayload);
+        $groupClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
+        $rolesClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_ROLES_CLAIM_TYPE, 'null');
+        if ($rolesClaimType !== null && $rolesClaimType === 'null') {
+            $rolesClaimType = $groupClaimType;
         }
 
+        if (in_array("roles", $scopeArray)) {
+            if ($rolesClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $roles_payload = [
+                    'roles' => $rolesDisplayName
+                ];
+            } else {
+                $roles_payload = [
+                    'roles' => $roles
+                ];
+            }
+            $userInfoPayload = array_merge($userInfoPayload, $roles_payload);
+        }
         if (in_array("groups", $scopeArray)) {
-            $groupsPayload = [
-                'groups' => $roles
-            ];
-            $userInfoPayload = array_merge($userInfoPayload, $groupsPayload);
+            if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $roles_payload = [
+                    'groups' => $rolesDisplayName
+                ];
+            } else {
+                $roles_payload = [
+                    'groups' => $roles
+                ];
+            }
+            $userInfoPayload = array_merge($userInfoPayload, $roles_payload);
         }
 
         $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));

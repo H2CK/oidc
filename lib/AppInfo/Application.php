@@ -47,6 +47,7 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_ALLOW_USER_SETTINGS = 'allow_user_settings';
     public const APP_CONFIG_RESTRICT_USER_INFORMATION = 'restrict_user_information';
     public const APP_CONFIG_GROUP_CLAIM_TYPE = 'group_claim_type';
+    public const APP_CONFIG_ROLES_CLAIM_TYPE = 'role_claim_type';
     public const APP_CONFIG_DEFAULT_TOKEN_TYPE = 'default_token_type';
     public const APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS = 'provide_refresh_token_always';
     public const APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS = 'allow_subdomain_wildcards';
