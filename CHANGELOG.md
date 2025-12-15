@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.5] - 2025-12-15
+
+### Changed
+
+- Fixed query in redirect uri [#607](https://github.com/H2CK/oidc/issues/607)
+- Updated dependencies
+- Updated translations
+
 ## [1.14.4] - 2025-12-12
 
 ### Added
