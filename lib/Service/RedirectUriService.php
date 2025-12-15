@@ -200,6 +200,12 @@ class RedirectUriService {
             $concretePort = isset($concrete['port']) ? (int)$concrete['port'] : null;
             $concretePath = $concrete['path'] ?? '/';
             $concretePath = '/' . ltrim(preg_replace('#/+#', '/', $concretePath), '/');
+            if (isset($concrete['query'])) {
+                $concretePath = rtrim($concretePath, '/') . '?'. $concrete['query'];
+            }
+            if (isset($concrete['fragment'])) {
+                $concretePath = rtrim($concretePath, '/') . '#'. $concrete['fragment'];
+            }
         }
 
         // Parse wildcard pattern: allow optional scheme
@@ -324,7 +330,6 @@ class RedirectUriService {
             }
         }
 
-        // Query and fragment ignored
         return true;
     }
 
