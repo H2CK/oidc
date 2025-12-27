@@ -1,6 +1,9 @@
 { "translations": {
     "You must be logged in to view this page." : "Pokud si chcete tuto stránku zobrazit, je třeba se přihlásit.",
     "No consent request pending." : "Žádná čekající žádost o souhlas.",
+    "Client Identifier is missing in the request" : "V požadavku chybí identifikátor klienta",
+    "Could not find client for the given uid or client identifier" : "Nebylo možné najít klienta pro dané uid nebo identifikátor klienta",
+    "Custom claim name is missing in the request" : "Uživatelsky určené tvrzené jméno chybí v požadavku",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Váš klient není autorizován pro připojení. Informujte správce svého klienta.",
     "Your client is expired. Please inform the administrator of your client." : "Platnost vašeho klienta skončila. Prosím informujte správce vašeho klienta.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Obdržené URI přesměrování není přijato pro připojení. Informujte o tom správce svého klienta.",
