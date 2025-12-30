@@ -36,6 +36,7 @@ OC.L10N.register(
     "Email address" : "Адрас электроннай пошты",
     "Deny" : "Забараніць",
     "Allow" : "Дазволіць",
+    "Loading..." : "Загрузка…",
     "Delete" : "Выдаліць",
     "Client Identifier" : "Ідэнтыфікатар кліента",
     "Show client secret" : "Паказаць сакрэтны ключ кліента",
