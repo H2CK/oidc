@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.6] - 2026-01-02
+
+### Changed
+
+- Support for Nextcloud 33
+- Updated dependencies
+- Updated translations
+
 ## [1.14.5] - 2025-12-15
 
 ### Changed
