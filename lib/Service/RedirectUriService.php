@@ -204,7 +204,7 @@ class RedirectUriService {
                 $concretePath = rtrim($concretePath, '/') . '?'. $concrete['query'];
             }
             if (isset($concrete['fragment'])) {
-                $concretePath = rtrim($concretePath, '/') . '#'. $concrete['fragment'];
+                $concretePath = $concretePath . '#'. $concrete['fragment'];
             }
         }
 

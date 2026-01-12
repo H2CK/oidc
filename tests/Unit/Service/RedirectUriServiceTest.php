@@ -40,6 +40,7 @@ class RedirectUriServiceTest extends TestCase {
             'Case 7-2' => ['app.immich:///oauth-callback', true],
             'Case 8-1' => ['app.immich:///oauth-callback/*', false],
             'Case 9-1' => ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', true],
+            'Case 10-1' => ['https://example.com/wp-admin/#redirect', true],
         ];
     }
 
@@ -70,6 +71,7 @@ class RedirectUriServiceTest extends TestCase {
             'Case 8-1' => ['app.immich:///oauth-callback', 'app.immich:///oauth-callback'],
             'Case 9-1' => ['app.immich:///oauth-callback/extra', 'app.immich:///oauth-callback/*'],
             'Case 10-1'=> ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', 'https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize'],
+            'Case 11-1'=> ['https://example.com/wp-admin/#redirect', 'https://example.com/wp-admin/#redirect'],
         ];
     }
 
@@ -88,7 +90,7 @@ class RedirectUriServiceTest extends TestCase {
             'Case 10-1' => ['app.immich:///oauth-callback', 'app.immich:///other-callback'],
             'Case 10-2' => ['app.immich:///oauth-callback', 'app.immich:///oauth-callback/*'],
             'Case 11-1' => ['app.immich:///oauth-:///callback', 'app.immich:///oauth-callback'],
-			'Case 12-1' => ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', 'https://example.com/wp-admin/*?action=openid-connect-authorize'],
+            'Case 12-1' => ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', 'https://example.com/wp-admin/*?action=openid-connect-authorize'],
         ];
     }
 

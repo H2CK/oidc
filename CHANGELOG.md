@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.14.7] - 2026-01-12
+
+### Changed
+
+- Fixed fragment in redirect uri [[#611](https://github.com/H2CK/oidc/issues/611)]
+- Updated dependencies
+- Updated translations
+
 ## [1.14.6] - 2026-01-02
 
 ### Changed
