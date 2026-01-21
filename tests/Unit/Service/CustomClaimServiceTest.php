@@ -12,8 +12,10 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCP\IUserManager;
 use OCP\IGroupManager;
+use OCP\Group\ISubAdmin;
 use OCP\Accounts\IAccountManager;
 use OCP\IUser;
+use OCP\IGroup;
 use OCP\IDBConnection;
 use OCP\Server;
 use OCP\AppFramework\Services\IAppConfig;
@@ -33,6 +35,8 @@ class CustomClaimServiceTest extends TestCase {
         private $userManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
         private $groupManager;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ISubAdmin */
+        private $subAdminManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
         private $accountManager;
         /** @var LoggerInterface */
@@ -69,11 +73,13 @@ class CustomClaimServiceTest extends TestCase {
             ])->getMock();
         $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
         $this->groupManager = $this->getMockBuilder(IGroupManager::class)->getMock();
+        $this->subAdminManager = $this->createMock(ISubAdmin::class);
         $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
         $this->service = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
+            $this->subAdminManager,
             $this->accountManager,
             $this->logger
         );
@@ -84,6 +90,7 @@ class CustomClaimServiceTest extends TestCase {
         return [
             'Case 1-1' => [123, 'is_admin', 'profile', 'isAdmin', null, 'openid roles profile', true],
             'Case 2-1' => [123, 'has_role_user', 'profile', 'hasRole', 'User', 'openid roles profile', true],
+            'Case 3-1' => [123, 'is_group_admin', 'profile', 'isGroupAdmin', 'TestGroup', 'openid roles profile', true],
         ];
     }
 
@@ -123,6 +130,29 @@ class CustomClaimServiceTest extends TestCase {
 
         $this->groupManager
             ->method('isInGroup')
+            ->willReturnCallback(
+                function () use ($expected_result) {
+                    return $expected_result;
+                }
+            );
+
+        // Mock for isGroupAdmin
+        $mockGroup = $this->getMockBuilder(IGroup::class)->getMock();
+        $mockGroup->method('getGID')->willReturn('TestGroup');
+
+        $this->groupManager
+            ->method('get')
+            ->willReturnCallback(
+                function ($groupId) use ($mockGroup) {
+                    if ($groupId === 'TestGroup') {
+                        return $mockGroup;
+                    }
+                    return null;
+                }
+            );
+
+        $this->subAdminManager
+            ->method('isSubAdminOfGroup')
             ->willReturnCallback(
                 function () use ($expected_result) {
                     return $expected_result;
