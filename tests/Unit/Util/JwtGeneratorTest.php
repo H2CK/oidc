@@ -34,6 +34,7 @@ use OCP\IUser;
 use OCP\IUserSession;
 use OCP\IUserManager;
 use OCP\IGroupManager;
+use OCP\Group\ISubAdmin;
 use OCP\Server;
 use OCP\IURLGenerator;
 use OCP\IConfig;
@@ -62,6 +63,8 @@ class JwtGeneratorTest extends TestCase {
         private $userManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
         private $groupManager;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ISubAdmin */
+        private $subAdminManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
         private $accountManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IURLGenerator */
@@ -95,6 +98,7 @@ class JwtGeneratorTest extends TestCase {
         $this->time = Server::get(TimeFactory::class);
         $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
         $this->groupManager = $this->getMockBuilder(IGroupManager::class)->getMock();
+        $this->subAdminManager = $this->createMock(ISubAdmin::class);
         $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
         $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
         $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
@@ -118,6 +122,7 @@ class JwtGeneratorTest extends TestCase {
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
+            $this->subAdminManager,
             $this->accountManager,
             $this->logger
         );

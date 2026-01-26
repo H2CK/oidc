@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use OCP\IRequest;
 use OCP\IL10N;
 use OCP\IGroupManager;
+use OCP\Group\ISubAdmin;
 use OCP\IDBConnection;
 use OCP\IURLGenerator;
 use OCP\ISession;
@@ -86,6 +87,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $redirectUriService;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     private $userManager;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ISubAdmin */
+    private $subAdminManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
     private $accountManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimMapper  */
@@ -119,6 +122,7 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
             ->disableOriginalConstructor()
             ->getMock();
+        $this->subAdminManager = $this->createMock(ISubAdmin::class);
         $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
             $this->db,
             $this->time,
@@ -142,6 +146,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
+            $this->subAdminManager,
             $this->accountManager,
             $this->logger
         );

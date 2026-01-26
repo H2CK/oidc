@@ -15,6 +15,7 @@ use OCP\IUser;
 use OCP\IGroup;
 use OCP\IUserManager;
 use OCP\IGroupManager;
+use OCP\Group\ISubAdmin;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
@@ -22,6 +23,7 @@ use Psr\Log\LoggerInterface;
 class CustomClaimService {
     public const FUNCTIONS = [
         [ 'name' => 'isAdmin', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::isAdmin', 'parameters' => [] ],
+        [ 'name' => 'isGroupAdmin', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::isGroupAdmin', 'parameters' => ['group'] ],
         [ 'name' => 'hasRole', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::hasRole', 'parameters' => ['role'] ],
         [ 'name' => 'isInGroup', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::hasRole', 'parameters' => ['group'] ],
         [ 'name' => 'getUserEmail', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserEmail', 'parameters' => [] ],
@@ -35,6 +37,8 @@ class CustomClaimService {
     private $userManager;
     /** @var IGroupManager */
     private $groupManager;
+    /** @var ISubAdmin */
+    private $subAdminManager;
     /** @var IAccountManager */
     private $accountManager;
     /** @var LoggerInterface */
@@ -44,6 +48,7 @@ class CustomClaimService {
      * @param CustomClaimMapper $customClaimMapper
      * @param IUserManager $userManager
      * @param IGroupManager $groupManager
+     * @param ISubAdmin $subAdminManager
      * @param IAccountManager $accountManager
      * @param LoggerInterface $logger
      */
@@ -51,12 +56,14 @@ class CustomClaimService {
         CustomClaimMapper $customClaimMapper,
         IUserManager $userManager,
         IGroupManager $groupManager,
+        ISubAdmin $subAdminManager,
         IAccountManager $accountManager,
         LoggerInterface $logger
     ) {
         $this->customClaimMapper = $customClaimMapper;
         $this->userManager = $userManager;
         $this->groupManager = $groupManager;
+        $this->subAdminManager = $subAdminManager;
         $this->accountManager = $accountManager;
         $this->logger = $logger;
     }
@@ -107,6 +114,9 @@ class CustomClaimService {
                     case 'isAdmin':
                         $functionResult = $this->isAdmin($user);
                         break;
+                    case 'isGroupAdmin':
+                        $functionResult = $this->isGroupAdmin($user, $arguments[0] ?? '');
+                        break;
                     case 'hasRole':
                     case 'isInGroup':
                         $functionResult = $this->hasRole($user, $arguments[0] ?? '');
@@ -139,6 +149,24 @@ class CustomClaimService {
             return null;
         }
         return $this->groupManager->isAdmin($user->getUID());
+    }
+
+    /**
+     * Check if the current user is a subadmin (group admin) of a specific group
+     *
+     * @param IUser $user The user to check
+     * @param string $groupId The group ID to check
+     * @return bool|null Returns true if the user is a group admin, false if not, null if user or group is invalid
+     */
+    public function isGroupAdmin(IUser $user, string $groupId): bool|null {
+        if ($user === null) {
+            return null;
+        }
+        $group = $this->groupManager->get($groupId);
+        if ($group === null) {
+            return null;
+        }
+        return $this->subAdminManager->isSubAdminOfGroup($user, $group);
     }
 
     /**
