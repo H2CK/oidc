@@ -167,7 +167,7 @@ It is possible to define custom claims per client (Currently only via CLI and AP
 | Function | Description |
 |---|---|
 | isAdmin | Provides true or false (boolean) if the user is Nextcloud administrator. |
-| isGroupAdmin | A single parameter must be provided which contains the Nextcloud group id (not the display name). Provides true or false (boolean) if the user is a subadmin (group admin) of the specified group, or null if the group does not exist. |
+| isGroupAdmin | A single parameter must be provided which contains the Nextcloud group id (not the display name). Provides true or false (boolean) if the user is a subadmin (group admin) of the specified group, or null if the group does not exist. In case the group does not exist, the claim is not added to the ID token or userinfo endpoint. |
 | hasRole | A single parameter must be provided which contains the Nextcloud group id (not the display name) against which the check is performed. Provides true or false (boolean) if the user is in the specified group. |
 | isInGroup | Same as `hasRole` |
 | getUserEmail | Returns the users primary email address as string |

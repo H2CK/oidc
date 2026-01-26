@@ -2,11 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.15.0] - 2026-01-26
+
+### Changed
+
+- Added function for group admin to custom claims [#614](https://github.com/H2CK/oidc/issues/614)
+- Updated dependencies
+- Updated translations
+
 ## [1.14.7] - 2026-01-12
 
 ### Changed
 
-- Fixed fragment in redirect uri [[#611](https://github.com/H2CK/oidc/issues/611)]
+- Fixed fragment in redirect uri [#611](https://github.com/H2CK/oidc/issues/611)
 - Updated dependencies
 - Updated translations
 
