@@ -22,6 +22,7 @@ OC.L10N.register(
     "Never" : "Nikad",
     "Disable" : "Onemogući",
     "Enable" : "Omogućite",
+    "Profile information" : "Podaci profila",
     "Email address" : "Adresa e-pošte",
     "Deny" : "Spriječi",
     "Allow" : "Dopusti",
