@@ -19,6 +19,7 @@ OC.L10N.register(
     "15 minutes" : "15 minuta",
     "12 hours" : "12 sati",
     "1 day" : "1 dan",
+    "7 days" : "7 dana",
     "Never" : "Nikad",
     "Disable" : "Onemogući",
     "Enable" : "Omogućite",

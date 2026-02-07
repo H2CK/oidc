@@ -20,7 +20,7 @@ OC.L10N.register(
     "OIDC Identity Provider" : "Soláthraí Aitheantais OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud mar Sholáthraí Aitheantais OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud mar Sholáthraí Aitheantais OpenID Connect\n\nLeis an aip seo is féidir leat Nextcloud a úsáid mar Sholáthraí Aitheantais OpenID Connect. Má tá seirbhísí eile\natá cumraithe i gceart, tá tú in ann rochtain a fháil ar na seirbhísí sin le do logáil isteach Nextcloud.\n\nIs féidir doiciméadú iomlán a fháil ag:\n\n- [Doiciméadú Úsáideora]( https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Doiciméadúchán Forbróra]( https://github.com/H2CK/oidc/wiki#developer-documentation)",
-    "Avatar" : "Avatar",
+    "Avatar" : "Abhatár",
     "Address" : "Seoladh",
     "Phone" : "Fón",
     "Website" : "Suíomh Gréasáin",
