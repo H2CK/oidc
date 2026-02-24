@@ -24,28 +24,63 @@ return [
     'routes' => [
         [
             'name' => 'Settings#addRedirectUri',
+            'url' => '/api/v2/clients/redirect',
+            'verb' => 'POST',
+            'postfix' => 'v2',
+        ],
+        [
+            'name' => 'Settings#addRedirectUri',
             'url' => '/clients/redirect',
             'verb' => 'POST',
+            'postfix' => 'v1',
         ],
         [
             'name' => 'Settings#deleteRedirectUri',
             'url' => '/clients/redirect/{id}',
-            'verb' => 'DELETE'
+            'verb' => 'DELETE',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'Settings#deleteRedirectUri',
+            'url' => '/api/v2/clients/redirect/{id}',
+            'verb' => 'DELETE',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'Settings#addLogoutRedirectUri',
             'url' => '/logoutRedirect',
             'verb' => 'POST',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'Settings#addLogoutRedirectUri',
+            'url' => '/api/v2/logoutRedirect',
+            'verb' => 'POST',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'Settings#deleteLogoutRedirectUri',
             'url' => '/logoutRedirect/{id}',
-            'verb' => 'DELETE'
+            'verb' => 'DELETE',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'Settings#deleteLogoutRedirectUri',
+            'url' => '/api/v2/logoutRedirect/{id}',
+            'verb' => 'DELETE',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'Settings#addClient',
             'url' => '/clients',
             'verb' => 'POST',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'Settings#addClient',
+            'url' => '/api/v2/clients',
+            'verb' => 'POST',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'Settings#setTokenExpireTime',
@@ -98,6 +133,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#regenerateKeys',
+            'url' => '/api/v2/genKeys',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#updateClient',
             'url' => '/clients/groups/{id}',
             'verb' => 'PATCH'
@@ -130,7 +170,14 @@ return [
         [
             'name' => 'Settings#deleteClient',
             'url' => '/clients/{id}',
-            'verb' => 'DELETE'
+            'verb' => 'DELETE',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'Settings#deleteClient',
+            'url' => '/api/v2/clients/{id}',
+            'verb' => 'DELETE',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'LoginRedirector#authorize',
@@ -230,22 +277,50 @@ return [
         [
             'name' => 'CustomClaim#getCustomClaim',
             'url' => '/customClaim',
-            'verb' => 'GET'
+            'verb' => 'GET',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'CustomClaim#getCustomClaim',
+            'url' => '/api/v2/customClaim',
+            'verb' => 'GET',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'CustomClaim#addCustomClaim',
             'url' => '/customClaim',
-            'verb' => 'POST'
+            'verb' => 'POST',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'CustomClaim#addCustomClaim',
+            'url' => '/api/v2/customClaim',
+            'verb' => 'POST',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'CustomClaim#updateCustomClaim',
             'url' => '/customClaim',
-            'verb' => 'PATCH'
+            'verb' => 'PATCH',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'CustomClaim#updateCustomClaim',
+            'url' => '/api/v2/customClaim',
+            'verb' => 'PATCH',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'CustomClaim#deleteCustomClaim',
             'url' => '/customClaim',
-            'verb' => 'DELETE'
+            'verb' => 'DELETE',
+            'postfix' => 'v1',
+        ],
+        [
+            'name' => 'CustomClaim#deleteCustomClaim',
+            'url' => '/api/v2/customClaim',
+            'verb' => 'DELETE',
+            'postfix' => 'v2',
         ],
         [
             'name' => 'Cors#clientManagementCorsResponse',

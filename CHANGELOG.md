@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.0] - 2026-02-26
+
+### Changed
+
+- Refactoring of admin settings UI
+- Added possibility to configure custom claims to UI
+- Introduced settings API v2
+- Updated dependencies
+- Updated translations
+
 ## [1.15.0] - 2026-01-26
 
 ### Changed

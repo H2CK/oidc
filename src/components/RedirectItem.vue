@@ -38,32 +38,6 @@ export default {
 }
 </script>
 
-<style>
-	.vs__deselect {
-		padding: 0 !important;
-		border: 0 !important;
-		margin-left: 4px !important;
-		min-height: 24px !important;
-	}
-
-	.vs__clear {
-		padding: 0 !important;
-		border: 0 !important;
-		margin-left: 4px !important;
-		min-height: 24px !important;
-		background-color: transparent !important;
-	}
-
-	.vs__search {
-		border-width: 0px !important;
-	}
-
-	.vs__selected {
-		min-height: 32px !important;
-	}
-
-</style>
-
 <style scoped>
 	.icon-toggle,
 	.icon-delete {
@@ -76,7 +50,7 @@ export default {
 
 	#oidc .grid-inner {
 		display: grid;
-		grid-template-columns: 1fr 30px;
+		grid-template-columns: minmax(0, 1fr) 30px;
 	}
 
 	#oidc .label {

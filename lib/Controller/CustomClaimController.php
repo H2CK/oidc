@@ -224,7 +224,8 @@ class CustomClaimController extends Controller
                     int|null $id = null,
                     ): JSONResponse
     {
-        if ($id != null) {
+        if (!empty($id)) {
+            $this->logger->info("Requesting custom claim with id " . $id);
             try {
                 $customClaim = $this->customClaimMapper->findById($id);
                 $client = $this->clientMapper->getByUid($customClaim->getClientId());
@@ -240,21 +241,22 @@ class CustomClaimController extends Controller
             } catch (\Exception $e) {
                 return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
             }
-        } else {
-            if ($clientId != null || $clientUid != null) {
-                try {
-                    if ($clientId == null) {
-                        $client = $this->clientMapper->getByUid($clientUid);
-                        $clientId = $client->getClientIdentifier();
-                    }
-                    if ($clientUid == null) {
-                        $client = $this->clientMapper->getByIdentifier($clientId);
-                        $clientUid = $client->getId();
-                    }
-                } catch (\Exception $e) {
-                    $this->logger->warning("Providing custom claim " . $name. " failed. Could not find client for the given uid or client identifier.");
-                    return new JSONResponse(['message' => $this->l->t('Could not find client for the given uid or client identifier')], Http::STATUS_BAD_REQUEST);
+        } elseif (!empty($clientId) || !empty($clientUid)) {
+            $this->logger->info("Requesting custom claims for client with id " . $clientUid . " and identifier " . $clientId);
+            try {
+                if ($clientId == null) {
+                    $client = $this->clientMapper->getByUid($clientUid);
+                    $clientId = $client->getClientIdentifier();
                 }
+                if ($clientUid == null) {
+                    $client = $this->clientMapper->getByIdentifier($clientId);
+                    $clientUid = $client->getId();
+                }
+            } catch (\Exception $e) {
+                $this->logger->warning("Providing custom claim " . $name. " failed. Could not find client for the given uid or client identifier.");
+                return new JSONResponse(['message' => $this->l->t('Could not find client for the given uid or client identifier')], Http::STATUS_BAD_REQUEST);
+            }
+            if ($name != null) {
                 if (empty($name)) {
                     $this->logger->warning("Providing custom claim " . $name. " failed. Missing custom claim name.");
                     return new JSONResponse(['message' => $this->l->t('Custom claim name is missing in the request')], Http::STATUS_BAD_REQUEST);
@@ -273,27 +275,48 @@ class CustomClaimController extends Controller
                 } catch (\Exception $e) {
                     return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
                 }
+            } else {
+                try {
+                    $customClaims = $this->customClaimMapper->findByClient($clientUid);
+                    $response = [];
+                    foreach ($customClaims as $customClaim) {
+                        $client = $this->clientMapper->getByUid($customClaim->getClientId());
+                        $response[] = [
+                            'id' => $customClaim->getId(),
+                            'clientId' => $customClaim->getClientId(),
+                            'clientIdentifier' => $clientId,
+                            'name' => $customClaim->getName(),
+                            'scope' => $customClaim->getScope(),
+                            'function' => $customClaim->getFunction(),
+                            'parameter' => $customClaim->getParameter(),
+                        ];
+                    }
+                    return new JSONResponse($response);
+                } catch (\Exception $e) {
+                    return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+                }
             }
-        }
-        try {
-            $customClaims = $this->customClaimMapper->findAll();
-            $response = [];
-            foreach ($customClaims as $customClaim) {
-                $client = $this->clientMapper->getByUid($customClaim->getClientId());
-                $response[] = [
-                    'id' => $customClaim->getId(),
-                    'clientId' => $customClaim->getClientId(),
-                    'clientIdentifier' => $client->getClientIdentifier(),
-                    'name' => $customClaim->getName(),
-                    'scope' => $customClaim->getScope(),
-                    'function' => $customClaim->getFunction(),
-                    'parameter' => $customClaim->getParameter(),
-                ];
+        } else {
+            $this->logger->info("Requesting all custom claims");
+            try {
+                $customClaims = $this->customClaimMapper->findAll();
+                $response = [];
+                foreach ($customClaims as $customClaim) {
+                    $client = $this->clientMapper->getByUid($customClaim->getClientId());
+                    $response[] = [
+                        'id' => $customClaim->getId(),
+                        'clientId' => $customClaim->getClientId(),
+                        'clientIdentifier' => $client->getClientIdentifier(),
+                        'name' => $customClaim->getName(),
+                        'scope' => $customClaim->getScope(),
+                        'function' => $customClaim->getFunction(),
+                        'parameter' => $customClaim->getParameter(),
+                    ];
+                }
+                return new JSONResponse($response);
+            } catch (\Exception $e) {
+                return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
             }
-            return new JSONResponse($response);
-        } catch (\Exception $e) {
-            return new JSONResponse(['message' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
         }
     }
-
 }
