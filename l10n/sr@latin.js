@@ -6,6 +6,10 @@ OC.L10N.register(
     "Website" : "Sajt",
     "Settings" : "Поставке",
     "Name" : "Ime",
+    "Cancel" : "Poništi",
+    "Type" : "Tip",
+    "Save" : "Sačuvaj",
+    "Delete" : "Obriši",
     "5 minutes" : "5 minuta",
     "10 minutes" : "10 minuta",
     "15 minutes" : "15 minuta",
@@ -14,9 +18,6 @@ OC.L10N.register(
     "Never" : "Nikad",
     "Disable" : "Isključi",
     "Deny" : "Odbij",
-    "Allow" : "Dozvoli",
-    "Delete" : "Obriši",
-    "Type" : "Tip",
-    "Save" : "Sačuvaj"
+    "Allow" : "Dozvoli"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

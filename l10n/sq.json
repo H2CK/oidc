@@ -1,13 +1,20 @@
 { "translations": {
+    "Public" : "Publik",
     "Avatar" : "Avatari",
     "Address" : "Adresa",
     "Website" : "Faqe web-i",
     "Settings" : "Rregullimet",
+    "Back" : "Mbrapsht",
     "Add client" : "Shto klient",
     "Name" : "Emër",
     "Redirection URI" : "URI Ridrejtimi",
-    "Public" : "Publik",
+    "Cancel" : "Cancel",
     "Add" : "Shto ",
+    "Type" : "Tipi",
+    "Client Identifier" : "Identifikues Klienti",
+    "Secret" : "Sekret",
+    "Save" : "Ruaje",
+    "Delete" : "Fshi",
     "5 minutes" : "5 minuta",
     "10 minutes" : "10 minuta",
     "15 minutes" : "15 minuta",
@@ -18,13 +25,9 @@
     "Never" : "Kurrë",
     "Disable" : "Çaktivizoje",
     "Enable" : "Aktivizoje",
+    "Scope" : "Shtrirje",
     "Deny" : "Refuzo",
     "Allow" : "Lejo",
-    "Loading..." : "Po ngarkohet",
-    "Delete" : "Fshi",
-    "Client Identifier" : "Identifikues Klienti",
-    "Secret" : "Sekret",
-    "Type" : "Tipi",
-    "Save" : "Ruaje"
+    "Loading..." : "Po ngarkohet"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

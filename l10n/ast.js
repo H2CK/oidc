@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El veceru nun tien autorización pa conectase. Informa al alministrador de l'aplicación.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "La URL de redireición tien de ser una URL completa, por exemplu: https://dominiu.com/camin",
+    "Public" : "Pública",
     "Avatar" : "Avatar",
     "Address" : "Direición",
     "Phone" : "Teléfonu",
@@ -12,8 +13,13 @@ OC.L10N.register(
     "Add client" : "Amestar el veceru",
     "Name" : "Nome",
     "Redirection URI" : "URI de redireición",
-    "Public" : "Pública",
     "Add" : "Amestar",
+    "Type" : "Tipu",
+    "Client Identifier" : "Identificador del veceru",
+    "Secret" : "Secretu",
+    "Flows" : "Fluxos",
+    "Save" : "Guardar",
+    "Delete" : "Desaniciar",
     "5 minutes" : "5 minutos",
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
@@ -29,13 +35,6 @@ OC.L10N.register(
     "Email address" : "Direición de corréu electrónicu",
     "Deny" : "Negar",
     "Allow" : "Permitir",
-    "Loading..." : "Cargando...",
-    "Delete" : "Desaniciar",
-    "Client Identifier" : "Identificador del veceru",
-    "Secret" : "Secretu",
-    "Show client secret" : "Amosar el secretu del veceru",
-    "Type" : "Tipu",
-    "Flows" : "Fluxos",
-    "Save" : "Guardar"
+    "Loading..." : "Cargando..."
 },
 "nplurals=2; plural=(n != 1);");

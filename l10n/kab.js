@@ -1,13 +1,17 @@
 OC.L10N.register(
     "oidc",
     {
+    "Public" : "Azayaz",
     "Avatar" : "Avatar",
     "Address" : "Adresse",
     "Phone" : "Tiliɣri",
     "Website" : "Asmel web",
     "Settings" : "Iɣewwaṛen",
+    "Back" : "Tuɣalin",
     "Name" : "Nom",
-    "Public" : "Azayaz",
+    "Type" : "Anaw",
+    "Save" : "Sekles",
+    "Delete" : "Kkes",
     "5 minutes" : "5 n tesdatin",
     "10 minutes" : "10 n tesdatin",
     "15 minutes" : "15 n tesdatin",
@@ -17,9 +21,6 @@ OC.L10N.register(
     "Disable" : "Désactiver",
     "Email address" : "Tansa imayl",
     "Deny" : "Agwi",
-    "Allow" : "Sireg",
-    "Delete" : "Kkes",
-    "Type" : "Anaw",
-    "Save" : "Sekles"
+    "Allow" : "Sireg"
 },
 "nplurals=2; plural=(n != 1);");

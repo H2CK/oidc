@@ -4,10 +4,10 @@ OC.L10N.register(
     "Avatar" : "Afatar",
     "Settings" : "Gosodiadau",
     "Name" : "Enw",
-    "Disable" : "Analluogi",
-    "Email address" : "Cyfeiriad e-bost",
-    "Delete" : "Dileu",
     "Type" : "Math",
-    "Save" : "Cadw"
+    "Save" : "Cadw",
+    "Delete" : "Dileu",
+    "Disable" : "Analluogi",
+    "Email address" : "Cyfeiriad e-bost"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

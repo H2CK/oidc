@@ -4,10 +4,11 @@ OC.L10N.register(
     "Avatar" : "Avatar",
     "Settings" : "Astellungen",
     "Name" : "Numm",
+    "Cancel" : "Cancel",
     "Add" : "Dobäisetzen",
-    "Disable" : "Ofschalten",
-    "Delete" : "Läschen",
     "Type" : "Typ",
-    "Save" : "Späicheren"
+    "Save" : "Späicheren",
+    "Delete" : "Läschen",
+    "Disable" : "Ofschalten"
 },
 "nplurals=2; plural=(n != 1);");

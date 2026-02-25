@@ -1,12 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
-    "Settings" : "Configurationes",
     "Public" : "Public",
-    "Never" : "Nunquam",
-    "Disable" : "Disactivar",
-    "Delete" : "Deler",
+    "Settings" : "Configurationes",
     "Type" : "Typo",
-    "Save" : "Salveguardar"
+    "Save" : "Salveguardar",
+    "Delete" : "Deler",
+    "Never" : "Nunquam",
+    "Disable" : "Disactivar"
 },
 "nplurals=2; plural=(n != 1);");

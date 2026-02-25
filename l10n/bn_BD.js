@@ -4,9 +4,9 @@ OC.L10N.register(
     "Settings" : "সেটিংস",
     "Name" : "নাম",
     "Add" : "যোগ কর",
-    "Disable" : "নিষ্ক্রিয়",
-    "Delete" : "মুছে",
     "Type" : "ধরণ",
-    "Save" : "সংরক্ষণ"
+    "Save" : "সংরক্ষণ",
+    "Delete" : "মুছে",
+    "Disable" : "নিষ্ক্রিয়"
 },
 "nplurals=2; plural=(n != 1);");

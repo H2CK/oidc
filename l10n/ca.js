@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El vostre client no té autorització per a connectar-se. Informeu-ne a l'administrador del client.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "L'URL de redirecció ha de ser un URL complet, com ara: https://domini.com/camí",
+    "Public" : "Públic",
     "Avatar" : "Avatar",
     "Address" : "Adreça",
     "Phone" : "Telèfon",
@@ -12,8 +13,12 @@ OC.L10N.register(
     "Add client" : "Afegeix un client",
     "Name" : "Nom",
     "Redirection URI" : "URI de redirecció",
-    "Public" : "Públic",
     "Add" : "Afegeix",
+    "Type" : "Tipus",
+    "Client Identifier" : "Identificador del client",
+    "Secret" : "Secret",
+    "Save" : "Desar",
+    "Delete" : "Suprimir",
     "5 minutes" : "5 minuts",
     "10 minutes" : "10 minuts",
     "15 minutes" : "15 minuts",
@@ -28,12 +33,6 @@ OC.L10N.register(
     "Email address" : "Adreça electrònica",
     "Deny" : "Denega",
     "Allow" : "Permet",
-    "Loading..." : "Carregant...",
-    "Delete" : "Suprimir",
-    "Client Identifier" : "Identificador del client",
-    "Secret" : "Secret",
-    "Show client secret" : "Mostra el secret del client",
-    "Type" : "Tipus",
-    "Save" : "Desar"
+    "Loading..." : "Carregant..."
 },
 "nplurals=2; plural=(n != 1);");

@@ -1,13 +1,18 @@
 OC.L10N.register(
     "oidc",
     {
+    "Public" : "Público",
     "Avatar" : "Avatar",
     "Settings" : "Ajustes",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI de redirección",
-    "Public" : "Público",
     "Add" : "Agregar",
+    "Type" : "Escribir",
+    "Client Identifier" : "Identificador del cliente",
+    "Secret" : "Secreto",
+    "Save" : "Guardar",
+    "Delete" : "Eliminar",
     "5 minutes" : "5 minutos",
     "10 minutes" : "10 minutos",
     "15 minutes" : "15 minutos",
@@ -18,11 +23,6 @@ OC.L10N.register(
     "Enable" : "Activar",
     "Deny" : "Rechazar",
     "Allow" : "Permitir",
-    "Loading..." : "Cargando...",
-    "Delete" : "Eliminar",
-    "Client Identifier" : "Identificador del cliente",
-    "Secret" : "Secreto",
-    "Type" : "Escribir",
-    "Save" : "Guardar"
+    "Loading..." : "Cargando..."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

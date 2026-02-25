@@ -1,12 +1,18 @@
 OC.L10N.register(
     "oidc",
     {
+    "Public" : "Public",
     "Avatar" : "Avatar",
     "Website" : "Site web",
     "Settings" : "Setări",
+    "Back" : "Înapoi",
     "Name" : "Nume",
-    "Public" : "Public",
+    "Cancel" : "Cancel",
     "Add" : "Adaugă",
+    "Type" : "Tip",
+    "Secret" : "Secret",
+    "Save" : "Salvează",
+    "Delete" : "Șterge",
     "5 minutes" : "5 minute",
     "10 minutes" : "10 minute",
     "15 minutes" : "15 minute",
@@ -16,13 +22,10 @@ OC.L10N.register(
     "Never" : "Niciodată",
     "Disable" : "Dezactivează",
     "Enable" : "Activare",
+    "Scope" : "Scop",
     "Profile information" : "Informații de profil",
     "Email address" : "Email",
     "Deny" : "Refuzați",
-    "Allow" : "Permiteți",
-    "Delete" : "Șterge",
-    "Secret" : "Secret",
-    "Type" : "Tip",
-    "Save" : "Salvează"
+    "Allow" : "Permiteți"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

@@ -5,13 +5,14 @@ OC.L10N.register(
     "Address" : "Seòladh",
     "Website" : "Làrach-lìn",
     "Settings" : "Roghainnean",
+    "Back" : "Air ais",
     "Name" : "Ainm",
+    "Type" : "Seòrsa",
+    "Save" : "Sàbhail",
+    "Delete" : "Sguab às",
     "30 minutes" : "Leth-uair a thìde",
     "Disable" : "Cuir à comas",
     "Deny" : "Diùlt",
-    "Allow" : "Ceadaich",
-    "Delete" : "Sguab às",
-    "Type" : "Seòrsa",
-    "Save" : "Sàbhail"
+    "Allow" : "Ceadaich"
 },
 "nplurals=4; plural=(n==1 || n==11) ? 0 : (n==2 || n==12) ? 1 : (n > 2 && n < 20) ? 2 : 3;");

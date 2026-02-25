@@ -1,14 +1,16 @@
 { "translations": {
+    "Public" : "สาธารณะ",
     "Avatar" : "ภาพแทนตัว",
     "Settings" : "การตั้งค่า",
     "Name" : "ชื่อ",
-    "Public" : "สาธารณะ",
+    "Cancel" : "Cancel",
+    "Type" : "ประเภท",
+    "Save" : "บันทึก",
+    "Delete" : "ลบ",
     "30 minutes" : "30 นาที",
     "Never" : "ไม่เคย",
     "Disable" : "ปิดใช้งาน",
-    "Email address" : "ที่อยู่อีเมล",
-    "Delete" : "ลบ",
-    "Type" : "ประเภท",
-    "Save" : "บันทึก"
+    "Scope" : "ขอบเขต",
+    "Email address" : "ที่อยู่อีเมล"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

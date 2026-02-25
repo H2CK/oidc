@@ -1,13 +1,18 @@
 OC.L10N.register(
     "oidc",
     {
+    "Public" : "Ommaviy",
     "Address" : "Manzil",
     "Website" : "Veb-sayt",
     "Settings" : "Sozlamalar",
     "Public Key" : "Ochiq kalit",
+    "Back" : "Orqaga",
     "Name" : "Name",
-    "Public" : "Ommaviy",
+    "Cancel" : "Bekor qilish",
     "Add" : "Add",
+    "Type" : "Turi",
+    "Save" : "Saqlash",
+    "Delete" : "O'chirish",
     "5 minutes" : "5 daqiqa",
     "15 minutes" : "15 daqiqa",
     "30 minutes" : "30 minutes",
@@ -17,9 +22,6 @@ OC.L10N.register(
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
     "Email address" : "E-pochta manzili",
-    "Deny" : "Rad etish",
-    "Delete" : "O'chirish",
-    "Type" : "Turi",
-    "Save" : "Saqlash"
+    "Deny" : "Rad etish"
 },
 "nplurals=1; plural=0;");

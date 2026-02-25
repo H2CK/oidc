@@ -5,11 +5,11 @@ OC.L10N.register(
     "Add client" : "Voeg kliënt toe",
     "Redirection URI" : "Herverwysings-URI",
     "Add" : "Voeg toe",
-    "Disable" : "Deaktiveer",
-    "Email address" : "E-posadres",
-    "Delete" : "Skrap",
     "Client Identifier" : "Kliëntidentifiseerder",
     "Secret" : "Geheim",
-    "Save" : "Stoor"
+    "Save" : "Stoor",
+    "Delete" : "Skrap",
+    "Disable" : "Deaktiveer",
+    "Email address" : "E-posadres"
 },
 "nplurals=2; plural=(n != 1);");
