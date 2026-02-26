@@ -10,6 +10,7 @@ OC.L10N.register(
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
+    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Type" : "Tipo",
     "Client Identifier" : "Identificador del cliente",
@@ -22,6 +23,7 @@ OC.L10N.register(
     "12 hours" : "12 horas",
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
+    "Scope" : "Alcance",
     "Email address" : "Dirección de correo electrónico",
     "Loading..." : "Cargando..."
 },

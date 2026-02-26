@@ -11,6 +11,7 @@ OC.L10N.register(
     "Add client" : "Ouzhoennañ kliant",
     "Name" : "Anv",
     "Redirection URI" : "Adhent URL",
+    "Cancel" : "Cancel",
     "Type" : "Seurt",
     "Client Identifier" : "Anavezer Kliant",
     "Secret" : "Sekret",

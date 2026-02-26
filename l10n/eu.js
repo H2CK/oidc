@@ -24,6 +24,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Sinatze algoritmoa",
     "Select Signing Algorithm" : "Hautatu sinatze algoritmoa",
     "Select Type" : "Hautatu mota",
+    "Cancel" : "Cancel",
     "Add" : "Gehitu",
     "Type" : "Mota",
     "Client Identifier" : "Bezeroaren Identifikadorea",

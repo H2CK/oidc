@@ -4,6 +4,7 @@
     "Website" : "Retejo",
     "Settings" : "Agordoj",
     "Name" : "Nomo",
+    "Cancel" : "Cancel",
     "Type" : "Tipo",
     "Secret" : "Sekreta",
     "Save" : "Konservi",
@@ -12,6 +13,7 @@
     "Never" : "Neniam",
     "Disable" : "Malŝalti",
     "Enable" : "Ŝalti",
+    "Scope" : "Amplekso",
     "Email address" : "Retpoŝtadreso",
     "Deny" : "Rifuzi",
     "Allow" : "Permesi"

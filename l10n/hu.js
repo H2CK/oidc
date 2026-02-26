@@ -27,6 +27,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Aláírási algoritmus",
     "Select Signing Algorithm" : "Válasszon aláírási algoritmust",
     "Select Type" : "Válasszon típust",
+    "Cancel" : "Mégse",
     "Add" : "Hozzáadás",
     "Type" : "Típus",
     "Client Identifier" : "Ügyfélazonosító",

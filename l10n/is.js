@@ -11,6 +11,7 @@ OC.L10N.register(
     "Add client" : "Bæta við biðlara",
     "Name" : "Heiti",
     "Redirection URI" : "Endurbeiningarslóð",
+    "Cancel" : "Cancel",
     "Add" : "Bæta við",
     "Type" : "Tegund",
     "Client Identifier" : "Biðlaraauðkenni",

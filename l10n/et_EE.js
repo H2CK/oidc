@@ -30,6 +30,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Allkirjastamise algoritm",
     "Select Signing Algorithm" : "Vali allkirjastamise algoritm",
     "Select Type" : "Vali tüüp",
+    "Cancel" : "Katkesta",
     "Add" : "Lisa",
     "Type" : "Tüüp",
     "Client Identifier" : "Kliendi identifikaator",

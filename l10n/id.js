@@ -37,6 +37,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Algoritme Penandatanganan",
     "Select Signing Algorithm" : "Pilih Algoritme Penandatanganan",
     "Select Type" : "Pilih Jenis",
+    "Cancel" : "Batal",
     "Add" : "Tambah",
     "Type" : "Jenis",
     "Client Identifier" : "Pengidentifikasi Klien",

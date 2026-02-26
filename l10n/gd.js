@@ -7,6 +7,7 @@ OC.L10N.register(
     "Settings" : "Roghainnean",
     "Back" : "Air ais",
     "Name" : "Ainm",
+    "Cancel" : "Cancel",
     "Type" : "Seòrsa",
     "Save" : "Sàbhail",
     "Delete" : "Sguab às",

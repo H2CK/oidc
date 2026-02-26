@@ -6,6 +6,7 @@
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
+    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",
@@ -17,6 +18,7 @@
     "12 hours" : "12 horas",
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
+    "Scope" : "Alcance",
     "Loading..." : "Cargando..."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

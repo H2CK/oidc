@@ -6,6 +6,7 @@ OC.L10N.register(
     "Website" : "Retejo",
     "Settings" : "Agordoj",
     "Name" : "Nomo",
+    "Cancel" : "Cancel",
     "Type" : "Tipo",
     "Secret" : "Sekreta",
     "Save" : "Konservi",
@@ -14,6 +15,7 @@ OC.L10N.register(
     "Never" : "Neniam",
     "Disable" : "Malŝalti",
     "Enable" : "Ŝalti",
+    "Scope" : "Amplekso",
     "Email address" : "Retpoŝtadreso",
     "Deny" : "Rifuzi",
     "Allow" : "Permesi"

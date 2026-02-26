@@ -14,6 +14,7 @@ OC.L10N.register(
     "Add client" : "Dodaj klijenta",
     "Name" : "Naziv",
     "Redirection URI" : "URL za preusmjeravanje",
+    "Cancel" : "Otkaži",
     "Add" : "Dodaj",
     "Type" : "Vrsta",
     "Client Identifier" : "Identifikator klijenta",

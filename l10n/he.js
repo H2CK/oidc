@@ -12,6 +12,7 @@ OC.L10N.register(
     "Add client" : "הוספת לקוחי",
     "Name" : "שם",
     "Redirection URI" : "כתובת הפנייה",
+    "Cancel" : "ביטול",
     "Add" : "הוספה",
     "Type" : "סוג",
     "Client Identifier" : "זיהוי לקו",

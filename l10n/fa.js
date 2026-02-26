@@ -34,6 +34,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Signing Algorithm",
     "Select Signing Algorithm" : "Select Signing Algorithm",
     "Select Type" : "Select Type",
+    "Cancel" : "انصراف",
     "Add" : "افزودن",
     "Type" : "نوع",
     "Client Identifier" : "شناسه مشتری",

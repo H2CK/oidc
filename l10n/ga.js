@@ -37,6 +37,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Algartam sínithe",
     "Select Signing Algorithm" : "Roghnaigh Algartam Sínithe",
     "Select Type" : "Roghnaigh Cineál",
+    "Cancel" : "Cealaigh",
     "Add" : "Cuir",
     "Type" : "Cineál",
     "Client Identifier" : "Aitheantóir Cliant",

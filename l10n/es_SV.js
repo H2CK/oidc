@@ -9,6 +9,7 @@ OC.L10N.register(
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
+    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Type" : "Tipo",
     "Client Identifier" : "Identificador del cliente",

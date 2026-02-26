@@ -8,6 +8,7 @@ OC.L10N.register(
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
+    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",
@@ -20,6 +21,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
     "Enable" : "Habilitar",
+    "Scope" : "Alcance",
     "Loading..." : "Cargando..."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

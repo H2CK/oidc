@@ -4,6 +4,7 @@ OC.L10N.register(
     "Settings" : "Instellings",
     "Add client" : "Voeg kliënt toe",
     "Redirection URI" : "Herverwysings-URI",
+    "Cancel" : "Cancel",
     "Add" : "Voeg toe",
     "Client Identifier" : "Kliëntidentifiseerder",
     "Secret" : "Geheim",

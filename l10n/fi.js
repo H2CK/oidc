@@ -30,6 +30,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Allekirjoitusalgoritmi",
     "Select Signing Algorithm" : "Valitse allekirjoitusalgoritmi",
     "Select Type" : "Valitse tyyppi",
+    "Cancel" : "Peruuta",
     "Add" : "Lisää",
     "Type" : "Tyyppi",
     "Client Identifier" : "Asiakkaan tunniste",

@@ -4,6 +4,7 @@ OC.L10N.register(
     "Avatar" : "Afatar",
     "Settings" : "Gosodiadau",
     "Name" : "Enw",
+    "Cancel" : "Cancel",
     "Type" : "Math",
     "Save" : "Cadw",
     "Delete" : "Dileu",
