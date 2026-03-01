@@ -84,7 +84,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      * Check if the password is correct without logging in the user
      */
     public function checkPassword($uid, $password) {
-        if (strlen($uid) !== 64 || strlen($password) !== 64) {
+        if (strlen($uid) < 32 || strlen($uid) > 64 || strlen($password) < 32 || strlen($password) > 64) {
             return false;
         }
 
@@ -187,7 +187,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      * @return boolean
      */
     public function userExists($uid) {
-        if (strlen($uid) !== 64) {
+        if (strlen($uid) < 32 || strlen($uid) > 64) {
             return false;
         }
 
