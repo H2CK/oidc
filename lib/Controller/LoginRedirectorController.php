@@ -223,17 +223,17 @@ class LoginRedirectorController extends ApiController
             $resource = $this->session->get('oidc_resource');
             $code_challenge = $this->session->get('oidc_code_challenge');
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
-            // Clean up session after retrieving values to prevent issues with stale data on next login attempt without parameters
-            $this->session->remove('oidc_client_id');
-            $this->session->remove('oidc_state');
-            $this->session->remove('oidc_response_type');
-            $this->session->remove('oidc_redirect_uri');
-            $this->session->remove('oidc_scope');
-            $this->session->remove('oidc_nonce');
-            $this->session->remove('oidc_resource');
-            $this->session->remove('oidc_code_challenge');
-            $this->session->remove('oidc_code_challenge_method');
         }
+        // Clean up session after retrieving values to prevent issues with stale data on next login attempt without parameters
+        $this->session->remove('oidc_client_id');
+        $this->session->remove('oidc_state');
+        $this->session->remove('oidc_response_type');
+        $this->session->remove('oidc_redirect_uri');
+        $this->session->remove('oidc_scope');
+        $this->session->remove('oidc_nonce');
+        $this->session->remove('oidc_resource');
+        $this->session->remove('oidc_code_challenge');
+        $this->session->remove('oidc_code_challenge_method');
 
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
@@ -277,7 +277,6 @@ class LoginRedirectorController extends ApiController
         $allowedScopes = $client->getAllowedScopes();
         $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
         $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
-
 
         $newScope = '';
         $allowedScopesArr = array_values(array_unique(array_filter(array_map('trim', explode(' ', strtolower(trim($allowedScopes)))))));
