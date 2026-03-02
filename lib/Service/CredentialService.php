@@ -48,8 +48,8 @@ class CredentialService {
         $this->logger->debug('Retrieving private key for signing tokens');
         $this->migratePrivateKey();
         return $this->credentialsManager->retrieve(
-                Application::APP_ID,
-                CredentialService::PARAM_PRIVATE_KEY
+                '',
+				Application::APP_ID . '_' . CredentialService::PARAM_PRIVATE_KEY
         );
     }
 
@@ -61,8 +61,8 @@ class CredentialService {
     public function setPrivateKey($privateKeyString) {
         $this->logger->debug('Setting private key for signing tokens');
         $this->credentialsManager->store(
-            Application::APP_ID,
-            CredentialService::PARAM_PRIVATE_KEY,
+            '',
+            Application::APP_ID . '_' . CredentialService::PARAM_PRIVATE_KEY,
             $privateKeyString
         );
         return true;
