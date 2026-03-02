@@ -15,6 +15,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Http;
 use OCP\Security\ISecureRandom;
+use OCP\Security\ICredentialsManager;
 
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
@@ -26,6 +27,7 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
 
 use Psr\Log\LoggerInterface;
 
@@ -47,6 +49,8 @@ class SettingsControllerTest extends TestCase {
     private $groupMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager  */
     private $groupManager;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ICredentialsManager */
+    private $credentialsManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IL10N */
     private $l;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserSession */
@@ -65,6 +69,8 @@ class SettingsControllerTest extends TestCase {
     private $db;
     /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriService */
     private $redirectUriService;
+    /** @var CredentialService */
+    private $credentialService;
 
     private $client;
 
@@ -108,6 +114,11 @@ class SettingsControllerTest extends TestCase {
         $this->redirectUriService = new RedirectUriService(
             $this->logger
         );
+        $this->credentialService = new CredentialService(
+            $this->getMockBuilder(ICredentialsManager::class)->getMock(),
+            $this->appConfig,
+            $this->logger
+        );
 
         $this->controller = new SettingsController(
             'oidc',
@@ -123,6 +134,7 @@ class SettingsControllerTest extends TestCase {
             $this->userSession,
             $this->appConfig,
             $this->config,
+            $this->credentialService,
             $this->logger
         );
     }
