@@ -406,16 +406,16 @@
         },
         {
             "name": "php-cs-fixer/shim",
-            "version": "v3.93.1",
+            "version": "v3.94.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHP-CS-Fixer/shim.git",
-                "reference": "3a9db22e8f01762fddd3a85b998053294c5a3629"
+                "reference": "80fd29f44a736136a2f05bae5464816a444b91d1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/3a9db22e8f01762fddd3a85b998053294c5a3629",
-                "reference": "3a9db22e8f01762fddd3a85b998053294c5a3629",
+                "url": "https://api.github.com/repos/PHP-CS-Fixer/shim/zipball/80fd29f44a736136a2f05bae5464816a444b91d1",
+                "reference": "80fd29f44a736136a2f05bae5464816a444b91d1",
                 "shasum": ""
             },
             "require": {
@@ -452,9 +452,9 @@
             "description": "A tool to automatically fix PHP code style",
             "support": {
                 "issues": "https://github.com/PHP-CS-Fixer/shim/issues",
-                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.93.1"
+                "source": "https://github.com/PHP-CS-Fixer/shim/tree/v3.94.2"
             },
-            "time": "2026-01-28T23:51:14+00:00"
+            "time": "2026-02-20T16:14:17+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
@@ -805,16 +805,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "11.5.53",
+            "version": "11.5.55",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "a997a653a82845f1240d73ee73a8a4e97e4b0607"
+                "reference": "adc7262fccc12de2b30f12a8aa0b33775d814f00"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/a997a653a82845f1240d73ee73a8a4e97e4b0607",
-                "reference": "a997a653a82845f1240d73ee73a8a4e97e4b0607",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/adc7262fccc12de2b30f12a8aa0b33775d814f00",
+                "reference": "adc7262fccc12de2b30f12a8aa0b33775d814f00",
                 "shasum": ""
             },
             "require": {
@@ -887,7 +887,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/11.5.53"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/11.5.55"
             },
             "funding": [
                 {
@@ -911,7 +911,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-10T12:28:25+00:00"
+            "time": "2026-02-18T12:37:06+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -2012,5 +2012,5 @@
     "platform-overrides": {
         "php": "8.2"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
