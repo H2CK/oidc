@@ -22,6 +22,7 @@ use OC\AppFramework\Utility\TimeFactory;
 use OCP\AppFramework\Http;
 use OCP\Security\ISecureRandom;
 use OCP\Security\ICrypto;
+use OCP\Security\ICredentialsManager;
 
 use OC\Authentication\Token\IProvider;
 use OC\Security\SecureRandom;
@@ -37,6 +38,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 
 use Psr\Log\LoggerInterface;
@@ -57,6 +59,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $userConsentMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|GroupMapper  */
     private $groupMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ICredentialsManager */
+    private $credentialsManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager  */
     private $groupManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IL10N */
@@ -95,6 +99,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $customClaimMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimService */
     private $customClaimService;
+    /** @var CredentialService */
+    private $credentialService;
 
     private $client;
 
@@ -150,6 +156,11 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->accountManager,
             $this->logger
         );
+        $this->credentialService = new CredentialService(
+            $this->getMockBuilder(ICredentialsManager::class)->getMock(),
+            $this->appConfig,
+            $this->logger
+        );
         $this->jwtGenerator = new JwtGenerator(
             $this->crypto,
             $this->tokenProvider,
@@ -162,6 +173,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $this->config,
             $this->customClaimService,
+            $this->credentialService,
             $this->logger
         );
         $this->redirectUriService = new RedirectUriService(

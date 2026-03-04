@@ -25,6 +25,7 @@ use OCA\DAV\CardDAV\Converter;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
@@ -37,6 +38,7 @@ use OCP\IGroupManager;
 use OCP\Group\ISubAdmin;
 use OCP\Server;
 use OCP\IURLGenerator;
+use OCP\Security\ICredentialsManager;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -67,6 +69,8 @@ class JwtGeneratorTest extends TestCase {
         private $subAdminManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
         private $accountManager;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|ICredentialsManager */
+        private $credentialsManager;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IURLGenerator */
         private $urlGenerator;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
@@ -77,6 +81,8 @@ class JwtGeneratorTest extends TestCase {
         private $customClaimMapper;
         /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimService */
         private $customClaimService;
+        /** @var CredentialService */
+        private $credentialService;
         /** @var LoggerInterface */
         private $logger;
         /** @var Converter */
@@ -126,6 +132,12 @@ class JwtGeneratorTest extends TestCase {
             $this->accountManager,
             $this->logger
         );
+		$this->credentialsManager = $this->getMockBuilder(ICredentialsManager::class)->getMock();
+        $this->credentialService = new CredentialService(
+            $this->credentialsManager,
+            $this->appConfig,
+            $this->logger
+        );
         $this->converter = Server::get(Converter::class);
         $this->eventDispatcher = $this->getMockBuilder(IEventDispatcher::class)->getMock();
 
@@ -141,6 +153,7 @@ class JwtGeneratorTest extends TestCase {
             $this->appConfig,
             $this->config,
             $this->customClaimService,
+            $this->credentialService,
             $this->logger,
             $this->converter
         );
@@ -203,7 +216,9 @@ class JwtGeneratorTest extends TestCase {
                 ['public_key_e', $exponent],
                 ['kid', $this->guidv4()],
             ]);
-
+        $this->credentialsManager
+            ->method('retrieve')
+            ->willReturn($privateKey);
         $this->userManager
             ->method('get')
             ->willReturnCallBack (
@@ -308,7 +323,9 @@ class JwtGeneratorTest extends TestCase {
                 ['public_key_e', $exponent],
                 ['kid', $this->guidv4()],
             ]);
-
+        $this->credentialsManager
+            ->method('retrieve')
+            ->willReturn($privateKey);
         $this->userManager
             ->method('get')
             ->willReturnCallBack (

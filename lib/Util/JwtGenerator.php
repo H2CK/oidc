@@ -16,6 +16,7 @@ use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\DAV\CardDAV\Converter;
 use OCP\Accounts\PropertyDoesNotExistException;
 use OCP\IRequest;
@@ -63,6 +64,8 @@ class JwtGenerator
     private $converter;
     /** @var CustomClaimService */
     private $customClaimService;
+    /** @var CredentialService */
+    private $credentialService;
 
     public const SUB_OUTPUT = ' sub=> ';
     public const AUD_OUTPUT = ' aud=> ';
@@ -80,6 +83,7 @@ class JwtGenerator
                     IAppConfig $appConfig,
                     IConfig $config,
                     CustomClaimService $customClaimService,
+                    CredentialService $credentialService,
                     LoggerInterface $logger
     ) {
         $this->crypto = $crypto;
@@ -93,6 +97,7 @@ class JwtGenerator
         $this->appConfig = $appConfig;
         $this->config = $config;
         $this->customClaimService = $customClaimService;
+        $this->credentialService = $credentialService;
         $this->logger = $logger;
         $this->converter = Server::get(Converter::class);
     }
@@ -303,7 +308,7 @@ class JwtGenerator
             $kid = $this->appConfig->getAppValueString('kid');
             $header = json_encode(['typ' => 'JWT', 'alg' => 'RS256', 'kid' => $kid]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->appConfig->getAppValueString('private_key'), 'sha256WithRSAEncryption');
+            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption');
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         }
 
@@ -392,7 +397,7 @@ class JwtGenerator
             $kid = $this->appConfig->getAppValueString('kid');
             $header = json_encode(['typ' => 'at+JWT', 'alg' => 'RS256', 'kid' => $kid]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->appConfig->getAppValueString('private_key'), 'sha256WithRSAEncryption');
+            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption');
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         }
 

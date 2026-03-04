@@ -19,6 +19,7 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -59,6 +60,8 @@ class SettingsController extends Controller
     private $config;
     /** @var LoggerInterface */
     private $logger;
+    /** @var CredentialService */
+    private $credentialService;
 
     public const CODE_AUTHORIZATION_FLOW= 'Code Authorization Flow';
     public const CODE_IMPLICIT_AUTHORIZATION_FLOW = 'Code & Implicit Authorization Flow';
@@ -77,6 +80,7 @@ class SettingsController extends Controller
                     IUserSession $userSession,
                     IAppConfig $appConfig,
                     IConfig $config,
+                    CredentialService $credentialService,
                     LoggerInterface $logger
                     )
     {
@@ -92,6 +96,7 @@ class SettingsController extends Controller
         $this->userSession =$userSession;
         $this->appConfig = $appConfig;
         $this->config =$config;
+        $this->credentialService = $credentialService;
         $this->logger = $logger;
     }
 
@@ -671,43 +676,10 @@ class SettingsController extends Controller
 
     public function regenerateKeys(): JSONResponse
     {
-        $config = array(
-            "digest_alg" => 'sha512',
-            "private_key_bits" => 4096,
-            "private_key_type" => OPENSSL_KEYTYPE_RSA
-        );
-        $keyPair = openssl_pkey_new($config);
-        $privateKey = null;
-        openssl_pkey_export($keyPair, $privateKey);
-        $keyDetails = openssl_pkey_get_details($keyPair);
-        $publicKey = $keyDetails['key'];
-
-        $this->appConfig->setAppValueString('private_key', $privateKey);
-        $this->appConfig->setAppValueString('public_key', $publicKey);
-        $uuid = $this->guidv4();
-        $this->appConfig->setAppValueString('kid', $uuid);
-        $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
-        $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
-        $this->appConfig->setAppValueString('public_key_n', $modulus);
-        $this->appConfig->setAppValueString('public_key_e', $exponent);
+        $this->credentialService->generateKeys();
         $result = [
-            'public_key' => $publicKey,
+            'public_key' => $this->appConfig->getAppValueString('public_key'),
         ];
         return new JSONResponse($result);
-    }
-
-    private function guidv4($data = null)
-    {
-        // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
-        $data = $data ?? random_bytes(16);
-        assert(strlen($data) == 16);
-
-        // Set version to 0100
-        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-        // Set bits 6-7 to 10
-        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-
-        // Output the 36 character UUID.
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 }
