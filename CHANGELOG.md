@@ -2,13 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.16.0] - 2026-02-26
+## [1.16.0] - 2026-03-05
 
 ### Changed
 
 - Refactoring of admin settings UI
 - Added possibility to configure custom claims to UI
 - Introduced settings API v2
+- Fix partitial session fallback [#620](https://github.com/H2CK/oidc/issues/620)
+- Make use of CredentialManager for storing private key
 - Updated dependencies
 - Updated translations
 
