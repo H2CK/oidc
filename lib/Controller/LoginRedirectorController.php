@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+use OCA\Files\Command\Object\Info;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
@@ -203,39 +204,36 @@ class LoginRedirectorController extends ApiController
             return new RedirectResponse($loginUrl);
         }
 
-        if (empty($client_id)) {
-            $client_id = $this->session->get('oidc_client_id');
-        }
-        if (empty($state)) {
-            $state = $this->session->get('oidc_state');
-        }
-        if (empty($response_type)) {
-            $response_type = $this->session->get('oidc_response_type');
-        }
-        if (empty($redirect_uri)) {
-            $redirect_uri = $this->session->get('oidc_redirect_uri');
-        }
-
+        // Debug: Log client id before and after fallback
+        $clientFromParam = $client_id ?? 'null';
+        $this->logger->debug('[CLIENT DEBUG] Client ID from URL parameter: ' . $clientFromParam);
         // Debug: Log scope before and after fallback
         $scopeFromParam = $scope ?? 'null';
         $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
 
-        if (empty($scope)) {
+        if (empty($client_id)) {
+            $client_id = $this->session->get('oidc_client_id');
+            $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
+            $state = $this->session->get('oidc_state');
+            $response_type = $this->session->get('oidc_response_type');
+            $redirect_uri = $this->session->get('oidc_redirect_uri');
             $scope = $this->session->get('oidc_scope');
             $this->logger->debug('[SCOPE DEBUG] Scope from session fallback: ' . ($scope ?? 'null'));
-        }
-        if (empty($nonce)) {
             $nonce = $this->session->get('oidc_nonce');
-        }
-        if (empty($resource)) {
             $resource = $this->session->get('oidc_resource');
-        }
-        if (empty($code_challenge)) {
             $code_challenge = $this->session->get('oidc_code_challenge');
-        }
-        if (empty($code_challenge_method)) {
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
         }
+        // Clean up session after retrieving values to prevent issues with stale data on next login attempt without parameters
+        $this->session->remove('oidc_client_id');
+        $this->session->remove('oidc_state');
+        $this->session->remove('oidc_response_type');
+        $this->session->remove('oidc_redirect_uri');
+        $this->session->remove('oidc_scope');
+        $this->session->remove('oidc_nonce');
+        $this->session->remove('oidc_resource');
+        $this->session->remove('oidc_code_challenge');
+        $this->session->remove('oidc_code_challenge_method');
 
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
@@ -279,7 +277,6 @@ class LoginRedirectorController extends ApiController
         $allowedScopes = $client->getAllowedScopes();
         $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
         $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
-
 
         $newScope = '';
         $allowedScopesArr = array_values(array_unique(array_filter(array_map('trim', explode(' ', strtolower(trim($allowedScopes)))))));
