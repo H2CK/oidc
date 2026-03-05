@@ -8,6 +8,7 @@ OC.L10N.register(
     "Add client" : "კლიენტის დამატება",
     "Name" : "სახელი",
     "Redirection URI" : "გადამისამართების URI",
+    "Cancel" : "Cancel",
     "Client Identifier" : "კლიენტის იდენტიფიკატორი",
     "Secret" : "საიდუმლო",
     "Save" : "შენახვა",

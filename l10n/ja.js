@@ -23,6 +23,7 @@ OC.L10N.register(
     "Name" : "名前",
     "Redirection URI" : "リダイレクトURI",
     "Signing Algorithm" : "署名アルゴリズム",
+    "Cancel" : "キャンセル",
     "Add" : "追加",
     "Type" : "タイプ",
     "Client Identifier" : "クライアントID",

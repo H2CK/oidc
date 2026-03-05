@@ -30,6 +30,7 @@ OC.L10N.register(
     "Signing Algorithm" : "Algoritmo di firma",
     "Select Signing Algorithm" : "Seleziona l’algoritmo di firma",
     "Select Type" : "Seleziona il tipo",
+    "Cancel" : "Annulla",
     "Add" : "Aggiungi",
     "Type" : "Tipo",
     "Client Identifier" : "Identificatore client",

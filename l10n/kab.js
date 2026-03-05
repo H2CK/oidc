@@ -9,6 +9,7 @@ OC.L10N.register(
     "Settings" : "Iɣewwaṛen",
     "Back" : "Tuɣalin",
     "Name" : "Nom",
+    "Cancel" : "Semmet",
     "Type" : "Anaw",
     "Save" : "Sekles",
     "Delete" : "Kkes",
