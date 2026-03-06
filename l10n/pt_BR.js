@@ -39,7 +39,7 @@ OC.L10N.register(
     "The claim value will be true if the user is in the specified group, otherwise false. Required parameter: group ID of the group for which to check the membership." : "O valor da declaração será true se o usuário estiver no grupo especificado, caso contrário, será false. Parâmetro obrigatório: ID do grupo para o qual verificar a associação.",
     "The claim value will be the users primary email address." : "O valor da declaração será o endereço de e-mail principal do usuário.",
     "The claim value will be an array of group IDs of the groups the user is in." : "O valor da declaração será um arranjo de IDs dos grupos dos quais o usuário faz parte.",
-    "The claim value will be an array of display names of the groups the user is in." : "O valor da declaração será um matriz de nomes de exibição dos grupos dos quais o usuário faz parte.",
+    "The claim value will be an array of display names of the groups the user is in." : "O valor da declaração será um arranjo de nomes de exibição dos grupos dos quais o usuário faz parte.",
     "Name is required" : "O nome e obrigatório",
     "Scope is required" : "O escopo é obrigatório",
     "Function is required" : "A função é obrigatória",
