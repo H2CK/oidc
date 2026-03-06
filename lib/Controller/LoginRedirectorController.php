@@ -199,6 +199,8 @@ class LoginRedirectorController extends ApiController
                             ]
             );
 
+            $this->session->close(); // Close session to prevent session locking issues during redirect
+
             $this->logger->debug('Not authenticated yet for client ' . $client_id . '. Redirect to login.');
 
             return new RedirectResponse($loginUrl);
@@ -211,7 +213,7 @@ class LoginRedirectorController extends ApiController
         $scopeFromParam = $scope ?? 'null';
         $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
 
-        if (empty($client_id)) {
+        if (empty($client_id) || empty($state) || empty($response_type) || empty($redirect_uri)) {
             $client_id = $this->session->get('oidc_client_id');
             $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
             $state = $this->session->get('oidc_state');
@@ -224,16 +226,6 @@ class LoginRedirectorController extends ApiController
             $code_challenge = $this->session->get('oidc_code_challenge');
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
         }
-        // Clean up session after retrieving values to prevent issues with stale data on next login attempt without parameters
-        $this->session->remove('oidc_client_id');
-        $this->session->remove('oidc_state');
-        $this->session->remove('oidc_response_type');
-        $this->session->remove('oidc_redirect_uri');
-        $this->session->remove('oidc_scope');
-        $this->session->remove('oidc_nonce');
-        $this->session->remove('oidc_resource');
-        $this->session->remove('oidc_code_challenge');
-        $this->session->remove('oidc_code_challenge_method');
 
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
@@ -435,6 +427,8 @@ class LoginRedirectorController extends ApiController
                 $this->session->set('oidc_code_challenge', $code_challenge);
                 $this->session->set('oidc_code_challenge_method', $code_challenge_method);
 
+                $this->session->close(); // Close session to prevent session locking issues during redirect
+
                 // Redirect to consent page
                 $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', []);
                 $this->logger->debug('Redirecting to consent page for user ' . $uid . ' and client ' . $client_id);
@@ -535,6 +529,8 @@ class LoginRedirectorController extends ApiController
         if (in_array('id_token', $responseTypeEntries) || in_array('token', $responseTypeEntries)) {
             $url = $url . '&token_type=Bearer&expires_in=' . $expireTime . '&scope=' . $scope;
         }
+
+        $this->session->close(); // Close session to prevent session locking issues during redirect
 
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 

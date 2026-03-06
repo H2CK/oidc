@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.1] - 2026-03-06
+
+### Changed
+
+- Fix problem in flow when new consent is requested
+- Updated dependencies
+- Updated translations
+
 ## [1.16.0] - 2026-03-05
 
 ### Changed
