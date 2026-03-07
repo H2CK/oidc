@@ -213,7 +213,7 @@ class LoginRedirectorController extends ApiController
         $scopeFromParam = $scope ?? 'null';
         $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
 
-        if (empty($client_id) || empty($state) || empty($response_type) || empty($redirect_uri)) {
+        if (empty($client_id)) {
             $client_id = $this->session->get('oidc_client_id');
             $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
             $state = $this->session->get('oidc_state');

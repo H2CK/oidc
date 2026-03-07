@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.2] - 2026-03-07
+
+### Changed
+
+- Fix problem if state is missing at authorization endpoint, no fallback to session
+- Updated dependencies
+- Updated translations
+
 ## [1.16.1] - 2026-03-06
 
 ### Changed
