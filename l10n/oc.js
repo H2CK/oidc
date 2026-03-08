@@ -28,6 +28,7 @@ OC.L10N.register(
     "7 days" : "7 jorns",
     "Never" : "Jamai",
     "Disable" : "Desactivar",
+    "Enable" : "Activar",
     "Email address" : "Adreça mail"
 },
 "nplurals=2; plural=(n > 1);");
