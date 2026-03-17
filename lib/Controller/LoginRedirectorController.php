@@ -213,18 +213,26 @@ class LoginRedirectorController extends ApiController
         $scopeFromParam = $scope ?? 'null';
         $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
 
-        if (empty($client_id)) {
-            $client_id = $this->session->get('oidc_client_id');
-            $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
-            $state = $this->session->get('oidc_state');
-            $response_type = $this->session->get('oidc_response_type');
-            $redirect_uri = $this->session->get('oidc_redirect_uri');
-            $scope = $this->session->get('oidc_scope');
+        if (empty($client_id) || empty($state) || empty($response_type) || empty($redirect_uri)) {
+            if (empty($client_id)) {
+                $client_id = $this->session->get('oidc_client_id');
+                $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
+            }
+            if (empty($state)) {
+                $state = $this->session->get('oidc_state');
+            }
+            if (empty($response_type)) {
+                $response_type = $this->session->get('oidc_response_type');
+            }
+            if (empty($redirect_uri)) {
+                $redirect_uri = $this->session->get('oidc_redirect_uri');
+            }
+            $scope = $scope ?? $this->session->get('oidc_scope');
             $this->logger->debug('[SCOPE DEBUG] Scope from session fallback: ' . ($scope ?? 'null'));
-            $nonce = $this->session->get('oidc_nonce');
-            $resource = $this->session->get('oidc_resource');
-            $code_challenge = $this->session->get('oidc_code_challenge');
-            $code_challenge_method = $this->session->get('oidc_code_challenge_method');
+            $nonce = $nonce ?? $this->session->get('oidc_nonce');
+            $resource = $resource ?? $this->session->get('oidc_resource');
+            $code_challenge = $code_challenge ?? $this->session->get('oidc_code_challenge');
+            $code_challenge_method = $code_challenge_method ?? $this->session->get('oidc_code_challenge_method');
         }
 
         // Set default scope if scope is not set at all
