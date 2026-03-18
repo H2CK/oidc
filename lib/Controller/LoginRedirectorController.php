@@ -235,6 +235,19 @@ class LoginRedirectorController extends ApiController
             $code_challenge_method = $code_challenge_method ?? $this->session->get('oidc_code_challenge_method');
         }
 
+        // Guard: if critical OAuth params are still missing after session fallback,
+        // return a meaningful error instead of letting downstream code crash with a 500
+        // (e.g. matchRedirectUri(null, ...) or trim(null) in PHP 8.4).
+        if (empty($state) || empty($response_type) || empty($redirect_uri)) {
+            $this->logger->error('Missing critical OAuth params after session fallback: '
+                . 'state=' . var_export($state, true) . ', '
+                . 'response_type=' . var_export($response_type, true) . ', '
+                . 'redirect_uri=' . var_export($redirect_uri, true));
+            return new TemplateResponse('core', '400', [
+                'message' => $this->l->t('Authorization session expired. Please try again.'),
+            ], 'error');
+        }
+
         // Set default scope if scope is not set at all
         if (!isset($scope)) {
             $scope = Application::DEFAULT_SCOPE;
