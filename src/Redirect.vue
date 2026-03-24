@@ -17,7 +17,23 @@ import { generateUrl } from '@nextcloud/router'
 export default {
 	name: 'Redirect',
 	created() {
-		window.location.replace(generateUrl('apps/oidc/authorize'))
+		// Build authorize URL preserving OIDC parameters passed from the
+		// server template. These parameters survive SAML session
+		// regeneration because they travel via URL, not the PHP session.
+		const el = document.getElementById('oidc-redirect')
+		const params = new URLSearchParams()
+		const keys = [
+			'client_id', 'state', 'response_type', 'redirect_uri',
+			'scope', 'nonce', 'resource', 'code_challenge', 'code_challenge_method',
+		]
+		keys.forEach(key => {
+			const value = el?.getAttribute('data-' + key.replace(/_/g, '-'))
+			if (value) {
+				params.append(key, value)
+			}
+		})
+		const query = params.toString()
+		window.location.replace(generateUrl('apps/oidc/authorize') + (query ? '?' + query : ''))
 	},
 	methods: {
 		t,

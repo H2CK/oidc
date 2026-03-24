@@ -190,7 +190,17 @@ class LoginRedirectorController extends ApiController
             $this->session->set('oidc_code_challenge', $code_challenge);
             $this->session->set('oidc_code_challenge_method', $code_challenge_method);
 
-            $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', []);
+            $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', [
+                'client_id'             => $client_id,
+                'state'                 => $state,
+                'response_type'         => $response_type,
+                'redirect_uri'          => $redirect_uri,
+                'scope'                 => $scope,
+                'nonce'                 => $nonce,
+                'resource'              => $resource,
+                'code_challenge'        => $code_challenge,
+                'code_challenge_method' => $code_challenge_method,
+            ]);
 
             $loginUrl = $this->urlGenerator->linkToRoute(
                             'core.login.showLoginForm',

@@ -60,12 +60,16 @@ class PageController extends Controller {
     #[UseSession]
     public function index()
     {
-        $client_id = $this->session->get('oidc_client_id');
-        $state = $this->session->get('oidc_state');
-        $response_type = $this->session->get('oidc_response_type');
-        $redirect_uri = $this->session->get('oidc_redirect_uri');
-        $scope = $this->session->get('oidc_scope');
-        $resource = $this->session->get('oidc_resource');
+        $request = $this->request;
+
+        // Prefer URL parameters (survive SAML session regeneration),
+        // fall back to session values for backwards compatibility.
+        $client_id     = $request->getParam('client_id')     ?? $this->session->get('oidc_client_id');
+        $state         = $request->getParam('state')          ?? $this->session->get('oidc_state');
+        $response_type = $request->getParam('response_type')  ?? $this->session->get('oidc_response_type');
+        $redirect_uri  = $request->getParam('redirect_uri')   ?? $this->session->get('oidc_redirect_uri');
+        $scope         = $request->getParam('scope')           ?? $this->session->get('oidc_scope');
+        $resource      = $request->getParam('resource')        ?? $this->session->get('oidc_resource');
 
 
         $parameters = [
@@ -73,6 +77,9 @@ class PageController extends Controller {
             'state' => $state,
             'response_type' => $response_type,
             'redirect_uri' => $redirect_uri,
+            'nonce' => $request->getParam('nonce') ?? $this->session->get('oidc_nonce'),
+            'code_challenge' => $request->getParam('code_challenge') ?? $this->session->get('oidc_code_challenge'),
+            'code_challenge_method' => $request->getParam('code_challenge_method') ?? $this->session->get('oidc_code_challenge_method'),
             'scope' => $scope,
             'resource' => $resource
         ];
