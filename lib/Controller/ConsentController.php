@@ -201,11 +201,22 @@ class ConsentController extends Controller {
         // Update the scope in session to use granted scopes instead of requested
         $this->session->set('oidc_scope', $grantedScopes);
 
-        // Build authorize URL BEFORE closing session (need to read oidc_client_id)
-        $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', [
+        // Build authorize URL with ALL OAuth params to avoid session dependency.
+        // Previously only client_id and scope were passed, relying on session
+        // fallback in LoginRedirectorController. This caused intermittent 500
+        // errors when session values were lost between the redirect and the
+        // subsequent GET request (race condition with session->close()).
+        $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', array_filter([
             'client_id' => $this->session->get('oidc_client_id'),
             'scope' => $grantedScopes,
-        ]);
+            'state' => $this->session->get('oidc_state'),
+            'response_type' => $this->session->get('oidc_response_type'),
+            'redirect_uri' => $this->session->get('oidc_redirect_uri'),
+            'nonce' => $this->session->get('oidc_nonce'),
+            'resource' => $this->session->get('oidc_resource'),
+            'code_challenge' => $this->session->get('oidc_code_challenge'),
+            'code_challenge_method' => $this->session->get('oidc_code_challenge_method'),
+        ]));
 
         // IMPORTANT: Close the session to commit changes before redirecting
         // Without this, the authorize endpoint won't see the updated session values

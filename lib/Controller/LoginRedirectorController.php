@@ -223,18 +223,38 @@ class LoginRedirectorController extends ApiController
         $scopeFromParam = $scope ?? 'null';
         $this->logger->debug('[SCOPE DEBUG] Scope from URL parameter: ' . $scopeFromParam);
 
-        if (empty($client_id)) {
-            $client_id = $this->session->get('oidc_client_id');
-            $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
-            $state = $this->session->get('oidc_state');
-            $response_type = $this->session->get('oidc_response_type');
-            $redirect_uri = $this->session->get('oidc_redirect_uri');
-            $scope = $this->session->get('oidc_scope');
+        if (empty($client_id) || empty($state) || empty($response_type) || empty($redirect_uri)) {
+            if (empty($client_id)) {
+                $client_id = $this->session->get('oidc_client_id');
+                $this->logger->debug('[CLIENT DEBUG] Client ID from session fallback: ' . ($client_id ?? 'null'));
+            }
+            if (empty($state)) {
+                $state = $this->session->get('oidc_state');
+            }
+            if (empty($response_type)) {
+                $response_type = $this->session->get('oidc_response_type');
+            }
+            if (empty($redirect_uri)) {
+                $redirect_uri = $this->session->get('oidc_redirect_uri');
+            }
+            $scope = $scope ?? $this->session->get('oidc_scope');
             $this->logger->debug('[SCOPE DEBUG] Scope from session fallback: ' . ($scope ?? 'null'));
-            $nonce = $this->session->get('oidc_nonce');
-            $resource = $this->session->get('oidc_resource');
-            $code_challenge = $this->session->get('oidc_code_challenge');
-            $code_challenge_method = $this->session->get('oidc_code_challenge_method');
+            $nonce = $nonce ?? $this->session->get('oidc_nonce');
+            $resource = $resource ?? $this->session->get('oidc_resource');
+            $code_challenge = $code_challenge ?? $this->session->get('oidc_code_challenge');
+            $code_challenge_method = $code_challenge_method ?? $this->session->get('oidc_code_challenge_method');
+        }
+
+        // Guard: if critical OAuth params are still missing after session fallback,
+        // return a meaningful error instead of letting downstream code crash with a 500
+        if (empty($state) || empty($response_type) || empty($redirect_uri)) {
+            $this->logger->error('Missing critical OAuth params after session fallback: '
+                . 'state=' . var_export($state, true) . ', '
+                . 'response_type=' . var_export($response_type, true) . ', '
+                . 'redirect_uri=' . var_export($redirect_uri, true));
+            return new TemplateResponse('core', '400', [
+                'message' => $this->l->t('Authorization session expired. Please try again.'),
+            ], 'error');
         }
 
         // Set default scope if scope is not set at all
