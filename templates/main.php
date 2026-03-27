@@ -9,4 +9,13 @@
 
 ?>
 
-<div id="oidc-redirect"></div>
+<div id="oidc-redirect"
+	<?php foreach ([
+		'client_id', 'state', 'response_type', 'redirect_uri',
+		'scope', 'nonce', 'resource', 'code_challenge', 'code_challenge_method',
+	] as $key): ?>
+		<?php if (!empty($_[$key] ?? null)): ?>
+			data-<?php p(str_replace('_', '-', $key)); ?>="<?php p($_[$key]); ?>"
+		<?php endif; ?>
+	<?php endforeach; ?>
+></div>
