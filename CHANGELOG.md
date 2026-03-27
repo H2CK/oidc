@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.3] - 2026-03-27
+
+### Changed
+
+- Reduced session dependency by passing oidc parameters within redirect url ([#628](https://github.com/H2CK/oidc/issues/628)) and also for consent flow
+- Updated dependencies
+- Updated translations
+
 ## [1.16.2] - 2026-03-07
 
 ### Changed
