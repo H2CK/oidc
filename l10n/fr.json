@@ -18,6 +18,7 @@
     "OIDC Identity Provider" : "Fournisseur d’identité de l’OIDC",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud comme fournisseur d’identité OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud comme fournisseur d’identité OpenID Connect\n\nAvec cette application vous pouvez utiliser Nextcloud comme fournisseur d’identité OpenID Connect. Si d’autres services\\nsont configurés correctement, vous pouvez accéder à ces services avec votre login Nextcloud.\n\nLa documentation complète peut être trouvée à l’adresse suivante :\n\n- [Documentation utilisateur](https://github.com/H2CK/oidc/wiki#user-documentation)\n- Documentation pour les développeurs] (https://github.com/H2CK/oidc/wiki#developer-documentation)",
+    "Return users primary email address" : "Renvoyer l'adresse de courriel principale des utilisateurs",
     "Confidential" : "Confidentiel",
     "Public" : "Public",
     "Avatar" : "Avatar",

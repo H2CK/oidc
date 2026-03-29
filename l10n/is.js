@@ -6,6 +6,7 @@ OC.L10N.register(
     "Public" : "Opinbert",
     "Avatar" : "Auðkennismynd",
     "Address" : "Vistfang",
+    "Phone" : "Sími",
     "Settings" : "Stillingar",
     "Back" : "Til baka",
     "Add client" : "Bæta við biðlara",
