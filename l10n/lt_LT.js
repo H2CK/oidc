@@ -7,6 +7,7 @@ OC.L10N.register(
     "Avatar" : "Avataras",
     "Address" : "Adresas",
     "Phone" : "Telefonas",
+    "Website" : "Internetinė svetainė",
     "Settings" : "Nustatymai",
     "Public Key" : "Viešasis raktas",
     "Back" : "Atgal",
