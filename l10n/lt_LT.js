@@ -34,6 +34,7 @@ OC.L10N.register(
     "Disable" : "Išjungti",
     "Enable" : "Įjungti",
     "Scope" : "Leidimas",
+    "Profile information" : "Profilio informacija",
     "Email address" : "El. pašto adresas",
     "Deny" : "Drausti",
     "Allow" : "Leisti",
