@@ -224,6 +224,74 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals($clientSecret, $result->getData()['clientSecret']);
     }
 
+    #[DataProvider('validCredentialProvider')]
+    public function testAddClientAcceptsValidCredentials(string $clientId, string $clientSecret): void {
+        $name = 'TEST';
+        $redirectUri = 'https://local.lo';
+        $signingAlg = 'RS256';
+        $type = 'confidential';
+        $flowType = 'code';
+        $tokenType = 'opaque';
+
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallback(
+                function ($arg) {
+                    $client = $arg;
+                    $client->setId(1);
+                    return $client;
+                }
+            );
+
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->willReturnCallback(
+                function ($arg) {
+                    $redirectUri = new RedirectUri();
+                    $redirectUri->setId(1);
+                    $redirectUri->setClientId(1);
+                    $redirectUri->setRedirectUri('https://local.lo');
+                    return [$redirectUri];
+                }
+            );
+
+        $result = $this->controller->addClient(
+            $name,
+            $redirectUri,
+            $signingAlg,
+            $type,
+            $flowType,
+            $tokenType,
+            $clientId,
+            $clientSecret
+        );
+
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals($clientId, $result->getData()['clientId']);
+        $this->assertEquals($clientSecret, $result->getData()['clientSecret']);
+    }
+
+    public static function validCredentialProvider(): array {
+        return [
+            'alphanumeric credentials' => [
+                '0582bb51ac974f318c4fe11779c439a0',
+                '0582bb51ac974f318c4fe11779c439a0',
+            ],
+            'hyphen in client id' => [
+                'client-id-with-hyphen-012345678901',
+                '0582bb51ac974f318c4fe11779c439a0',
+            ],
+            'underscore in client id' => [
+                'client_id_with_underscores_0123456',
+                '0582bb51ac974f318c4fe11779c439a0',
+            ],
+            'dot in client id' => [
+                'client.id.with.dots.01234567890123',
+                '0582bb51ac974f318c4fe11779c439a0',
+            ],
+        ];
+    }
+
     public function testAddClientwWrongCreds1() {
         $name = 'TEST';
         $redirectUri = 'https://local.lo';
@@ -363,6 +431,34 @@ class SettingsControllerTest extends TestCase {
         );
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
+    }
+
+    public function testAddClientRejectsColonInClientId(): void {
+        $name = 'TEST';
+        $redirectUri = 'https://local.lo';
+        $signingAlg = 'RS256';
+        $type = 'confidential';
+        $flowType = 'code';
+        $tokenType = 'opaque';
+        $clientId = 'client:id-with-colon-01234567890123';
+        $clientSecret = '0582bb51ac974f318c4fe11779c439a0';
+
+        $result = $this->controller->addClient(
+            $name,
+            $redirectUri,
+            $signingAlg,
+            $type,
+            $flowType,
+            $tokenType,
+            $clientId,
+            $clientSecret
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            'Your client ID must comply with the following rules: printable ASCII except : and length 32-64',
+            $result->getData()['message']
+        );
     }
 
     public function testAddClientBadRedirectUri() {
