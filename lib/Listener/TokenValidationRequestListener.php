@@ -95,33 +95,33 @@ class TokenValidationRequestListener implements IEventListener {
             $decodedJwt = (array) $decodedStdClass;
         } catch (InvalidArgumentException $e) {
             // provided key/key-array is empty or malformed.
-            $this->logger->error('Provided key/key-array is empty or malformed.');
+            $this->logger->debug('Provided key/key-array is empty or malformed.');
         } catch (DomainException $e) {
             // provided algorithm is unsupported OR
             // provided key is invalid OR
             // unknown error thrown in openSSL or libsodium OR
             // libsodium is required but not available.
-            $this->logger->error('Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.');
+            $this->logger->debug('Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.');
         } catch (SignatureInvalidException $e) {
             // provided JWT signature verification failed.
-            $this->logger->error('Provided JWT signature verification failed.');
+            $this->logger->debug('Provided JWT signature verification failed.');
         } catch (BeforeValidException $e) {
             // provided JWT is trying to be used before "nbf" claim OR
             // provided JWT is trying to be used before "iat" claim.
-            $this->logger->error('Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.');
+            $this->logger->debug('Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.');
         } catch (ExpiredException $e) {
             // provided JWT is trying to be used after "exp" claim.
-            $this->logger->error('Provided JWT is trying to be used after "exp" claim.');
+            $this->logger->debug('Provided JWT is trying to be used after "exp" claim.');
         } catch (UnexpectedValueException $e) {
             // provided JWT is malformed OR
             // provided JWT is missing an algorithm / using an unsupported algorithm OR
             // provided JWT algorithm does not match provided key OR
             // provided key ID in key/key-array is empty or invalid.
-            $this->logger->error('Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.');
+            $this->logger->debug('Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.');
         }
 
         if ($decodedJwt === null) {
-            $this->logger->error('Provided JWT could not be decoded.');
+            $this->logger->info('Provided JWT could not be decoded.');
             $event->setIsValid(false);
             return;
         }
