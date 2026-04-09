@@ -84,7 +84,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      * Check if the password is correct without logging in the user
      */
     public function checkPassword($uid, $password) {
-        if (strlen($uid) !== 64 || strlen($password) !== 64) {
+        if (!$this->isValidCredentialPart($uid) || !$this->isValidCredentialPart($password)) {
             return false;
         }
 
@@ -187,7 +187,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      * @return boolean
      */
     public function userExists($uid) {
-        if (strlen($uid) !== 64) {
+        if (!$this->isValidCredentialPart($uid)) {
             return false;
         }
 
@@ -252,6 +252,12 @@ class BasicAuthBackend extends \OC\User\Backend {
      */
     public function countUsers() {
         return false;
+    }
+
+    private function isValidCredentialPart($value): bool {
+        return is_string($value)
+            && $value !== ''
+            && preg_match('/^[\x21-\x7E]+$/', $value) === 1;
     }
 
     /**
