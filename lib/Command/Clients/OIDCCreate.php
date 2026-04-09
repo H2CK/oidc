@@ -105,14 +105,14 @@ class OIDCCreate extends Command
                 'client_id',
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'The client id to be used. If not provided the client id will be generated internally. Requirements: chars A-Za-z0-9 & min length 32 & max length 64',
+                'The client id to be used. If not provided the client id will be generated internally. Requirements: printable ASCII except : and length 32-64',
                 ''
             )
             ->addOption(
                 'client_secret',
                 null,
                 InputOption::VALUE_OPTIONAL,
-                'The client secret to be used. If not provided the client secret will be generated internally. Requirements: chars A-Za-z0-9 & min length 32 & max length 64',
+                'The client secret to be used. If not provided the client secret will be generated internally. Requirements: printable ASCII except : and length 32-64',
                 ''
             )
             ->addOption(
@@ -157,15 +157,15 @@ class OIDCCreate extends Command
             $clientId = $input->getOption('client_id');
             $clientSecret = $input->getOption('client_secret');
             if (isset($clientId) && trim($clientId) !== '') {
-                if (filter_var($clientId, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[A-Za-z0-9]{32,64}$/"))) === false) {
-                    throw new CliException("Your clientId must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64");
+                if (filter_var($clientId, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[\x21-\x39\x3B-\x7E]{32,64}$/"))) === false) {
+                    throw new CliException("Your clientId must comply with the following rules: printable ASCII except : and length 32-64");
                 }
                 $client->setClientIdentifier($clientId);
             }
 
             if (isset($clientSecret) && trim($clientSecret) !== '') {
-                if (filter_var($clientSecret, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[A-Za-z0-9]{32,64}$/"))) === false) {
-                    throw new CliException("Your clientSecret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64");
+                if (filter_var($clientSecret, FILTER_VALIDATE_REGEXP, array("options" => array("regexp" => "/^[\x21-\x39\x3B-\x7E]{32,64}$/"))) === false) {
+                    throw new CliException("Your clientSecret must comply with the following rules: printable ASCII except : and length 32-64");
                 }
                 $client->setSecret($clientSecret);
             }
