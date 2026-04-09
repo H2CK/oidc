@@ -105,6 +105,7 @@ class SettingsControllerTest extends TestCase {
             $this->db,
             $this->groupManager])->getMock();
         $this->l = $this->getMockBuilder(IL10N::class)->getMock();
+        $this->l->method('t')->willReturnCallback(static fn (string $text): string => $text);
         $this->redirectUriService = new RedirectUriService(
             $this->logger
         );

@@ -110,12 +110,10 @@ class BasicAuthBackendTest extends TestCase {
         $this->request->method('getRequestUri')
             ->willReturn('/apps/oidc/token');
 
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $client->method('getClientIdentifier')->willReturn($uid);
-        $client->method('getSecret')->willReturn($secret);
-        $client->method('getType')->willReturn('confidential');
+        $client = new Client();
+        $client->setClientIdentifier($uid);
+        $client->setSecret($secret);
+        $client->setType('confidential');
 
         $this->clientMapper->method('getByIdentifier')
             ->with($uid)
@@ -150,12 +148,10 @@ class BasicAuthBackendTest extends TestCase {
         $this->request->method('getRequestUri')
             ->willReturn('/apps/oidc/introspect');
 
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $client->method('getClientIdentifier')->willReturn($this->uid64);
-        $client->method('getSecret')->willReturn($this->secret64);
-        $client->method('getType')->willReturn('confidential');
+        $client = new Client();
+        $client->setClientIdentifier($this->uid64);
+        $client->setSecret($this->secret64);
+        $client->setType('confidential');
 
         $this->clientMapper->method('getByIdentifier')
             ->with($this->uid64)
@@ -170,12 +166,10 @@ class BasicAuthBackendTest extends TestCase {
         $this->request->method('getRequestUri')
             ->willReturn('/apps/oidc/token');
 
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $client->method('getClientIdentifier')->willReturn($this->uid64);
-        $client->method('getSecret')->willReturn('WrongSecretThatIsExactlySixtyFourCharactersLongForTestingPurpose1');
-        $client->method('getType')->willReturn('confidential');
+        $client = new Client();
+        $client->setClientIdentifier($this->uid64);
+        $client->setSecret('WrongSecretThatIsExactlySixtyFourCharactersLongForTestingPurpose1');
+        $client->setType('confidential');
 
         $this->clientMapper->method('getByIdentifier')
             ->with($this->uid64)
@@ -207,10 +201,8 @@ class BasicAuthBackendTest extends TestCase {
     }
 
     public function testUserExistsAccepts64Char() {
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $client->method('getClientIdentifier')->willReturn($this->uid64);
+        $client = new Client();
+        $client->setClientIdentifier($this->uid64);
 
         $this->clientMapper->method('getByIdentifier')
             ->with($this->uid64)
@@ -220,10 +212,8 @@ class BasicAuthBackendTest extends TestCase {
     }
 
     public function testUserExistsAccepts48Char() {
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $client->method('getClientIdentifier')->willReturn($this->uid48);
+        $client = new Client();
+        $client->setClientIdentifier($this->uid48);
 
         $this->clientMapper->method('getByIdentifier')
             ->with($this->uid48)
@@ -233,10 +223,8 @@ class BasicAuthBackendTest extends TestCase {
     }
 
     public function testUserExistsAccepts32Char() {
-        $client = $this->getMockBuilder(Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $client->method('getClientIdentifier')->willReturn($this->uid32);
+        $client = new Client();
+        $client->setClientIdentifier($this->uid32);
 
         $this->clientMapper->method('getByIdentifier')
             ->with($this->uid32)
