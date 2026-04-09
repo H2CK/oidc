@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.4] - 2026-04-09
+
+### Changed
+
+- Changes log level for jwt validation based on events ([#625](https://github.com/H2CK/oidc/issues/625))
+- Added support for RFC 6749 VSCHAR characters in client_id and client_secret ([#638](https://github.com/H2CK/oidc/pull/638))
+- Updated dependencies
+- Updated translations
+
 ## [1.16.3] - 2026-03-27
 
 ### Changed
