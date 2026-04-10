@@ -12,8 +12,6 @@ OC.L10N.register(
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "ئىشلەتكۈچى خېرىدار ئۈچۈن بېكىتىلگەن گۇرۇپپىلارنىڭ ئەزاسى ئەمەس. كىرىش بەلگىسىنى ئېلىۋېلىشىڭىزغا رۇخسەت قىلىنمايدۇ.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT قۇرۇۋاتقاندا مەغلۇپ بولدى. خېرىدارىڭىزنىڭ باشقۇرغۇچىسى بىلەن ئالاقىلىشىڭ.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "قايتا نىشانلانغان URL ئادرېسىڭىز تولۇق URL بولۇشى كېرەك: https://yourdomain.com/path",
-    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "خېرىدارىڭىزنىڭ ID سى تۆۋەندىكى قائىدىگە ئۇيغۇن بۇلىشى كېرەك: ھەرىپ A-Za-z0-9 & ئەڭ ئاز بولغاندا 32 & ئەڭ كۆپ بولغاندا 64",
-    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "خېرىدارىڭىزنىڭ مەخپىيەتلىكى تۆۋەندىكى قائىدىگە ئۇيغۇن بۇلىشى كېرەك: ھەرىپ A-Za-z0-9 & ئەڭ ئاز بولغاندا 32 & ئەڭ كۆپ بولغاندا 64",
     "Code Authorization Flow" : "كود ھوقۇق بېرىش ئېقىمى",
     "Code & Implicit Authorization Flow" : "كود ۋە ئېنىق ھوقۇق بېرىش ئېقىمى",
     "OpenID Connect Provider" : "OpenID ئۇلىنىش تەمىنلىگۈچىسى",

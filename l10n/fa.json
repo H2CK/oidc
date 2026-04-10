@@ -7,8 +7,6 @@
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "کاربر عضو گروه‌های تعریف‌شده برای کلاینت نیست. شما مجاز به بازیابی توکن ورود نیستید.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "خطایی در ایجاد JWT رخ داده است. لطفاً به مدیر کلاینت خود اطلاع دهید.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL هدایت مجدد شما باید به عنوان مثال یک URL کامل باشد: https://yourdomain.com/path",
-    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "شناسه کلاینت شما باید با قوانین زیر مطابقت داشته باشد: کاراکترهای A-Za-z0-9 و حداقل طول ۳۲ و حداکثر طول ۶۴",
-    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "رمز کلاینت شما باید با قوانین زیر مطابقت داشته باشد: کاراکترهای A-Za-z0-9 و حداقل طول ۳۲ و حداکثر طول ۶۴",
     "Code Authorization Flow" : "Code Authorization Flow",
     "Code & Implicit Authorization Flow" : "Code & Implicit Authorization Flow",
     "OpenID Connect Provider" : "ارائه دهنده اتصال OpenID",

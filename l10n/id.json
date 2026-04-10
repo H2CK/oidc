@@ -10,8 +10,6 @@
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Pengguna bukan anggota grup yang ditetapkan untuk klien. Anda tidak diizinkan untuk mengambil token masuk.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Terjadi kegagalan saat pembuatan JWT. Harap beri tahu administrator klien Anda.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL pengalihan Anda harus berupa URL lengkap, misalnya: [https://yourdomain.com/path](https://yourdomain.com/path)",
-    "Your client ID must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "ID klien Anda harus mematuhi aturan berikut: karakter A-Za-z0-9 & panjang min 32 & panjang maks 64",
-    "Your client secret must comply with the following rules: chars A-Za-z0-9 & min length 32 & max length 64" : "Rahasia klien Anda harus mematuhi aturan berikut: karakter A-Za-z0-9 & panjang min 32 & panjang maks 64",
     "Code Authorization Flow" : "Alur Otorisasi Kode",
     "Code & Implicit Authorization Flow" : "Alur Otorisasi Kode & Implisit",
     "OpenID Connect Provider" : "Penyedia OpenID Connect",
