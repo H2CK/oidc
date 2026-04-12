@@ -163,7 +163,7 @@ Further scopes are passed transparently. Also namescaped scopes are supported. E
 
 ## Custom claims
 
-It is possible to define custom claims per client (Currently only via CLI and API). A custom claim is defined per client and will be added to the ID token and the userinfo endpoint if the specified scope is requested. The following functions can be used provide date to the custom claims.
+It is possible to define custom claims per client. A custom claim is defined per client and will be added to the ID token and the userinfo endpoint if the specified scope is requested . The following functions can be used provide date to the custom claims.
 | Function | Description |
 |---|---|
 | isAdmin | Provides true or false (boolean) if the user is Nextcloud administrator. |
