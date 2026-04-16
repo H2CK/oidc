@@ -11,6 +11,8 @@
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utilisateur n'est pas membre des groupes définis pour le client. Vous n'êtes pas autorisé à récupérer un jeton de connexion.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Un échec s'est produit lors de la création d'un JWT. Veuillez en informer l'administrateur de votre client.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Votre adresse de redirection doit être une URL complète, par exemple: https://example.com/chemin",
+    "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "Votre identifiant client doit respecter les règles suivantes : caractères ASCII imprimables, à l'exception du signe « : » et une longueur comprise entre 32 et 64 caractères",
+    "Your client secret must comply with the following rules: printable ASCII except : and length 32-64" : "Votre clé secrète doit respecter les règles suivantes : caractères ASCII imprimables, à l'exception de « : » et une longueur comprise entre 32 et 64 caractères",
     "Code Authorization Flow" : "Flux d'autorisation par code",
     "Code & Implicit Authorization Flow" : "Flux d'autorisation par code et implicite",
     "OpenID Connect Provider" : "Fournisseur OpenID Connect",
