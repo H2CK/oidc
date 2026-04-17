@@ -493,7 +493,7 @@
 			<NcTextField v-if="customClaimModal.parametersRequired"
 				v-model="customClaimModal.parameters"
 				:label="t('oidc', 'Parameters')"
-				:placeholder="t('oidc', 'Parameter 1, Parameter, …')"
+				:placeholder="t('oidc', 'Parameter 1, Parameter2, …')"
 				:helper-text="t('oidc', 'Comma separated list of parameters to be passed to the selected function. Possible parameters depend on the selected function.')" />
 			<NcNoteCard v-if="customClaimModal.error"
 				type="error"
