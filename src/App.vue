@@ -493,7 +493,7 @@
 			<NcTextField v-if="customClaimModal.parametersRequired"
 				v-model="customClaimModal.parameters"
 				:label="t('oidc', 'Parameters')"
-				:placeholder="t('oidc', 'param1, param2, ...')"
+				:placeholder="t('oidc', 'Parameter 1, Parameter2, …')"
 				:helper-text="t('oidc', 'Comma separated list of parameters to be passed to the selected function. Possible parameters depend on the selected function.')" />
 			<NcNoteCard v-if="customClaimModal.error"
 				type="error"
@@ -720,15 +720,15 @@ export default {
 								value: 'isInGroup',
 							},
 							{
-								label: t('oidc', 'Return users primary email address'),
+								label: t('oidc', "Return user's primary email address"),
 								value: 'getUserEmail',
 							},
 							{
-								label: t('oidc', 'Return users groups as array of group IDs'),
+								label: t('oidc', "Return user's groups as array of group IDs"),
 								value: 'getUserGroups',
 							},
 							{
-								label: t('oidc', 'Return users groups as array of display names'),
+								label: t('oidc', "Return user's groups as array of display names"),
 								value: 'getUserGroupsDisplayName',
 							},
 						],
@@ -901,7 +901,7 @@ export default {
 					this.customClaimModal.parametersRequired = true
 					break
 				case 'getUserEmail':
-					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be the users primary email address.')
+					this.customClaimModal.functionInfo = t('oidc', "The claim value will be the user's primary email address.")
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserGroups':
