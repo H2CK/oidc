@@ -245,7 +245,7 @@ class JwtGenerator
             }
             if (!in_array('avatar', $restrictUserInformationArr) && !in_array('avatar', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
-                        ['picture' => $issuer . '/avatar/' . $uid . '/64']);
+                        ['picture' => $issuer . '/avatar/' . rawurlencode($uid) . '/64']);
             }
 
             // Possible further values currently not provided by Nextcloud

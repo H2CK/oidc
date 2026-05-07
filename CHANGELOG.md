@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.16.6] - 2026-05-07
+
+### Changed
+
+- Fixed url encoding for url to avatar ([#644](https://github.com/H2CK/oidc/issues/644))
+- Updated dependencies
+- Updated translations
+
 ## [1.16.5] - 2026-04-13
 
 ### Changed
