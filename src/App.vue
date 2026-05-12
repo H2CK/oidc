@@ -168,7 +168,7 @@
 						style="max-width: 100%; width: 740px;">
 						<NcTextField v-model="editClient.allowedScopes"
 							:label="t('oidc', 'Allowed Scopes')"
-							:placeholder="t('oidc', 'openid profile roles')"
+							:placeholder="t('oidc', 'OpenID profile roles')"
 							:helper-text="t('oidc', 'Define the allowed scopes for the client separated by a whitespace, e.g. openid profile roles. Do not enter any value to allow all scopes.')" />
 						<NcTextField id="emailRegex"
 							v-model="editClient.emailRegex"
@@ -476,11 +476,11 @@
 			<NcTextField v-model="customClaimModal.name"
 				:label="t('oidc', 'Name')"
 				:disabled="customClaimModal.isEdit"
-				:placeholder="t('oidc', 'is_admin')"
+				:placeholder="t('oidc', 'Is administrator?')"
 				:helper-text="t('oidc', 'Define the name of the custom claim.')" />
 			<NcTextField v-model="customClaimModal.scope"
 				:label="t('oidc', 'Scope')"
-				:placeholder="t('oidc', 'profile')"
+				:placeholder="t('oidc', 'Profile')"
 				:helper-text="t('oidc', 'The custom claim will be provided when the defined scope is requested.')" />
 			<NcSelect v-bind="customClaimModal.function.props"
 				v-model="customClaimModal.function.props.value"
