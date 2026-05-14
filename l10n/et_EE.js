@@ -86,7 +86,6 @@ OC.L10N.register(
     "Accepted Logout Redirect URIs" : "Lubatud võrguaadressid suunamiseks peale väljalogimist",
     "Regenerate Keys" : "Loo võtmed uuesti",
     "Scope" : "Kehtivusala",
-    "profile" : "profiil",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect võimaldab sul logida välistesse teenustesse oma {instanceName} serveri kasutajakontoga.",
     "All settings for the login at other services are managed by your administrator." : "Kõiki muude teenustega seotud seadistusi haldab sinu serveri peakasutaja.",
     "Restrict Personal Information" : "Piira isiklikku teavet",
