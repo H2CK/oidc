@@ -34,7 +34,20 @@ To create a new release the following files must be modified and contain the new
 
 - appinfo/info.xml
 - package.json
+- package-lock.json
 - CHANGELOG.md
+
+### Using the oidc-release skill
+
+For automated release generation, you can use the `oidc-release` skill which automates version updates, changelog generation from merge requests, and build verification.
+
+To use it, load the skill in your AI agent session:
+
+```
+skill name=oidc-release
+```
+
+The skill will guide you through the release process and handle the necessary updates to the version files and changelog.
 
 ## Execute test
 
