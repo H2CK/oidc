@@ -326,7 +326,6 @@ class JwtGenerator
      * @param Client $client
      * @param string $issuerProtocol
      * @param string $issuerHost
-     * @param bool $atHash
      * @return string
      * @throws PropertyDoesNotExistException
      * @throws JwtCreationErrorException
@@ -342,6 +341,7 @@ class JwtGenerator
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
+        $account = $this->accountManager->getAccount($user);
         $aud = $accessToken->getResource();
         if (!isset($aud) || trim($aud)==='') {
             $aud = $client->getClientIdentifier();
@@ -356,29 +356,127 @@ class JwtGenerator
             'iat' => $this->time->getTime(),
             'acr' => '0',
             'client_id' => $client->getClientIdentifier(),
+            'azp' => $client->getClientIdentifier(),
+            'preferred_username' => $uid,
             'scope' => $accessToken->getScope(),
             'jti' => strval($accessToken->getId()),
         ];
 
         $roles = [];
-        // Fetch roles
+        $rolesDisplayName = [];
         foreach ($groups as $group) {
             array_push($roles, $group->getGID());
+            $displayName = $group->getDisplayName();
+            if ($displayName !== null && $displayName !== '') {
+                array_push($rolesDisplayName, $displayName);
+            } else {
+                array_push($rolesDisplayName, $group->getGID());
+            }
+        }
+
+        $groupClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_GROUP_CLAIM_TYPE, Application::GROUP_CLAIM_TYPE_GID);
+        $rolesClaimType = $this->appConfig->getAppValueString(Application::APP_CONFIG_ROLES_CLAIM_TYPE, 'null');
+        if ($rolesClaimType !== null && $rolesClaimType === 'null') {
+            $rolesClaimType = $groupClaimType;
         }
 
         // Check for scopes roles, groups and entitlements (not supported)
         $scopeArray = preg_split('/ +/', $accessToken->getScope());
         if (in_array("roles", $scopeArray)) {
-            $roles_payload = [
-                'roles' => $roles
-            ];
+            if ($rolesClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $roles_payload = [
+                    'roles' => $rolesDisplayName
+                ];
+            } else {
+                $roles_payload = [
+                    'roles' => $roles
+                ];
+            }
             $jwt_payload = array_merge($jwt_payload, $roles_payload);
         }
         if (in_array("groups", $scopeArray)) {
-            $roles_payload = [
-                'groups' => $roles
-            ];
+            if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
+                $roles_payload = [
+                    'groups' => $rolesDisplayName
+                ];
+            } else {
+                $roles_payload = [
+                    'groups' => $roles
+                ];
+            }
             $jwt_payload = array_merge($jwt_payload, $roles_payload);
+        }
+
+        $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+        $restrictUserInformationPersonalArr = [ Application::DEFAULT_ALLOW_USER_SETTINGS ];
+        if ($this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS) != Application::DEFAULT_ALLOW_USER_SETTINGS) {
+            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->config->getUserValue($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+        }
+
+        if (in_array("profile", $scopeArray)) {
+            $profile = [
+                'updated_at' => $user->getLastLogin(),
+            ];
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
+                $displayName = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
+                $names = $this->converter->splitFullName($displayName);
+                $profile = array_merge($profile, [
+                    'name' => $displayName,
+                    'family_name' => $names[0],
+                    'given_name' => $names[1],
+                    'middle_name' => $names[2]
+                ]);
+            } else {
+                $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
+            }
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '' && !in_array('website', $restrictUserInformationArr) && !in_array('website', $restrictUserInformationPersonalArr)) {
+                $profile = array_merge($profile,
+                        ['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
+            }
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '' && !in_array('phone', $restrictUserInformationArr) && !in_array('phone', $restrictUserInformationPersonalArr)) {
+                $profile = array_merge($profile,
+                        ['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
+            }
+            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '' && !in_array('address', $restrictUserInformationArr) && !in_array('address', $restrictUserInformationPersonalArr)) {
+                $profile = array_merge($profile,
+                        ['address' =>
+                                [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
+            }
+            if (!in_array('avatar', $restrictUserInformationArr) && !in_array('avatar', $restrictUserInformationPersonalArr)) {
+                $profile = array_merge($profile,
+                        ['picture' => $issuer . '/avatar/' . rawurlencode($uid) . '/64']);
+            }
+            $jwt_payload = array_merge($jwt_payload, $profile);
+        }
+
+        if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
+            $emailProperty = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL);
+            $clientEmailRegex = $client->getEmailRegex();
+            if ($clientEmailRegex !== '') {
+                $this->logger->debug('Found regex for email: ' . $clientEmailRegex);
+                $emailCollection = $account->getPropertyCollection(\OCP\Accounts\IAccountManager::COLLECTION_EMAIL);
+                foreach ($emailCollection->getProperties() as $emailPropertyEntry) {
+                    $this->logger->debug('Performing check for mail ' . $emailPropertyEntry->getValue());
+                    if (preg_match('/'.$clientEmailRegex.'/', $emailPropertyEntry->getValue())) {
+                        $this->logger->debug('Regex matches');
+                        $emailProperty = $emailPropertyEntry;
+                    }
+                }
+            }
+
+            $email = [
+                'email' => $emailProperty->getValue(),
+            ];
+            if ($this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED) == 'true') {
+                $email = array_merge($email, ['email_verified' => true]);
+            } else {
+                if ($emailProperty->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
+                    $email = array_merge($email, ['email_verified' => true]);
+                } else {
+                    $email = array_merge($email, ['email_verified' => false]);
+                }
+            }
+            $jwt_payload = array_merge($jwt_payload, $email);
         }
 
         $payload = json_encode($jwt_payload);
