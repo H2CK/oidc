@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.17.0] - 2026-05-29
+
+### Added
+
+- Extended claims in JWT access token ([#653](https://github.com/H2CK/oidc/pull/653))
+
+### Changed
+
+- Added support for Nextcloud 34
+- Updated dependencies ([#646](https://github.com/H2CK/oidc/pull/646), [#647](https://github.com/H2CK/oidc/pull/647), [#649](https://github.com/H2CK/oidc/pull/649), [#650](https://github.com/H2CK/oidc/pull/650))
+- Updated translations
+
 ## [1.16.6] - 2026-05-07
 
 ### Changed
