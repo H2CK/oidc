@@ -132,7 +132,7 @@ class JwtGeneratorTest extends TestCase {
             $this->accountManager,
             $this->logger
         );
-		$this->credentialsManager = $this->getMockBuilder(ICredentialsManager::class)->getMock();
+        $this->credentialsManager = $this->getMockBuilder(ICredentialsManager::class)->getMock();
         $this->credentialService = new CredentialService(
             $this->credentialsManager,
             $this->appConfig,
@@ -159,10 +159,136 @@ class JwtGeneratorTest extends TestCase {
         );
     }
 
-    // public function testGenerateIdToken() {
-    // TODO create test
-    //     $result = $this->generator->generateIdToken();
-    // }
+    public function testGenerateIdToken() {
+        // Prepare key material for test
+        $config = array(
+            "digest_alg" => 'sha512',
+            "private_key_bits" => 4096,
+            "private_key_type" => OPENSSL_KEYTYPE_RSA
+        );
+        $keyPair = openssl_pkey_new($config);
+        $privateKey = null;
+        openssl_pkey_export($keyPair, $privateKey);
+        $keyDetails = openssl_pkey_get_details($keyPair);
+        $publicKey = $keyDetails['key'];
+        $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
+        $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
+        $kid = $this->guidv4();
+
+        // Mock necessary methods
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function($key, $default = '') use ($privateKey, $publicKey, $modulus, $exponent, $kid) {
+                $map = [
+                    'dynamic_client_registration' => 'true',
+                    'expire_time' => '3600',
+                    'integrate_avatar' => 'id_token',
+                    'overwrite_email_verified' => 'true',
+                    'private_key' => $privateKey,
+                    'public_key' => $publicKey,
+                    'public_key_n' => $modulus,
+                    'public_key_e' => $exponent,
+                    'kid' => $kid,
+                ];
+                return $map[$key] ?? $default;
+            });
+        $this->credentialsManager
+            ->method('retrieve')
+            ->willReturn($privateKey);
+
+        // Create a mock user
+        $testEmail = 'testuser@example.com';
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getEMailAddress')->willReturn($testEmail);
+        $mockUser->method('getQuota')->willReturn('1000000');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        // Create mock account and account properties
+        $mockAccount = $this->createMock(IAccount::class);
+        $mockAccountProperty = $this->createMock(IAccountProperty::class);
+        $mockAccountProperty->method('getValue')->willReturn('');
+
+        // Special handling for email property
+        $mockEmailProperty = $this->createMock(IAccountProperty::class);
+        $mockEmailProperty->method('getValue')->willReturn($testEmail);
+
+        $mockAccount
+            ->method('getProperty')
+            ->willReturnCallback(function($prop) use ($mockEmailProperty, $mockAccountProperty) {
+                if ($prop === \OCP\Accounts\IAccountManager::PROPERTY_EMAIL) {
+                    return $mockEmailProperty;
+                }
+                return $mockAccountProperty;
+            });
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $user_id = '34';
+        $protocol = 'https';
+        $issuer = 'issuer.url';
+        $scope = 'openid profile email roles';
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user_id);
+        $accessToken->setHashedCode(hash('sha512', $code));
+        $accessToken->setScope(substr($scope, 0, 128));
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+
+        // Execute test
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            $protocol,
+            $issuer,
+            false
+        );
+
+        // Decode received JWT
+        $oidcKey = [
+            'kty' => 'RSA',
+            'use' => 'sig',
+            'key_ops' => [ 'verify' ],
+            'alg' => 'RS256',
+            'kid' => $this->appConfig->getAppValueString('kid'),
+            'n' => $this->appConfig->getAppValueString('public_key_n'),
+            'e' => $this->appConfig->getAppValueString('public_key_e'),
+        ];
+
+        $jwks = [
+            'keys' => [
+                $oidcKey,
+            ],
+        ];
+
+        $decodedStdClass = JWT::decode($result, JWK::parseKeySet($jwks));
+        $decodedJwt = (array) $decodedStdClass;
+
+        // Test if decoded JWT contains necessary values
+        $this->assertEquals($protocol . "://" . $issuer, $decodedJwt['iss']);
+        $this->assertEquals($user_id, $decodedJwt['sub']);
+        $this->assertEquals($client->getClientIdentifier(), $decodedJwt['aud']);
+        $this->assertEquals($scope, $decodedJwt['scope']);
+        $this->assertEquals($client->getClientIdentifier(), $decodedJwt['azp']);
+        $this->assertArrayHasKey('email', $decodedJwt);
+        $this->assertEquals('testuser@example.com', $decodedJwt['email']);
+        $this->assertArrayHasKey('nonce', $decodedJwt);
+        $this->assertEquals('12345678', $decodedJwt['nonce']);
+    }
 
     public function testGenerateOpaqueAccessToken() {
         $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'opaque', false);
@@ -201,38 +327,61 @@ class JwtGeneratorTest extends TestCase {
         $publicKey = $keyDetails['key'];
         $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
         $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
+        $kid = $this->guidv4();
 
         // Mock necessary methods
         $this->appConfig
             ->method('getAppValueString')
-            ->willReturnMap([
-                ['dynamic_client_registration', 'false', 'true'],
-                ['expire_time', Application::DEFAULT_EXPIRE_TIME, '3600'],
-                ['integrate_avatar', 'id_token'],
-                ['overwrite_email_verified', 'true'],
-                ['private_key', $privateKey],
-                ['public_key', $publicKey],
-                ['public_key_n', $modulus],
-                ['public_key_e', $exponent],
-                ['kid', $this->guidv4()],
-            ]);
+            ->willReturnCallback(function($key, $default = '') use ($privateKey, $publicKey, $modulus, $exponent, $kid) {
+                $map = [
+                    'dynamic_client_registration' => 'true',
+                    'expire_time' => '3600',
+                    'integrate_avatar' => 'id_token',
+                    'overwrite_email_verified' => 'true',
+                    'private_key' => $privateKey,
+                    'public_key' => $publicKey,
+                    'public_key_n' => $modulus,
+                    'public_key_e' => $exponent,
+                    'kid' => $kid,
+                ];
+                return $map[$key] ?? $default;
+            });
         $this->credentialsManager
             ->method('retrieve')
             ->willReturn($privateKey);
+
+        // Create a mock user
+        $testEmail = 'testuser@example.com';
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getEMailAddress')->willReturn($testEmail);
         $this->userManager
             ->method('get')
-            ->willReturnCallBack (
-                function ($arg) {
-                    return null;
-                }
-            );
+            ->willReturn($mockUser);
+
         $this->groupManager
             ->method('getUserGroups')
-            ->willReturnCallBack (
-                function ($arg) {
-                    return [];
+            ->willReturn([]);
+
+        // Create mock account and account properties
+        $mockAccount = $this->createMock(IAccount::class);
+        $mockAccountProperty = $this->createMock(IAccountProperty::class);
+        $mockAccountProperty->method('getValue')->willReturn('');
+
+        // Special handling for email property
+        $mockEmailProperty = $this->createMock(IAccountProperty::class);
+        $mockEmailProperty->method('getValue')->willReturn($testEmail);
+
+        $mockAccount
+            ->method('getProperty')
+            ->willReturnCallback(function($prop) use ($mockEmailProperty, $mockAccountProperty) {
+                if ($prop === \OCP\Accounts\IAccountManager::PROPERTY_EMAIL) {
+                    return $mockEmailProperty;
                 }
-            );
+                return $mockAccountProperty;
+            });
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
 
         $user_id = '34';
         $protocol = 'https';
@@ -290,6 +439,8 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals($resource, $decodedJwt['aud']);
         $this->assertEquals($scope, $decodedJwt['scope']);
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['client_id']);
+        $this->assertArrayHasKey('email', $decodedJwt);
+        $this->assertEquals('testuser@example.com', $decodedJwt['email']);
     }
 
     public function testGenerateJwtAccessTokenException() {
@@ -308,31 +459,41 @@ class JwtGeneratorTest extends TestCase {
         $publicKey = $keyDetails['key'];
         $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
         $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
+        $kid = $this->guidv4();
 
         // Mock necessary methods
         $this->appConfig
             ->method('getAppValueString')
-            ->willReturnMap([
-                ['dynamic_client_registration', 'false', 'true'],
-                ['expire_time', Application::DEFAULT_EXPIRE_TIME, '3600'],
-                ['integrate_avatar', 'id_token'],
-                ['overwrite_email_verified', 'true'],
-                ['private_key', $privateKey],
-                ['public_key', $publicKey],
-                ['public_key_n', $modulus],
-                ['public_key_e', $exponent],
-                ['kid', $this->guidv4()],
-            ]);
+            ->willReturnCallback(function($key, $default = '') use ($privateKey, $publicKey, $modulus, $exponent, $kid) {
+                $map = [
+                    'dynamic_client_registration' => 'true',
+                    'expire_time' => '3600',
+                    'integrate_avatar' => 'id_token',
+                    'overwrite_email_verified' => 'true',
+                    'private_key' => $privateKey,
+                    'public_key' => $publicKey,
+                    'public_key_n' => $modulus,
+                    'public_key_e' => $exponent,
+                    'kid' => $kid,
+                ];
+                return $map[$key] ?? $default;
+            });
         $this->credentialsManager
             ->method('retrieve')
             ->willReturn($privateKey);
+        $mockUser = $this->createMock(IUser::class);
         $this->userManager
             ->method('get')
-            ->willReturnCallBack (
-                function ($arg) {
-                    return null;
-                }
-            );
+            ->willReturn($mockUser);
+        $mockAccount = $this->createMock(IAccount::class);
+        $mockAccountProperty = $this->createMock(IAccountProperty::class);
+        $mockAccountProperty->method('getValue')->willReturn('');
+        $mockAccount
+            ->method('getProperty')
+            ->willReturn($mockAccountProperty);
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
         $this->groupManager
             ->method('getUserGroups')
             ->willReturnCallBack (
