@@ -88,17 +88,17 @@ jobs:
           npm ci
           npm run build
 
-      - name: Checkout server ${{ steps.appinfo.outputs.info }}
-        continue-on-error: true
-        id: server-checkout
-        run: |
-          NCVERSION=${{ steps.appinfo.outputs.info }}
-          wget --quiet https://download.nextcloud.com/server/releases/latest.zip
-          unzip latest.zip
+    #   - name: Checkout server ${{ steps.appinfo.outputs.info }}
+    #     continue-on-error: true
+    #     id: server-checkout
+    #     run: |
+    #       NCVERSION=${{ steps.appinfo.outputs.info }}
+    #       wget --quiet https://download.nextcloud.com/server/releases/latest.zip
+    #       unzip latest.zip
 
       - name: Checkout server master fallback
         uses: actions/checkout@v3
-        if: ${{ steps.server-checkout.outcome != 'success' }}
+        # if: ${{ steps.server-checkout.outcome != 'success' }}
         with:
           repository: nextcloud/server
           path: nextcloud
