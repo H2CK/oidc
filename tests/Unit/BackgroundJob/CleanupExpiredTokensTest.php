@@ -14,14 +14,18 @@ use OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens;
 
 use OCP\BackgroundJob\IJobList;
 
+use ReflectionClass;
+use ReflectionException;
+
 /**
  * Basic unit test to ensure a BackgroundJob can be constructed via DI
  * and that invoking run() in normal operation does not throw.
  */
 class CleanupExpiredTokensTest extends TestCase
 {
-	protected $job;
-	/** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
+    /** @var CleanupExpiredTokens */
+    protected $job;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
@@ -37,7 +41,7 @@ class CleanupExpiredTokensTest extends TestCase
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $this->registrationTokenMapper = $this->createMock(RegistrationTokenMapper::class);
 
-		$this->job = new CleanupExpiredTokens(
+        $this->job = new CleanupExpiredTokens(
             $this->time,
             $this->accessTokenMapper,
             $this->registrationTokenMapper,
@@ -56,7 +60,7 @@ class CleanupExpiredTokensTest extends TestCase
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 
-        $reflection = new \ReflectionClass($this->job);
+        $reflection = new ReflectionClass($this->job);
         $property = $reflection->getProperty('interval');
         $property->setAccessible(true);
         $interval = $property->getValue($this->job);
@@ -68,7 +72,7 @@ class CleanupExpiredTokensTest extends TestCase
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 
-        $reflection = new \ReflectionClass($this->job);
+        $reflection = new ReflectionClass($this->job);
         $property = $reflection->getProperty('timeSensitivity');
         $property->setAccessible(true);
         $timeSensitivity = $property->getValue($this->job);

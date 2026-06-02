@@ -218,8 +218,8 @@ class JwtGenerator
             $profile = [
                 'updated_at' => $user->getLastLogin(),
             ];
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
-                $displayName = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
+            if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
+                $displayName = $account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
                 $names = $this->converter->splitFullName($displayName);
                 $profile = array_merge($profile, [
                     'name' => $displayName,
@@ -230,18 +230,18 @@ class JwtGenerator
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '' && !in_array('website', $restrictUserInformationArr) && !in_array('website', $restrictUserInformationPersonalArr)) {
+            if ($account->getProperty(IAccountManager::PROPERTY_WEBSITE)->getValue() != '' && !in_array('website', $restrictUserInformationArr) && !in_array('website', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
-                        ['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
+                        ['website' => $account->getProperty(IAccountManager::PROPERTY_WEBSITE)->getValue()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '' && !in_array('phone', $restrictUserInformationArr) && !in_array('phone', $restrictUserInformationPersonalArr)) {
+            if ($account->getProperty(IAccountManager::PROPERTY_PHONE)->getValue() != '' && !in_array('phone', $restrictUserInformationArr) && !in_array('phone', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
-                        ['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
+                        ['phone_number' => $account->getProperty(IAccountManager::PROPERTY_PHONE)->getValue()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '' && !in_array('address', $restrictUserInformationArr) && !in_array('address', $restrictUserInformationPersonalArr)) {
+            if ($account->getProperty(IAccountManager::PROPERTY_ADDRESS)->getValue() != '' && !in_array('address', $restrictUserInformationArr) && !in_array('address', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
                         ['address' =>
-                                [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
+                                [ 'formatted' => $account->getProperty(IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
             if (!in_array('avatar', $restrictUserInformationArr) && !in_array('avatar', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
@@ -263,11 +263,11 @@ class JwtGenerator
         }
 
         if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
-            $emailProperty = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL);
+            $emailProperty = $account->getProperty(IAccountManager::PROPERTY_EMAIL);
             $clientEmailRegex = $client->getEmailRegex();
             if ($clientEmailRegex !== '') {
                 $this->logger->debug('Found regex for email: ' . $clientEmailRegex);
-                $emailCollection = $account->getPropertyCollection(\OCP\Accounts\IAccountManager::COLLECTION_EMAIL);
+                $emailCollection = $account->getPropertyCollection(IAccountManager::COLLECTION_EMAIL);
                 foreach ($emailCollection->getProperties() as $emailPropertyEntry) {
                     $this->logger->debug('Performing check for mail ' . $emailPropertyEntry->getValue());
                     if (preg_match('/'.$clientEmailRegex.'/', $emailPropertyEntry->getValue())) {
@@ -283,7 +283,7 @@ class JwtGenerator
             if ($this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED) == 'true') {
                 $email = array_merge($email, ['email_verified' => true]);
             } else {
-                if ($emailProperty->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
+                if ($emailProperty->getVerified() === IAccountManager::VERIFIED) {
                     $email = array_merge($email, ['email_verified' => true]);
                 } else {
                     $email = array_merge($email, ['email_verified' => false]);
@@ -417,8 +417,8 @@ class JwtGenerator
             $profile = [
                 'updated_at' => $user->getLastLogin(),
             ];
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
-                $displayName = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
+            if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
+                $displayName = $account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
                 $names = $this->converter->splitFullName($displayName);
                 $profile = array_merge($profile, [
                     'name' => $displayName,
@@ -429,18 +429,18 @@ class JwtGenerator
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue() != '' && !in_array('website', $restrictUserInformationArr) && !in_array('website', $restrictUserInformationPersonalArr)) {
+            if ($account->getProperty(IAccountManager::PROPERTY_WEBSITE)->getValue() != '' && !in_array('website', $restrictUserInformationArr) && !in_array('website', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
-                        ['website' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_WEBSITE)->getValue()]);
+                        ['website' => $account->getProperty(IAccountManager::PROPERTY_WEBSITE)->getValue()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue() != '' && !in_array('phone', $restrictUserInformationArr) && !in_array('phone', $restrictUserInformationPersonalArr)) {
+            if ($account->getProperty(IAccountManager::PROPERTY_PHONE)->getValue() != '' && !in_array('phone', $restrictUserInformationArr) && !in_array('phone', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
-                        ['phone_number' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_PHONE)->getValue()]);
+                        ['phone_number' => $account->getProperty(IAccountManager::PROPERTY_PHONE)->getValue()]);
             }
-            if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue() != '' && !in_array('address', $restrictUserInformationArr) && !in_array('address', $restrictUserInformationPersonalArr)) {
+            if ($account->getProperty(IAccountManager::PROPERTY_ADDRESS)->getValue() != '' && !in_array('address', $restrictUserInformationArr) && !in_array('address', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
                         ['address' =>
-                                [ 'formatted' => $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
+                                [ 'formatted' => $account->getProperty(IAccountManager::PROPERTY_ADDRESS)->getValue()]]);
             }
             if (!in_array('avatar', $restrictUserInformationArr) && !in_array('avatar', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
@@ -450,11 +450,11 @@ class JwtGenerator
         }
 
         if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
-            $emailProperty = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL);
+            $emailProperty = $account->getProperty(IAccountManager::PROPERTY_EMAIL);
             $clientEmailRegex = $client->getEmailRegex();
             if ($clientEmailRegex !== '') {
                 $this->logger->debug('Found regex for email: ' . $clientEmailRegex);
-                $emailCollection = $account->getPropertyCollection(\OCP\Accounts\IAccountManager::COLLECTION_EMAIL);
+                $emailCollection = $account->getPropertyCollection(IAccountManager::COLLECTION_EMAIL);
                 foreach ($emailCollection->getProperties() as $emailPropertyEntry) {
                     $this->logger->debug('Performing check for mail ' . $emailPropertyEntry->getValue());
                     if (preg_match('/'.$clientEmailRegex.'/', $emailPropertyEntry->getValue())) {
@@ -470,7 +470,7 @@ class JwtGenerator
             if ($this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED) == 'true') {
                 $email = array_merge($email, ['email_verified' => true]);
             } else {
-                if ($emailProperty->getVerified() === \OCP\Accounts\IAccountManager::VERIFIED) {
+                if ($emailProperty->getVerified() === IAccountManager::VERIFIED) {
                     $email = array_merge($email, ['email_verified' => true]);
                 } else {
                     $email = array_merge($email, ['email_verified' => false]);

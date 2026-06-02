@@ -13,14 +13,18 @@ use OCA\OIDCIdentityProvider\BackgroundJob\CleanupGroups;
 
 use OCP\BackgroundJob\IJobList;
 
+use ReflectionClass;
+use ReflectionException;
+
 /**
  * Basic unit test to ensure a BackgroundJob can be constructed via DI
  * and that invoking run() in normal operation does not throw.
  */
 class CleanupGroupsTest extends TestCase
 {
-	protected $job;
-	/** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
+    /** @var CleanupGroups */
+    protected $job;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
@@ -33,7 +37,7 @@ class CleanupGroupsTest extends TestCase
         $this->time = $this->createMock(ITimeFactory::class);
         $this->groupMapper = $this->createMock(GroupMapper::class);
 
-		$this->job = new CleanupGroups(
+        $this->job = new CleanupGroups(
             $this->time,
             $this->groupMapper,
             $this->config
@@ -51,7 +55,7 @@ class CleanupGroupsTest extends TestCase
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 
-        $reflection = new \ReflectionClass($this->job);
+        $reflection = new ReflectionClass($this->job);
         $property = $reflection->getProperty('interval');
         $property->setAccessible(true);
         $interval = $property->getValue($this->job);
@@ -63,7 +67,7 @@ class CleanupGroupsTest extends TestCase
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 
-        $reflection = new \ReflectionClass($this->job);
+        $reflection = new ReflectionClass($this->job);
         $property = $reflection->getProperty('timeSensitivity');
         $property->setAccessible(true);
         $timeSensitivity = $property->getValue($this->job);

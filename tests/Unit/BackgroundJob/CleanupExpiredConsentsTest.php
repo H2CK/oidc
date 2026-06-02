@@ -14,14 +14,18 @@ use OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredConsents;
 
 use OCP\BackgroundJob\IJobList;
 
+use ReflectionClass;
+use ReflectionException;
+
 /**
  * Basic unit test to ensure a BackgroundJob can be constructed via DI
  * and that invoking run() in normal operation does not throw.
  */
 class CleanupExpiredConsentsTest extends TestCase
 {
-	protected $job;
-	/** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
+    /** @var CleanupExpiredConsents */
+    protected $job;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
@@ -34,7 +38,7 @@ class CleanupExpiredConsentsTest extends TestCase
         $this->time = $this->createMock(ITimeFactory::class);
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
 
-		$this->job = new CleanupExpiredConsents(
+        $this->job = new CleanupExpiredConsents(
             $this->time,
             $this->userConsentMapper,
             $this->config
@@ -52,7 +56,7 @@ class CleanupExpiredConsentsTest extends TestCase
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 
-        $reflection = new \ReflectionClass($this->job);
+        $reflection = new ReflectionClass($this->job);
         $property = $reflection->getProperty('interval');
         $property->setAccessible(true);
         $interval = $property->getValue($this->job);
@@ -64,7 +68,7 @@ class CleanupExpiredConsentsTest extends TestCase
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 
-        $reflection = new \ReflectionClass($this->job);
+        $reflection = new ReflectionClass($this->job);
         $property = $reflection->getProperty('timeSensitivity');
         $property->setAccessible(true);
         $timeSensitivity = $property->getValue($this->job);

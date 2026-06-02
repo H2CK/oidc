@@ -52,6 +52,7 @@ use Psr\Log\LoggerInterface;
 use OCP\EventDispatcher\IEventDispatcher;
 
 class JwtGeneratorTest extends TestCase {
+        /** @var JwtGenerator */
         protected $generator;
         /** @var \PHPUnit\Framework\MockObject\MockObject|ICrypto */
         private $crypto;
@@ -85,8 +86,6 @@ class JwtGeneratorTest extends TestCase {
         private $credentialService;
         /** @var LoggerInterface */
         private $logger;
-        /** @var Converter */
-        private $converter;
         /** @var IEventDispatcher */
         private $eventDispatcher;
         /** @var IDBConnection */
@@ -115,10 +114,10 @@ class JwtGeneratorTest extends TestCase {
         $reflection = new \ReflectionClass(RedirectUriMapper::class);
         $constructor = $reflection->getConstructor();
         $constructor->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
-        
+
         // avoid the circular constructor dependency by creating one mock without running its constructor
         $this->clientMapper = $this->createMock(ClientMapper::class);
-        
+
         // now construct the customClaimMapper with the clientMapper mock
         // Create customClaimMapper mock and call constructor with arguments
         $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
@@ -139,7 +138,6 @@ class JwtGeneratorTest extends TestCase {
             $this->appConfig,
             $this->logger
         );
-        $this->converter = Server::get(Converter::class);
         $this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 
         $this->generator = new JwtGenerator(
@@ -155,8 +153,7 @@ class JwtGeneratorTest extends TestCase {
             $this->config,
             $this->customClaimService,
             $this->credentialService,
-            $this->logger,
-            $this->converter
+            $this->logger
         );
     }
 
@@ -222,7 +219,7 @@ class JwtGeneratorTest extends TestCase {
         $mockAccount
             ->method('getProperty')
             ->willReturnCallback(function($prop) use ($mockEmailProperty, $mockAccountProperty) {
-                if ($prop === \OCP\Accounts\IAccountManager::PROPERTY_EMAIL) {
+                if ($prop === IAccountManager::PROPERTY_EMAIL) {
                     return $mockEmailProperty;
                 }
                 return $mockAccountProperty;
@@ -375,7 +372,7 @@ class JwtGeneratorTest extends TestCase {
         $mockAccount
             ->method('getProperty')
             ->willReturnCallback(function($prop) use ($mockEmailProperty, $mockAccountProperty) {
-                if ($prop === \OCP\Accounts\IAccountManager::PROPERTY_EMAIL) {
+                if ($prop === IAccountManager::PROPERTY_EMAIL) {
                     return $mockEmailProperty;
                 }
                 return $mockAccountProperty;
@@ -431,8 +428,6 @@ class JwtGeneratorTest extends TestCase {
 
         $decodedStdClass = JWT::decode($result, JWK::parseKeySet($jwks));
         $decodedJwt = (array) $decodedStdClass;
-
-        //var_dump($decodedJwt);
 
         // Test if decoded JWT contains necessary values
         $this->assertEquals($protocol . "://" . $issuer, $decodedJwt['iss']);
@@ -497,8 +492,8 @@ class JwtGeneratorTest extends TestCase {
             ->willReturn($mockAccount);
         $this->groupManager
             ->method('getUserGroups')
-            ->willReturnCallBack (
-                function ($arg) {
+            ->willReturnCallback(
+                function () {
                     $groupsArr = [];
                     for ($i=0; $i < 65535; $i++) {
                         $groupName = 'group' . $i;
@@ -554,8 +549,7 @@ class JwtGeneratorTest extends TestCase {
             ],
         ];
 
-        $decodedStdClass = JWT::decode($result, JWK::parseKeySet($jwks));
-        $decodedJwt = (array) $decodedStdClass;
+        JWT::decode($result, JWK::parseKeySet($jwks));
     }
 
     private function guidv4($data = null)
