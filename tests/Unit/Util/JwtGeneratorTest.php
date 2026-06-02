@@ -39,6 +39,7 @@ use OCP\Group\ISubAdmin;
 use OCP\Server;
 use OCP\IURLGenerator;
 use OCP\Security\ICredentialsManager;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -76,6 +77,8 @@ class JwtGeneratorTest extends TestCase {
         private $urlGenerator;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
         private $appConfig;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IUserConfig */
+        private $userConfig;
         /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
         private $config;
         /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimMapper  */
@@ -107,6 +110,7 @@ class JwtGeneratorTest extends TestCase {
         $this->accountManager = $this->createMock(IAccountManager::class);
         $this->urlGenerator = $this->createMock(IURLGenerator::class);
         $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->userConfig = $this->createMock(IUserConfig::class);
         $this->config = $this->createMock(IConfig::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         // Create redirectUriMapper mock and call constructor with arguments
@@ -150,6 +154,7 @@ class JwtGeneratorTest extends TestCase {
             $this->accountManager,
             $this->urlGenerator,
             $this->appConfig,
+            $this->userConfig,
             $this->config,
             $this->customClaimService,
             $this->credentialService,

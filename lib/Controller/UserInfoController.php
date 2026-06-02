@@ -29,6 +29,7 @@ use OCP\IUserManager;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\Server;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
@@ -57,6 +58,8 @@ class UserInfoController extends ApiController
     private $accountManager;
     /** @var IAppConfig */
     private $appConfig;
+    /** @var IUserConfig */
+    private $userConfig;
     /** @var IConfig */
     private $config;
     /** @var CustomClaimService */
@@ -80,6 +83,7 @@ class UserInfoController extends ApiController
                     IGroupManager $groupManager,
                     IAccountManager $accountManager,
                     IAppConfig $appConfig,
+                    IUserConfig $userConfig,
                     IConfig $config,
                     CustomClaimService $customClaimService,
                     LoggerInterface $logger
@@ -94,6 +98,7 @@ class UserInfoController extends ApiController
         $this->groupManager = $groupManager;
         $this->accountManager = $accountManager;
         $this->appConfig = $appConfig;
+        $this->userConfig = $userConfig;
         $this->config = $config;
         $this->customClaimService = $customClaimService;
         $this->logger = $logger;
@@ -249,7 +254,7 @@ class UserInfoController extends ApiController
         $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         $restrictUserInformationPersonalArr = [ Application::DEFAULT_ALLOW_USER_SETTINGS ];
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS) != Application::DEFAULT_ALLOW_USER_SETTINGS) {
-            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->config->getUserValue($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
         if (in_array("profile", $scopeArray)) {
             $profile = [

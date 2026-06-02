@@ -11,6 +11,7 @@ namespace OCA\OIDCIdentityProvider\Settings;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Settings\ISettings;
@@ -22,6 +23,9 @@ class Personal implements ISettings {
 
     /** @var IAppConfig */
     private $appConfig;
+
+    /** @var IUserConfig */
+    private $userConfig;
 
     /** @var IConfig */
     private $config;
@@ -37,11 +41,13 @@ class Personal implements ISettings {
     public function __construct(
         IInitialState $initialState,
         IAppConfig $appConfig,
+        IUserConfig $userConfig,
         IConfig $config,
         IUserSession $userSession
     ) {
         $this->initialState = $initialState;
         $this->appConfig = $appConfig;
+        $this->userConfig = $userConfig;
         $this->config = $config;
         $this->userSession = $userSession;
     }
@@ -58,7 +64,7 @@ class Personal implements ISettings {
         $this->initialState->provideInitialState(
             'allowUserSettings', $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS));
         $this->initialState->provideInitialState(
-            'restrictUserInformation', $this->config->getUserValue($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION));
+            'restrictUserInformation', $this->userConfig->getValueString($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION));
 
         return new TemplateResponse(Application::APP_ID, 'personal', $parameters);
     }

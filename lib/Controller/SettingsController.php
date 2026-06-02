@@ -27,6 +27,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IGroup;
@@ -56,6 +57,8 @@ class SettingsController extends Controller
     private $userSession;
     /** @var IAppConfig */
     private $appConfig;
+    /** @var IUserConfig */
+    private $userConfig;
     /** @var IConfig */
     private $config;
     /** @var LoggerInterface */
@@ -79,6 +82,7 @@ class SettingsController extends Controller
                     IL10N $l,
                     IUserSession $userSession,
                     IAppConfig $appConfig,
+                    IUserConfig $userConfig,
                     IConfig $config,
                     CredentialService $credentialService,
                     LoggerInterface $logger
@@ -95,6 +99,7 @@ class SettingsController extends Controller
         $this->l = $l;
         $this->userSession =$userSession;
         $this->appConfig = $appConfig;
+        $this->userConfig = $userConfig;
         $this->config =$config;
         $this->credentialService = $credentialService;
         $this->logger = $logger;
@@ -667,9 +672,9 @@ class SettingsController extends Controller
         if ($resultRestrictUserInformation === '') {
             $resultRestrictUserInformation = Application::DEFAULT_RESTRICT_USER_INFORMATION;
         }
-        $this->config->setUserValue($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, $resultRestrictUserInformation);
+        $this->userConfig->setValueString($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, $resultRestrictUserInformation);
         $result = [
-            'restrict_user_information' =>  $this->config->getUserValue($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION),
+            'restrict_user_information' =>  $this->userConfig->getValueString($userId, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION),
         ];
         return new JSONResponse($result);
     }

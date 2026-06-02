@@ -10,6 +10,7 @@ use OCP\IL10N;
 use OCP\IGroupManager;
 use OCP\IDBConnection;
 use OCP\IUserSession;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -57,6 +58,8 @@ class SettingsControllerTest extends TestCase {
     private $userSession;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     private $appConfig;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IUserConfig */
+    private $userConfig;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
     /** @var LoggerInterface */
@@ -78,6 +81,7 @@ class SettingsControllerTest extends TestCase {
         $this->request = $this->createMock(IRequest::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->userConfig = $this->createMock(IUserConfig::class);
         $this->config = $this->createMock(IConfig::class);
         $this->userSession = $this->createMock(IUserSession::class);
         $this->secureRandom = $this->createMock(ISecureRandom::class);
@@ -142,6 +146,7 @@ class SettingsControllerTest extends TestCase {
             $this->l,
             $this->userSession,
             $this->appConfig,
+            $this->userConfig,
             $this->config,
             $this->credentialService,
             $this->logger

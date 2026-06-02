@@ -26,6 +26,7 @@ use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\Server;
 use OCP\IURLGenerator;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Services\IAppConfig;
@@ -56,6 +57,8 @@ class JwtGenerator
     private $urlGenerator;
     /** @var IAppConfig */
     private $appConfig;
+    /** @var IUserConfig */
+    private $userConfig;
     /** @var IConfig */
     private $config;
     /** @var LoggerInterface */
@@ -81,6 +84,7 @@ class JwtGenerator
                     IAccountManager $accountManager,
                     IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
+                    IUserConfig $userConfig,
                     IConfig $config,
                     CustomClaimService $customClaimService,
                     CredentialService $credentialService,
@@ -95,6 +99,7 @@ class JwtGenerator
         $this->accountManager = $accountManager;
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
+        $this->userConfig = $userConfig;
         $this->config = $config;
         $this->customClaimService = $customClaimService;
         $this->credentialService = $credentialService;
@@ -211,7 +216,7 @@ class JwtGenerator
         $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         $restrictUserInformationPersonalArr = [ Application::DEFAULT_ALLOW_USER_SETTINGS ];
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS) != Application::DEFAULT_ALLOW_USER_SETTINGS) {
-            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->config->getUserValue($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
 
         if (in_array("profile", $scopeArray)) {
@@ -410,7 +415,7 @@ class JwtGenerator
         $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         $restrictUserInformationPersonalArr = [ Application::DEFAULT_ALLOW_USER_SETTINGS ];
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS) != Application::DEFAULT_ALLOW_USER_SETTINGS) {
-            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->config->getUserValue($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
+            $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
 
         if (in_array("profile", $scopeArray)) {
