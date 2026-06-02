@@ -476,4 +476,313 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
         $this->assertEquals('invalid_request', $responseData['error'], 'Error should be invalid_request');
     }
+
+    /**
+     * Generate PKCE code challenge and verifier
+     */
+    private function generatePKCEChallenge(string $method = 'S256'): array
+    {
+        // Generate code verifier: 43-128 unreserved characters
+        $codeVerifier = $this->secureRandom->generate(128, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~');
+        
+        if ($method === 'S256') {
+            // S256: code_challenge = BASE64URL(SHA256(code_verifier))
+            $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+        } else {
+            // plain: code_challenge = code_verifier
+            $codeChallenge = $codeVerifier;
+        }
+        
+        return [
+            'code_verifier' => $codeVerifier,
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => $method
+        ];
+    }
+
+    /**
+     * Create access token with PKCE parameters
+     */
+    private function createAccessTokenWithPKCE(Client $client, \OCP\IUser $user, string $codeChallenge, string $codeChallengeMethod, string $scope = 'openid profile email'): array
+    {
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user->getUID());
+        $accessToken->setScope($scope);
+        
+        // Generate authorization code
+        $rawCode = $this->secureRandom->generate(64, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+        $hashedCode = hash('sha512', $rawCode);
+        $accessToken->setHashedCode($hashedCode);
+        
+        // Store PKCE parameters
+        $accessToken->setCodeChallenge($codeChallenge);
+        $accessToken->setCodeChallengeMethod($codeChallengeMethod);
+        
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('test-nonce-' . $this->secureRandom->generate(16));
+        
+        $insertedToken = $this->accessTokenMapper->insert($accessToken);
+        
+        return ['token' => $insertedToken, 'rawCode' => $rawCode];
+    }
+
+    /**
+     * Test code flow with PKCE using S256 (recommended)
+     */
+    public function testOIDCCodeFlowWithPKCES256(): void
+    {
+        // Step 1: Create test client, user
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        // Step 2: Generate PKCE challenge and verifier
+        $pkce = $this->generatePKCEChallenge('S256');
+        $codeChallenge = $pkce['code_challenge'];
+        $codeChallengeMethod = $pkce['code_challenge_method'];
+        $codeVerifier = $pkce['code_verifier'];
+
+        // Step 3: Create authorization code with PKCE parameters
+        $tokenResult = $this->createAccessTokenWithPKCE($client, $user, $codeChallenge, $codeChallengeMethod);
+        $accessToken = $tokenResult['token'];
+        $rawCode = $tokenResult['rawCode'];
+
+        // Verify PKCE parameters are stored
+        $this->assertEquals($codeChallenge, $accessToken->getCodeChallenge(), 'Code challenge not stored correctly');
+        $this->assertEquals('S256', $accessToken->getCodeChallengeMethod(), 'Code challenge method should be S256');
+
+        // Step 4: Exchange authorization code for tokens, providing code_verifier
+        $response = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            $codeVerifier  // PKCE code_verifier
+        );
+
+        // Verify successful token response
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        $this->assertEquals(200, $response->getStatus(), 'Token endpoint should accept valid PKCE code_verifier');
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('access_token', $responseData, 'Response missing access_token');
+        $this->assertArrayHasKey('id_token', $responseData, 'Response missing id_token');
+        $this->assertNotEmpty($responseData['access_token'], 'Access token is empty');
+    }
+
+    /**
+     * Test code flow with PKCE using plain method
+     */
+    public function testOIDCCodeFlowWithPKCEPlain(): void
+    {
+        // Step 1: Create test client, user
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        // Step 2: Generate PKCE challenge and verifier (plain method)
+        $pkce = $this->generatePKCEChallenge('plain');
+        $codeChallenge = $pkce['code_challenge'];
+        $codeChallengeMethod = $pkce['code_challenge_method'];
+        $codeVerifier = $pkce['code_verifier'];
+
+        // Verify plain method: verifier and challenge should be identical
+        $this->assertEquals($codeVerifier, $codeChallenge, 'Plain method should have identical verifier and challenge');
+
+        // Step 3: Create authorization code with PKCE parameters
+        $tokenResult = $this->createAccessTokenWithPKCE($client, $user, $codeChallenge, $codeChallengeMethod);
+        $rawCode = $tokenResult['rawCode'];
+
+        // Step 4: Exchange authorization code for tokens with PKCE verifier
+        $response = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            $codeVerifier  // PKCE code_verifier
+        );
+
+        // Verify successful token response
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        $this->assertEquals(200, $response->getStatus(), 'Token endpoint should accept valid PKCE plain verifier');
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('access_token', $responseData, 'Response missing access_token');
+        $this->assertNotEmpty($responseData['access_token'], 'Access token is empty');
+    }
+
+    /**
+     * Test code flow without PKCE (optional for confidential clients)
+     */
+    public function testOIDCCodeFlowWithoutPKCE(): void
+    {
+        // Step 1: Create test client, user
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        // Step 2: Create authorization code WITHOUT PKCE parameters
+        $tokenResult = $this->createAccessToken($client, $user);
+        $accessToken = $tokenResult['token'];
+        $rawCode = $tokenResult['rawCode'];
+
+        // Verify no PKCE parameters are stored
+        $this->assertNull($accessToken->getCodeChallenge(), 'Code challenge should be null without PKCE');
+        $this->assertNull($accessToken->getCodeChallengeMethod(), 'Code challenge method should be null without PKCE');
+
+        // Step 3: Exchange authorization code WITHOUT PKCE verifier (should still work for confidential clients)
+        $response = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            null  // No code_verifier for non-PKCE flow
+        );
+
+        // Verify successful token response
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        $this->assertEquals(200, $response->getStatus(), 'Token endpoint should accept code flow without PKCE');
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('access_token', $responseData, 'Response missing access_token');
+        $this->assertNotEmpty($responseData['access_token'], 'Access token is empty');
+    }
+
+    /**
+     * Test PKCE with mismatched code verifier (security test)
+     */
+    public function testOIDCCodeFlowWithInvalidPKCEVerifier(): void
+    {
+        // Step 1: Create test client, user
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        // Step 2: Generate PKCE challenge and verifier
+        $pkce = $this->generatePKCEChallenge('S256');
+        $codeChallenge = $pkce['code_challenge'];
+        $codeChallengeMethod = $pkce['code_challenge_method'];
+
+        // Step 3: Create authorization code with valid PKCE parameters
+        $tokenResult = $this->createAccessTokenWithPKCE($client, $user, $codeChallenge, $codeChallengeMethod);
+        $rawCode = $tokenResult['rawCode'];
+
+        // Step 4: Try to exchange with WRONG code_verifier
+        $wrongCodeVerifier = $this->secureRandom->generate(128, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~');
+        
+        $response = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            $wrongCodeVerifier  // Wrong PKCE verifier
+        );
+
+        // Verify error response (invalid_grant is appropriate for PKCE mismatch)
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        // Should be 400 or 401 for invalid PKCE
+        $this->assertThat(
+            $response->getStatus(),
+            $this->logicalOr($this->equalTo(400), $this->equalTo(401)),
+            'Token endpoint should reject mismatched PKCE verifier'
+        );
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
+    }
+
+    /**
+     * Test PKCE with missing code verifier when required
+     */
+    public function testOIDCCodeFlowWithMissingPKCEVerifier(): void
+    {
+        // Step 1: Create test client, user
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        // Step 2: Generate PKCE challenge and verifier
+        $pkce = $this->generatePKCEChallenge('S256');
+        $codeChallenge = $pkce['code_challenge'];
+        $codeChallengeMethod = $pkce['code_challenge_method'];
+
+        // Step 3: Create authorization code with PKCE parameters
+        $tokenResult = $this->createAccessTokenWithPKCE($client, $user, $codeChallenge, $codeChallengeMethod);
+        $rawCode = $tokenResult['rawCode'];
+
+        // Step 4: Try to exchange WITHOUT providing code_verifier
+        $response = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            null  // Missing code_verifier
+        );
+
+        // Verify error response - should reject because PKCE was required
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        $this->assertThat(
+            $response->getStatus(),
+            $this->logicalOr($this->equalTo(400), $this->equalTo(401)),
+            'Token endpoint should reject missing PKCE verifier when PKCE was used'
+        );
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
+    }
+
+    /**
+     * Test complete code flow with PKCE and user info retrieval
+     */
+    public function testOIDCCodeFlowWithPKCEAndUserInfo(): void
+    {
+        // Step 1: Create test client and user
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        // Step 2: Generate PKCE challenge
+        $pkce = $this->generatePKCEChallenge('S256');
+        $codeChallenge = $pkce['code_challenge'];
+        $codeChallengeMethod = $pkce['code_challenge_method'];
+        $codeVerifier = $pkce['code_verifier'];
+
+        // Step 3: Create authorization code with PKCE
+        $scope = 'openid profile email';
+        $tokenResult = $this->createAccessTokenWithPKCE($client, $user, $codeChallenge, $codeChallengeMethod, $scope);
+        $rawCode = $tokenResult['rawCode'];
+
+        // Step 4: Exchange code for tokens with PKCE verifier
+        $response = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            $codeVerifier
+        );
+
+        $this->assertEquals(200, $response->getStatus(), 'Token exchange with PKCE should succeed');
+
+        $responseData = $response->getData();
+        $accessTokenString = $responseData['access_token'];
+
+        // Step 5: Use access token to retrieve user info
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $accessTokenString;
+        $this->request->server['HTTP_AUTHORIZATION'] = 'Bearer ' . $accessTokenString;
+
+        $userInfoResponse = $this->userInfoController->getInfo();
+
+        // Verify user info response
+        $this->assertEquals(200, $userInfoResponse->getStatus(), 'UserInfo endpoint should return 200');
+
+        $userInfoData = $userInfoResponse->getData();
+        
+        // Verify user info claims
+        $this->assertArrayHasKey('sub', $userInfoData, 'UserInfo missing sub claim');
+        $this->assertEquals($this->testUserId, $userInfoData['sub'], 'Sub claim should match user ID');
+        $this->assertArrayHasKey('scope', $userInfoData, 'UserInfo missing scope claim');
+        $this->assertStringContainsString('openid', $userInfoData['scope'], 'Scope should contain openid');
+    }
 }
