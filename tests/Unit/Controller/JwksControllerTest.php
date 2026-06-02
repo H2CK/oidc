@@ -44,20 +44,23 @@ class JwksControllerTest extends TestCase {
     private $bruteforceAllowList;
 
     public function setUp(): void {
-        $this->request = $this->getMockBuilder(IRequest::class)->getMock();
-        $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->throttlerBackend = $this->getMockBuilder(IBackend::class)->getMock();
-        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
-        $this->bruteforceAllowList = new BruteforceAllowList($this->getMockBuilder(\OCP\IAppConfig::class)->getMock(), new Factory());
-        $this->throttler = $this->getMockBuilder(Throttler::class)->setConstructorArgs([$this->time,
-                                                                                        $this->logger,
-                                                                                        $this->config,
-                                                                                        $this->throttlerBackend,
-                                                                                        $this->bruteforceAllowList])->getMock();
-        $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+        $this->request = $this->createMock(IRequest::class);
+        $this->time = $this->createMock(ITimeFactory::class);
+        $this->db = $this->createMock(IDBConnection::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->throttlerBackend = $this->createMock(IBackend::class);
+        $this->config = $this->createMock(IConfig::class);
+        $appConfigMock = $this->createMock(\OCP\IAppConfig::class);
+        $this->bruteforceAllowList = new BruteforceAllowList($appConfigMock, new Factory());
+        
+        // Create throttler with constructor arguments
+        $this->throttler = $this->createMock(Throttler::class);
+        $reflection = new \ReflectionClass(Throttler::class);
+        $constructor = $reflection->getConstructor();
+        $constructor->invoke($this->throttler, $this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList);
+        
+        $this->urlGenerator = $this->createMock(IURLGenerator::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
         $this->controller = new JwksController(
             'oidc',
             $this->request,

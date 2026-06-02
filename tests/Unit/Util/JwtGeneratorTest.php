@@ -97,33 +97,34 @@ class JwtGeneratorTest extends TestCase {
         private $clientMapper;
 
     public function setUp(): void {
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-        $this->crypto = $this->getMockBuilder(ICrypto::class)->getMock();
+        $this->db = $this->createMock(IDBConnection::class);
+        $this->crypto = $this->createMock(ICrypto::class);
         $this->tokenProvider = Server::get(TokenProvider::class);
         $this->secureRandom = Server::get(SecureRandom::class);
         $this->time = Server::get(TimeFactory::class);
-        $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
-        $this->groupManager = $this->getMockBuilder(IGroupManager::class)->getMock();
+        $this->userManager = $this->createMock(IUserManager::class);
+        $this->groupManager = $this->createMock(IGroupManager::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
-        $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
-        $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig])->getMock();
+        $this->accountManager = $this->createMock(IAccountManager::class);
+        $this->urlGenerator = $this->createMock(IURLGenerator::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->config = $this->createMock(IConfig::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        // Create redirectUriMapper mock and call constructor with arguments
+        $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
+        $reflection = new \ReflectionClass(RedirectUriMapper::class);
+        $constructor = $reflection->getConstructor();
+        $constructor->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
+        
         // avoid the circular constructor dependency by creating one mock without running its constructor
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->clientMapper = $this->createMock(ClientMapper::class);
+        
         // now construct the customClaimMapper with the clientMapper mock
-        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
-            ->setConstructorArgs([
-                $this->db,
-                $this->logger
-            ])->getMock();
+        // Create customClaimMapper mock and call constructor with arguments
+        $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
+        $reflection2 = new \ReflectionClass(CustomClaimMapper::class);
+        $constructor2 = $reflection2->getConstructor();
+        $constructor2->invoke($this->customClaimMapper, $this->db, $this->logger);
         $this->customClaimService = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
@@ -132,14 +133,14 @@ class JwtGeneratorTest extends TestCase {
             $this->accountManager,
             $this->logger
         );
-        $this->credentialsManager = $this->getMockBuilder(ICredentialsManager::class)->getMock();
+        $this->credentialsManager = $this->createMock(ICredentialsManager::class);
         $this->credentialService = new CredentialService(
             $this->credentialsManager,
             $this->appConfig,
             $this->logger
         );
         $this->converter = Server::get(Converter::class);
-        $this->eventDispatcher = $this->getMockBuilder(IEventDispatcher::class)->getMock();
+        $this->eventDispatcher = $this->createMock(IEventDispatcher::class);
 
         $this->generator = new JwtGenerator(
             $this->crypto,

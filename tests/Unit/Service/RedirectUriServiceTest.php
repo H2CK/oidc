@@ -16,7 +16,7 @@ class RedirectUriServiceTest extends TestCase {
         private $logger;
 
     public function setUp(): void {
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         $this->service = new RedirectUriService(
             $this->logger

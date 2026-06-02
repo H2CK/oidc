@@ -40,18 +40,20 @@ class IntrospectionControllerTest extends TestCase {
 
     public function setUp(): void {
         parent::setUp();
-        $this->request = $this->getMockBuilder(IRequest::class)->getMock();
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-        $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-        $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
-        $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)
-            ->setConstructorArgs([$this->db, $this->time, $this->appConfig])
-            ->getMock();
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->request = $this->createMock(IRequest::class);
+        $this->db = $this->createMock(IDBConnection::class);
+        $this->time = $this->createMock(ITimeFactory::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->userManager = $this->createMock(IUserManager::class);
+        
+        // Create accessTokenMapper with constructor arguments
+        $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
+        $reflection = new \ReflectionClass(AccessTokenMapper::class);
+        $constructor = $reflection->getConstructor();
+        $constructor->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
+        
+        $this->clientMapper = $this->createMock(ClientMapper::class);
 
         $this->controller = new IntrospectionController(
             'oidc',
@@ -195,7 +197,7 @@ class IntrospectionControllerTest extends TestCase {
             ->willReturn(1000500); // Within expiration window
 
         // Mock user
-        $user = $this->getMockBuilder(IUser::class)->getMock();
+        $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -257,7 +259,7 @@ class IntrospectionControllerTest extends TestCase {
             ->willReturn(1000500);
 
         // Mock user
-        $user = $this->getMockBuilder(IUser::class)->getMock();
+        $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -314,7 +316,7 @@ class IntrospectionControllerTest extends TestCase {
             ->willReturn(1000500);
 
         // Mock user
-        $user = $this->getMockBuilder(IUser::class)->getMock();
+        $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager

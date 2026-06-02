@@ -55,26 +55,30 @@ class CustomClaimServiceTest extends TestCase {
         private $clientMapper;
 
     public function setUp(): void {
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
+        $this->db = $this->createMock(IDBConnection::class);
         $this->time = Server::get(TimeFactory::class);
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
+        $this->appConfig = $this->createMock(IAppConfig::class);
         $this->secureRandom = Server::get(SecureRandom::class);
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig])->getMock();
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->logger
-            ])->getMock();
-        $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
-        $this->groupManager = $this->getMockBuilder(IGroupManager::class)->getMock();
+        $this->logger = $this->createMock(LoggerInterface::class);
+        
+        // Create redirectUriMapper with constructor arguments
+        $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
+        $reflection1 = new \ReflectionClass(RedirectUriMapper::class);
+        $constructor1 = $reflection1->getConstructor();
+        $constructor1->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
+        
+        $this->clientMapper = $this->createMock(ClientMapper::class);
+        
+        // Create customClaimMapper with constructor arguments
+        $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
+        $reflection2 = new \ReflectionClass(CustomClaimMapper::class);
+        $constructor2 = $reflection2->getConstructor();
+        $constructor2->invoke($this->customClaimMapper, $this->db, $this->logger);
+        
+        $this->userManager = $this->createMock(IUserManager::class);
+        $this->groupManager = $this->createMock(IGroupManager::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
-        $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
+        $this->accountManager = $this->createMock(IAccountManager::class);
         $this->service = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
@@ -114,7 +118,7 @@ class CustomClaimServiceTest extends TestCase {
             ->method('get')
             ->willReturnCallback(
                 function () {
-                    $mockUser = $this->getMockBuilder(IUser::class)->getMock();
+                    $mockUser = $this->createMock(IUser::class);
                     $mockUser->method('getUID')->willReturn('testuser');
                     return $mockUser;
                 }
@@ -137,7 +141,7 @@ class CustomClaimServiceTest extends TestCase {
             );
 
         // Mock for isGroupAdmin
-        $mockGroup = $this->getMockBuilder(IGroup::class)->getMock();
+        $mockGroup = $this->createMock(IGroup::class);
         $mockGroup->method('getGID')->willReturn('TestGroup');
 
         $this->groupManager

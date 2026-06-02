@@ -49,21 +49,17 @@ class ConsentControllerTest extends TestCase {
     public function setUp(): void {
         parent::setUp();
 
-        $this->request = $this->getMockBuilder(IRequest::class)->getMock();
-        $this->session = $this->getMockBuilder(ISession::class)->getMock();
-        $this->userSession = $this->getMockBuilder(IUserSession::class)->getMock();
-        $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
-        $this->userConsentMapper = $this->getMockBuilder(UserConsentMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
-        $this->l = $this->getMockBuilder(IL10N::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->user = $this->getMockBuilder(IUser::class)->getMock();
+        $this->request = $this->createMock(IRequest::class);
+        $this->session = $this->createMock(ISession::class);
+        $this->userSession = $this->createMock(IUserSession::class);
+        $this->urlGenerator = $this->createMock(IURLGenerator::class);
+        $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
+        $this->clientMapper = $this->createMock(ClientMapper::class);
+        $this->time = $this->createMock(ITimeFactory::class);
+        $this->l = $this->createMock(IL10N::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->user = $this->createMock(IUser::class);
 
         $this->l->method('t')->willReturnCallback(function ($text) {
             return $text;

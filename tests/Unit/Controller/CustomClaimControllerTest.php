@@ -53,30 +53,30 @@ class CustomClaimControllerTest extends TestCase {
     private $client;
 
     public function setUp(): void {
-        $this->request = $this->getMockBuilder(IRequest::class)->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
-        $this->userSession = $this->getMockBuilder(IUserSession::class)->getMock();
-        $this->secureRandom = $this->getMockBuilder(ISecureRandom::class)->getMock();
-        $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-        $this->l = $this->getMockBuilder(IL10N::class)->getMock();
-        $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig])->getMock();
-        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig,
-            $this->redirectUriMapper,
-            $this->customClaimMapper,
-            $this->secureRandom,
-            $this->logger])->getMock();
+        $this->request = $this->createMock(IRequest::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->config = $this->createMock(IConfig::class);
+        $this->userSession = $this->createMock(IUserSession::class);
+        $this->secureRandom = $this->createMock(ISecureRandom::class);
+        $this->time = $this->createMock(ITimeFactory::class);
+        $this->db = $this->createMock(IDBConnection::class);
+        $this->l = $this->createMock(IL10N::class);
+        
+        // Create redirectUriMapper with constructor arguments
+        $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
+        $reflection1 = new \ReflectionClass(RedirectUriMapper::class);
+        $constructor1 = $reflection1->getConstructor();
+        $constructor1->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
+        
+        // Create customClaimMapper without constructor
+        $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
+        
+        // Create clientMapper with constructor arguments
+        $this->clientMapper = $this->createMock(ClientMapper::class);
+        $reflection2 = new \ReflectionClass(ClientMapper::class);
+        $constructor2 = $reflection2->getConstructor();
+        $constructor2->invoke($this->clientMapper, $this->db, $this->time, $this->appConfig, $this->redirectUriMapper, $this->customClaimMapper, $this->secureRandom, $this->logger);
 
         $this->controller = new CustomClaimController(
             'oidc',

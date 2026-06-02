@@ -52,27 +52,27 @@ class CleanupExpiredClientsTest extends TestCase
 
     public function setUp(): void
     {
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-		$this->config = $this->getMockBuilder(IConfig::class)->getMock();
-        $this->secureRandom = $this->getMockBuilder(ISecureRandom::class)->getMock();
-        $this->time = $this->getMockBuilder(ITimeFactory::class)->getMock();
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-        $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig])->getMock();
-        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig,
-            $this->redirectUriMapper,
-            $this->customClaimMapper,
-            $this->secureRandom,
-            $this->logger])->getMock();
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+		$this->config = $this->createMock(IConfig::class);
+        $this->secureRandom = $this->createMock(ISecureRandom::class);
+        $this->time = $this->createMock(ITimeFactory::class);
+        $this->db = $this->createMock(IDBConnection::class);
+        
+        // Create redirectUriMapper with constructor arguments
+        $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
+        $reflection1 = new \ReflectionClass(RedirectUriMapper::class);
+        $constructor1 = $reflection1->getConstructor();
+        $constructor1->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
+        
+        // Create customClaimMapper without constructor
+        $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
+        
+        // Create clientMapper with constructor arguments
+        $this->clientMapper = $this->createMock(ClientMapper::class);
+        $reflection2 = new \ReflectionClass(ClientMapper::class);
+        $constructor2 = $reflection2->getConstructor();
+        $constructor2->invoke($this->clientMapper, $this->db, $this->time, $this->appConfig, $this->redirectUriMapper, $this->customClaimMapper, $this->secureRandom, $this->logger);
 
 		$this->job = new CleanupExpiredClients(
             $this->time,
@@ -82,7 +82,7 @@ class CleanupExpiredClientsTest extends TestCase
     }
 
     public function testJobRunsSuccessfully() {
-        $jobList = $this->getMockBuilder(\OCP\BackgroundJob\IJobList::class)->getMock();
+        $jobList = $this->createMock(\OCP\BackgroundJob\IJobList::class);
         $this->job->start($jobList);
 
         // Assertions je nach Funktionalität

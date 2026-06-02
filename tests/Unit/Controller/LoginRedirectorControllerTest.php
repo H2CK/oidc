@@ -105,49 +105,51 @@ class LoginRedirectorControllerTest extends TestCase {
     private $client;
 
     public function setUp(): void {
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
-        $this->request = $this->getMockBuilder(IRequest::class)->getMock();
-        $this->urlGenerator = $this->getMockBuilder(IURLGenerator::class)->getMock();
-        $this->crypto = $this->getMockBuilder(ICrypto::class)->getMock();
-        $this->logger = $this->getMockBuilder(LoggerInterface::class)->getMock();
-        $this->appConfig = $this->getMockBuilder(IAppConfig::class)->getMock();
-        $this->config = $this->getMockBuilder(IConfig::class)->getMock();
-        $this->userManager = $this->getMockBuilder(IUserManager::class)->getMock();
-        $this->groupManager = $this->getMockBuilder(IGroupManager::class)->getMock();
-        $this->accountManager = $this->getMockBuilder(IAccountManager::class)->getMock();
+        $this->db = $this->createMock(IDBConnection::class);
+        $this->request = $this->createMock(IRequest::class);
+        $this->urlGenerator = $this->createMock(IURLGenerator::class);
+        $this->crypto = $this->createMock(ICrypto::class);
+        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->config = $this->createMock(IConfig::class);
+        $this->userManager = $this->createMock(IUserManager::class);
+        $this->groupManager = $this->createMock(IGroupManager::class);
+        $this->accountManager = $this->createMock(IAccountManager::class);
         $this->secureRandom = $this->secureRandom = Server::get(SecureRandom::class);
         $this->time = Server::get(TimeFactory::class);
-        $this->db = $this->getMockBuilder(IDBConnection::class)->getMock();
         $this->tokenProvider = Server::get(IProvider::class);
-        $this->session = $this->getMockBuilder(ISession::class)->getMock();
-        $this->userSession = $this->getMockBuilder(IUserSession::class)->getMock();
-        $this->redirectUriMapper = $this->getMockBuilder(RedirectUriMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig])->getMock();
-        $this->customClaimMapper = $this->getMockBuilder(CustomClaimMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->session = $this->createMock(ISession::class);
+        $this->userSession = $this->createMock(IUserSession::class);
+        
+        // Create redirectUriMapper with constructor arguments
+        $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
+        $reflection1 = new \ReflectionClass(RedirectUriMapper::class);
+        $constructor1 = $reflection1->getConstructor();
+        $constructor1->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
+        
+        $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
-        $this->clientMapper = $this->getMockBuilder(ClientMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig,
-            $this->redirectUriMapper,
-            $this->customClaimMapper,
-            $this->secureRandom,
-            $this->logger])->getMock();
-        $this->accessTokenMapper = $this->getMockBuilder(AccessTokenMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->time,
-            $this->appConfig])->getMock();
-        $this->groupMapper = $this->getMockBuilder(GroupMapper::class)->setConstructorArgs([
-            $this->db,
-            $this->groupManager])->getMock();
-        $this->userConsentMapper = $this->getMockBuilder(UserConsentMapper::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $this->l = $this->getMockBuilder(IL10N::class)->getMock();
+        
+        // Create clientMapper with constructor arguments
+        $this->clientMapper = $this->createMock(ClientMapper::class);
+        $reflection2 = new \ReflectionClass(ClientMapper::class);
+        $constructor2 = $reflection2->getConstructor();
+        $constructor2->invoke($this->clientMapper, $this->db, $this->time, $this->appConfig, $this->redirectUriMapper, $this->customClaimMapper, $this->secureRandom, $this->logger);
+        
+        // Create accessTokenMapper with constructor arguments
+        $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
+        $reflection3 = new \ReflectionClass(AccessTokenMapper::class);
+        $constructor3 = $reflection3->getConstructor();
+        $constructor3->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
+        
+        // Create groupMapper with constructor arguments
+        $this->groupMapper = $this->createMock(GroupMapper::class);
+        $reflection4 = new \ReflectionClass(GroupMapper::class);
+        $constructor4 = $reflection4->getConstructor();
+        $constructor4->invoke($this->groupMapper, $this->db, $this->groupManager);
+        
+        $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
+        $this->l = $this->createMock(IL10N::class);
         $this->customClaimService = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
@@ -157,7 +159,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->logger
         );
         $this->credentialService = new CredentialService(
-            $this->getMockBuilder(ICredentialsManager::class)->getMock(),
+            $this->createMock(ICredentialsManager::class),
             $this->appConfig,
             $this->logger
         );
