@@ -10,7 +10,7 @@ on:
     types: [published]
 
 env:
-  PHP_VERSION: 8.4
+  PHP_VERSION: 8.5
 
 jobs:
   build_and_publish:
@@ -47,8 +47,8 @@ jobs:
         continue-on-error: true
         with:
           path: ${{ env.APP_NAME }}
-          fallbackNode: "^16"
-          fallbackNpm: "^8"
+          fallbackNode: "^22"
+          fallbackNpm: "^10"
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         # Skip if no package.json
@@ -87,21 +87,17 @@ jobs:
           cd ${{ env.APP_NAME }}
           npm ci
           npm run build
-
-    #   - name: Checkout server ${{ steps.appinfo.outputs.info }}
-    #     continue-on-error: true
-    #     id: server-checkout
-    #     run: |
-    #       NCVERSION=${{ steps.appinfo.outputs.info }}
-    #       wget --quiet https://download.nextcloud.com/server/releases/latest.zip
-    #       unzip latest.zip
-
       - name: Checkout server master fallback
         uses: actions/checkout@v3
-        # if: ${{ steps.server-checkout.outcome != 'success' }}
         with:
           repository: nextcloud/server
           path: nextcloud
+          submodules: recursive
+
+      - name: Install Nextcloud dependencies
+        run: |
+          cd nextcloud
+          composer install
 
       - name: Package ${{ env.APP_NAME }} ${{ env.APP_VERSION }}
         run: |
