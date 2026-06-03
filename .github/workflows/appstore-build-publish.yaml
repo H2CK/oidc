@@ -44,9 +44,17 @@ jobs:
         id: derive-nextcloud-ref
         shell: bash
         run: |
-            max_version="${{ steps.appinfo.outputs.output }}"
+            max_version="${{ steps.appinfo.outputs.info }}"
+            if [ -z "$max_version" ]; then
+              max_version="${{ steps.appinfo.outputs.value }}"
+            fi
+            if [ -z "$max_version" ]; then
+              echo "Error: could not read nextcloud max-version from appinfo" >&2
+              exit 1
+            fi
             major="${max_version%%.*}"
-            echo "NEXTCLOUD_REF=stable-$major" >> $GITHUB_ENV
+            echo "NEXTCLOUD_REF=stable$major" >> $GITHUB_ENV
+
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v2
