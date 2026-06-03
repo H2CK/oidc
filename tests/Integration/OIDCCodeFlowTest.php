@@ -122,7 +122,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->time = Server::get(ITimeFactory::class);
         $this->secureRandom = Server::get(SecureRandom::class);
         $this->crypto = Server::get(ICrypto::class);
-        
+
         // Try to get real services from Server container, fall back to mocks
         try {
             $this->throttler = new \OC\Security\Bruteforce\Throttler(
@@ -139,13 +139,13 @@ class OIDCCodeFlowTest extends \Test\TestCase
                 ['registerAttempt' => null, 'checkAttempt' => null]
             );
         }
-        
+
         try {
             $this->logger = Server::get(LoggerInterface::class);
         } catch (\Exception $e) {
             $this->logger = $this->createMock(LoggerInterface::class);
         }
-        
+
         $this->config = Server::get(IConfig::class);
 
         // Get app-specific services from the app container
@@ -154,7 +154,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         // Get JwtGenerator and other app services
         $customClaimMapper = Server::get(\OCA\OIDCIdentityProvider\Db\CustomClaimMapper::class);
         $userConfig = Server::get(\OCP\Config\IUserConfig::class);
-        
+
         $customClaimService = new \OCA\OIDCIdentityProvider\Service\CustomClaimService(
             $customClaimMapper,
             $this->userManager,
@@ -281,9 +281,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
         );
         $client->setClientIdentifier($this->testClientId);
         $client->setSecret($this->testClientSecret);
-        
+
         $insertedClient = $this->clientMapper->insert($client);
-        
+
         return $insertedClient;
     }
 
@@ -302,18 +302,18 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($user->getUID());
         $accessToken->setScope($scope);
-        
+
         // Generate a code
         $rawCode = $this->secureRandom->generate(64, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $hashedCode = hash('sha512', $rawCode);
         $accessToken->setHashedCode($hashedCode);
-        
+
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('test-nonce-' . $this->secureRandom->generate(16));
-        
+
         $insertedToken = $this->accessTokenMapper->insert($accessToken);
-        
+
         return ['token' => $insertedToken, 'rawCode' => $rawCode];
     }
 
@@ -341,7 +341,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Step 4: Exchange the authorization code for tokens
         $rawCode = $tokenResult['rawCode'];
-        
+
         $response = $this->oidcApiController->getToken(
             'authorization_code',
             $rawCode,
@@ -368,7 +368,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Step 5: Use the access token to get user info
         $accessTokenString = $responseData['access_token'];
-        
+
         // Set up the request to include the Authorization header
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $accessTokenString;
         $this->request->server['HTTP_AUTHORIZATION'] = 'Bearer ' . $accessTokenString;
@@ -380,18 +380,18 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertEquals(200, $userInfoResponse->getStatus(), 'UserInfo endpoint returned non-200 status');
 
         $userInfoData = $userInfoResponse->getData();
-        
+
         // Verify required user info fields
         $this->assertArrayHasKey('sub', $userInfoData, 'UserInfo missing sub claim');
         $this->assertArrayHasKey('preferred_username', $userInfoData, 'UserInfo missing preferred_username claim');
-        
+
         // Verify the sub claim matches our test user
         $this->assertEquals($this->testUserId, $userInfoData['sub'], 'Sub claim does not match test user');
         $this->assertEquals($this->testUserId, $userInfoData['preferred_username'], 'Preferred username does not match test user');
 
         // Verify profile claims are present (since we requested 'profile' scope)
         $this->assertArrayHasKey('name', $userInfoData, 'UserInfo missing name claim');
-        
+
         // Verify scope claim is present
         $this->assertArrayHasKey('scope', $userInfoData, 'UserInfo missing scope claim');
         $this->assertStringContainsString('openid', $userInfoData['scope'], 'Scope does not contain openid');
@@ -484,7 +484,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
     {
         // Generate code verifier: 43-128 unreserved characters
         $codeVerifier = $this->secureRandom->generate(128, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~');
-        
+
         if ($method === 'S256') {
             // S256: code_challenge = BASE64URL(SHA256(code_verifier))
             $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
@@ -492,7 +492,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             // plain: code_challenge = code_verifier
             $codeChallenge = $codeVerifier;
         }
-        
+
         return [
             'code_verifier' => $codeVerifier,
             'code_challenge' => $codeChallenge,
@@ -509,22 +509,22 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($user->getUID());
         $accessToken->setScope($scope);
-        
+
         // Generate authorization code
         $rawCode = $this->secureRandom->generate(64, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $hashedCode = hash('sha512', $rawCode);
         $accessToken->setHashedCode($hashedCode);
-        
+
         // Store PKCE parameters
         $accessToken->setCodeChallenge($codeChallenge);
         $accessToken->setCodeChallengeMethod($codeChallengeMethod);
-        
+
         $accessToken->setCreated($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('test-nonce-' . $this->secureRandom->generate(16));
-        
+
         $insertedToken = $this->accessTokenMapper->insert($accessToken);
-        
+
         return ['token' => $insertedToken, 'rawCode' => $rawCode];
     }
 
@@ -670,7 +670,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Step 4: Try to exchange with WRONG code_verifier
         $wrongCodeVerifier = $this->secureRandom->generate(128, 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~');
-        
+
         $response = $this->oidcApiController->getToken(
             'authorization_code',
             $rawCode,
@@ -778,7 +778,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertEquals(200, $userInfoResponse->getStatus(), 'UserInfo endpoint should return 200');
 
         $userInfoData = $userInfoResponse->getData();
-        
+
         // Verify user info claims
         $this->assertArrayHasKey('sub', $userInfoData, 'UserInfo missing sub claim');
         $this->assertEquals($this->testUserId, $userInfoData['sub'], 'Sub claim should match user ID');
