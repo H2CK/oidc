@@ -82,7 +82,7 @@ class OIDCCreate extends Command
             $clientId = $input->getArgument('client_id');
             $client = $this->clientMapper->getByIdentifier($clientId) ?? null;
             if ($client === null) {
-                throw new \InvalidArgumentException('Client ID '.$clientId().' does not exist');
+                throw new \InvalidArgumentException('Client ID '.$clientId.' does not exist');
             }
 
             $claim = new CustomClaim();

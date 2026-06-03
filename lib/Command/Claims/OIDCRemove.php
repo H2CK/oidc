@@ -62,6 +62,10 @@ class OIDCRemove extends Command
         try {
             $clientId = $input->getArgument('client_id');
             $client = $this->clientMapper->getByIdentifier($clientId);
+            
+            if ($client === null) {
+                throw new \InvalidArgumentException("Client with identifier '{$clientId}' does not exist");
+            }
 
             $this->customClaimMapper->deleteByClientAndName(
                 $client->getId(),
