@@ -40,6 +40,14 @@ jobs:
           xml-file: ${{ env.APP_NAME }}/appinfo/info.xml
           xpath: "//info//dependencies//nextcloud/@max-version"
 
+      - name: Derive Nextcloud checkout ref
+        id: derive-nextcloud-ref
+        shell: bash
+        run: |
+            max_version="${{ steps.appinfo.outputs.output }}"
+            major="${max_version%%.*}"
+            echo "NEXTCLOUD_REF=stable-$major" >> $GITHUB_ENV
+
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v2
         id: versions
@@ -87,12 +95,14 @@ jobs:
           cd ${{ env.APP_NAME }}
           npm ci
           npm run build
-      - name: Checkout server master fallback
+
+      - name: Checkout Nextcloud server master
         uses: actions/checkout@v3
         with:
           repository: nextcloud/server
           path: nextcloud
           submodules: recursive
+          ref: ${{ env.NEXTCLOUD_REF }}
 
       - name: Install Nextcloud dependencies
         run: |
