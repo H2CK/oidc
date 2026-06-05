@@ -1,0 +1,15 @@
+services:
+  nginx:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "localhost.emobix.co.uk:host-gateway"
+
+  server:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "localhost.emobix.co.uk:host-gateway"
+
+  test:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "localhost.emobix.co.uk:host-gateway"
