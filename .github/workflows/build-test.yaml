@@ -267,7 +267,7 @@ jobs:
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
           OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
           php occ user:setting "${OIDC_TEST_USER}" settings email oidc-test@example.test
-          callback="https://localhost.emobix.co.uk:8443/test/a/${CONFORMANCE_ALIAS}/callback"
+          callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}/callback"
           php occ oidc:create "OIDC Conformance Basic 1" "${callback}" \
             --client_id "${OIDC_CLIENT_ID_1}" \
             --client_secret "${OIDC_CLIENT_SECRET_1}" \
@@ -308,7 +308,7 @@ jobs:
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
             up -d mongodb nginx server
           for i in {1..60}; do
-            if curl --insecure --fail --silent https://localhost.emobix.co.uk:8443/api/runner/available > /dev/null; then
+            if curl --insecure --fail --silent https://nginx:8443/api/runner/available > /dev/null; then
               exit 0
             fi
             sleep 5
@@ -337,8 +337,8 @@ jobs:
             ../conformance-config/oidc-basic-config.json
         env:
           CONFORMANCE_DEV_MODE: 1
-          CONFORMANCE_SERVER: https://localhost.emobix.co.uk:8443/
-          CONFORMANCE_SERVER_MTLS: https://localhost.emobix.co.uk:8444/
+          CONFORMANCE_SERVER: https://nginx:8443/
+          CONFORMANCE_SERVER_MTLS: https://nginx:8444/
 
       - name: Upload conformance results
         if: always()

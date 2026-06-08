@@ -23,7 +23,7 @@
       "tasks": [
         {
           "task": "Login",
-          "match": "${NEXTCLOUD_BASE_URL}/login*",
+          "match": "${NEXTCLOUD_BASE_URL}/index.php/login*",
           "optional": true,
           "commands": [
             [
@@ -53,7 +53,7 @@
         },
         {
           "task": "Verify",
-          "match": "https://localhost.emobix.co.uk:8443/test/a/${CONFORMANCE_ALIAS}/callback*"
+          "match": "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}/callback*"
         }
       ]
     }
