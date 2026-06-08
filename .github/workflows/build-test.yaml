@@ -300,7 +300,8 @@ jobs:
 
       - name: Build and start OpenID conformance suite
         run: |
-          sudo sh -c 'echo "127.0.0.1 localhost.emobix.co.uk" >> /etc/hosts'
+          sudo sh -c 'echo "127.0.0.1 nginx" >> /etc/hosts'
+          sudo sh -c 'echo "127.0.0.1 oidcc-provider" >> /etc/hosts'
           cd conformance-suite
           mvn -B -DskipTests package
           docker compose \
