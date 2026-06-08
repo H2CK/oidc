@@ -259,8 +259,7 @@ jobs:
           php occ maintenance:install --admin-user admin --admin-pass admin
           php occ app:enable ${{ env.APP_NAME }}
           php occ config:system:set trusted_domains 1 --value=host.docker.internal
-          php occ config:system:set trusted_domains 2 --value=localhost.emobix.co.uk
-          php occ config:system:set trusted_domains 3 --value=127.0.0.1
+          php occ config:system:set trusted_domains 2 --value=127.0.0.1
           php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
           php occ config:system:set overwritehost --value=host.docker.internal:8080
           php occ config:system:set overwriteprotocol --value=http
@@ -325,7 +324,11 @@ jobs:
             fi
             sleep 5
           done
-          docker compose -f docker-compose-localtest.yml logs server nginx chrome
+          docker compose \
+            -f docker-compose-localtest.yml \
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
+            logs server nginx chrome
           exit 1
 
       - name: Install conformance runner dependencies
@@ -340,6 +343,12 @@ jobs:
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
 
       - name: Run OIDC basic conformance plan
+        env:
+          CONFORMANCE_DEV_MODE: 1
+          CONFORMANCE_SERVER: https://nginx:8443/
+          CONFORMANCE_SERVER_MTLS: https://nginx:8444/
+          SELENIUM_HUB_HOST: http://chrome:4444
+          BROWSER_DRIVER: chrome
         run: |
           cd conformance-suite
           python3 scripts/run-test-plan.py \
@@ -347,12 +356,6 @@ jobs:
             --verbose \
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-basic-config.json
-        env:
-          CONFORMANCE_DEV_MODE: 1
-          CONFORMANCE_SERVER: https://nginx:8443/
-          CONFORMANCE_SERVER_MTLS: https://nginx:8444/
-          SELENIUM_HUB_HOST: http://chrome:4444
-          BROWSER_DRIVER: chrome
 
       - name: Upload conformance results
         if: always()

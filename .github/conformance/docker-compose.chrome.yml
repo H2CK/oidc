@@ -13,11 +13,5 @@ services:
       - SE_SESSION_RETRY_INTERVAL=2
     volumes:
       - /dev/shm:/dev/shm  # Shared memory for Chrome stability
-    networks:
-      - conformance_default
     extra_hosts:
       - "host.docker.internal:host-gateway"
-
-networks:
-  conformance_default:
-    driver: bridge
