@@ -302,19 +302,30 @@ jobs:
         run: |
           sudo sh -c 'echo "127.0.0.1 nginx" >> /etc/hosts'
           sudo sh -c 'echo "127.0.0.1 oidcc-provider" >> /etc/hosts'
+          sudo sh -c 'echo "127.0.0.1 chrome" >> /etc/hosts'
           cd conformance-suite
           mvn -B -DskipTests package
           docker compose \
             -f docker-compose-localtest.yml \
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
-            up -d mongodb nginx server
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
+            up -d mongodb nginx server chrome
+          # Wait for Chrome/Selenium service to be ready
+          for i in {1..60}; do
+            if curl --fail --silent http://chrome:4444/status > /dev/null 2>&1; then
+              echo "Chrome/Selenium service is ready"
+              break
+            fi
+            sleep 2
+          done
+          # Wait for API runner
           for i in {1..60}; do
             if curl --insecure --fail --silent https://nginx:8443/api/runner/available > /dev/null; then
               exit 0
             fi
             sleep 5
           done
-          docker compose -f docker-compose-localtest.yml logs server nginx
+          docker compose -f docker-compose-localtest.yml logs server nginx chrome
           exit 1
 
       - name: Install conformance runner dependencies
@@ -340,6 +351,8 @@ jobs:
           CONFORMANCE_DEV_MODE: 1
           CONFORMANCE_SERVER: https://nginx:8443/
           CONFORMANCE_SERVER_MTLS: https://nginx:8444/
+          SELENIUM_HUB_HOST: http://chrome:4444
+          BROWSER_DRIVER: chrome
 
       - name: Upload conformance results
         if: always()

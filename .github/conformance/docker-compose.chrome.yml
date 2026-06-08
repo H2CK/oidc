@@ -1,0 +1,23 @@
+services:
+  # Selenium Chrome service for conformance testing
+  # Provides WebDriver endpoint at http://chrome:4444/wd/hub
+  chrome:
+    image: seleniarm/standalone-chromium:latest
+    container_name: conformance-chrome
+    ports:
+      - "4444:4444"
+      - "7900:7900"  # VNC port for debugging
+    environment:
+      - SE_NODE_MAX_SESSIONS=3
+      - SE_SESSION_REQUEST_TIMEOUT=60
+      - SE_SESSION_RETRY_INTERVAL=2
+    volumes:
+      - /dev/shm:/dev/shm  # Shared memory for Chrome stability
+    networks:
+      - conformance_default
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  conformance_default:
+    driver: bridge
