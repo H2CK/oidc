@@ -11,6 +11,7 @@ services:
       - SE_NODE_MAX_SESSIONS=3
       - SE_SESSION_REQUEST_TIMEOUT=60
       - SE_SESSION_RETRY_INTERVAL=2
+      - CHROME_OPTIONS=--headless=new,--no-sandbox,--disable-dev-shm-usage
     volumes:
       - /dev/shm:/dev/shm  # Shared memory for Chrome stability
     extra_hosts:

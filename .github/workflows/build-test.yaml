@@ -349,6 +349,8 @@ jobs:
           CONFORMANCE_SERVER_MTLS: https://nginx:8444/
           SELENIUM_HUB_HOST: http://chrome:4444
           BROWSER_DRIVER: chrome
+          HEADLESS_BROWSER: true
+          WEBDRIVER_CHROME_OPTIONS: "--headless=new,--no-sandbox,--disable-dev-shm-usage"
         run: |
           cd conformance-suite
           python3 scripts/run-test-plan.py \
