@@ -157,6 +157,14 @@ def grant_consent_if_present(driver):
         return False
 
 
+def is_conformance_callback(url):
+    parsed = urllib.parse.urlsplit(url)
+    return parsed.netloc == "nginx:8443" and (
+        parsed.path.startswith("/test/a/")
+        or parsed.path.startswith("/test-mtls/a/")
+    )
+
+
 def drive_url(driver, method, url):
     log(f"Visiting {method} {url}")
     if method.upper() == "POST":
@@ -167,7 +175,7 @@ def drive_url(driver, method, url):
     deadline = time.monotonic() + VISIT_TIMEOUT_SECONDS
     while time.monotonic() < deadline:
         current_url = driver.current_url
-        if "/test/a/" in current_url or "/test-mtls/a/" in current_url:
+        if is_conformance_callback(current_url):
             log(f"Reached conformance callback {current_url}")
             return current_url
 
