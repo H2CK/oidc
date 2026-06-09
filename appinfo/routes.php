@@ -185,6 +185,11 @@ return [
             'verb' => 'GET',
         ],
         [
+            'name' => 'LoginRedirector#authorize',
+            'url' => '/authorize',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Cors#authorizeCorsResponse',
             'url' => '/authorize',
             'verb' => 'OPTIONS',

@@ -8,6 +8,7 @@ This directory contains configuration files and scripts for running OpenID Conne
 - **`write-config.py`** - Python script to generate final conformance config from template (replaces environment variables)
 - **`docker-compose.github-actions.yml`** - Docker Compose overrides for GitHub Actions CI/CD environment
 - **`docker-compose.chrome.yml`** - Docker Compose service definition for Selenium + Headless Chrome (alternative to HtmlUnit)
+- **`browser-runner.py`** - External Selenium/Chromium browser worker for conformance front-channel URLs
 - **`run-conformance-chrome.sh`** - Local development script to run conformance tests with Headless Chrome
 - **`HEADLESS_CHROME_GUIDE.md`** - Detailed guide for setting up and running tests with Chrome instead of HtmlUnit
 
@@ -49,18 +50,23 @@ gh workflow run build-test.yaml -f run_conformance=true
 - ❌ Causes `org.htmlunit.ScriptException: identifier is a reserved word: class` errors
 - ✓ No additional setup needed
 
-### Headless Chrome + Selenium (Recommended)
+### External Headless Chrome + Selenium (Recommended)
 - ✓ Full modern JavaScript support (ES6+)
 - ✓ More accurate simulation of real browser behavior
 - ✓ Better debugging with VNC access (port 7900)
 - ⚠ Requires Chrome/Chromedriver installation
 
+The conformance suite's built-in browser automation is HtmlUnit-based. To avoid
+modifying the suite source, keep the test config free of `browser` commands and
+run `browser-runner.py` alongside `scripts/run-test-plan.py`. The runner polls
+the suite API for exposed front-channel URLs and drives them through Chromium.
+
 ## Environment Variables
 
-When running conformance tests, these variables control browser engine and server URLs:
+When running conformance tests, these variables configure the external browser
+runner and server URLs:
 
-- `SELENIUM_HUB_HOST` - WebDriver endpoint (e.g., `http://localhost:9515`)
-- `BROWSER_DRIVER` - Browser engine (e.g., `chrome`, defaults to `htmlunit`)
+- `SELENIUM_REMOTE_URL` - WebDriver endpoint (e.g., `http://chrome:4444/wd/hub`)
 - `CONFORMANCE_SERVER` - Nextcloud OIDC provider URL (e.g., `https://nginx:8443/`)
 - `CONFORMANCE_SERVER_MTLS` - Mutual TLS endpoint (e.g., `https://nginx:8444/`)
 - `CONFORMANCE_DEV_MODE` - Developer mode (`1` = enabled)

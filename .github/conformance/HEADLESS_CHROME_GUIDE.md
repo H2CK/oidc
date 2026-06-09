@@ -6,7 +6,13 @@ The default OIDC conformance test runner uses HtmlUnit (a Java-based headless br
 org.htmlunit.ScriptException: identifier is a reserved word: class
 ```
 
-## Solution: Use Selenium + Headless Chrome
+## Solution: Use an External Selenium + Headless Chrome Worker
+
+The conformance suite's built-in browser automation is implemented in Java with
+HtmlUnit. The workflow does not try to switch that internal implementation.
+Instead, `oidc-basic-config.json` omits `browser` commands, which makes the
+suite expose front-channel URLs through its runner API. `browser-runner.py`
+polls that API and drives the URLs with Selenium/Chromium.
 
 ### Option 1: GitHub Actions Workflow (CI/CD)
 
@@ -48,25 +54,27 @@ In the `oidc_conformance` job, modify the "Build and start OpenID conformance su
           exit 1
 ```
 
-**Add environment variables before running test plan:**
-
-In the "Run OIDC basic conformance plan" step, add `SELENIUM_HUB_HOST` and related environment variables:
+**Run the external browser worker with the test plan:**
 
 ```yaml
       - name: Run OIDC basic conformance plan
+        env:
+          CONFORMANCE_DEV_MODE: 1
+          CONFORMANCE_SERVER: https://nginx:8443/
+          CONFORMANCE_SERVER_MTLS: https://nginx:8444/
+          SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+          CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite
+          python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
+            > ../conformance-browser.log 2>&1 &
+          browser_runner_pid=$!
+          trap 'kill "${browser_runner_pid}" 2>/dev/null || true' EXIT
           python3 scripts/run-test-plan.py \
             --export-dir ../conformance-results \
             --verbose \
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-basic-config.json
-        env:
-          CONFORMANCE_DEV_MODE: 1
-          CONFORMANCE_SERVER: https://nginx:8443/
-          CONFORMANCE_SERVER_MTLS: https://nginx:8444/
-          SELENIUM_HUB_HOST: http://chrome:4444
-          BROWSER_DRIVER: chrome
 ```
 
 ### Option 2: Local Development
@@ -106,7 +114,11 @@ docker compose \
 # Wait for services
 sleep 30
 
-# Run test with local Chromedriver
+# Run the browser worker with local Chromedriver
+python3 ../.github/conformance/browser-runner.py > ../conformance-browser.log 2>&1 &
+browser_runner_pid=$!
+trap 'kill "${browser_runner_pid}" 2>/dev/null || true' EXIT
+
 python3 scripts/run-test-plan.py \
   --export-dir ../conformance-results \
   --verbose \
@@ -119,8 +131,7 @@ Set environment variables:
 export CONFORMANCE_DEV_MODE=1
 export CONFORMANCE_SERVER=https://nginx:8443/
 export CONFORMANCE_SERVER_MTLS=https://nginx:8444/
-export SELENIUM_HUB_HOST=http://localhost:9515
-export BROWSER_DRIVER=chrome
+export SELENIUM_REMOTE_URL=http://localhost:9515
 ```
 
 ### Option 3: Alternative - ES5 Transpilation (Without Browser Engine Change)
@@ -149,7 +160,9 @@ After running with Chrome:
 
 ## Files Modified
 
-- `.github/workflows/build-test.yaml` - Added Chrome service and environment variables
+- `.github/workflows/build-test.yaml` - Starts the external browser worker with the test plan
+- `.github/conformance/browser-runner.py` - Polls conformance front-channel URLs and drives Chromium
+- `.github/conformance/oidc-basic-config.json` - Omits HtmlUnit browser commands
 - `.github/conformance/docker-compose.chrome.yml` - New Selenium/Chrome service definition
 
 ## References

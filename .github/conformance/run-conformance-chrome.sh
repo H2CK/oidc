@@ -29,6 +29,12 @@ if ! command -v chromedriver &> /dev/null; then
     exit 1
 fi
 
+if ! python3 -c "import httpx, pyparsing, selenium" &> /dev/null; then
+    echo -e "${RED}Python conformance dependencies not found${NC}"
+    echo "Install with: python3 -m pip install --user httpx pyparsing selenium"
+    exit 1
+fi
+
 # Verify Chrome and Chromedriver versions match (major version)
 CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d. -f1)
 DRIVER_VERSION=$(chromedriver --version | awk '{print $2}' | cut -d. -f1)
@@ -71,13 +77,12 @@ done
 export CONFORMANCE_DEV_MODE=1
 export CONFORMANCE_SERVER=https://nginx:8443/
 export CONFORMANCE_SERVER_MTLS=https://nginx:8444/
-export SELENIUM_HUB_HOST=http://localhost:9515
-export BROWSER_DRIVER=chrome
-export HEADLESS_BROWSER=true
+export SELENIUM_REMOTE_URL=http://localhost:9515
+export OIDC_TEST_USER=${OIDC_TEST_USER:-oidc-test-user}
+export OIDC_TEST_PASSWORD=${OIDC_TEST_PASSWORD:-oidc-test-password}
 
 echo -e "\n${YELLOW}Environment variables set:${NC}"
-echo "  SELENIUM_HUB_HOST=$SELENIUM_HUB_HOST"
-echo "  BROWSER_DRIVER=$BROWSER_DRIVER"
+echo "  SELENIUM_REMOTE_URL=$SELENIUM_REMOTE_URL"
 echo "  CONFORMANCE_SERVER=$CONFORMANCE_SERVER"
 
 # Check if conformance-suite exists
@@ -126,6 +131,9 @@ fi
 echo -e "\n${YELLOW}Running conformance tests...${NC}"
 echo "=================================================="
 cd conformance-suite
+python3 ../.github/conformance/browser-runner.py > ../conformance-browser.log 2>&1 &
+BROWSER_RUNNER_PID=$!
+set +e
 python3 scripts/run-test-plan.py \
     --export-dir ../conformance-results \
     --verbose \
@@ -133,6 +141,7 @@ python3 scripts/run-test-plan.py \
     ../conformance-config/oidc-basic-config.json
 
 TEST_RESULT=$?
+set -e
 cd ..
 
 # Cleanup
@@ -140,6 +149,9 @@ echo -e "\n${YELLOW}Cleaning up...${NC}"
 if [ -f /tmp/chromedriver.pid ]; then
     kill $(cat /tmp/chromedriver.pid) 2>/dev/null || true
     rm /tmp/chromedriver.pid
+fi
+if [ -n "${BROWSER_RUNNER_PID:-}" ]; then
+    kill "$BROWSER_RUNNER_PID" 2>/dev/null || true
 fi
 
 if [ $TEST_RESULT -eq 0 ]; then

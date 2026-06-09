@@ -332,7 +332,7 @@ jobs:
           exit 1
 
       - name: Install conformance runner dependencies
-        run: python3 -m pip install --user httpx pyparsing
+        run: python3 -m pip install --user httpx pyparsing selenium
 
       - name: Write conformance plan config
         run: |
@@ -347,12 +347,14 @@ jobs:
           CONFORMANCE_DEV_MODE: 1
           CONFORMANCE_SERVER: https://nginx:8443/
           CONFORMANCE_SERVER_MTLS: https://nginx:8444/
-          SELENIUM_HUB_HOST: http://chrome:4444
-          BROWSER_DRIVER: chrome
-          HEADLESS_BROWSER: true
-          WEBDRIVER_CHROME_OPTIONS: "--headless=new,--no-sandbox,--disable-dev-shm-usage"
+          SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+          CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite
+          python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
+            > ../conformance-browser.log 2>&1 &
+          browser_runner_pid=$!
+          trap 'kill "${browser_runner_pid}" 2>/dev/null || true' EXIT
           python3 scripts/run-test-plan.py \
             --export-dir ../conformance-results \
             --verbose \
@@ -366,4 +368,5 @@ jobs:
           name: oidc-conformance-results
           path: |
             conformance-results
+            conformance-browser.log
             nextcloud-server.log

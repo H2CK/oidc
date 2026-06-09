@@ -16,46 +16,5 @@
   "client2": {
     "client_id": "${OIDC_CLIENT_ID_2}",
     "client_secret": "${OIDC_CLIENT_SECRET_2}"
-  },
-  "browser": [
-    {
-      "match": "${NEXTCLOUD_BASE_URL}/*",
-      "tasks": [
-        {
-          "task": "Login",
-          "match": "${NEXTCLOUD_BASE_URL}/index.php/login*",
-          "optional": true,
-          "commands": [
-            [
-              "text",
-              "id",
-              "user",
-              "${OIDC_TEST_USER}"
-            ],
-            [
-              "text",
-              "id",
-              "password",
-              "${OIDC_TEST_PASSWORD}"
-            ],
-            [
-              "click",
-              "id",
-              "submit-form"
-            ],
-            [
-              "wait",
-              "contains",
-              "/test/a/",
-              30
-            ]
-          ]
-        },
-        {
-          "task": "Verify",
-          "match": "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}/callback*"
-        }
-      ]
-    }
-  ]
+  }
 }
