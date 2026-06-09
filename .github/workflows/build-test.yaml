@@ -351,15 +351,33 @@ jobs:
           CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite
-          python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
-            > ../conformance-browser.log 2>&1 &
+          : > ../conformance-browser.log
+          PYTHONUNBUFFERED=1 python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
+            >> ../conformance-browser.log 2>&1 &
           browser_runner_pid=$!
-          trap 'kill "${browser_runner_pid}" 2>/dev/null || true' EXIT
+          tail -n +1 -f ../conformance-browser.log &
+          browser_log_tail_pid=$!
+          cleanup_browser_runner() {
+            kill "${browser_runner_pid}" 2>/dev/null || true
+            kill "${browser_log_tail_pid}" 2>/dev/null || true
+            wait "${browser_runner_pid}" 2>/dev/null || true
+            wait "${browser_log_tail_pid}" 2>/dev/null || true
+          }
+          trap cleanup_browser_runner EXIT
+          set +e
           python3 scripts/run-test-plan.py \
             --export-dir ../conformance-results \
             --verbose \
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-basic-config.json
+          test_plan_status=$?
+          set -e
+          cleanup_browser_runner
+          trap - EXIT
+          echo "::group::conformance-browser.log"
+          cat ../conformance-browser.log || true
+          echo "::endgroup::"
+          exit "${test_plan_status}"
 
       - name: Upload conformance results
         if: always()
