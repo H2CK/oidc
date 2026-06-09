@@ -183,11 +183,13 @@ return [
             'name' => 'LoginRedirector#authorize',
             'url' => '/authorize',
             'verb' => 'GET',
+            'postfix' => 'get',
         ],
         [
             'name' => 'LoginRedirector#authorize',
             'url' => '/authorize',
             'verb' => 'POST',
+            'postfix' => 'post',
         ],
         [
             'name' => 'Cors#authorizeCorsResponse',
