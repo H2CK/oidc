@@ -165,6 +165,26 @@ def is_conformance_callback(url):
     )
 
 
+def page_diagnostics(driver):
+    try:
+        ready_state = driver.execute_script("return document.readyState")
+    except Exception:
+        ready_state = "unavailable"
+    try:
+        body = driver.execute_script("return document.body ? document.body.innerText : ''")
+    except Exception:
+        body = ""
+    body = " ".join((body or "").split())
+    if len(body) > 1000:
+        body = body[:1000] + "..."
+    return {
+        "url": driver.current_url,
+        "title": driver.title,
+        "ready_state": ready_state,
+        "body": body,
+    }
+
+
 def drive_url(driver, method, url):
     log(f"Visiting {method} {url}")
     if method.upper() == "POST":
@@ -173,8 +193,13 @@ def drive_url(driver, method, url):
         driver.get(url)
 
     deadline = time.monotonic() + VISIT_TIMEOUT_SECONDS
+    last_seen_url = None
     while time.monotonic() < deadline:
         current_url = driver.current_url
+        if current_url != last_seen_url:
+            last_seen_url = current_url
+            log(f"Browser at {current_url}")
+
         if is_conformance_callback(current_url):
             log(f"Reached conformance callback {current_url}")
             return current_url
@@ -189,6 +214,10 @@ def drive_url(driver, method, url):
         time.sleep(0.5)
 
     log(f"Timed out waiting for callback; current URL is {driver.current_url}")
+    diag = page_diagnostics(driver)
+    log(f"Timeout page title: {diag['title']}")
+    log(f"Timeout page readyState: {diag['ready_state']}")
+    log(f"Timeout page body: {diag['body']}")
     return driver.current_url
 
 
