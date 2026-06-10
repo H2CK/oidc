@@ -285,8 +285,8 @@ class LoginRedirectorController extends ApiController
 		// Guard: if critical OAuth params are still missing after session fallback,
         // return a meaningful error instead of letting downstream code crash with a 500
         // (e.g. matchRedirectUri(null, ...) or trim(null) in PHP 8.4).
-		// Note: state is not critical for processing the request and might also not be passed by the client, e.g Guacamole, so we only check response_type and redirect_uri here.
-        if (empty($response_type) || empty($redirect_uri)) {
+		// Note: state is not critical for processing the request and might also not be passed by the client, e.g Guacamole.
+        if (empty($redirect_uri)) {
             $this->logger->error('Missing critical OAuth params after session fallback: '
                 . 'response_type=' . var_export($response_type, true) . ', '
                 . 'redirect_uri=' . var_export($redirect_uri, true));
@@ -368,6 +368,16 @@ class LoginRedirectorController extends ApiController
             ];
             $this->logger->notice('Redirect URI ' . $redirect_uri . ' is not accepted for client ' . $client_id . '.');
             return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        if (empty($response_type)) {
+            $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
+            $separator = str_contains($redirect_uri, '?') ? '&' : '?';
+            $url = $redirect_uri . $separator
+                . 'error=unsupported_response_type'
+                . '&error_description=Missing%20response_type'
+                . '&state=' . urlencode((string)$state);
+            return new RedirectResponse($url);
         }
 
         // Check response type
