@@ -233,6 +233,25 @@ def get_browser_items(status):
     return [{"url": url, "method": "GET"} for url in browser.get("urls", [])]
 
 
+def get_driver(drivers, test_id):
+    driver = drivers.get(test_id)
+    if driver is None:
+        driver = new_driver()
+        drivers[test_id] = driver
+    return driver
+
+
+def close_driver(drivers, test_id):
+    driver = drivers.pop(test_id, None)
+    if driver is None:
+        return
+    log(f"Closing browser session for {test_id}")
+    try:
+        driver.quit()
+    except Exception as exc:
+        log(f"Unable to close browser session for {test_id}: {exc}")
+
+
 def main():
     drivers = {}
     processed = set()
@@ -262,14 +281,12 @@ def main():
                         continue
 
                     if active_test_id is not None and active_test_id != test_id:
-                        for old_test_id, old_driver in list(drivers.items()):
+                        for old_test_id in list(drivers):
                             if old_test_id != test_id:
-                                log(f"Closing browser session for {old_test_id}")
-                                old_driver.quit()
-                                drivers.pop(old_test_id, None)
+                                close_driver(drivers, old_test_id)
 
                     active_test_id = test_id
-                    driver = drivers.setdefault(test_id, new_driver())
+                    driver = get_driver(drivers, test_id)
                     processed.add(key)
 
                     try:
