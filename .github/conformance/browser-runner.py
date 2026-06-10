@@ -27,6 +27,7 @@ OIDC_TEST_USER = os.environ["OIDC_TEST_USER"]
 OIDC_TEST_PASSWORD = os.environ["OIDC_TEST_PASSWORD"]
 POLL_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_POLL_SECONDS", "1"))
 VISIT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_VISIT_TIMEOUT", "90"))
+LOGIN_REDIRECT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT", "15"))
 
 
 def log(message):
@@ -118,6 +119,7 @@ def is_login_page(driver):
 
 
 def login(driver):
+    login_url = driver.current_url
     log(f"Logging in at {driver.current_url}")
     user = first_present(driver, ((By.ID, "user"), (By.NAME, "user")), timeout=30)
     password = first_present(driver, ((By.ID, "password"), (By.NAME, "password")), timeout=30)
@@ -135,6 +137,18 @@ def login(driver):
         timeout=10,
     )
     submit.click()
+    wait_for_login_redirect(driver, login_url)
+
+
+def wait_for_login_redirect(driver, login_url):
+    deadline = time.monotonic() + LOGIN_REDIRECT_TIMEOUT_SECONDS
+    while time.monotonic() < deadline:
+        current_url = driver.current_url
+        if current_url != login_url:
+            return
+        if not is_login_page(driver):
+            return
+        time.sleep(0.2)
 
 
 def grant_consent_if_present(driver):

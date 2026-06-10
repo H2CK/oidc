@@ -190,12 +190,20 @@ class OIDCApiController extends ApiController {
             $code = $refresh_token;
         }
 
+        if ($code === null || trim($code) === '') {
+            $this->logger->info('Missing code or refresh_token for client id ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Missing code or refresh_token.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
         try {
             $accessToken = $this->accessTokenMapper->getByCode($code);
         } catch (AccessTokenNotFoundException $e) {
             $this->logger->info('Could not find access token for code or refresh_token for client id ' . $client_id . '.');
             return new JSONResponse([
-                'error' => 'invalid_request',
+                'error' => 'invalid_grant',
                 'error_description' => 'Could not find access token for code or refresh_token.',
             ], Http::STATUS_BAD_REQUEST);
         }

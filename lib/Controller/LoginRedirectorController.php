@@ -177,7 +177,7 @@ class LoginRedirectorController extends ApiController
                     $code_challenge_method = null
                     ): Response
         {
-            return authorize(
+            return $this->authorize(
                 $client_id,
                 $state,
                 $response_type,

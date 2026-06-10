@@ -379,12 +379,21 @@ jobs:
           echo "::endgroup::"
           exit "${test_plan_status}"
 
+      - name: Generate conformance report
+        if: always()
+        run: |
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/generate-report.py \
+            --results-dir conformance-results \
+            --output CONFORMANCE.md
+          cat CONFORMANCE.md
+
       - name: Upload conformance results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: oidc-conformance-results
           path: |
+            CONFORMANCE.md
             conformance-results
             conformance-browser.log
             nextcloud-server.log
