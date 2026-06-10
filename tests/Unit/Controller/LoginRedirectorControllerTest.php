@@ -312,4 +312,65 @@ class LoginRedirectorControllerTest extends TestCase {
         );
     }
 
+    public function testAuthorizeRejectsUnsupportedRequestObjectBeforeLogin() {
+        $clientId = 'client1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->expects($this->never())
+            ->method('isLoggedIn');
+        $this->session
+            ->expects($this->never())
+            ->method('set');
+        $this->urlGenerator
+            ->expects($this->never())
+            ->method('linkToRoute');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) {
+                return $key === 'request' ? 'eyJhbGciOiJub25lIn0.e30.' : null;
+            });
+
+        $result = $this->controller->authorize(
+            $clientId,
+            null,
+            'code',
+            $redirectUri,
+            'openid',
+            null
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.',
+            $result->getRedirectURL()
+        );
+    }
+
 }

@@ -222,6 +222,15 @@ class LoginRedirectorController extends ApiController
                     $code_challenge_method = null
                     ): Response
         {
+        $unsupportedRequestParameterResponse = $this->rejectUnsupportedRequestParameters(
+            $client_id,
+            $redirect_uri,
+            $state
+        );
+        if ($unsupportedRequestParameterResponse !== null) {
+            return $unsupportedRequestParameterResponse;
+        }
+
         if (!$this->userSession->isLoggedIn()) {
             // Not authenticated yet
             // Store oidc attributes in user session to be available after login
@@ -300,26 +309,11 @@ class LoginRedirectorController extends ApiController
             $scope = Application::DEFAULT_SCOPE;
         }
 
-        $this->clientMapper->cleanUp();
-
-        try {
-            $client = $this->clientMapper->getByIdentifier($client_id);
-        } catch (ClientNotFoundException $e) {
-            $params = [
-                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
-            ];
-            $this->logger->notice('Client ' . $client_id . ' is not authorized to connect.');
-            return new TemplateResponse('core', '403', $params, 'error');
+        $clientOrResponse = $this->loadAuthorizationClient($client_id);
+        if ($clientOrResponse instanceof Response) {
+            return $clientOrResponse;
         }
-
-        // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
-            $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
-            $params = [
-                'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
-            ];
-            return new TemplateResponse('core', '400', $params, 'error');
-        }
+        $client = $clientOrResponse;
 
         // Set default resource if resource is not set at all
         if (!isset($resource) || trim($resource)==='') {
@@ -353,43 +347,9 @@ class LoginRedirectorController extends ApiController
         $scope = $newScope;
         $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
-        // Check if redirect URI is configured for client
-        $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
-        $redirectUriFound = false;
-        foreach ($redirectUris as $redirectUri) {
-            if ($this->redirectUriService->matchRedirectUri($redirect_uri, $redirectUri->getRedirectUri())) {
-                $redirectUriFound = true;
-                break;
-            }
-        }
-        if (!$redirectUriFound) {
-            $params = [
-                'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
-            ];
-            $this->logger->notice('Redirect URI ' . $redirect_uri . ' is not accepted for client ' . $client_id . '.');
-            return new TemplateResponse('core', '403', $params, 'error');
-        }
-
-        $requestObject = $this->request->getParam('request');
-        if ($this->hasNonEmptyRequestParameter($requestObject)) {
-            $this->logger->notice('Request object parameter is not supported for client ' . $client_id . '.');
-            return $this->createAuthorizationErrorRedirect(
-                $redirect_uri,
-                'request_not_supported',
-                'Request object parameter is not supported.',
-                $state
-            );
-        }
-
-        $requestUri = $this->request->getParam('request_uri');
-        if ($this->hasNonEmptyRequestParameter($requestUri)) {
-            $this->logger->notice('Request URI parameter is not supported for client ' . $client_id . '.');
-            return $this->createAuthorizationErrorRedirect(
-                $redirect_uri,
-                'request_uri_not_supported',
-                'Request URI parameter is not supported.',
-                $state
-            );
+        $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);
+        if ($redirectUriErrorResponse !== null) {
+            return $redirectUriErrorResponse;
         }
 
         if (empty($response_type)) {
@@ -635,6 +595,131 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
         return new RedirectResponse($url);
+    }
+
+    private function rejectUnsupportedRequestParameters(
+        mixed $clientId,
+        mixed $redirectUri,
+        mixed $state
+    ): ?Response {
+        $requestObject = $this->request->getParam('request');
+        $requestUri = $this->request->getParam('request_uri');
+
+        if (
+            !$this->hasNonEmptyRequestParameter($requestObject)
+            && !$this->hasNonEmptyRequestParameter($requestUri)
+        ) {
+            return null;
+        }
+
+        if (!$this->hasNonEmptyRequestParameter($redirectUri)) {
+            $this->logger->notice('Unsupported request parameter received without a redirect URI.');
+            return new TemplateResponse('core', '400', [
+                'message' => $this->l->t('Authorization request is missing a redirect URI.'),
+            ], 'error');
+        }
+
+        $clientOrResponse = $this->loadAuthorizationClient($clientId);
+        if ($clientOrResponse instanceof Response) {
+            return $clientOrResponse;
+        }
+
+        $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri(
+            $clientOrResponse,
+            $clientId,
+            $redirectUri
+        );
+        if ($redirectUriErrorResponse !== null) {
+            return $redirectUriErrorResponse;
+        }
+
+        if ($this->hasNonEmptyRequestParameter($requestObject)) {
+            $this->logger->notice('Request object parameter is not supported for client ' . $clientId . '.');
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirectUri,
+                'request_not_supported',
+                'Request object parameter is not supported.',
+                $state
+            );
+        }
+
+        $this->logger->notice('Request URI parameter is not supported for client ' . $clientId . '.');
+        return $this->createAuthorizationErrorRedirect(
+            (string)$redirectUri,
+            'request_uri_not_supported',
+            'Request URI parameter is not supported.',
+            $state
+        );
+    }
+
+    private function loadAuthorizationClient(mixed $clientId): Client|Response
+    {
+        if (!is_string($clientId) || trim($clientId) === '') {
+            $params = [
+                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . var_export($clientId, true) . ' is not authorized to connect.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        $this->clientMapper->cleanUp();
+
+        try {
+            $client = $this->clientMapper->getByIdentifier($clientId);
+        } catch (ClientNotFoundException $e) {
+            $params = [
+                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . $clientId . ' is not authorized to connect.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        if ($client === null) {
+            $params = [
+                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . $clientId . ' is not authorized to connect.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        // The client must not be expired
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+            $this->logger->warning('Client expired. Client id was ' . $clientId . '.');
+            $params = [
+                'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
+            ];
+            return new TemplateResponse('core', '400', $params, 'error');
+        }
+
+        return $client;
+    }
+
+    private function validateAuthorizationRedirectUri(
+        Client $client,
+        mixed $clientId,
+        mixed $redirectUri
+    ): ?TemplateResponse {
+        if (!is_string($redirectUri) || trim($redirectUri) === '') {
+            $params = [
+                'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Redirect URI ' . var_export($redirectUri, true) . ' is not accepted for client ' . $clientId . '.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        // Check if redirect URI is configured for client
+        $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+        foreach ($redirectUris as $registeredRedirectUri) {
+            if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri())) {
+                return null;
+            }
+        }
+
+        $params = [
+            'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
+        ];
+        $this->logger->notice('Redirect URI ' . $redirectUri . ' is not accepted for client ' . $clientId . '.');
+        return new TemplateResponse('core', '403', $params, 'error');
     }
 
     private function hasNonEmptyRequestParameter(mixed $value): bool
