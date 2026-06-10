@@ -370,6 +370,28 @@ class LoginRedirectorController extends ApiController
             return new TemplateResponse('core', '403', $params, 'error');
         }
 
+        $requestObject = $this->request->getParam('request');
+        if ($this->hasNonEmptyRequestParameter($requestObject)) {
+            $this->logger->notice('Request object parameter is not supported for client ' . $client_id . '.');
+            return $this->createAuthorizationErrorRedirect(
+                $redirect_uri,
+                'request_not_supported',
+                'Request object parameter is not supported.',
+                $state
+            );
+        }
+
+        $requestUri = $this->request->getParam('request_uri');
+        if ($this->hasNonEmptyRequestParameter($requestUri)) {
+            $this->logger->notice('Request URI parameter is not supported for client ' . $client_id . '.');
+            return $this->createAuthorizationErrorRedirect(
+                $redirect_uri,
+                'request_uri_not_supported',
+                'Request URI parameter is not supported.',
+                $state
+            );
+        }
+
         if (empty($response_type)) {
             $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
             $separator = str_contains($redirect_uri, '?') ? '&' : '?';
@@ -613,5 +635,32 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
         return new RedirectResponse($url);
+    }
+
+    private function hasNonEmptyRequestParameter(mixed $value): bool
+    {
+        if (is_string($value)) {
+            return trim($value) !== '';
+        }
+
+        return !empty($value);
+    }
+
+    private function createAuthorizationErrorRedirect(
+        string $redirectUri,
+        string $error,
+        string $errorDescription,
+        mixed $state
+    ): RedirectResponse {
+        $params = [
+            'error' => $error,
+            'error_description' => $errorDescription,
+        ];
+        if ($state !== null && trim((string)$state) !== '') {
+            $params['state'] = (string)$state;
+        }
+
+        $separator = str_contains($redirectUri, '?') ? '&' : '?';
+        return new RedirectResponse($redirectUri . $separator . http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 }

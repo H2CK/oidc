@@ -256,4 +256,60 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertEquals('http://oidc.local/login-form', $result->getRedirectURL());
     }
 
+    public function testAuthorizeRejectsUnsupportedRequestObject() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) {
+                return $key === 'request' ? 'eyJhbGciOiJub25lIn0.e30.' : null;
+            });
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=state-1',
+            $result->getRedirectURL()
+        );
+    }
+
 }

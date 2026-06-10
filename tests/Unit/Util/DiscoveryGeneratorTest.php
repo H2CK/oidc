@@ -208,6 +208,16 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertContains('plain', $methods);
     }
 
+    public function testGenerateDiscoveryDoesNotAdvertiseRequestObjectSupport() {
+        $result = $this->generator->generateDiscovery($this->request);
+        $data = $result->getData();
+
+        $this->assertArrayHasKey('request_parameter_supported', $data);
+        $this->assertFalse($data['request_parameter_supported']);
+        $this->assertArrayHasKey('request_uri_parameter_supported', $data);
+        $this->assertFalse($data['request_uri_parameter_supported']);
+    }
+
     public function testGenerateDiscoveryHasIntrospectionEndpoint() {
         $result = $this->generator->generateDiscovery($this->request);
         $data = $result->getData();
