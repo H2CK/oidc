@@ -165,6 +165,51 @@ class LoginRedirectorController extends ApiController
     #[NoCSRFRequired]
     #[UseSession]
     #[PublicPage]
+    public function authorizePost(
+                    $client_id,
+                    $state,
+                    $response_type,
+                    $redirect_uri,
+                    $scope,
+                    $nonce,
+                    $resource = null,
+                    $code_challenge = null,
+                    $code_challenge_method = null
+                    ): Response
+        {
+            return authorize(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method);
+        }
+
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     * @UseSession
+     * @BruteForceProtection(action=oidc_login)
+     *
+     * @param string $client_id
+     * @param string $state
+     * @param string $response_type
+     * @param string $redirect_uri
+     * @param string $scope
+     * @param string $nonce
+     * @param string $resource
+     * @param string $code_challenge
+     * @param string $code_challenge_method
+     * @return Response
+     */
+    #[BruteForceProtection(action: 'oidc_login')]
+    #[NoCSRFRequired]
+    #[UseSession]
+    #[PublicPage]
     public function authorize(
                     $client_id,
                     $state,
