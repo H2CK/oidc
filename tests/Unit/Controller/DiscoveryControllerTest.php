@@ -112,6 +112,7 @@ class DiscoveryControllerTest extends TestCase {
         $grantTypesSupported = [
             'authorization_code',
             'implicit',
+            'refresh_token',
         ];
         $acrValuesSupported = [
             '0',

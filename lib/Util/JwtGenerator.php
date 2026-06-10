@@ -228,10 +228,12 @@ class JwtGenerator
                 $names = $this->converter->splitFullName($displayName);
                 $profile = array_merge($profile, [
                     'name' => $displayName,
-                    'family_name' => $names[0],
-                    'given_name' => $names[1],
-                    'middle_name' => $names[2]
                 ]);
+                foreach (['family_name', 'given_name', 'middle_name'] as $index => $claimName) {
+                    if (isset($names[$index]) && trim($names[$index]) !== '') {
+                        $profile[$claimName] = $names[$index];
+                    }
+                }
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
@@ -427,10 +429,12 @@ class JwtGenerator
                 $names = $this->converter->splitFullName($displayName);
                 $profile = array_merge($profile, [
                     'name' => $displayName,
-                    'family_name' => $names[0],
-                    'given_name' => $names[1],
-                    'middle_name' => $names[2]
                 ]);
+                foreach (['family_name', 'given_name', 'middle_name'] as $index => $claimName) {
+                    if (isset($names[$index]) && trim($names[$index]) !== '') {
+                        $profile[$claimName] = $names[$index];
+                    }
+                }
             } else {
                 $profile = array_merge($profile, ['name' => $user->getDisplayName()]);
             }
