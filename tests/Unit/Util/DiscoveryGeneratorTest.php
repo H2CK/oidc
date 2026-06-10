@@ -155,7 +155,7 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertArrayHasKey('grant_types_supported', $data);
         $grantTypes = $data['grant_types_supported'];
         
-        $expectedTypes = ['authorization_code', 'implicit'];
+        $expectedTypes = ['authorization_code', 'implicit', 'refresh_token'];
         foreach ($expectedTypes as $type) {
             $this->assertContains($type, $grantTypes, "Missing grant type: $type");
         }

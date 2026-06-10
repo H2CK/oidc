@@ -125,6 +125,7 @@ class DiscoveryGenerator
         $grantTypesSupported = [
             'authorization_code',
             'implicit',
+            'refresh_token',
         ];
         $acrValuesSupported = [
             '0',

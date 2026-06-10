@@ -208,21 +208,11 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        try {
-            $client = $this->clientMapper->getByUid($accessToken->getClientId());
-        } catch (ClientNotFoundException $e) {
-            $this->logger->error('Could not find client for access token. Client id was ' . $client_id . '.');
-            return new JSONResponse([
-                'error' => 'invalid_request',
-                'error_description' => 'Could not find client for access token.',
-            ], Http::STATUS_BAD_REQUEST);
-        }
-
         if (!isset($client_id)) {
             $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
             if (isset($this->request->server['PHP_AUTH_USER'])) {
                 $client_id = $this->request->server['PHP_AUTH_USER'];
-                $client_secret = $this->request->server['PHP_AUTH_PW'];
+                $client_secret = $this->request->server['PHP_AUTH_PW'] ?? null;
             }
             if (!isset($client_id)) {
                 $this->logger->debug('No client_id in PHP_AUTH_USER superglobal. Trying to fetch from Authorization Header directly.');
@@ -239,24 +229,51 @@ class OIDCApiController extends ApiController {
             }
         }
 
+        if ($client_id === null || trim($client_id) === '') {
+            $this->logger->info('Missing client_id in token request.');
+            return new JSONResponse([
+                'error' => 'invalid_client',
+                'error_description' => 'Missing client_id.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        try {
+            $client = $this->clientMapper->getByIdentifier($client_id);
+        } catch (ClientNotFoundException $e) {
+            $this->logger->info('Client not found. Client id was ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_client',
+                'error_description' => 'Client not found.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        if ($client === null) {
+            $this->logger->info('Client not found. Client id was ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_client',
+                'error_description' => 'Client not found.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
         if ($client->getType() === 'public') {
-            // Only the client id must match for a public client. Else we don't provide an access token!
-            if ($client->getClientIdentifier() !== $client_id) {
-                $this->logger->info('Client not found. Client id was ' . $client_id . '.');
-                return new JSONResponse([
-                    'error' => 'invalid_client',
-                    'error_description' => 'Client not found.',
-                ], Http::STATUS_BAD_REQUEST);
-            }
+            // Only the client id must be present for a public client.
+            $this->logger->debug('Authenticated public client. Client id was ' . $client_id . '.');
         } else {
             // The client id and secret must match. Else we don't provide an access token!
-            if ($client->getClientIdentifier() !== $client_id || $client->getSecret() !== $client_secret) {
+            if ($client->getSecret() !== $client_secret) {
                 $this->logger->error('Client authentication failed. Client id was ' . $client_id . '.');
                 return new JSONResponse([
                     'error' => 'invalid_client',
                     'error_description' => 'Client authentication failed.',
                 ], Http::STATUS_BAD_REQUEST);
             }
+        }
+
+        if ($accessToken->getClientId() !== $client->getId()) {
+            $this->logger->info('Grant is not valid for client id ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_grant',
+                'error_description' => 'Grant is not valid for this client.',
+            ], Http::STATUS_BAD_REQUEST);
         }
 
         // The client must not be expired
