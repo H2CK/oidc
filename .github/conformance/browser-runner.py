@@ -8,6 +8,7 @@ configured without browser commands and this worker handles exposed browser URLs
 through the suite's existing runner API.
 """
 
+import base64
 import os
 import sys
 import time
@@ -28,6 +29,8 @@ OIDC_TEST_PASSWORD = os.environ["OIDC_TEST_PASSWORD"]
 POLL_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_POLL_SECONDS", "1"))
 VISIT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_VISIT_TIMEOUT", "90"))
 LOGIN_REDIRECT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT", "15"))
+PLACEHOLDER_CHECK_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_PLACEHOLDER_CHECK_SECONDS", "2"))
+SCREENSHOT_STABILITY_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_SCREENSHOT_STABILITY_SECONDS", "2"))
 
 
 def log(message):
@@ -199,7 +202,98 @@ def page_diagnostics(driver):
     }
 
 
-def drive_url(driver, method, url):
+def page_ready_for_screenshot(driver):
+    diag = page_diagnostics(driver)
+    if diag["ready_state"] != "complete":
+        return False
+    return bool(diag["title"] or diag["body"])
+
+
+def get_pending_upload_placeholder(client, test_id, uploaded_placeholders):
+    try:
+        response = client.get(f"{CONFORMANCE_SERVER}/api/log/{test_id}")
+        response.raise_for_status()
+        log_entries = response.json()
+    except Exception as exc:
+        log(f"Unable to read log placeholders for {test_id}: {exc}")
+        return None
+
+    for entry in reversed(log_entries):
+        placeholder = entry.get("upload")
+        if (
+            placeholder
+            and entry.get("result") == "REVIEW"
+            and (test_id, placeholder) not in uploaded_placeholders
+        ):
+            return placeholder
+
+    return None
+
+
+def screenshot_data_urls(driver):
+    try:
+        for quality in (80, 60, 40):
+            result = driver.execute_cdp_cmd(
+                "Page.captureScreenshot",
+                {
+                    "format": "jpeg",
+                    "quality": quality,
+                    "captureBeyondViewport": False,
+                },
+            )
+            encoded = result.get("data")
+            if encoded:
+                yield f"jpeg q{quality}", f"data:image/jpeg;base64,{encoded}"
+    except Exception as exc:
+        log(f"Unable to capture JPEG screenshot through Chrome DevTools: {exc}")
+
+    encoded = base64.b64encode(driver.get_screenshot_as_png()).decode("ascii")
+    yield "png", f"data:image/png;base64,{encoded}"
+
+
+def encoded_data_size(data_url):
+    marker = "base64,"
+    marker_index = data_url.find(marker)
+    if marker_index == -1:
+        return 0
+    try:
+        return len(base64.b64decode(data_url[marker_index + len(marker):]))
+    except Exception:
+        return 0
+
+
+def upload_review_screenshot(client, test_id, placeholder, driver):
+    url = f"{CONFORMANCE_SERVER}/api/log/{test_id}/images/{placeholder}"
+
+    for label, data_url in screenshot_data_urls(driver):
+        size = encoded_data_size(data_url)
+        log(f"Uploading {label} screenshot for placeholder {placeholder} ({size} bytes)")
+        try:
+            response = client.post(
+                url,
+                content=data_url,
+                headers={"Content-Type": "text/plain; charset=utf-8"},
+            )
+        except Exception as exc:
+            log(f"Unable to upload screenshot for {test_id}: {exc}")
+            return False
+
+        if response.status_code == 200:
+            log(f"Uploaded screenshot for review placeholder {placeholder}")
+            return True
+
+        body = " ".join(response.text.split())
+        if len(body) > 300:
+            body = body[:300] + "..."
+        log(f"Screenshot upload failed with HTTP {response.status_code}: {body}")
+
+        if response.status_code != 400:
+            return False
+
+    return False
+
+
+def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
     log(f"Visiting {method} {url}")
     if method.upper() == "POST":
         submit_post(driver, url)
@@ -208,10 +302,14 @@ def drive_url(driver, method, url):
 
     deadline = time.monotonic() + VISIT_TIMEOUT_SECONDS
     last_seen_url = None
+    last_url_changed_at = time.monotonic()
+    next_placeholder_check = 0
     while time.monotonic() < deadline:
+        now = time.monotonic()
         current_url = driver.current_url
         if current_url != last_seen_url:
             last_seen_url = current_url
+            last_url_changed_at = now
             log(f"Browser at {current_url}")
 
         if is_conformance_callback(current_url):
@@ -224,6 +322,19 @@ def drive_url(driver, method, url):
 
         if grant_consent_if_present(driver):
             continue
+
+        if (
+            now >= next_placeholder_check
+            and now - last_url_changed_at >= SCREENSHOT_STABILITY_SECONDS
+            and page_ready_for_screenshot(driver)
+        ):
+            next_placeholder_check = now + PLACEHOLDER_CHECK_SECONDS
+            placeholder = get_pending_upload_placeholder(client, test_id, uploaded_placeholders)
+            if placeholder:
+                log(f"Review placeholder {placeholder} is pending at {current_url}")
+                if upload_review_screenshot(client, test_id, placeholder, driver):
+                    uploaded_placeholders.add((test_id, placeholder))
+                    return current_url
 
         time.sleep(0.5)
 
@@ -269,6 +380,7 @@ def close_driver(drivers, test_id):
 def main():
     drivers = {}
     processed = set()
+    uploaded_placeholders = set()
     active_test_id = None
 
     with httpx.Client(verify=False, timeout=15.0) as client:
@@ -304,7 +416,7 @@ def main():
                     processed.add(key)
 
                     try:
-                        drive_url(driver, method, url)
+                        drive_url(driver, client, test_id, uploaded_placeholders, method, url)
                     except Exception as exc:
                         log(f"Browser visit failed for {test_id}: {exc}")
                     finally:
