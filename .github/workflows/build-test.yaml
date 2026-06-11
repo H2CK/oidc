@@ -377,7 +377,20 @@ jobs:
           echo "::group::conformance-browser.log"
           cat ../conformance-browser.log || true
           echo "::endgroup::"
-          exit "${test_plan_status}"
+          set +e
+          python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/check-results.py \
+            --results-dir ../conformance-results
+          blocking_status=$?
+          set -e
+          if [ "${blocking_status}" -ne 0 ]; then
+            if [ "${test_plan_status}" -ne 0 ]; then
+              exit "${test_plan_status}"
+            fi
+            exit "${blocking_status}"
+          fi
+          if [ "${test_plan_status}" -ne 0 ]; then
+            echo "Conformance suite exited with ${test_plan_status}, but exported results contain only non-blocking WARNING/REVIEW outcomes."
+          fi
 
       - name: Generate conformance report
         if: always()
