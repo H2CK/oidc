@@ -1,0 +1,266 @@
+name: OIDC conformance
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+env:
+  PHP_VERSION: 8.5
+
+jobs:
+  oidc_conformance:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule' || github.ref == 'refs/heads/master'
+    timeout-minutes: 90
+
+    env:
+      CONFORMANCE_ALIAS: nextcloud-${{ github.run_id }}
+      NEXTCLOUD_BASE_URL: http://host.docker.internal:8080
+      OIDC_TEST_USER: oidc-test-user
+      OIDC_TEST_PASSWORD: oidc-test-password
+      OIDC_CLIENT_ID_1: nextcloud-conformance-client-00001
+      OIDC_CLIENT_SECRET_1: nextcloud-conformance-secret-00001
+      OIDC_CLIENT_ID_2: nextcloud-conformance-client-00002
+      OIDC_CLIENT_SECRET_2: nextcloud-conformance-secret-00002
+
+    steps:
+      - name: Set app env
+        run: |
+          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: ${{ env.APP_NAME }}
+
+      - name: Get appinfo data
+        id: appinfo
+        uses: mavrosxristoforos/get-xml-info@1.1.1
+        with:
+          xml-file: ${{ env.APP_NAME }}/appinfo/info.xml
+          xpath: "//info//dependencies//nextcloud/@max-version"
+
+      - name: Derive Nextcloud checkout ref
+        shell: bash
+        run: |
+            max_version="${{ steps.appinfo.outputs.info }}"
+            if [ -z "$max_version" ]; then
+              max_version="${{ steps.appinfo.outputs.value }}"
+            fi
+            if [ -z "$max_version" ]; then
+              echo "Error: could not read nextcloud max-version from appinfo" >&2
+              exit 1
+            fi
+            major="${max_version%%.*}"
+            echo "NEXTCLOUD_REF=stable$major" >> $GITHUB_ENV
+
+      - name: Read package.json node and npm engines version
+        uses: skjnldsv/read-package-engines-version-actions@v2
+        id: versions
+        continue-on-error: true
+        with:
+          path: ${{ env.APP_NAME }}
+          fallbackNode: "^22"
+          fallbackNpm: "^10"
+
+      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        if: ${{ steps.versions.outputs.nodeVersion }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
+
+      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
+        if: ${{ steps.versions.outputs.npmVersion }}
+        run: npm i -g npm@"${{ steps.versions.outputs.npmVersion }}"
+
+      - name: Set up php ${{ env.PHP_VERSION }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          coverage: none
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install app dependencies and build assets
+        run: |
+          cd ${{ env.APP_NAME }}
+          composer install
+          npm ci
+          npm run build
+
+      - name: Checkout Nextcloud server
+        uses: actions/checkout@v3
+        with:
+          repository: nextcloud/server
+          path: nextcloud
+          submodules: recursive
+          ref: ${{ env.NEXTCLOUD_REF }}
+
+      - name: Install Nextcloud dependencies
+        run: |
+          cd nextcloud
+          composer install
+
+      - name: Install and configure Nextcloud OIDC provider
+        run: |
+          mv -v ${{ env.APP_NAME }} nextcloud/apps/
+          cd nextcloud
+          php occ maintenance:install --admin-user admin --admin-pass admin
+          php occ app:enable ${{ env.APP_NAME }}
+          php occ config:system:set trusted_domains 1 --value=host.docker.internal
+          php occ config:system:set trusted_domains 2 --value=127.0.0.1
+          php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
+          php occ config:system:set overwritehost --value=host.docker.internal:8080
+          php occ config:system:set overwriteprotocol --value=http
+          php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
+          OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
+          php occ user:setting "${OIDC_TEST_USER}" settings email oidc-test@example.test
+          callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}/callback"
+          php occ oidc:create "OIDC Conformance Basic 1" "${callback}" \
+            --client_id "${OIDC_CLIENT_ID_1}" \
+            --client_secret "${OIDC_CLIENT_SECRET_1}" \
+            --type confidential \
+            --flow code \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create "OIDC Conformance Basic 2" "${callback}" \
+            --client_id "${OIDC_CLIENT_ID_2}" \
+            --client_secret "${OIDC_CLIENT_SECRET_2}" \
+            --type confidential \
+            --flow code \
+            --allowed_scopes "openid profile email offline_access"
+
+      - name: Start Nextcloud web server
+        run: |
+          cd nextcloud
+          php -S 0.0.0.0:8080 -t . > ../nextcloud-server.log 2>&1 &
+          echo $! > ../nextcloud-server.pid
+          for i in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8080/index.php/apps/oidc/openid-configuration > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat ../nextcloud-server.log
+          exit 1
+
+      - name: Checkout OpenID conformance suite
+        run: git clone --depth 1 https://gitlab.com/openid/conformance-suite.git conformance-suite
+
+      - name: Build and start OpenID conformance suite
+        run: |
+          sudo sh -c 'echo "127.0.0.1 nginx" >> /etc/hosts'
+          sudo sh -c 'echo "127.0.0.1 oidcc-provider" >> /etc/hosts'
+          sudo sh -c 'echo "127.0.0.1 chrome" >> /etc/hosts'
+          cd conformance-suite
+          mvn -B -DskipTests package
+          docker compose \
+            -f docker-compose-localtest.yml \
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
+            up -d mongodb nginx server chrome
+          # Wait for Chrome/Selenium service to be ready
+          for i in {1..60}; do
+            if curl --fail --silent http://chrome:4444/status > /dev/null 2>&1; then
+              echo "Chrome/Selenium service is ready"
+              break
+            fi
+            sleep 2
+          done
+          # Wait for API runner
+          for i in {1..60}; do
+            if curl --insecure --fail --silent https://nginx:8443/api/runner/available > /dev/null; then
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose \
+            -f docker-compose-localtest.yml \
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
+            -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
+            logs server nginx chrome
+          exit 1
+
+      - name: Install conformance runner dependencies
+        run: python3 -m pip install --user httpx pyparsing selenium
+
+      - name: Write conformance plan config
+        run: |
+          mkdir -p conformance-results conformance-config
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-basic-config.json \
+            conformance-config/oidc-basic-config.json
+          python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
+
+      - name: Run OIDC basic conformance plan
+        env:
+          CONFORMANCE_DEV_MODE: 1
+          CONFORMANCE_SERVER: https://nginx:8443/
+          CONFORMANCE_SERVER_MTLS: https://nginx:8444/
+          SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+          CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
+        run: |
+          cd conformance-suite
+          : > ../conformance-browser.log
+          PYTHONUNBUFFERED=1 python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
+            >> ../conformance-browser.log 2>&1 &
+          browser_runner_pid=$!
+          tail -n +1 -f ../conformance-browser.log &
+          browser_log_tail_pid=$!
+          cleanup_browser_runner() {
+            kill "${browser_runner_pid}" 2>/dev/null || true
+            kill "${browser_log_tail_pid}" 2>/dev/null || true
+            wait "${browser_runner_pid}" 2>/dev/null || true
+            wait "${browser_log_tail_pid}" 2>/dev/null || true
+          }
+          trap cleanup_browser_runner EXIT
+          set +e
+          python3 scripts/run-test-plan.py \
+            --export-dir ../conformance-results \
+            --verbose \
+            "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
+            ../conformance-config/oidc-basic-config.json
+          test_plan_status=$?
+          set -e
+          cleanup_browser_runner
+          trap - EXIT
+          echo "::group::conformance-browser.log"
+          cat ../conformance-browser.log || true
+          echo "::endgroup::"
+          set +e
+          python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/check-results.py \
+            --results-dir ../conformance-results
+          blocking_status=$?
+          set -e
+          if [ "${blocking_status}" -ne 0 ]; then
+            if [ "${test_plan_status}" -ne 0 ]; then
+              exit "${test_plan_status}"
+            fi
+            exit "${blocking_status}"
+          fi
+          if [ "${test_plan_status}" -ne 0 ]; then
+            echo "Conformance suite exited with ${test_plan_status}, but exported results contain only non-blocking WARNING/REVIEW outcomes."
+          fi
+
+      - name: Generate conformance report
+        if: always()
+        run: |
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/generate-report.py \
+            --results-dir conformance-results \
+            --output CONFORMANCE.md
+          cat CONFORMANCE.md
+
+      - name: Upload conformance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oidc-conformance-results
+          path: |
+            CONFORMANCE.md
+            conformance-results
+            conformance-browser.log
+            nextcloud-server.log
