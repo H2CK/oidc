@@ -218,7 +218,9 @@ class ConsentController extends Controller {
             'code_challenge_method' => $this->session->get('oidc_code_challenge_method'),
             'prompt' => $this->session->get('oidc_prompt'),
             'max_age' => $this->session->get('oidc_max_age'),
-        ]));
+        ], static function ($value): bool {
+            return $value !== null && $value !== '';
+        }));
 
         // IMPORTANT: Close the session to commit changes before redirecting
         // Without this, the authorize endpoint won't see the updated session values

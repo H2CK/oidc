@@ -444,11 +444,122 @@ class LoginRedirectorControllerTest extends TestCase {
             null,
             null,
             null,
-            '10000'
+            null
         );
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
+    }
+
+    public function testAuthorizeMaxAgeExceededForcesReauthentication() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $time = $this->createMock(ITimeFactory::class);
+        $time
+            ->method('getTime')
+            ->willReturn(2000);
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $this->request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $this->session,
+            $this->l,
+            $time,
+            $this->userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $this->appConfig,
+            $this->jwtGenerator,
+            $this->redirectUriService,
+            $this->logger
+        );
+
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->userSession
+            ->expects($this->once())
+            ->method('logout');
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1000,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->session
+            ->expects($this->atLeastOnce())
+            ->method('set');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->urlGenerator
+            ->method('linkToRoute')
+            ->willReturnCallback(function ($route) {
+                if ($route === 'oidc.Page.index') {
+                    return '/index.php/apps/oidc/redirect?client_id=client1';
+                }
+                if ($route === 'core.login.showLoginForm') {
+                    return '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1';
+                }
+                return '/unexpected';
+            });
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1',
+            null,
+            null,
+            null,
+            null,
+            '1'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1',
+            $result->getRedirectURL()
+        );
     }
 
     public function testAuthorizeRejectsUnsupportedRequestObject() {

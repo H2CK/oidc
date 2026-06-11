@@ -265,47 +265,20 @@ class LoginRedirectorController extends ApiController
                 );
             }
 
-            // Not authenticated yet
-            // Store oidc attributes in user session to be available after login
-            $this->session->set('oidc_client_id', $client_id);
-            $this->session->set('oidc_state', $state);
-            $this->session->set('oidc_response_type', $response_type);
-            $this->session->set('oidc_redirect_uri', $redirect_uri);
-            $this->session->set('oidc_scope', $scope);
-            $this->session->set('oidc_nonce', $nonce);
-            $this->session->set('oidc_resource', $resource);
-            $this->session->set('oidc_code_challenge', $code_challenge);
-            $this->session->set('oidc_code_challenge_method', $code_challenge_method);
-            $this->session->set('oidc_prompt', $prompt);
-            $this->session->set('oidc_max_age', $max_age);
-            $this->session->set('oidc_login_pending', true);
-
-            $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
-                'client_id'             => $client_id,
-                'state'                 => $state,
-                'response_type'         => $response_type,
-                'redirect_uri'          => $redirect_uri,
-                'scope'                 => $scope,
-                'nonce'                 => $nonce,
-                'resource'              => $resource,
-                'code_challenge'        => $code_challenge,
-                'code_challenge_method' => $code_challenge_method,
-                'prompt'                => $prompt,
-                'max_age'               => $max_age,
-            ]));
-
-            $loginUrl = $this->urlGenerator->linkToRoute(
-                            'core.login.showLoginForm',
-                            [
-                                'redirect_url' => $afterLoginRedirectUrl
-                            ]
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                'Not authenticated yet for client ' . $client_id . '. Redirect to login.'
             );
-
-            $this->session->close(); // Close session to prevent session locking issues during redirect
-
-            $this->logger->debug('Not authenticated yet for client ' . $client_id . '. Redirect to login.');
-
-            return new RedirectResponse($loginUrl);
         }
 
         // Debug: Log client id before and after fallback
@@ -394,16 +367,6 @@ class LoginRedirectorController extends ApiController
             return $redirectUriErrorResponse;
         }
 
-        if ($this->promptContains($prompt, 'none') && $this->maxAgeExceeded($max_age, $authTime)) {
-            $this->logger->debug('prompt=none requested but max_age is exceeded for client ' . $client_id . '. Returning login_required.');
-            return $this->createAuthorizationErrorRedirect(
-                (string)$redirect_uri,
-                'login_required',
-                'User authentication is too old.',
-                $state
-            );
-        }
-
         if (empty($response_type)) {
             $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
             $separator = str_contains($redirect_uri, '?') ? '&' : '?';
@@ -444,6 +407,35 @@ class LoginRedirectorController extends ApiController
             $this->logger->notice('Not allowed response_type in request for client ' . $client_id . '. Please check the configuration for not allowed flow types.');
             $url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
             return new RedirectResponse($url);
+        }
+
+        if ($this->maxAgeExceeded($max_age, $authTime)) {
+            if ($this->promptContains($prompt, 'none')) {
+                $this->logger->debug('prompt=none requested but max_age is exceeded for client ' . $client_id . '. Returning login_required.');
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'login_required',
+                    'User authentication is too old.',
+                    $state
+                );
+            }
+
+            $this->logger->debug('max_age is exceeded for client ' . $client_id . '. Forcing reauthentication.');
+            $this->userSession->logout();
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                'Redirect to login for max_age reauthentication for client ' . $client_id . '.'
+            );
         }
 
         // Check if user is in allowed groups for client
@@ -783,6 +775,64 @@ class LoginRedirectorController extends ApiController
         }
 
         return !empty($value);
+    }
+
+    private function redirectToLoginAfterOidcAuthentication(
+        mixed $clientId,
+        mixed $state,
+        mixed $responseType,
+        mixed $redirectUri,
+        mixed $scope,
+        mixed $nonce,
+        mixed $resource,
+        mixed $codeChallenge,
+        mixed $codeChallengeMethod,
+        mixed $prompt,
+        mixed $maxAge,
+        string $logMessage
+    ): RedirectResponse {
+        // Store OIDC attributes in the user session to be available after login.
+        $this->session->set('oidc_client_id', $clientId);
+        $this->session->set('oidc_state', $state);
+        $this->session->set('oidc_response_type', $responseType);
+        $this->session->set('oidc_redirect_uri', $redirectUri);
+        $this->session->set('oidc_scope', $scope);
+        $this->session->set('oidc_nonce', $nonce);
+        $this->session->set('oidc_resource', $resource);
+        $this->session->set('oidc_code_challenge', $codeChallenge);
+        $this->session->set('oidc_code_challenge_method', $codeChallengeMethod);
+        $this->session->set('oidc_prompt', $prompt);
+        $this->session->set('oidc_max_age', $maxAge);
+        $this->session->set('oidc_login_pending', true);
+
+        $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
+            'client_id'             => $clientId,
+            'state'                 => $state,
+            'response_type'         => $responseType,
+            'redirect_uri'          => $redirectUri,
+            'scope'                 => $scope,
+            'nonce'                 => $nonce,
+            'resource'              => $resource,
+            'code_challenge'        => $codeChallenge,
+            'code_challenge_method' => $codeChallengeMethod,
+            'prompt'                => $prompt,
+            'max_age'               => $maxAge,
+        ], static function ($value): bool {
+            return $value !== null && $value !== '';
+        }));
+
+        $loginUrl = $this->urlGenerator->linkToRoute(
+            'core.login.showLoginForm',
+            [
+                'redirect_url' => $afterLoginRedirectUrl
+            ]
+        );
+
+        $this->session->close(); // Close session to prevent session locking issues during redirect
+
+        $this->logger->debug($logMessage);
+
+        return new RedirectResponse($loginUrl);
     }
 
     private function promptContains(mixed $prompt, string $expectedPrompt): bool
