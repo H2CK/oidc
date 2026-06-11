@@ -217,6 +217,7 @@ class ConsentController extends Controller {
             'code_challenge' => $this->session->get('oidc_code_challenge'),
             'code_challenge_method' => $this->session->get('oidc_code_challenge_method'),
             'prompt' => $this->session->get('oidc_prompt'),
+            'max_age' => $this->session->get('oidc_max_age'),
         ]));
 
         // IMPORTANT: Close the session to commit changes before redirecting
@@ -436,6 +437,7 @@ class ConsentController extends Controller {
         $this->session->remove('oidc_code_challenge');
         $this->session->remove('oidc_code_challenge_method');
         $this->session->remove('oidc_prompt');
+        $this->session->remove('oidc_max_age');
         $this->session->remove('oidc_requested_scopes');
 
         // Return error to client

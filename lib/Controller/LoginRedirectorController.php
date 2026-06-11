@@ -160,6 +160,7 @@ class LoginRedirectorController extends ApiController
      * @param string $code_challenge
      * @param string $code_challenge_method
      * @param string $prompt
+     * @param string $max_age
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -176,7 +177,8 @@ class LoginRedirectorController extends ApiController
                     $resource = null,
                     $code_challenge = null,
                     $code_challenge_method = null,
-                    $prompt = null
+                    $prompt = null,
+                    $max_age = null
                     ): Response
         {
             return $this->authorize(
@@ -189,7 +191,8 @@ class LoginRedirectorController extends ApiController
                 $resource,
                 $code_challenge,
                 $code_challenge_method,
-                $prompt);
+                $prompt,
+                $max_age);
         }
 
     /**
@@ -208,6 +211,7 @@ class LoginRedirectorController extends ApiController
      * @param string $code_challenge
      * @param string $code_challenge_method
      * @param string $prompt
+     * @param string $max_age
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -224,10 +228,12 @@ class LoginRedirectorController extends ApiController
                     $resource = null,
                     $code_challenge = null,
                     $code_challenge_method = null,
-                    $prompt = null
+                    $prompt = null,
+                    $max_age = null
                     ): Response
         {
         $prompt = $prompt ?? $this->request->getParam('prompt');
+        $max_age = $max_age ?? $this->request->getParam('max_age');
 
         $unsupportedRequestParameterResponse = $this->rejectUnsupportedRequestParameters(
             $client_id,
@@ -271,6 +277,8 @@ class LoginRedirectorController extends ApiController
             $this->session->set('oidc_code_challenge', $code_challenge);
             $this->session->set('oidc_code_challenge_method', $code_challenge_method);
             $this->session->set('oidc_prompt', $prompt);
+            $this->session->set('oidc_max_age', $max_age);
+            $this->session->set('oidc_login_pending', true);
 
             $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
                 'client_id'             => $client_id,
@@ -283,6 +291,7 @@ class LoginRedirectorController extends ApiController
                 'code_challenge'        => $code_challenge,
                 'code_challenge_method' => $code_challenge_method,
                 'prompt'                => $prompt,
+                'max_age'               => $max_age,
             ]));
 
             $loginUrl = $this->urlGenerator->linkToRoute(
@@ -319,7 +328,10 @@ class LoginRedirectorController extends ApiController
             $code_challenge = $this->session->get('oidc_code_challenge');
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
             $prompt = $this->session->get('oidc_prompt');
+            $max_age = $this->session->get('oidc_max_age');
         }
+
+        $authTime = $this->getOidcAuthenticationTime();
 
 		// Guard: if critical OAuth params are still missing after session fallback,
         // return a meaningful error instead of letting downstream code crash with a 500
@@ -380,6 +392,16 @@ class LoginRedirectorController extends ApiController
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);
         if ($redirectUriErrorResponse !== null) {
             return $redirectUriErrorResponse;
+        }
+
+        if ($this->promptContains($prompt, 'none') && $this->maxAgeExceeded($max_age, $authTime)) {
+            $this->logger->debug('prompt=none requested but max_age is exceeded for client ' . $client_id . '. Returning login_required.');
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'login_required',
+                'User authentication is too old.',
+                $state
+            );
         }
 
         if (empty($response_type)) {
@@ -517,6 +539,7 @@ class LoginRedirectorController extends ApiController
                 $this->session->set('oidc_code_challenge', $code_challenge);
                 $this->session->set('oidc_code_challenge_method', $code_challenge_method);
                 $this->session->set('oidc_prompt', $prompt);
+                $this->session->set('oidc_max_age', $max_age);
 
                 $this->session->close(); // Close session to prevent session locking issues during redirect
 
@@ -569,7 +592,7 @@ class LoginRedirectorController extends ApiController
         } else {
             $accessToken->setResource(substr($resource, 0, 2000));
         }
-        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setCreated($authTime);
         $accessToken->setRefreshed($this->time->getTime());
         if (empty($nonce) || !isset($nonce)) {
             $nonce = '';
@@ -770,6 +793,51 @@ class LoginRedirectorController extends ApiController
 
         $promptEntries = array_filter(array_map('trim', explode(' ', strtolower($prompt))));
         return in_array(strtolower($expectedPrompt), $promptEntries, true);
+    }
+
+    private function getOidcAuthenticationTime(): int
+    {
+        $storedAuthTime = $this->session->get('oidc_auth_time');
+        $loginPending = $this->session->get('oidc_login_pending');
+
+        if ($loginPending || !$this->isPositiveIntegerLike($storedAuthTime)) {
+            $storedAuthTime = $this->time->getTime();
+            $this->session->set('oidc_auth_time', $storedAuthTime);
+        }
+
+        if ($loginPending) {
+            $this->session->remove('oidc_login_pending');
+        }
+
+        return (int)$storedAuthTime;
+    }
+
+    private function maxAgeExceeded(mixed $maxAge, int $authTime): bool
+    {
+        if (!$this->isNonNegativeIntegerLike($maxAge)) {
+            return false;
+        }
+
+        return $this->time->getTime() > $authTime + (int)$maxAge;
+    }
+
+    private function isPositiveIntegerLike(mixed $value): bool
+    {
+        return $this->isNonNegativeIntegerLike($value) && (int)$value > 0;
+    }
+
+    private function isNonNegativeIntegerLike(mixed $value): bool
+    {
+        if (is_int($value)) {
+            return $value >= 0;
+        }
+
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $value = trim($value);
+        return $value !== '' && ctype_digit($value);
     }
 
     private function createAuthorizationErrorRedirect(

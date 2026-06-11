@@ -25,7 +25,7 @@ export default {
 		const keys = [
 			'client_id', 'state', 'response_type', 'redirect_uri',
 			'scope', 'nonce', 'resource', 'code_challenge', 'code_challenge_method',
-			'prompt',
+			'prompt', 'max_age',
 		]
 		keys.forEach(key => {
 			const value = el?.getAttribute('data-' + key.replace(/_/g, '-'))
