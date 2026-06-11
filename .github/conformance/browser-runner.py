@@ -293,6 +293,22 @@ def upload_review_screenshot(client, test_id, placeholder, driver):
     return False
 
 
+def maybe_upload_pending_review_screenshot(client, test_id, uploaded_placeholders, driver):
+    placeholder = get_pending_upload_placeholder(client, test_id, uploaded_placeholders)
+    if not placeholder:
+        return False
+
+    if not page_ready_for_screenshot(driver):
+        return None
+
+    log(f"Review placeholder {placeholder} is pending at {driver.current_url}")
+    if upload_review_screenshot(client, test_id, placeholder, driver):
+        uploaded_placeholders.add((test_id, placeholder))
+        return True
+
+    return False
+
+
 def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
     log(f"Visiting {method} {url}")
     if method.upper() == "POST":
@@ -317,6 +333,16 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
             return current_url
 
         if is_login_page(driver):
+            upload_result = maybe_upload_pending_review_screenshot(
+                client,
+                test_id,
+                uploaded_placeholders,
+                driver,
+            )
+            if upload_result is None:
+                time.sleep(0.2)
+                continue
+
             login(driver)
             continue
 
@@ -329,12 +355,8 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
             and page_ready_for_screenshot(driver)
         ):
             next_placeholder_check = now + PLACEHOLDER_CHECK_SECONDS
-            placeholder = get_pending_upload_placeholder(client, test_id, uploaded_placeholders)
-            if placeholder:
-                log(f"Review placeholder {placeholder} is pending at {current_url}")
-                if upload_review_screenshot(client, test_id, placeholder, driver):
-                    uploaded_placeholders.add((test_id, placeholder))
-                    return current_url
+            if maybe_upload_pending_review_screenshot(client, test_id, uploaded_placeholders, driver):
+                return current_url
 
         time.sleep(0.5)
 
