@@ -562,6 +562,90 @@ class LoginRedirectorControllerTest extends TestCase {
         );
     }
 
+    public function testAuthorizePromptLoginForcesReauthentication() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->userSession
+            ->expects($this->once())
+            ->method('logout');
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 2000,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->session
+            ->expects($this->atLeastOnce())
+            ->method('set');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->urlGenerator
+            ->method('linkToRoute')
+            ->willReturnCallback(function ($route) {
+                if ($route === 'oidc.Page.index') {
+                    return '/index.php/apps/oidc/redirect?client_id=client1&prompt=login';
+                }
+                if ($route === 'core.login.showLoginForm') {
+                    return '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1&prompt=login';
+                }
+                return '/unexpected';
+            });
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1',
+            null,
+            null,
+            null,
+            'login'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1&prompt=login',
+            $result->getRedirectURL()
+        );
+    }
+
     public function testAuthorizeRejectsUnsupportedRequestObject() {
         $clientId = 'client1';
         $state = 'state-1';

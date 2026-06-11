@@ -304,6 +304,7 @@ class LoginRedirectorController extends ApiController
             $max_age = $this->session->get('oidc_max_age');
         }
 
+        $oidcLoginPending = $this->session->get('oidc_login_pending') === true;
         $authTime = $this->getOidcAuthenticationTime();
 
 		// Guard: if critical OAuth params are still missing after session fallback,
@@ -407,6 +408,25 @@ class LoginRedirectorController extends ApiController
             $this->logger->notice('Not allowed response_type in request for client ' . $client_id . '. Please check the configuration for not allowed flow types.');
             $url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
             return new RedirectResponse($url);
+        }
+
+        if ($this->promptContains($prompt, 'login') && !$oidcLoginPending) {
+            $this->logger->debug('prompt=login requested for client ' . $client_id . '. Forcing reauthentication.');
+            $this->userSession->logout();
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                'Redirect to login for prompt=login reauthentication for client ' . $client_id . '.'
+            );
         }
 
         if ($this->maxAgeExceeded($max_age, $authTime)) {
