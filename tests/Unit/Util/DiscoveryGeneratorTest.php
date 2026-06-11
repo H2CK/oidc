@@ -155,7 +155,7 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertArrayHasKey('grant_types_supported', $data);
         $grantTypes = $data['grant_types_supported'];
         
-        $expectedTypes = ['authorization_code', 'implicit'];
+        $expectedTypes = ['authorization_code', 'implicit', 'refresh_token'];
         foreach ($expectedTypes as $type) {
             $this->assertContains($type, $grantTypes, "Missing grant type: $type");
         }
@@ -206,6 +206,16 @@ class DiscoveryGeneratorTest extends TestCase {
         
         $this->assertContains('S256', $methods);
         $this->assertContains('plain', $methods);
+    }
+
+    public function testGenerateDiscoveryDoesNotAdvertiseRequestObjectSupport() {
+        $result = $this->generator->generateDiscovery($this->request);
+        $data = $result->getData();
+
+        $this->assertArrayHasKey('request_parameter_supported', $data);
+        $this->assertFalse($data['request_parameter_supported']);
+        $this->assertArrayHasKey('request_uri_parameter_supported', $data);
+        $this->assertFalse($data['request_uri_parameter_supported']);
     }
 
     public function testGenerateDiscoveryHasIntrospectionEndpoint() {

@@ -13,8 +13,6 @@ on:
     branches:
       - "*"
   workflow_dispatch:
-    branches:
-      - "*"
 
 env:
   PHP_VERSION: 8.5

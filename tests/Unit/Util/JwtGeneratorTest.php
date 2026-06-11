@@ -217,13 +217,19 @@ class JwtGeneratorTest extends TestCase {
         $mockAccountProperty = $this->createMock(IAccountProperty::class);
         $mockAccountProperty->method('getValue')->willReturn('');
 
+        $mockDisplayNameProperty = $this->createMock(IAccountProperty::class);
+        $mockDisplayNameProperty->method('getValue')->willReturn('Test User');
+
         // Special handling for email property
         $mockEmailProperty = $this->createMock(IAccountProperty::class);
         $mockEmailProperty->method('getValue')->willReturn($testEmail);
 
         $mockAccount
             ->method('getProperty')
-            ->willReturnCallback(function($prop) use ($mockEmailProperty, $mockAccountProperty) {
+            ->willReturnCallback(function($prop) use ($mockDisplayNameProperty, $mockEmailProperty, $mockAccountProperty) {
+                if ($prop === IAccountManager::PROPERTY_DISPLAYNAME) {
+                    return $mockDisplayNameProperty;
+                }
                 if ($prop === IAccountManager::PROPERTY_EMAIL) {
                     return $mockEmailProperty;
                 }
@@ -287,6 +293,8 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['aud']);
         $this->assertEquals($scope, $decodedJwt['scope']);
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['azp']);
+        $this->assertEquals('Test User', $decodedJwt['name']);
+        $this->assertArrayNotHasKey('middle_name', $decodedJwt);
         $this->assertArrayHasKey('email', $decodedJwt);
         $this->assertEquals('testuser@example.com', $decodedJwt['email']);
         $this->assertArrayHasKey('nonce', $decodedJwt);

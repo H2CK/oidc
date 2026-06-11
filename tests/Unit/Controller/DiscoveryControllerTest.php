@@ -112,6 +112,7 @@ class DiscoveryControllerTest extends TestCase {
         $grantTypesSupported = [
             'authorization_code',
             'implicit',
+            'refresh_token',
         ];
         $acrValuesSupported = [
             '0',
@@ -190,6 +191,8 @@ class DiscoveryControllerTest extends TestCase {
         $this->assertEquals($displayValuesSupported, $result->getData()['display_values_supported']);
         $this->assertEquals($claimTypesSupported, $result->getData()['claim_types_supported']);
         $this->assertEquals($claimsSupported, $result->getData()['claims_supported']);
+        $this->assertFalse($result->getData()['request_parameter_supported']);
+        $this->assertFalse($result->getData()['request_uri_parameter_supported']);
     }
 
 

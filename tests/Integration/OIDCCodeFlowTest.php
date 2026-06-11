@@ -98,6 +98,12 @@ class OIDCCodeFlowTest extends \Test\TestCase
     private $testClientSecret = 'test-secret';
 
     /** @var string */
+    private $secondTestClientId = 'test-client-2';
+
+    /** @var string */
+    private $secondTestClientSecret = 'test-secret-2';
+
+    /** @var string */
     private $testRedirectUri = 'https://client.example.com/callback';
 
     /** @var \OCP\AppFramework\App */
@@ -244,14 +250,16 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
     private function cleanupTestData(): void
     {
-        try {
-            // Delete the test client (this will cascade and delete related redirect URIs and access tokens)
-            $client = $this->clientMapper->getByIdentifier($this->testClientId);
-            if ($client !== null) {
-                $this->clientMapper->delete($client);
+        foreach ([$this->testClientId, $this->secondTestClientId] as $clientId) {
+            try {
+                // Delete the test client (this will cascade and delete related redirect URIs and access tokens)
+                $client = $this->clientMapper->getByIdentifier($clientId);
+                if ($client !== null) {
+                    $this->clientMapper->delete($client);
+                }
+            } catch (\Exception $e) {
+                // Ignore errors during cleanup
             }
-        } catch (\Exception $e) {
-            // Ignore errors during cleanup
         }
 
         try {
@@ -265,11 +273,15 @@ class OIDCCodeFlowTest extends \Test\TestCase
         }
     }
 
-    private function createTestClient(): Client
+    private function createTestClient(
+        string|null $clientId = null,
+        string|null $clientSecret = null,
+        string $name = 'Test Client'
+    ): Client
     {
         // Create client - the redirect URIs will be automatically created by ClientMapper
         $client = new Client(
-            'Test Client',
+            $name,
             [$this->testRedirectUri],
             'RS256',
             'confidential',
@@ -279,8 +291,8 @@ class OIDCCodeFlowTest extends \Test\TestCase
             '',
             false
         );
-        $client->setClientIdentifier($this->testClientId);
-        $client->setSecret($this->testClientSecret);
+        $client->setClientIdentifier($clientId ?? $this->testClientId);
+        $client->setSecret($clientSecret ?? $this->testClientSecret);
 
         $insertedClient = $this->clientMapper->insert($client);
 
@@ -435,6 +447,39 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $responseData = $response->getData();
         $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
         $this->assertEquals('invalid_client', $responseData['error'], 'Error should be invalid_client');
+    }
+
+    /**
+     * Test refresh token use with a different authenticated client
+     */
+    public function testRefreshTokenForDifferentClientReturnsInvalidGrant(): void
+    {
+        $this->createTestClient();
+        $secondClient = $this->createTestClient(
+            $this->secondTestClientId,
+            $this->secondTestClientSecret,
+            'Second Test Client'
+        );
+        $user = $this->createTestUser();
+
+        $tokenResult = $this->createAccessToken($secondClient, $user, 'openid offline_access');
+        $refreshToken = $tokenResult['rawCode'];
+
+        $response = $this->oidcApiController->getToken(
+            'refresh_token',
+            null,
+            $refreshToken,
+            $this->testClientId,
+            $this->testClientSecret,
+            null
+        );
+
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        $this->assertEquals(400, $response->getStatus(), 'Token endpoint should reject refresh tokens from another client');
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
+        $this->assertEquals('invalid_grant', $responseData['error'], 'Error should be invalid_grant');
     }
 
     /**

@@ -73,6 +73,8 @@ class PageController extends Controller {
             $resource      = $this->request->getParam('resource');
             $code_challenge        = $this->request->getParam('code_challenge');
             $code_challenge_method = $this->request->getParam('code_challenge_method');
+            $prompt        = $this->request->getParam('prompt');
+            $max_age       = $this->request->getParam('max_age');
         } else {
             $client_id     = $this->session->get('oidc_client_id');
             $state         = $this->session->get('oidc_state');
@@ -83,6 +85,8 @@ class PageController extends Controller {
             $resource      = $this->session->get('oidc_resource');
             $code_challenge        = $this->session->get('oidc_code_challenge');
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
+            $prompt        = $this->session->get('oidc_prompt');
+            $max_age       = $this->session->get('oidc_max_age');
         }
 
         $parameters = [
@@ -94,7 +98,9 @@ class PageController extends Controller {
             'code_challenge' => $code_challenge,
             'code_challenge_method' => $code_challenge_method,
             'scope' => $scope,
-            'resource' => $resource
+            'resource' => $resource,
+            'prompt' => $prompt,
+            'max_age' => $max_age
         ];
 
         $response = new TemplateResponse('oidc', 'main', $parameters);

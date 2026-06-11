@@ -1,0 +1,12 @@
+services:
+  nginx:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  server:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  test:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

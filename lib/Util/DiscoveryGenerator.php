@@ -125,6 +125,7 @@ class DiscoveryGenerator
         $grantTypesSupported = [
             'authorization_code',
             'implicit',
+            'refresh_token',
         ];
         $acrValuesSupported = [
             '0',
@@ -217,8 +218,8 @@ class DiscoveryGenerator
             // 'claims_locales_supported' => ,
             // 'ui_locales_supported' => ,
             // 'claims_parameter_supported' => true,
-            // 'request_parameter_supported' => true,
-            // 'request_uri_parameter_supported' => false,
+            'request_parameter_supported' => false,
+            'request_uri_parameter_supported' => false,
             // 'require_request_uri_registration' => true,
             // 'op_policy_uri' => ,
             // 'op_tos_uri' => ,

@@ -159,6 +159,59 @@ class LoginRedirectorController extends ApiController
      * @param string $resource
      * @param string $code_challenge
      * @param string $code_challenge_method
+     * @param string $prompt
+     * @param string $max_age
+     * @return Response
+     */
+    #[BruteForceProtection(action: 'oidc_login')]
+    #[NoCSRFRequired]
+    #[UseSession]
+    #[PublicPage]
+    public function authorizePost(
+                    $client_id,
+                    $state,
+                    $response_type,
+                    $redirect_uri,
+                    $scope,
+                    $nonce,
+                    $resource = null,
+                    $code_challenge = null,
+                    $code_challenge_method = null,
+                    $prompt = null,
+                    $max_age = null
+                    ): Response
+        {
+            return $this->authorize(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age);
+        }
+
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     * @UseSession
+     * @BruteForceProtection(action=oidc_login)
+     *
+     * @param string $client_id
+     * @param string $state
+     * @param string $response_type
+     * @param string $redirect_uri
+     * @param string $scope
+     * @param string $nonce
+     * @param string $resource
+     * @param string $code_challenge
+     * @param string $code_challenge_method
+     * @param string $prompt
+     * @param string $max_age
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -174,46 +227,58 @@ class LoginRedirectorController extends ApiController
                     $nonce,
                     $resource = null,
                     $code_challenge = null,
-                    $code_challenge_method = null
+                    $code_challenge_method = null,
+                    $prompt = null,
+                    $max_age = null
                     ): Response
         {
+        $prompt = $prompt ?? $this->request->getParam('prompt');
+        $max_age = $max_age ?? $this->request->getParam('max_age');
+
+        $unsupportedRequestParameterResponse = $this->rejectUnsupportedRequestParameters(
+            $client_id,
+            $redirect_uri,
+            $state
+        );
+        if ($unsupportedRequestParameterResponse !== null) {
+            return $unsupportedRequestParameterResponse;
+        }
+
         if (!$this->userSession->isLoggedIn()) {
-            // Not authenticated yet
-            // Store oidc attributes in user session to be available after login
-            $this->session->set('oidc_client_id', $client_id);
-            $this->session->set('oidc_state', $state);
-            $this->session->set('oidc_response_type', $response_type);
-            $this->session->set('oidc_redirect_uri', $redirect_uri);
-            $this->session->set('oidc_scope', $scope);
-            $this->session->set('oidc_nonce', $nonce);
-            $this->session->set('oidc_resource', $resource);
-            $this->session->set('oidc_code_challenge', $code_challenge);
-            $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+            if ($this->promptContains($prompt, 'none')) {
+                $clientOrResponse = $this->loadAuthorizationClient($client_id);
+                if ($clientOrResponse instanceof Response) {
+                    return $clientOrResponse;
+                }
 
-            $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
-                'client_id'             => $client_id,
-                'state'                 => $state,
-                'response_type'         => $response_type,
-                'redirect_uri'          => $redirect_uri,
-                'scope'                 => $scope,
-                'nonce'                 => $nonce,
-                'resource'              => $resource,
-                'code_challenge'        => $code_challenge,
-                'code_challenge_method' => $code_challenge_method,
-            ]));
+                $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($clientOrResponse, $client_id, $redirect_uri);
+                if ($redirectUriErrorResponse !== null) {
+                    return $redirectUriErrorResponse;
+                }
 
-            $loginUrl = $this->urlGenerator->linkToRoute(
-                            'core.login.showLoginForm',
-                            [
-                                'redirect_url' => $afterLoginRedirectUrl
-                            ]
+                $this->logger->debug('prompt=none requested without authenticated user for client ' . $client_id . '. Returning login_required.');
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'login_required',
+                    'User is not logged in.',
+                    $state
+                );
+            }
+
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                'Not authenticated yet for client ' . $client_id . '. Redirect to login.'
             );
-
-            $this->session->close(); // Close session to prevent session locking issues during redirect
-
-            $this->logger->debug('Not authenticated yet for client ' . $client_id . '. Redirect to login.');
-
-            return new RedirectResponse($loginUrl);
         }
 
         // Debug: Log client id before and after fallback
@@ -235,13 +300,18 @@ class LoginRedirectorController extends ApiController
             $resource = $this->session->get('oidc_resource');
             $code_challenge = $this->session->get('oidc_code_challenge');
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
+            $prompt = $this->session->get('oidc_prompt');
+            $max_age = $this->session->get('oidc_max_age');
         }
+
+        $oidcLoginPending = $this->session->get('oidc_login_pending') === true;
+        $authTime = $this->getOidcAuthenticationTime();
 
 		// Guard: if critical OAuth params are still missing after session fallback,
         // return a meaningful error instead of letting downstream code crash with a 500
         // (e.g. matchRedirectUri(null, ...) or trim(null) in PHP 8.4).
-		// Note: state is not critical for processing the request and might also not be passed by the client, e.g Guacamole, so we only check response_type and redirect_uri here.
-        if (empty($response_type) || empty($redirect_uri)) {
+		// Note: state is not critical for processing the request and might also not be passed by the client, e.g Guacamole.
+        if (empty($redirect_uri)) {
             $this->logger->error('Missing critical OAuth params after session fallback: '
                 . 'response_type=' . var_export($response_type, true) . ', '
                 . 'redirect_uri=' . var_export($redirect_uri, true));
@@ -255,26 +325,11 @@ class LoginRedirectorController extends ApiController
             $scope = Application::DEFAULT_SCOPE;
         }
 
-        $this->clientMapper->cleanUp();
-
-        try {
-            $client = $this->clientMapper->getByIdentifier($client_id);
-        } catch (ClientNotFoundException $e) {
-            $params = [
-                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
-            ];
-            $this->logger->notice('Client ' . $client_id . ' is not authorized to connect.');
-            return new TemplateResponse('core', '403', $params, 'error');
+        $clientOrResponse = $this->loadAuthorizationClient($client_id);
+        if ($clientOrResponse instanceof Response) {
+            return $clientOrResponse;
         }
-
-        // The client must not be expired
-        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
-            $this->logger->warning('Client expired. Client id was ' . $client_id . '.');
-            $params = [
-                'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
-            ];
-            return new TemplateResponse('core', '400', $params, 'error');
-        }
+        $client = $clientOrResponse;
 
         // Set default resource if resource is not set at all
         if (!isset($resource) || trim($resource)==='') {
@@ -308,21 +363,19 @@ class LoginRedirectorController extends ApiController
         $scope = $newScope;
         $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
-        // Check if redirect URI is configured for client
-        $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
-        $redirectUriFound = false;
-        foreach ($redirectUris as $redirectUri) {
-            if ($this->redirectUriService->matchRedirectUri($redirect_uri, $redirectUri->getRedirectUri())) {
-                $redirectUriFound = true;
-                break;
-            }
+        $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);
+        if ($redirectUriErrorResponse !== null) {
+            return $redirectUriErrorResponse;
         }
-        if (!$redirectUriFound) {
-            $params = [
-                'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
-            ];
-            $this->logger->notice('Redirect URI ' . $redirect_uri . ' is not accepted for client ' . $client_id . '.');
-            return new TemplateResponse('core', '403', $params, 'error');
+
+        if (empty($response_type)) {
+            $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
+            $separator = str_contains($redirect_uri, '?') ? '&' : '?';
+            $url = $redirect_uri . $separator
+                . 'error=unsupported_response_type'
+                . '&error_description=Missing%20response_type'
+                . '&state=' . urlencode((string)$state);
+            return new RedirectResponse($url);
         }
 
         // Check response type
@@ -355,6 +408,54 @@ class LoginRedirectorController extends ApiController
             $this->logger->notice('Not allowed response_type in request for client ' . $client_id . '. Please check the configuration for not allowed flow types.');
             $url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
             return new RedirectResponse($url);
+        }
+
+        if ($this->promptContains($prompt, 'login') && !$oidcLoginPending) {
+            $this->logger->debug('prompt=login requested for client ' . $client_id . '. Forcing reauthentication.');
+            $this->userSession->logout();
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                'Redirect to login for prompt=login reauthentication for client ' . $client_id . '.'
+            );
+        }
+
+        if ($this->maxAgeExceeded($max_age, $authTime)) {
+            if ($this->promptContains($prompt, 'none')) {
+                $this->logger->debug('prompt=none requested but max_age is exceeded for client ' . $client_id . '. Returning login_required.');
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'login_required',
+                    'User authentication is too old.',
+                    $state
+                );
+            }
+
+            $this->logger->debug('max_age is exceeded for client ' . $client_id . '. Forcing reauthentication.');
+            $this->userSession->logout();
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                'Redirect to login for max_age reauthentication for client ' . $client_id . '.'
+            );
         }
 
         // Check if user is in allowed groups for client
@@ -449,6 +550,8 @@ class LoginRedirectorController extends ApiController
                 $this->session->set('oidc_resource', $resource);
                 $this->session->set('oidc_code_challenge', $code_challenge);
                 $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+                $this->session->set('oidc_prompt', $prompt);
+                $this->session->set('oidc_max_age', $max_age);
 
                 $this->session->close(); // Close session to prevent session locking issues during redirect
 
@@ -501,7 +604,7 @@ class LoginRedirectorController extends ApiController
         } else {
             $accessToken->setResource(substr($resource, 0, 2000));
         }
-        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setCreated($authTime);
         $accessToken->setRefreshed($this->time->getTime());
         if (empty($nonce) || !isset($nonce)) {
             $nonce = '';
@@ -558,5 +661,270 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
         return new RedirectResponse($url);
+    }
+
+    private function rejectUnsupportedRequestParameters(
+        mixed $clientId,
+        mixed $redirectUri,
+        mixed $state
+    ): ?Response {
+        $requestObject = $this->request->getParam('request');
+        $requestUri = $this->request->getParam('request_uri');
+
+        if (
+            !$this->hasNonEmptyRequestParameter($requestObject)
+            && !$this->hasNonEmptyRequestParameter($requestUri)
+        ) {
+            return null;
+        }
+
+        if (!$this->hasNonEmptyRequestParameter($redirectUri)) {
+            $this->logger->notice('Unsupported request parameter received without a redirect URI.');
+            return new TemplateResponse('core', '400', [
+                'message' => $this->l->t('Authorization request is missing a redirect URI.'),
+            ], 'error');
+        }
+
+        $clientOrResponse = $this->loadAuthorizationClient($clientId);
+        if ($clientOrResponse instanceof Response) {
+            return $clientOrResponse;
+        }
+
+        $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri(
+            $clientOrResponse,
+            $clientId,
+            $redirectUri
+        );
+        if ($redirectUriErrorResponse !== null) {
+            return $redirectUriErrorResponse;
+        }
+
+        if ($this->hasNonEmptyRequestParameter($requestObject)) {
+            $this->logger->notice('Request object parameter is not supported for client ' . $clientId . '.');
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirectUri,
+                'request_not_supported',
+                'Request object parameter is not supported.',
+                $state
+            );
+        }
+
+        $this->logger->notice('Request URI parameter is not supported for client ' . $clientId . '.');
+        return $this->createAuthorizationErrorRedirect(
+            (string)$redirectUri,
+            'request_uri_not_supported',
+            'Request URI parameter is not supported.',
+            $state
+        );
+    }
+
+    private function loadAuthorizationClient(mixed $clientId): Client|Response
+    {
+        if (!is_string($clientId) || trim($clientId) === '') {
+            $params = [
+                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . var_export($clientId, true) . ' is not authorized to connect.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        $this->clientMapper->cleanUp();
+
+        try {
+            $client = $this->clientMapper->getByIdentifier($clientId);
+        } catch (ClientNotFoundException $e) {
+            $params = [
+                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . $clientId . ' is not authorized to connect.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        if ($client === null) {
+            $params = [
+                'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Client ' . $clientId . ' is not authorized to connect.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        // The client must not be expired
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+            $this->logger->warning('Client expired. Client id was ' . $clientId . '.');
+            $params = [
+                'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
+            ];
+            return new TemplateResponse('core', '400', $params, 'error');
+        }
+
+        return $client;
+    }
+
+    private function validateAuthorizationRedirectUri(
+        Client $client,
+        mixed $clientId,
+        mixed $redirectUri
+    ): ?TemplateResponse {
+        if (!is_string($redirectUri) || trim($redirectUri) === '') {
+            $params = [
+                'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
+            ];
+            $this->logger->notice('Redirect URI ' . var_export($redirectUri, true) . ' is not accepted for client ' . $clientId . '.');
+            return new TemplateResponse('core', '403', $params, 'error');
+        }
+
+        // Check if redirect URI is configured for client
+        $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+        foreach ($redirectUris as $registeredRedirectUri) {
+            if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri())) {
+                return null;
+            }
+        }
+
+        $params = [
+            'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
+        ];
+        $this->logger->notice('Redirect URI ' . $redirectUri . ' is not accepted for client ' . $clientId . '.');
+        return new TemplateResponse('core', '403', $params, 'error');
+    }
+
+    private function hasNonEmptyRequestParameter(mixed $value): bool
+    {
+        if (is_string($value)) {
+            return trim($value) !== '';
+        }
+
+        return !empty($value);
+    }
+
+    private function redirectToLoginAfterOidcAuthentication(
+        mixed $clientId,
+        mixed $state,
+        mixed $responseType,
+        mixed $redirectUri,
+        mixed $scope,
+        mixed $nonce,
+        mixed $resource,
+        mixed $codeChallenge,
+        mixed $codeChallengeMethod,
+        mixed $prompt,
+        mixed $maxAge,
+        string $logMessage
+    ): RedirectResponse {
+        // Store OIDC attributes in the user session to be available after login.
+        $this->session->set('oidc_client_id', $clientId);
+        $this->session->set('oidc_state', $state);
+        $this->session->set('oidc_response_type', $responseType);
+        $this->session->set('oidc_redirect_uri', $redirectUri);
+        $this->session->set('oidc_scope', $scope);
+        $this->session->set('oidc_nonce', $nonce);
+        $this->session->set('oidc_resource', $resource);
+        $this->session->set('oidc_code_challenge', $codeChallenge);
+        $this->session->set('oidc_code_challenge_method', $codeChallengeMethod);
+        $this->session->set('oidc_prompt', $prompt);
+        $this->session->set('oidc_max_age', $maxAge);
+        $this->session->set('oidc_login_pending', true);
+
+        $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
+            'client_id'             => $clientId,
+            'state'                 => $state,
+            'response_type'         => $responseType,
+            'redirect_uri'          => $redirectUri,
+            'scope'                 => $scope,
+            'nonce'                 => $nonce,
+            'resource'              => $resource,
+            'code_challenge'        => $codeChallenge,
+            'code_challenge_method' => $codeChallengeMethod,
+            'prompt'                => $prompt,
+            'max_age'               => $maxAge,
+        ], static function ($value): bool {
+            return $value !== null && $value !== '';
+        }));
+
+        $loginUrl = $this->urlGenerator->linkToRoute(
+            'core.login.showLoginForm',
+            [
+                'redirect_url' => $afterLoginRedirectUrl
+            ]
+        );
+
+        $this->session->close(); // Close session to prevent session locking issues during redirect
+
+        $this->logger->debug($logMessage);
+
+        return new RedirectResponse($loginUrl);
+    }
+
+    private function promptContains(mixed $prompt, string $expectedPrompt): bool
+    {
+        if (!is_string($prompt) || trim($prompt) === '') {
+            return false;
+        }
+
+        $promptEntries = array_filter(array_map('trim', explode(' ', strtolower($prompt))));
+        return in_array(strtolower($expectedPrompt), $promptEntries, true);
+    }
+
+    private function getOidcAuthenticationTime(): int
+    {
+        $storedAuthTime = $this->session->get('oidc_auth_time');
+        $loginPending = $this->session->get('oidc_login_pending');
+
+        if ($loginPending || !$this->isPositiveIntegerLike($storedAuthTime)) {
+            $storedAuthTime = $this->time->getTime();
+            $this->session->set('oidc_auth_time', $storedAuthTime);
+        }
+
+        if ($loginPending) {
+            $this->session->remove('oidc_login_pending');
+        }
+
+        return (int)$storedAuthTime;
+    }
+
+    private function maxAgeExceeded(mixed $maxAge, int $authTime): bool
+    {
+        if (!$this->isNonNegativeIntegerLike($maxAge)) {
+            return false;
+        }
+
+        return $this->time->getTime() > $authTime + (int)$maxAge;
+    }
+
+    private function isPositiveIntegerLike(mixed $value): bool
+    {
+        return $this->isNonNegativeIntegerLike($value) && (int)$value > 0;
+    }
+
+    private function isNonNegativeIntegerLike(mixed $value): bool
+    {
+        if (is_int($value)) {
+            return $value >= 0;
+        }
+
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $value = trim($value);
+        return $value !== '' && ctype_digit($value);
+    }
+
+    private function createAuthorizationErrorRedirect(
+        string $redirectUri,
+        string $error,
+        string $errorDescription,
+        mixed $state
+    ): RedirectResponse {
+        $params = [
+            'error' => $error,
+            'error_description' => $errorDescription,
+        ];
+        if ($state !== null && trim((string)$state) !== '') {
+            $params['state'] = (string)$state;
+        }
+
+        $separator = str_contains($redirectUri, '?') ? '&' : '?';
+        return new RedirectResponse($redirectUri . $separator . http_build_query($params, '', '&', PHP_QUERY_RFC3986));
     }
 }

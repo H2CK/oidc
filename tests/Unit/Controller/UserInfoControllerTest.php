@@ -390,6 +390,8 @@ class UserInfoControllerTest extends TestCase {
         $this->assertEquals('user1', $data['preferred_username']);
         $this->assertArrayHasKey('scope', $data);
         $this->assertEquals('openid profile email', $data['scope']);
+        $this->assertEquals('Test User', $data['name']);
+        $this->assertArrayNotHasKey('middle_name', $data);
     }
 
     public function testGetInfoPostSuccess() {
