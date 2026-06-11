@@ -209,7 +209,7 @@ def page_ready_for_screenshot(driver):
     return bool(diag["title"] or diag["body"])
 
 
-def get_pending_upload_placeholder(client, test_id, uploaded_placeholders):
+def get_pending_upload_entry(client, test_id, uploaded_placeholders):
     try:
         response = client.get(f"{CONFORMANCE_SERVER}/api/log/{test_id}")
         response.raise_for_status()
@@ -225,7 +225,7 @@ def get_pending_upload_placeholder(client, test_id, uploaded_placeholders):
             and entry.get("result") == "REVIEW"
             and (test_id, placeholder) not in uploaded_placeholders
         ):
-            return placeholder
+            return entry
 
     return None
 
@@ -293,14 +293,22 @@ def upload_review_screenshot(client, test_id, placeholder, driver):
     return False
 
 
-def maybe_upload_pending_review_screenshot(client, test_id, uploaded_placeholders, driver):
-    placeholder = get_pending_upload_placeholder(client, test_id, uploaded_placeholders)
-    if not placeholder:
+def is_second_login_placeholder(entry):
+    return (
+        entry.get("src") == "ExpectSecondLoginPage"
+        or "login for a second time" in (entry.get("msg") or "").lower()
+    )
+
+
+def maybe_upload_pending_review_screenshot(client, test_id, uploaded_placeholders, driver, entry=None):
+    entry = entry or get_pending_upload_entry(client, test_id, uploaded_placeholders)
+    if not entry:
         return False
 
     if not page_ready_for_screenshot(driver):
         return None
 
+    placeholder = entry.get("upload")
     log(f"Review placeholder {placeholder} is pending at {driver.current_url}")
     if upload_review_screenshot(client, test_id, placeholder, driver):
         uploaded_placeholders.add((test_id, placeholder))
@@ -333,15 +341,18 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
             return current_url
 
         if is_login_page(driver):
-            upload_result = maybe_upload_pending_review_screenshot(
-                client,
-                test_id,
-                uploaded_placeholders,
-                driver,
-            )
-            if upload_result is None:
-                time.sleep(0.2)
-                continue
+            placeholder_entry = get_pending_upload_entry(client, test_id, uploaded_placeholders)
+            if placeholder_entry and is_second_login_placeholder(placeholder_entry):
+                upload_result = maybe_upload_pending_review_screenshot(
+                    client,
+                    test_id,
+                    uploaded_placeholders,
+                    driver,
+                    placeholder_entry,
+                )
+                if upload_result is None:
+                    time.sleep(0.2)
+                    continue
 
             login(driver)
             continue
