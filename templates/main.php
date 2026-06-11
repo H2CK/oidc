@@ -13,6 +13,7 @@
 	<?php foreach ([
 		'client_id', 'state', 'response_type', 'redirect_uri',
 		'scope', 'nonce', 'resource', 'code_challenge', 'code_challenge_method',
+		'prompt',
 	] as $key): ?>
 		<?php if (!empty($_[$key] ?? null)): ?>
 			data-<?php p(str_replace('_', '-', $key)); ?>="<?php p($_[$key]); ?>"

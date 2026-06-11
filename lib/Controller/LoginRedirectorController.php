@@ -159,6 +159,7 @@ class LoginRedirectorController extends ApiController
      * @param string $resource
      * @param string $code_challenge
      * @param string $code_challenge_method
+     * @param string $prompt
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -174,7 +175,8 @@ class LoginRedirectorController extends ApiController
                     $nonce,
                     $resource = null,
                     $code_challenge = null,
-                    $code_challenge_method = null
+                    $code_challenge_method = null,
+                    $prompt = null
                     ): Response
         {
             return $this->authorize(
@@ -186,7 +188,8 @@ class LoginRedirectorController extends ApiController
                 $nonce,
                 $resource,
                 $code_challenge,
-                $code_challenge_method);
+                $code_challenge_method,
+                $prompt);
         }
 
     /**
@@ -204,6 +207,7 @@ class LoginRedirectorController extends ApiController
      * @param string $resource
      * @param string $code_challenge
      * @param string $code_challenge_method
+     * @param string $prompt
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_login')]
@@ -219,9 +223,12 @@ class LoginRedirectorController extends ApiController
                     $nonce,
                     $resource = null,
                     $code_challenge = null,
-                    $code_challenge_method = null
+                    $code_challenge_method = null,
+                    $prompt = null
                     ): Response
         {
+        $prompt = $prompt ?? $this->request->getParam('prompt');
+
         $unsupportedRequestParameterResponse = $this->rejectUnsupportedRequestParameters(
             $client_id,
             $redirect_uri,
@@ -232,6 +239,26 @@ class LoginRedirectorController extends ApiController
         }
 
         if (!$this->userSession->isLoggedIn()) {
+            if ($this->promptContains($prompt, 'none')) {
+                $clientOrResponse = $this->loadAuthorizationClient($client_id);
+                if ($clientOrResponse instanceof Response) {
+                    return $clientOrResponse;
+                }
+
+                $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($clientOrResponse, $client_id, $redirect_uri);
+                if ($redirectUriErrorResponse !== null) {
+                    return $redirectUriErrorResponse;
+                }
+
+                $this->logger->debug('prompt=none requested without authenticated user for client ' . $client_id . '. Returning login_required.');
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'login_required',
+                    'User is not logged in.',
+                    $state
+                );
+            }
+
             // Not authenticated yet
             // Store oidc attributes in user session to be available after login
             $this->session->set('oidc_client_id', $client_id);
@@ -243,6 +270,7 @@ class LoginRedirectorController extends ApiController
             $this->session->set('oidc_resource', $resource);
             $this->session->set('oidc_code_challenge', $code_challenge);
             $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+            $this->session->set('oidc_prompt', $prompt);
 
             $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
                 'client_id'             => $client_id,
@@ -254,6 +282,7 @@ class LoginRedirectorController extends ApiController
                 'resource'              => $resource,
                 'code_challenge'        => $code_challenge,
                 'code_challenge_method' => $code_challenge_method,
+                'prompt'                => $prompt,
             ]));
 
             $loginUrl = $this->urlGenerator->linkToRoute(
@@ -289,6 +318,7 @@ class LoginRedirectorController extends ApiController
             $resource = $this->session->get('oidc_resource');
             $code_challenge = $this->session->get('oidc_code_challenge');
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
+            $prompt = $this->session->get('oidc_prompt');
         }
 
 		// Guard: if critical OAuth params are still missing after session fallback,
@@ -486,6 +516,7 @@ class LoginRedirectorController extends ApiController
                 $this->session->set('oidc_resource', $resource);
                 $this->session->set('oidc_code_challenge', $code_challenge);
                 $this->session->set('oidc_code_challenge_method', $code_challenge_method);
+                $this->session->set('oidc_prompt', $prompt);
 
                 $this->session->close(); // Close session to prevent session locking issues during redirect
 
@@ -729,6 +760,16 @@ class LoginRedirectorController extends ApiController
         }
 
         return !empty($value);
+    }
+
+    private function promptContains(mixed $prompt, string $expectedPrompt): bool
+    {
+        if (!is_string($prompt) || trim($prompt) === '') {
+            return false;
+        }
+
+        $promptEntries = array_filter(array_map('trim', explode(' ', strtolower($prompt))));
+        return in_array(strtolower($expectedPrompt), $promptEntries, true);
     }
 
     private function createAuthorizationErrorRedirect(

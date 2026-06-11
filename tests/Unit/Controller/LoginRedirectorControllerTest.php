@@ -256,6 +256,70 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertEquals('http://oidc.local/login-form', $result->getRedirectURL());
     }
 
+    public function testAuthorizePromptNoneNotLoggedInReturnsLoginRequired() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(false);
+        $this->session
+            ->expects($this->never())
+            ->method('set');
+        $this->urlGenerator
+            ->expects($this->never())
+            ->method('linkToRoute');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1',
+            null,
+            null,
+            null,
+            'none'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            $redirectUri . '?error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1',
+            $result->getRedirectURL()
+        );
+    }
+
     public function testAuthorizeRejectsUnsupportedRequestObject() {
         $clientId = 'client1';
         $state = 'state-1';
