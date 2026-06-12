@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "ユーザがクライアントに定義されたグループのメンバーではありません。ログイントークンの取得が許可されていません。",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "このクライアント(認証依頼元)は認証されていないので接続できません。クライアント側の管理者に問い合わせてください。",
     "Your client is expired. Please inform the administrator of your client." : "クライアントの有効期限が切れています。クライアントの管理者にお知らせください。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "受信したリダイレクトURIは接続の許可がされていません。クライアントの管理者にお知らせください。",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "ユーザがクライアントに定義されたグループのメンバーではありません。ログイントークンの取得が許可されていません。",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "リダイレクトURLは、完全なURL（例えばhttps://yourdomain.com/path）である必要があります。",
     "OpenID Connect Provider" : "OpenID Connect プロバイダー",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "NextcloudをOpenID Connectのアイデンティティプロバイダとして使用する\n\nこのアプリを使えば、NextcloudをOpenID Connectのアイデンティティプロバイダとして使うことができます。\n他のサービスが正しく設定されていれば、Nextcloudのログインを使用してそれらのサービスにアクセスできます。\n\n完全なドキュメントは以下を参照してください：\n\n- [ユーザードキュメント](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [開発者向けドキュメント](https://github.com/H2CK/oidc/wiki#developer-documentation)",

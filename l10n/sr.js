@@ -3,11 +3,11 @@ OC.L10N.register(
     {
     "You must be logged in to view this page." : "Морате бити пријављени да бисте видели ову страницу.",
     "No consent request pending." : "Нема ниједног захтева са сагласност на чекању.",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Корисник није члан група дефнинсаних за клијента. Немате дозволу да примите жетон за пријаву.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Дошло је до грешке приликом креирања JWT. Молимо вас да обавестите администратора свог клијента.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашем клијенту није одобрено повезивање. Обавестите администратора који је Ваш клијент.",
     "Your client is expired. Please inform the administrator of your client." : "Истекло је важење клијента. Обавестите администратора вашег клијента.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Примљени URI преисмеравања не дозвољава повезивање. Молимо вас да обавестите администратора свог клијента.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Корисник није члан група дефнинсаних за клијента. Немате дозволу да примите жетон за пријаву.",
-    "A failure during JWT creation occured. Please inform the administrator of your client." : "Дошло је до грешке приликом креирања JWT. Молимо вас да обавестите администратора свог клијента.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Адреса за преусмеравање мора бити пуна адреса, нпр: https://yourdomain.com/path",
     "Code Authorization Flow" : "Ток ауторизације кода",
     "Code & Implicit Authorization Flow" : "Ток кода и имплицитне ауторизације",

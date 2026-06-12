@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Confidential" : "Abaḍni",
     "Public" : "Azayaz",
     "Avatar" : "Avatar",
     "Address" : "Adresse",
@@ -10,6 +11,7 @@ OC.L10N.register(
     "Back" : "Tuɣalin",
     "Name" : "Nom",
     "Cancel" : "Semmet",
+    "Add" : "Rnu",
     "Type" : "Anaw",
     "Save" : "Sekles",
     "Delete" : "Kkes",
@@ -19,7 +21,9 @@ OC.L10N.register(
     "30 minutes" : "30 n tesdatin",
     "1 day" : "1 n wass",
     "7 days" : "7 n wussan",
+    "Never" : "Weṛǧin",
     "Disable" : "Désactiver",
+    "Enable" : "Sermed",
     "Email address" : "Tansa imayl",
     "Deny" : "Agwi",
     "Allow" : "Sireg"

@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Användaren är inte medlem i de grupper som definierats för klienten. Du får inte hämta en inloggningstoken.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Ett fel inträffade under skapandet av JWT. Vänligen informera administratören för din klient.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient har inte behörighet att ansluta. Vänligen meddela din administratör.",
     "Your client is expired. Please inform the administrator of your client." : "Din klient har löpt ut. Vänligen informera administratören för din klient.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den mottagna omdirigerings-URI:n accepteras inte för anslutning. Vänligen informera administratören för din klient.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Användaren är inte medlem i de grupper som definierats för klienten. Du får inte hämta en inloggningstoken.",
-    "A failure during JWT creation occured. Please inform the administrator of your client." : "Ett fel inträffade under skapandet av JWT. Vänligen informera administratören för din klient.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigeringsadress måste vara en fullständig webbadress till exempel: https://yourdomain.com/path",
     "Code Authorization Flow" : "Flöde för kodauktorisering",
     "Code & Implicit Authorization Flow" : "Kod och flöde för implicit auktorisering",

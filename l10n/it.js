@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utente non è membro dei gruppi definiti per il client. Non è possibile recuperare un token di accesso.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Si è verificato un errore durante la creazione di JWT. Si prega di informare l'amministratore del cliente.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Il tuo client non è autorizzato a collegarsi. Informa l'amministratore del tuo client.",
     "Your client is expired. Please inform the administrator of your client." : "Il vostro cliente è scaduto. Si prega di informare l'amministratore del cliente.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "L'URI di reindirizzamento ricevuto non è accettato per la connessione. Informa l'amministratore del client.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utente non è membro dei gruppi definiti per il client. Non è possibile recuperare un token di accesso.",
-    "A failure during JWT creation occured. Please inform the administrator of your client." : "Si è verificato un errore durante la creazione di JWT. Si prega di informare l'amministratore del cliente.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Il tuo URL di redirezione deve essere un URL completo, ad esempio: https://tuodominio.com/percorso",
     "Code Authorization Flow" : "Flusso di autorizzazione del codice",
     "Code & Implicit Authorization Flow" : "Flusso di autorizzazione del codice e implicito",

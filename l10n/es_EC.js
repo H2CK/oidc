@@ -1,9 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "El usuario no es miembro de los grupos definidos para el cliente. No se te permite obtener un token de inicio de sesión.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Tu cliente no está autorizado para conectarse. Por favor, informa al administrador de tu cliente.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "La URI de redireccionamiento recibida no es aceptada para la conexión. Por favor, informa al administrador de tu cliente.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "El usuario no es miembro de los grupos definidos para el cliente. No se te permite obtener un token de inicio de sesión.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Tu URL de redirección debe ser una URL completa, por ejemplo: https://yourdomain.com/path",
     "Code Authorization Flow" : "Flujo de Autorización por Código",
     "Code & Implicit Authorization Flow" : "Flujo de Autorización por Código e Implícito",

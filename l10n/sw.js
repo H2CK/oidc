@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Mtumiaji si mwanachama wa vikundi vilivyobainishwa kwa mteja. Huruhusiwi kuepua tokeni ya kuingia.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Kushindwa wakati wa kuunda JWT kulitokea. Tafadhali mjulishe msimamizi wa mteja wako.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Mteja wako hajaidhinishwa kuunganisha. Tafadhali mjulishe msimamizi wa mteja wako.",
     "Your client is expired. Please inform the administrator of your client." : "Muda wa mteja wako umeisha. Tafadhali mjulishe msimamizi wa mteja wako.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "URI ya kuelekeza kwingine haikubaliwi kuunganishwa. Tafadhali mjulishe msimamizi wa mteja wako.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Mtumiaji si mwanachama wa vikundi vilivyobainishwa kwa mteja. Huruhusiwi kuepua tokeni ya kuingia.",
-    "A failure during JWT creation occured. Please inform the administrator of your client." : "Kushindwa wakati wa kuunda JWT kulitokea. Tafadhali mjulishe msimamizi wa mteja wako.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL yako ya kuelekeza kwingine inahitaji kuwa URL kamili kwa mfano: https://yourdomain.com/path",
     "Code Authorization Flow" : "Mtiririko wa Uidhinishaji wa Kanuni",
     "Code & Implicit Authorization Flow" : "Msimbo na Mtiririko wa Uidhinishaji Usiodhahiri",

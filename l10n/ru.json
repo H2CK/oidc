@@ -1,7 +1,7 @@
 { "translations": {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Пользователь не является членом групп, определенных для клиента. Вам не разрешено извлекать токен входа в систему.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш клиент не авторизован для соединения. Пожалуйста, сообщите о вашем клиенте администратору.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Полученный URI перенаправления не принимается для подключения. Пожалуйста, сообщите администратору о вашем клиенте.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Пользователь не является членом групп, определенных для клиента. Вам не разрешено извлекать токен входа в систему.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ваш перенаправляющий URL должен быть полным, например: https://yourdomain.com/path",
     "Code Authorization Flow" : "Кодовый поток авторизации",
     "Code & Implicit Authorization Flow" : "Кодовый и Неявный потоки авторизации",

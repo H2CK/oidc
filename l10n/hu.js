@@ -1,9 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "A felhasználó nem tagja a klienshez meghatározott csoportoknak. Nem kérhet le bejelentkezési tokent.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Az Ön kliensalkalmazása számára nem engedélyezett a kapcsolódás. Értesítse a kliense rendszergazdáját.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "A megadott átirányítási webcím nem elfogadott a kapcsolódáshoz. Tájékoztassa a kliens rendszergazdáját.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "A felhasználó nem tagja a klienshez meghatározott csoportoknak. Nem kérhet le bejelentkezési tokent.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Az átirányítási webcímnek teljes webcímnek kell lennie, például: https://yourdomain.com/path",
     "Code Authorization Flow" : "Kódot használó engedélyezési folyamat",
     "Code & Implicit Authorization Flow" : "Kódot használtó és implicit engedélyezési folyamat",

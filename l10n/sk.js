@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Užívateľ nie je členom skupín definovaných pre klienta. Nemáte povolené získať prihlasovací token.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Váš klient nemá oprávnenie na pripojenie. Prosím informujte administrátora svojho klienta.",
     "Your client is expired. Please inform the administrator of your client." : "Platnosť vášho klienta vypršala. Prosím informujte administrátora Vášho klienta.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Pripojenie po presmerovaní URI nebolo prijaté. Prosím informujte administrátora vášho klienta.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Užívateľ nie je členom skupín definovaných pre klienta. Nemáte povolené získať prihlasovací token.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vaša URL pre presmerovanie musí byť úplná. Napríklad: https://yourdomain.com/path",
     "Code Authorization Flow" : "Tok autorizácie kódu",
     "Code & Implicit Authorization Flow" : "Tok implicitnej autorizácie kódu",

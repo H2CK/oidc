@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Користувач не є членом груп, визначених для клієнта. Користувачеві заборонено отримувати токен для входу.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Виникла помилка під час створення JWT. Будь ласка, повідомте про це адміністратора вашого клієнта.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш клієнт не авторизований для підключення. Будь ласка, повідомте адміністратора вашого клієнта.",
     "Your client is expired. Please inform the administrator of your client." : "Термін дії вашого клієнта закінчився. Будь ласка, повідомте про це адміністратора вашого клієнта.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Отриманий редирект URI не приймається для підключення. Будь ласка, повідомте про це адміністратора вашого клієнта.",
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Користувач не є членом груп, визначених для клієнта. Користувачеві заборонено отримувати токен для входу.",
-    "A failure during JWT creation occured. Please inform the administrator of your client." : "Виникла помилка під час створення JWT. Будь ласка, повідомте про це адміністратора вашого клієнта.",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ваша URL-адреса переспрямування має бути повною URL-адресою, наприклад: https://yourdomain.com/path",
     "Code Authorization Flow" : "Потік авторизації коду",
     "Code & Implicit Authorization Flow" : "Код та неявний потік авторизації",
