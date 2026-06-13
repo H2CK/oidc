@@ -7,6 +7,7 @@
     "Authorization session expired. Please try again." : "Anmeldesitzung abgelaufen. Bitte erneut versuchen.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Der Benutzer ist nicht Mitglied der für den Client definierten Gruppen. Sie sind nicht berechtigt, ein Anmelde-Token abzurufen.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Bei der JWT-Erstellung ist ein Fehler aufgetreten. Bitte die Administration Ihres Clients informieren.",
+    "Authorization request is missing a redirect URI." : "Der Autorisierungsanfrage fehlt eine Umleitungs-URI.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ihr Client ist nicht berechtigt, eine Verbindung herzustellen. Bitte informieren Sie die Administration Ihres Clients.",
     "Your client is expired. Please inform the administrator of your client." : "Ihr Client ist abgelaufen. Bitte informieren Sie die Administration Ihres Clients.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung akzeptiert. Bitte informieren Sie die Administration Ihres Clients.",
