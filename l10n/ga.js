@@ -9,6 +9,7 @@ OC.L10N.register(
     "Authorization session expired. Please try again." : "Chuaigh an seisiún údaraithe in éag. Déan iarracht arís.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Níl an t-úsáideoir ina bhall de na grúpaí sainithe don chliant. Níl cead agat chomhartha logála isteach a fháil.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Tharla teip le linn cruthú JWT. Cuir do chliant ar an eolas do riarthóir.",
+    "Authorization request is missing a redirect URI." : "Tá URI atreoraithe in easnamh ar an iarratas údaraithe.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Níl do chliant údaraithe chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
     "Your client is expired. Please inform the administrator of your client." : "Tá do chliant imithe in éag. Cuir do chliant ar an eolas do riarthóir le do thoil.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Ní ghlactar leis an URI atreoraithe faighte chun nascadh. Cuir do chliant ar an eolas do riarthóir.",
