@@ -37,7 +37,7 @@ Full documentation can be found at:
 
 ## Note - OIDC compliance
 
-The app complies with the basic oidc conformance test suite. The tests are executed daily in a workflow. More information on the compliance can be found in the [latest test run]((https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml)).
+The app complies with the basic oidc conformance test suite. The tests are executed daily in a workflow. More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
 ## Attention - Potential Breaking Change
 
