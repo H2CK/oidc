@@ -3,7 +3,7 @@
 [![Release](https://img.shields.io/github/release/H2CK/oidc.svg)](https://github.com/H2CK/oidc/releases/latest)
 [![Issues](https://img.shields.io/github/issues/H2CK/oidc.svg)](https://github.com/H2CK/oidc/issues)
 [![License](https://img.shields.io/github/license/H2CK/oidc)](https://github.com/H2CK/oidc/blob/master/COPYING)
-[![OIDC Compliance Test](https://github.com/H2CK/oidc/actions/worklows/oidc-conformance.yaml/badge.svg?branch=master)](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml)
+[![OIDC Compliance Test](https://img.shields.io/github/actions/workflow/status/H2CK/oidc/oidc-conformance.yaml?branch=master&label=OIDC%20Compliance%20Test)](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml)
 [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QRSDVQA2UMJQC&source=url)
 
 This is the an OIDC App for Nextcloud. This application allows to use your Nextcloud Login at other services supporting OpenID Connect.
@@ -34,6 +34,10 @@ Full documentation can be found at:
 
 - [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
+
+## Note - OIDC compliance
+
+The app complies with the basic oidc conformance test suite. The tests are executed daily in a workflow. More information on the compliance can be found in the [latest test run]((https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml)).
 
 ## Attention - Potential Breaking Change
 
