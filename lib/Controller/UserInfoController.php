@@ -116,9 +116,9 @@ class UserInfoController extends ApiController
     #[BruteForceProtection(action: 'oidc_userinfo')]
     #[PublicPage]
     #[NoCSRFRequired]
-    public function getInfoPost(): JSONResponse
+    public function getInfoPost(string|null $access_token = null): JSONResponse
     {
-        return $this->getInfo();
+        return $this->getInfoFromRequest($access_token);
     }
 
     /**
@@ -133,8 +133,17 @@ class UserInfoController extends ApiController
     #[NoCSRFRequired]
     public function getInfo(): JSONResponse
     {
+        return $this->getInfoFromRequest();
+    }
+
+    private function getInfoFromRequest(string|null $bodyAccessToken = null): JSONResponse
+    {
 
         $accessTokenCode = $this->getBearerToken();
+        if ($accessTokenCode === null && $bodyAccessToken !== null && trim($bodyAccessToken) !== '') {
+            $accessTokenCode = trim($bodyAccessToken);
+        }
+
         if ($accessTokenCode == null) {
             $this->logger->notice('No bearer token found in request.');
             return new JSONResponse([
@@ -338,7 +347,7 @@ class UserInfoController extends ApiController
         $this->logger->debug('Returned user info for user ' . $uid);
         $response = new JSONResponse($userInfoPayload);
         $response->addHeader('Access-Control-Allow-Origin', '*');
-        $response->addHeader('Access-Control-Allow-Methods', 'GET');
+        $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 
         return $response;
     }

@@ -473,6 +473,85 @@ class UserInfoControllerTest extends TestCase {
         $this->assertEquals('user1', $data['sub']);
     }
 
+    public function testGetInfoPostWithAccessTokenInBody() {
+        $token = 'test-token';
+        $now = time();
+
+        // Create real Client entity
+        $client = new Client();
+        $client->id = 1;
+        $client->setDcr(false);
+        $client->setClientIdentifier('client1');
+        $client->setSecret('secret');
+        $client->setEmailRegex('');
+
+        // Create real AccessToken entity
+        $accessToken = new AccessToken();
+        $accessToken->setClientId(1);
+        $accessToken->setUserId('user1');
+        $accessToken->setRefreshed($now);
+        $accessToken->setScope('openid profile email');
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $user->method('getDisplayName')->willReturn('Test User');
+        $user->method('getEMailAddress')->willReturn('test@example.com');
+        $user->method('getLastLogin')->willReturn($now);
+        $user->method('getQuota')->willReturn('none');
+
+        $account = $this->createMock(IAccount::class);
+
+        $displayNameProperty = $this->createMock(IAccountProperty::class);
+        $displayNameProperty->method('getValue')->willReturn('Test User');
+
+        $emailProperty = $this->createMock(IAccountProperty::class);
+        $emailProperty->method('getValue')->willReturn('test@example.com');
+        $emailProperty->method('getVerified')->willReturn(\OCP\Accounts\IAccountManager::VERIFIED);
+
+        $account->method('getProperty')
+            ->willReturnCallback(function($property) use ($displayNameProperty, $emailProperty) {
+                if ($property === IAccountManager::PROPERTY_DISPLAYNAME) {
+                    return $displayNameProperty;
+                }
+                if ($property === IAccountManager::PROPERTY_EMAIL) {
+                    return $emailProperty;
+                }
+                return $this->createMock(IAccountProperty::class);
+            });
+
+        $this->userManager->method('get')->with('user1')->willReturn($user);
+        $this->groupManager->method('getUserGroups')->with($user)->willReturn([]);
+        $this->accountManager->method('getAccount')->with($user)->willReturn($account);
+
+        $this->customClaimService->method('provideCustomClaims')
+            ->with(1, 'openid profile email', 'user1')
+            ->willReturn([]);
+
+        $originalServer = $_SERVER ?? [];
+        unset($_SERVER['HTTP_AUTHORIZATION']);
+        unset($_SERVER['Authorization']);
+
+        $this->accessTokenMapper->method('getByAccessToken')
+            ->with($token)
+            ->willReturn($accessToken);
+
+        $this->clientMapper->method('getByUid')
+            ->with(1)
+            ->willReturn($client);
+
+        $this->time->method('getTime')->willReturn($now);
+
+        $result = $this->controller->getInfoPost('  ' . $token . '  ');
+
+        $_SERVER = $originalServer;
+
+        $this->assertInstanceOf(JSONResponse::class, $result);
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $data = $result->getData();
+        $this->assertArrayHasKey('sub', $data);
+        $this->assertEquals('user1', $data['sub']);
+    }
+
     public static function bearerTokenProvider(): array {
         return [
             'Bearer token' => ['Bearer abc123def456'],
