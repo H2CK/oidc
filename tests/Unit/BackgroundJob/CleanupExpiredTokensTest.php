@@ -4,10 +4,13 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\BackgroundJob;
 
 use PHPUnit\Framework\TestCase;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
 
 use OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens;
@@ -27,24 +30,46 @@ class CleanupExpiredTokensTest extends TestCase
     protected $job;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
+    private $appConfig;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
     /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper */
     private $accessTokenMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AuthorizationCodeMapper */
+    private $authorizationCodeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|RegistrationTokenMapper */
     private $registrationTokenMapper;
 
     public function setUp(): void
     {
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default = '') {
+                if ($key === Application::APP_CONFIG_DEFAULT_EXPIRE_TIME) {
+                    return '3600';
+                }
+                if ($key === Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME) {
+                    return '7200';
+                }
+                return $default;
+            });
         $this->config = $this->createMock(IConfig::class);
         $this->time = $this->createMock(ITimeFactory::class);
+        $this->time
+            ->method('getTime')
+            ->willReturn(1234567890);
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
+        $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
         $this->registrationTokenMapper = $this->createMock(RegistrationTokenMapper::class);
 
         $this->job = new CleanupExpiredTokens(
             $this->time,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->registrationTokenMapper,
+            $this->appConfig,
             $this->config
         );
     }

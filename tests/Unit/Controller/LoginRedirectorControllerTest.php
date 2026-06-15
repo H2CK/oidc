@@ -31,6 +31,8 @@ use OC\Security\SecureRandom;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCode;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Controller\LoginRedirectorController;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
@@ -56,6 +58,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $clientMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper  */
     private $accessTokenMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AuthorizationCodeMapper  */
+    private $authorizationCodeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriMapper  */
     private $redirectUriMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper  */
@@ -147,6 +151,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $reflection3 = new \ReflectionClass(AccessTokenMapper::class);
         $constructor3 = $reflection3->getConstructor();
         $constructor3->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
+
+        $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
         
         // Create groupMapper with constructor arguments
         $this->groupMapper = $this->createMock(GroupMapper::class);
@@ -202,6 +208,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userSession,
             $this->groupManager,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->redirectUriMapper,
             $this->userConsentMapper,
             $this->appConfig,
@@ -369,6 +376,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userSession,
             $this->groupManager,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->redirectUriMapper,
             $this->userConsentMapper,
             $this->appConfig,
@@ -429,9 +437,20 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->accessTokenMapper
             ->expects($this->once())
             ->method('insert')
-            ->with($this->callback(function (AccessToken $accessToken) use ($authTime) {
-                return $accessToken->getCreated() === $authTime;
-            }));
+            ->willReturnCallback(function (AccessToken $accessToken) use ($authTime) {
+                $this->assertSame($authTime, $accessToken->getCreated());
+                $accessToken->id = 23;
+                return $accessToken;
+            });
+        $this->authorizationCodeMapper
+            ->expects($this->once())
+            ->method('createForAccessToken')
+            ->with(
+                23,
+                $this->isType('string'),
+                $this->isType('int')
+            )
+            ->willReturn(new AuthorizationCode());
 
         $result = $controller->authorize(
             $clientId,
@@ -492,6 +511,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userSession,
             $this->groupManager,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->redirectUriMapper,
             $this->userConsentMapper,
             $this->appConfig,

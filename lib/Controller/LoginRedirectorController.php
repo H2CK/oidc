@@ -29,6 +29,7 @@ use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
@@ -57,6 +58,8 @@ class LoginRedirectorController extends ApiController
     private $groupMapper;
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
+    /** @var AuthorizationCodeMapper */
+    private $authorizationCodeMapper;
     /** @var RedirectUriMapper */
     private $redirectUriMapper;
     /** @var UserConsentMapper */
@@ -95,6 +98,7 @@ class LoginRedirectorController extends ApiController
      * @param IUserSession $userSession
      * @param IGroupManager $groupManager
      * @param AccessTokenMapper $accessTokenMapper
+     * @param AuthorizationCodeMapper $authorizationCodeMapper
      * @param RedirectUriMapper $redirectUriMapper
      * @param UserConsentMapper $userConsentMapper
      * @param IAppConfig $appConfig
@@ -115,6 +119,7 @@ class LoginRedirectorController extends ApiController
                     IUserSession $userSession,
                     IGroupManager $groupManager,
                     AccessTokenMapper $accessTokenMapper,
+                    AuthorizationCodeMapper $authorizationCodeMapper,
                     RedirectUriMapper $redirectUriMapper,
                     UserConsentMapper $userConsentMapper,
                     IAppConfig $appConfig,
@@ -136,6 +141,7 @@ class LoginRedirectorController extends ApiController
         $this->userSession = $userSession;
         $this->groupManager = $groupManager;
         $this->accessTokenMapper = $accessTokenMapper;
+        $this->authorizationCodeMapper = $authorizationCodeMapper;
         $this->redirectUriMapper = $redirectUriMapper;
         $this->userConsentMapper = $userConsentMapper;
         $this->appConfig = $appConfig;
@@ -621,7 +627,14 @@ class LoginRedirectorController extends ApiController
 
         try {
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
-            $this->accessTokenMapper->insert($accessToken);
+            $accessToken = $this->accessTokenMapper->insert($accessToken);
+            if (in_array('code', $responseTypeEntries)) {
+                $this->authorizationCodeMapper->createForAccessToken(
+                    $accessToken->getId(),
+                    $code,
+                    $this->time->getTime()
+                );
+            }
         } catch (JwtCreationErrorException $e) {
             $params = [
                 'message' => $this->l->t('A failure during JWT creation occured. Please inform the administrator of your client.'),
