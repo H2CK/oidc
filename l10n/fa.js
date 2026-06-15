@@ -9,6 +9,7 @@ OC.L10N.register(
     "Authorization session expired. Please try again." : "نشست مجوزدهی منقضی شده است. لطفاً دوباره تلاش کنید.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "کاربر عضو گروه‌های تعریف‌شده برای کلاینت نیست. شما مجاز به بازیابی توکن ورود نیستید.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "خطایی در ایجاد JWT رخ داده است. لطفاً به مدیر کلاینت خود اطلاع دهید.",
+    "Authorization request is missing a redirect URI." : "آدرس بازگشت (redirect URI) در درخواست مجوزدهی موجود نیست.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "مشتری خود را برای متصل شدن مجاز نیست. لطفاً به مدیر مشتری خود اطلاع دهید.",
     "Your client is expired. Please inform the administrator of your client." : "کلاینت شما منقضی شده است. لطفاً به مدیر کلاینت خود اطلاع دهید.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "آدرس اینترنتی تغییر مسیر دریافتی برای متصل شدن پذیرفته نمی‌شود. لطفاً به مدیر کلاینت خود اطلاع دهید.",
