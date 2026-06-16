@@ -41,6 +41,18 @@ def truncate(value: str, max_length: int) -> str:
     return value[: max_length - 3].rstrip() + "..."
 
 
+def plan_name_from_export(export_name: str) -> str:
+    stem = pathlib.Path(export_name).stem
+    stem = re.sub(r"-[A-Za-z0-9]{13}-\d{1,2}-[A-Za-z]{3}-\d{4}$", "", stem)
+
+    certification_marker = "-certification-test-plan"
+    marker_index = stem.find(certification_marker)
+    if marker_index >= 0:
+        return stem[: marker_index + len(certification_marker)]
+
+    return stem
+
+
 def iter_export_logs(results_dir: pathlib.Path):
     for zip_path in sorted(results_dir.glob("*.zip")):
         with zipfile.ZipFile(zip_path) as export:
@@ -88,6 +100,7 @@ def collect_tests(results_dir: pathlib.Path, max_issues: int) -> list[dict]:
         result = normalized_result(test_info)
         tests.append(
             {
+                "plan": plan_name_from_export(export_name),
                 "name": test_info.get("testName", pathlib.Path(log_name).stem),
                 "id": test_info.get("testId", test_info.get("_id", "")),
                 "status": test_info.get("status", ""),
@@ -102,6 +115,7 @@ def collect_tests(results_dir: pathlib.Path, max_issues: int) -> list[dict]:
         tests,
         key=lambda item: (
             RESULT_ORDER.get(item["result"], RESULT_ORDER["UNKNOWN"]),
+            item["plan"],
             item["name"],
             item["id"],
         ),
@@ -131,13 +145,30 @@ def write_report(tests: list[dict], output: pathlib.Path, results_dir: pathlib.P
     else:
         lines.append("| UNKNOWN | 0 |")
 
+    plan_counts = Counter(test["plan"] for test in tests)
+    lines.extend(
+        [
+            "",
+            "## Plan Summary",
+            "",
+            "| Plan | Tests |",
+            "| --- | ---: |",
+        ]
+    )
+
+    if plan_counts:
+        for plan, count in sorted(plan_counts.items()):
+            lines.append(f"| {table_cell(plan)} | {count} |")
+    else:
+        lines.append("| UNKNOWN | 0 |")
+
     lines.extend(
         [
             "",
             "## Executed Tests",
             "",
-            "| Result | Status | Test | Description | Issues |",
-            "| --- | --- | --- | --- | --- |",
+            "| Result | Status | Plan | Test | Description | Issues |",
+            "| --- | --- | --- | --- | --- | --- |",
         ]
     )
 
@@ -152,6 +183,7 @@ def write_report(tests: list[dict], output: pathlib.Path, results_dir: pathlib.P
                     [
                         table_cell(test["result"]),
                         table_cell(test["status"]),
+                        table_cell(test["plan"]),
                         table_cell(test_name),
                         table_cell(truncate(test["summary"], 260)),
                         table_cell(truncate(test["issues"], 320)),
@@ -160,7 +192,7 @@ def write_report(tests: list[dict], output: pathlib.Path, results_dir: pathlib.P
                 + " |"
             )
     else:
-        lines.append("| UNKNOWN | UNKNOWN | No conformance test logs found |  |  |")
+        lines.append("| UNKNOWN | UNKNOWN | UNKNOWN | No conformance test logs found |  |  |")
 
     lines.extend(
         [

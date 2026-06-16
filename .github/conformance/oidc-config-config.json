@@ -1,0 +1,8 @@
+{
+  "alias": "${CONFORMANCE_ALIAS}-config",
+  "description": "Nextcloud OIDC GitHub Actions config conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/index.php/apps/oidc/openid-configuration"
+  }
+}

@@ -194,7 +194,11 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-basic-config.json \
             conformance-config/oidc-basic-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-config-config.json \
+            conformance-config/oidc-config-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -218,16 +222,49 @@ jobs:
             wait "${browser_log_tail_pid}" 2>/dev/null || true
           }
           trap cleanup_browser_runner EXIT
-          set +e
-          python3 scripts/run-test-plan.py \
-            --export-dir ../conformance-results \
-            --verbose \
+
+          test_plan_status=0
+          missing_export_status=0
+          run_conformance_plan() {
+            local plan_invocation="$1"
+            local config_path="$2"
+            local export_pattern="$3"
+            local plan_status=0
+
+            echo "::group::Run ${plan_invocation}"
+            set +e
+            python3 scripts/run-test-plan.py \
+              --export-dir ../conformance-results \
+              --verbose \
+              "${plan_invocation}" \
+              "${config_path}"
+            plan_status=$?
+            set -e
+            echo "::endgroup::"
+
+            if [ "${plan_status}" -ne 0 ]; then
+              test_plan_status="${plan_status}"
+            fi
+
+            if ! compgen -G "${export_pattern}" > /dev/null; then
+              echo "Missing expected conformance export matching ${export_pattern}" >&2
+              missing_export_status=1
+              if [ "${test_plan_status}" -eq 0 ]; then
+                test_plan_status=1
+              fi
+            fi
+          }
+
+          run_conformance_plan \
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-basic-config.json \
+            "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
+
+          run_conformance_plan \
             "oidcc-config-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
-            ../conformance-config/oidc-basic-config.json
-          test_plan_status=$?
-          set -e
+            ../conformance-config/oidc-config-config.json \
+            "../conformance-results/oidcc-config-certification-test-plan-*.zip"
+
           cleanup_browser_runner
           trap - EXIT
           echo "::group::conformance-browser.log"
@@ -243,6 +280,9 @@ jobs:
               exit "${test_plan_status}"
             fi
             exit "${blocking_status}"
+          fi
+          if [ "${missing_export_status}" -ne 0 ]; then
+            exit "${test_plan_status}"
           fi
           if [ "${test_plan_status}" -ne 0 ]; then
             echo "Conformance suite exited with ${test_plan_status}, but exported results contain only non-blocking WARNING/REVIEW outcomes."
