@@ -13,9 +13,9 @@ Provided features:
 - Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow - Implicite Flow must be activated per client
 - Support for PKCE
 - Public and confidential types of clients are supported
-- Creation of ID Token with claims based on requested scope (Currently supported scopes: openid, profile, email, roles, groups, and offline_access)
+- Creation of ID Tokens and UserInfo responses with claims based on requested scopes and the OpenID Connect `claims` parameter (currently supported scopes: openid, profile, email, roles, groups, and offline_access)
 - Supported signing algorithms RS256 (default) and HS256
-- Group memberships are passed as roles in ID token
+- Group memberships can be passed as roles or groups claims
 - Clients can be assigned to dedicated user groups - Only users in the configured group are allowed to retrieve an access token to fetch the ID token
 - Support for RFC9068 JWT Access Tokens (must be activated per client)
 - Discovery & WebFinger endpoint provided
@@ -153,22 +153,42 @@ The registration endpoint is accessible for everybody without any authentication
 
 ## Scopes
 
-Following the supported scopes are described. If no scope is defined during the authorization request, the following scopes will be used: `openid profile email roles`. Based in the defined scope different information about the user will be provided in the id token or at the userinfo endpoint.
+Following the supported scopes are described. If no scope is defined during the authorization request, the following scopes will be used: `openid profile email roles`. Based on the defined scope different information about the user will be provided at the userinfo endpoint. For authorization code flow, profile and email scope claims are not added to the ID token unless they are explicitly requested with the OpenID Connect `claims` parameter.
 
 Further scopes are passed transparently. Also namescaped scopes are supported. E.g. read:messages, api:admin.
 
 | Scope | Description |
 |---|---|
-| openid | Default scope. Will be added if missing. Information about the user is provided as user id in the claims `preferred_username` and `sub`. |
-| profile | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at`to the id token. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) The claim `picture` contains a link to the avatar of the user provided by the Nextcloud server (format: `https://hostname/avatar/userid/size`). The picture size is limited to 64px. |
-| email | Adds the email address of the user to the claim `email`. Furthermore the claim `email_verified` is added. |
+| openid | Default scope. Will be added if missing. The subject is provided as `sub`; `preferred_username` is returned from the userinfo endpoint and can be explicitly requested for the ID token with the `claims` parameter. |
+| profile | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at` to the userinfo response. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) The claim `picture` contains a link to the avatar of the user provided by the Nextcloud server (format: `https://hostname/avatar/userid/size`). The picture size is limited to 64px. |
+| email | Adds the email address of the user to the claim `email` in the userinfo response. Furthermore the claim `email_verified` is added. |
 | groups | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID might not be identical to the group name (display name) shown in the UI (especially after renaming groups or depending on your ldap configuration). To provide the display name of a group in the claim it is possible to change an application setting via the `occ` command. You can use the following commands to switch between GID and displayname: `occ config:app:set oidc group_claim_type --value "gid"` or  `occ config:app:set oidc group_claim_type --value "displayname"`. |
 | roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. In general the claim contains a list of group ids. If you want to explicitly set if GID or displayname is used, you can set this by: `occ config:app:set oidc role_claim_type --value "gid"` or  `occ config:app:set oidc role_claim_type --value "displayname"`. |
 | offline_access | **Required for refresh tokens** (OpenID Connect Core 1.0 Section 11). When this scope is requested and granted, a refresh token will be issued that allows obtaining new access tokens even when the user is not present. If this scope is not requested, no refresh token will be issued in OIDC-compliant mode. Administrators can enable "Legacy mode" in settings to always issue refresh tokens for backward compatibility with non-compliant clients. |
 
+### Requesting claims in the ID token
+
+OpenID Connect scopes like `profile` and `email` request user claims for the userinfo endpoint when the authorization code flow is used. If a relying party needs specific user claims in the ID token, it must request them explicitly with the `claims` authorization request parameter. This app supports the `id_token` and `userinfo` members of the `claims` parameter.
+
+Example authorization request parameters:
+
+```text
+response_type=code
+scope=openid profile email
+claims={
+  "id_token": {
+    "preferred_username": null,
+    "email": {"essential": true},
+    "email_verified": null
+  }
+}
+```
+
+The `claims` value must be sent as URL-encoded JSON in the authorization request. Claim request values may be `null` or a JSON object; `value` and `values` qualifiers are honored for explicitly requested optional claims. If a requested claim is unavailable, not released by the user, or disabled by policy, it can be omitted from the ID token.
+
 ## Custom claims
 
-It is possible to define custom claims per client. A custom claim is defined per client and will be added to the ID token and the userinfo endpoint if the specified scope is requested . The following functions can be used provide date to the custom claims.
+It is possible to define custom claims per client. A custom claim is defined per client and will be added to the userinfo endpoint if the specified scope is requested. For authorization code flow, a custom claim is added to the ID token only when its claim name is also explicitly requested with `claims.id_token`. The following functions can be used to provide data to the custom claims.
 | Function | Description |
 |---|---|
 | isAdmin | Provides true or false (boolean) if the user is Nextcloud administrator. |

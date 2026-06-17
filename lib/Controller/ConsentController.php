@@ -218,6 +218,7 @@ class ConsentController extends Controller {
             'code_challenge_method' => $this->session->get('oidc_code_challenge_method'),
             'prompt' => $this->session->get('oidc_prompt'),
             'max_age' => $this->session->get('oidc_max_age'),
+            'claims' => $this->session->get('oidc_claims'),
         ], static function ($value): bool {
             return $value !== null && $value !== '';
         }));
@@ -440,6 +441,7 @@ class ConsentController extends Controller {
         $this->session->remove('oidc_code_challenge_method');
         $this->session->remove('oidc_prompt');
         $this->session->remove('oidc_max_age');
+        $this->session->remove('oidc_claims');
         $this->session->remove('oidc_requested_scopes');
 
         // Return error to client

@@ -42,6 +42,23 @@ use Psr\Log\LoggerInterface;
 
 class UserInfoController extends ApiController
 {
+    private const PROFILE_CLAIMS = [
+        'updated_at',
+        'name',
+        'family_name',
+        'given_name',
+        'middle_name',
+        'website',
+        'phone_number',
+        'address',
+        'picture',
+        'quota',
+    ];
+    private const EMAIL_CLAIMS = [
+        'email',
+        'email_verified',
+    ];
+
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
     /** @var ClientMapper */
@@ -104,6 +121,96 @@ class UserInfoController extends ApiController
         $this->logger = $logger;
         $this->converter = Server::get(Converter::class);
         $this->urlGenerator = $urlGenerator;
+    }
+
+    /**
+     * @return array<string, null|array<string, mixed>>
+     */
+    private function getRequestedClaimRequests(?string $encodedClaims): array
+    {
+        if ($encodedClaims === null || trim($encodedClaims) === '') {
+            return [];
+        }
+
+        $decodedClaims = json_decode($encodedClaims, true);
+        if (!is_array($decodedClaims)) {
+            return [];
+        }
+
+        if (array_is_list($decodedClaims)) {
+            $claimRequests = [];
+            foreach ($decodedClaims as $claimName) {
+                if (is_string($claimName) && $claimName !== '') {
+                    $claimRequests[$claimName] = null;
+                }
+            }
+
+            return $claimRequests;
+        }
+
+        $claimRequests = [];
+        foreach ($decodedClaims as $claimName => $claimRequest) {
+            if (is_string($claimName) && $claimName !== '' && ($claimRequest === null || is_array($claimRequest))) {
+                $claimRequests[$claimName] = $claimRequest;
+            }
+        }
+
+        return $claimRequests;
+    }
+
+    /**
+     * @param string[] $claimNames
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     */
+    private function hasRequestedClaim(array $claimNames, array $claimRequests): bool
+    {
+        return count(array_intersect($claimNames, array_keys($claimRequests))) > 0;
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     * @return array<string, mixed>
+     */
+    private function filterClaims(array $claims, array $claimRequests, bool $scopeRequested): array
+    {
+        if ($scopeRequested) {
+            return $claims;
+        }
+
+        $filteredClaims = [];
+        foreach ($claims as $claimName => $claimValue) {
+            if (array_key_exists($claimName, $claimRequests) && $this->claimMatchesRequest($claimName, $claimValue, $claimRequests)) {
+                $filteredClaims[$claimName] = $claimValue;
+            }
+        }
+
+        return $filteredClaims;
+    }
+
+    /**
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     */
+    private function claimMatchesRequest(string $claimName, mixed $claimValue, array $claimRequests): bool
+    {
+        if (!array_key_exists($claimName, $claimRequests)) {
+            return false;
+        }
+
+        $claimRequest = $claimRequests[$claimName];
+        if (!is_array($claimRequest)) {
+            return true;
+        }
+
+        if (array_key_exists('value', $claimRequest) && $claimValue !== $claimRequest['value']) {
+            return false;
+        }
+
+        if (array_key_exists('values', $claimRequest) && is_array($claimRequest['values']) && !in_array($claimValue, $claimRequest['values'], true)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -197,6 +304,7 @@ class UserInfoController extends ApiController
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
+        $requestedUserinfoClaims = $this->getRequestedClaimRequests($accessToken->getUserinfoClaims());
 
         $userInfoPayload = $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid);
 
@@ -235,7 +343,8 @@ class UserInfoController extends ApiController
             $rolesClaimType = $groupClaimType;
         }
 
-        if (in_array("roles", $scopeArray)) {
+        $rolesScopeRequested = in_array("roles", $scopeArray);
+        if ($rolesScopeRequested || array_key_exists('roles', $requestedUserinfoClaims)) {
             if ($rolesClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
                 $roles_payload = [
                     'roles' => $rolesDisplayName
@@ -245,9 +354,10 @@ class UserInfoController extends ApiController
                     'roles' => $roles
                 ];
             }
-            $userInfoPayload = array_merge($userInfoPayload, $roles_payload);
+            $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims($roles_payload, $requestedUserinfoClaims, $rolesScopeRequested));
         }
-        if (in_array("groups", $scopeArray)) {
+        $groupsScopeRequested = in_array("groups", $scopeArray);
+        if ($groupsScopeRequested || array_key_exists('groups', $requestedUserinfoClaims)) {
             if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
                 $roles_payload = [
                     'groups' => $rolesDisplayName
@@ -257,7 +367,7 @@ class UserInfoController extends ApiController
                     'groups' => $roles
                 ];
             }
-            $userInfoPayload = array_merge($userInfoPayload, $roles_payload);
+            $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims($roles_payload, $requestedUserinfoClaims, $groupsScopeRequested));
         }
 
         $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
@@ -265,7 +375,8 @@ class UserInfoController extends ApiController
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS) != Application::DEFAULT_ALLOW_USER_SETTINGS) {
             $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
-        if (in_array("profile", $scopeArray)) {
+        $profileScopeRequested = in_array("profile", $scopeArray);
+        if ($profileScopeRequested || $this->hasRequestedClaim(self::PROFILE_CLAIMS, $requestedUserinfoClaims)) {
             $profile = [
                 'updated_at' => $user->getLastLogin(),
             ];
@@ -313,9 +424,10 @@ class UserInfoController extends ApiController
                 $profile = array_merge($profile,
                         ['quota' => $quota]);
             }
-            $userInfoPayload = array_merge($userInfoPayload, $profile);
+            $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims($profile, $requestedUserinfoClaims, $profileScopeRequested));
         }
-        if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
+        $emailScopeRequested = in_array("email", $scopeArray);
+        if (($emailScopeRequested || $this->hasRequestedClaim(self::EMAIL_CLAIMS, $requestedUserinfoClaims)) && $user->getEMailAddress() !== null) {
             $emailProperty = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_EMAIL);
             $clientEmailRegex = $client->getEmailRegex();
             if ($clientEmailRegex !== '') {
@@ -342,7 +454,7 @@ class UserInfoController extends ApiController
                     $email = array_merge($email, ['email_verified' => false]);
                 }
             }
-            $userInfoPayload = array_merge($userInfoPayload, $email);
+            $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims($email, $requestedUserinfoClaims, $emailScopeRequested));
         }
         $this->logger->debug('Returned user info for user ' . $uid);
         $response = new JSONResponse($userInfoPayload);

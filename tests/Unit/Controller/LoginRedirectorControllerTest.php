@@ -470,6 +470,177 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
     }
 
+    public function testAuthorizeStoresRequestedClaimsForCodeFlow() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+        $claims = json_encode([
+            'id_token' => [
+                'preferred_username' => null,
+                'email' => [
+                    'essential' => true,
+                ],
+            ],
+            'userinfo' => [
+                'name' => null,
+            ],
+        ]);
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid profile email',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $user = $this->createMock(\OCP\IUser::class);
+        $user
+            ->method('getUID')
+            ->willReturn('testuser');
+
+        $jwtGenerator = $this->createMock(JwtGenerator::class);
+        $jwtGenerator
+            ->method('generateAccessToken')
+            ->willReturn('access-token');
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $this->request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $this->session,
+            $this->l,
+            $this->time,
+            $this->userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $this->appConfig,
+            $jwtGenerator,
+            $this->redirectUriService,
+            $this->logger
+        );
+
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) use ($claims) {
+                return $key === 'claims' ? $claims : null;
+            });
+        $this->request
+            ->method('getServerProtocol')
+            ->willReturn('https');
+        $this->request
+            ->method('getServerHost')
+            ->willReturn('server.example.com');
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->userSession
+            ->method('getUser')
+            ->willReturn($user);
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1234567890,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->groupMapper
+            ->method('getGroupsByClientId')
+            ->with(1)
+            ->willReturn([]);
+        $this->groupManager
+            ->method('getUserGroups')
+            ->with($user)
+            ->willReturn([]);
+        $this->userConsentMapper
+            ->method('findByUserAndClient')
+            ->with('testuser', 1)
+            ->willReturn(null);
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default = '') {
+                if ($key === Application::APP_CONFIG_ALLOW_USER_SETTINGS) {
+                    return 'no';
+                }
+                return $default;
+            });
+        $this->accessTokenMapper
+            ->expects($this->once())
+            ->method('insert')
+            ->willReturnCallback(function (AccessToken $accessToken) {
+                $this->assertSame(
+                    [
+                        'preferred_username' => null,
+                        'email' => [
+                            'essential' => true,
+                        ],
+                    ],
+                    json_decode($accessToken->getIdTokenClaims(), true)
+                );
+                $this->assertSame(
+                    [
+                        'name' => null,
+                    ],
+                    json_decode($accessToken->getUserinfoClaims(), true)
+                );
+
+                $accessToken->id = 23;
+                return $accessToken;
+            });
+        $this->authorizationCodeMapper
+            ->expects($this->once())
+            ->method('createForAccessToken')
+            ->with(
+                23,
+                $this->isType('string'),
+                $this->isType('int')
+            )
+            ->willReturn(new AuthorizationCode());
+
+        $result = $controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid profile email',
+            'nonce-1',
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
+    }
+
     public function testAuthorizeMaxAgeExceededForcesReauthentication() {
         $clientId = 'client1';
         $state = 'state-1';

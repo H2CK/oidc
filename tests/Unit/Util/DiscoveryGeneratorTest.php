@@ -212,6 +212,8 @@ class DiscoveryGeneratorTest extends TestCase {
         $result = $this->generator->generateDiscovery($this->request);
         $data = $result->getData();
 
+        $this->assertArrayHasKey('claims_parameter_supported', $data);
+        $this->assertTrue($data['claims_parameter_supported']);
         $this->assertArrayHasKey('request_parameter_supported', $data);
         $this->assertFalse($data['request_parameter_supported']);
         $this->assertArrayHasKey('request_uri_parameter_supported', $data);

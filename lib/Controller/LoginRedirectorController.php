@@ -240,6 +240,7 @@ class LoginRedirectorController extends ApiController
         {
         $prompt = $prompt ?? $this->request->getParam('prompt');
         $max_age = $max_age ?? $this->request->getParam('max_age');
+        $claims = $this->request->getParam('claims');
 
         $unsupportedRequestParameterResponse = $this->rejectUnsupportedRequestParameters(
             $client_id,
@@ -283,6 +284,7 @@ class LoginRedirectorController extends ApiController
                 $code_challenge_method,
                 $prompt,
                 $max_age,
+                $claims,
                 'Not authenticated yet for client ' . $client_id . '. Redirect to login.'
             );
         }
@@ -308,6 +310,7 @@ class LoginRedirectorController extends ApiController
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
             $prompt = $this->session->get('oidc_prompt');
             $max_age = $this->session->get('oidc_max_age');
+            $claims = $this->session->get('oidc_claims');
         }
 
         $oidcLoginPending = $this->session->get('oidc_login_pending') === true;
@@ -374,6 +377,19 @@ class LoginRedirectorController extends ApiController
             return $redirectUriErrorResponse;
         }
 
+        try {
+            $requestedIdTokenClaims = $this->getRequestedClaims($claims, 'id_token');
+            $requestedUserinfoClaims = $this->getRequestedClaims($claims, 'userinfo');
+        } catch (\InvalidArgumentException $e) {
+            $this->logger->notice('Invalid claims parameter for client ' . $client_id . ': ' . $e->getMessage());
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'invalid_request',
+                'Invalid claims parameter.',
+                $state
+            );
+        }
+
         if (empty($response_type)) {
             $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
             $separator = str_contains($redirect_uri, '?') ? '&' : '?';
@@ -431,6 +447,7 @@ class LoginRedirectorController extends ApiController
                 $code_challenge_method,
                 $prompt,
                 $max_age,
+                $claims,
                 'Redirect to login for prompt=login reauthentication for client ' . $client_id . '.'
             );
         }
@@ -460,6 +477,7 @@ class LoginRedirectorController extends ApiController
                 $code_challenge_method,
                 $prompt,
                 $max_age,
+                $claims,
                 'Redirect to login for max_age reauthentication for client ' . $client_id . '.'
             );
         }
@@ -558,6 +576,7 @@ class LoginRedirectorController extends ApiController
                 $this->session->set('oidc_code_challenge_method', $code_challenge_method);
                 $this->session->set('oidc_prompt', $prompt);
                 $this->session->set('oidc_max_age', $max_age);
+                $this->session->set('oidc_claims', $claims);
 
                 $this->session->close(); // Close session to prevent session locking issues during redirect
 
@@ -610,6 +629,8 @@ class LoginRedirectorController extends ApiController
         } else {
             $accessToken->setResource(substr($resource, 0, 2000));
         }
+        $accessToken->setIdTokenClaims($this->encodeRequestedClaims($requestedIdTokenClaims));
+        $accessToken->setUserinfoClaims($this->encodeRequestedClaims($requestedUserinfoClaims));
         $accessToken->setCreated($authTime);
         $accessToken->setRefreshed($this->time->getTime());
         if (empty($nonce) || !isset($nonce)) {
@@ -661,7 +682,12 @@ class LoginRedirectorController extends ApiController
         }
         if (in_array('id_token', $responseTypeEntries)) {
             $jwt = $this->jwtGenerator->generateIdToken(
-                $accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), in_array('token', $responseTypeEntries)
+                $accessToken,
+                $client,
+                $this->request->getServerProtocol(),
+                $this->request->getServerHost(),
+                in_array('token', $responseTypeEntries),
+                !$codeFlow
             );
             $url = $url . '&id_token=' . $jwt;
         }
@@ -822,6 +848,7 @@ class LoginRedirectorController extends ApiController
         mixed $codeChallengeMethod,
         mixed $prompt,
         mixed $maxAge,
+        mixed $claims,
         string $logMessage
     ): RedirectResponse {
         // Store OIDC attributes in the user session to be available after login.
@@ -836,6 +863,7 @@ class LoginRedirectorController extends ApiController
         $this->session->set('oidc_code_challenge_method', $codeChallengeMethod);
         $this->session->set('oidc_prompt', $prompt);
         $this->session->set('oidc_max_age', $maxAge);
+        $this->session->set('oidc_claims', $claims);
         $this->session->set('oidc_login_pending', true);
 
         $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.Page.index', array_filter([
@@ -850,6 +878,7 @@ class LoginRedirectorController extends ApiController
             'code_challenge_method' => $codeChallengeMethod,
             'prompt'                => $prompt,
             'max_age'               => $maxAge,
+            'claims'                => $claims,
         ], static function ($value): bool {
             return $value !== null && $value !== '';
         }));
@@ -866,6 +895,76 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug($logMessage);
 
         return new RedirectResponse($loginUrl);
+    }
+
+    /**
+     * @return array<string, null|array<string, mixed>>
+     */
+    private function getRequestedClaims(mixed $claims, string $section): array
+    {
+        if (!$this->hasNonEmptyRequestParameter($claims)) {
+            return [];
+        }
+
+        if (!is_string($claims)) {
+            throw new \InvalidArgumentException('claims must be a JSON object string');
+        }
+
+        $decodedClaims = json_decode($claims);
+        if (json_last_error() !== JSON_ERROR_NONE || !($decodedClaims instanceof \stdClass)) {
+            throw new \InvalidArgumentException('claims must be valid JSON object');
+        }
+
+        if (!property_exists($decodedClaims, $section)) {
+            return [];
+        }
+
+        $sectionClaims = $decodedClaims->{$section};
+        if (!($sectionClaims instanceof \stdClass)) {
+            throw new \InvalidArgumentException($section . ' must be a JSON object');
+        }
+
+        $requestedClaims = [];
+        foreach (get_object_vars($sectionClaims) as $claimName => $claimRequest) {
+            if ($claimName === '') {
+                throw new \InvalidArgumentException($section . ' contains an empty claim name');
+            }
+
+            if ($claimRequest !== null && !($claimRequest instanceof \stdClass)) {
+                throw new \InvalidArgumentException($section . '.' . $claimName . ' must be null or a JSON object');
+            }
+
+            if ($claimRequest instanceof \stdClass) {
+                $claimRequest = json_decode(json_encode($claimRequest) ?: '{}', true);
+                if (!is_array($claimRequest)) {
+                    throw new \InvalidArgumentException($section . '.' . $claimName . ' must be null or a JSON object');
+                }
+
+                if (array_key_exists('essential', $claimRequest) && !is_bool($claimRequest['essential'])) {
+                    throw new \InvalidArgumentException($section . '.' . $claimName . '.essential must be a boolean');
+                }
+
+                if (array_key_exists('values', $claimRequest) && !is_array($claimRequest['values'])) {
+                    throw new \InvalidArgumentException($section . '.' . $claimName . '.values must be a JSON array');
+                }
+            }
+
+            $requestedClaims[$claimName] = $claimRequest;
+        }
+
+        return $requestedClaims;
+    }
+
+    /**
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     */
+    private function encodeRequestedClaims(array $claimRequests): string
+    {
+        if ($claimRequests === []) {
+            return '';
+        }
+
+        return json_encode($claimRequests) ?: '';
     }
 
     private function promptContains(mixed $prompt, string $expectedPrompt): bool

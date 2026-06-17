@@ -217,7 +217,7 @@ class DiscoveryGenerator
             // 'service_documentation' => ,
             // 'claims_locales_supported' => ,
             // 'ui_locales_supported' => ,
-            // 'claims_parameter_supported' => true,
+            'claims_parameter_supported' => true,
             'request_parameter_supported' => false,
             'request_uri_parameter_supported' => false,
             // 'require_request_uri_registration' => true,
