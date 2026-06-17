@@ -16,7 +16,7 @@ jobs:
 
     env:
       CONFORMANCE_ALIAS: nextcloud-${{ github.run_id }}
-      NEXTCLOUD_BASE_URL: http://host.docker.internal:8080
+      NEXTCLOUD_BASE_URL: https://nextcloud-proxy:8443
       OIDC_TEST_USER: oidc-test-user
       OIDC_TEST_PASSWORD: oidc-test-password
       OIDC_CLIENT_ID_1: nextcloud-conformance-client-00001
@@ -114,9 +114,10 @@ jobs:
           php occ app:enable ${{ env.APP_NAME }}
           php occ config:system:set trusted_domains 1 --value=host.docker.internal
           php occ config:system:set trusted_domains 2 --value=127.0.0.1
+          php occ config:system:set trusted_domains 3 --value=nextcloud-proxy
           php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
-          php occ config:system:set overwritehost --value=host.docker.internal:8080
-          php occ config:system:set overwriteprotocol --value=http
+          php occ config:system:set overwritehost --value=nextcloud-proxy:8443
+          php occ config:system:set overwriteprotocol --value=https
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
           OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
           php occ user:setting "${OIDC_TEST_USER}" settings email oidc-test@example.test
@@ -162,7 +163,7 @@ jobs:
             -f docker-compose-localtest.yml \
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
-            up -d mongodb nginx server chrome
+            up -d mongodb nginx server chrome nextcloud-proxy
           # Wait for Chrome/Selenium service to be ready
           for i in {1..60}; do
             if curl --fail --silent http://chrome:4444/status > /dev/null 2>&1; then
@@ -209,20 +210,7 @@ jobs:
           CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite
-          : > ../conformance-browser.log
-          PYTHONUNBUFFERED=1 python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
-            >> ../conformance-browser.log 2>&1 &
-          browser_runner_pid=$!
-          tail -n +1 -f ../conformance-browser.log &
-          browser_log_tail_pid=$!
-          cleanup_browser_runner() {
-            kill "${browser_runner_pid}" 2>/dev/null || true
-            kill "${browser_log_tail_pid}" 2>/dev/null || true
-            wait "${browser_runner_pid}" 2>/dev/null || true
-            wait "${browser_log_tail_pid}" 2>/dev/null || true
-          }
-          trap cleanup_browser_runner EXIT
-
+          : > ../conformance-runner.log
           test_plan_status=0
           missing_export_status=0
           run_conformance_plan() {
@@ -237,8 +225,8 @@ jobs:
               --export-dir ../conformance-results \
               --verbose \
               "${plan_invocation}" \
-              "${config_path}"
-            plan_status=$?
+              "${config_path}" 2>&1 | tee -a ../conformance-runner.log
+            plan_status=${PIPESTATUS[0]}
             set -e
             echo "::endgroup::"
 
@@ -256,14 +244,28 @@ jobs:
           }
 
           run_conformance_plan \
+            "oidcc-config-certification-test-plan" \
+            ../conformance-config/oidc-config-config.json \
+            "../conformance-results/oidcc-config-certification-test-plan-*.zip"
+
+          : > ../conformance-browser.log
+          PYTHONUNBUFFERED=1 python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
+            >> ../conformance-browser.log 2>&1 &
+          browser_runner_pid=$!
+          tail -n +1 -f ../conformance-browser.log &
+          browser_log_tail_pid=$!
+          cleanup_browser_runner() {
+            kill "${browser_runner_pid}" 2>/dev/null || true
+            kill "${browser_log_tail_pid}" 2>/dev/null || true
+            wait "${browser_runner_pid}" 2>/dev/null || true
+            wait "${browser_log_tail_pid}" 2>/dev/null || true
+          }
+          trap cleanup_browser_runner EXIT
+
+          run_conformance_plan \
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-basic-config.json \
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
-
-          run_conformance_plan \
-            "oidcc-config-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
-            ../conformance-config/oidc-config-config.json \
-            "../conformance-results/oidcc-config-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
@@ -304,5 +306,6 @@ jobs:
           path: |
             CONFORMANCE.md
             conformance-results
+            conformance-runner.log
             conformance-browser.log
             nextcloud-server.log

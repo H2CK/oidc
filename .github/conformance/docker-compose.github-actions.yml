@@ -1,4 +1,12 @@
 services:
+  nextcloud-proxy:
+    build:
+      context: ./nginx
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "${GITHUB_WORKSPACE}/nextcloud/apps/${APP_NAME}/.github/conformance/nextcloud-proxy.conf:/etc/nginx/nginx.conf:ro"
+
   nginx:
     extra_hosts:
       - "host.docker.internal:host-gateway"
