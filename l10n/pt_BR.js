@@ -9,6 +9,7 @@ OC.L10N.register(
     "Authorization session expired. Please try again." : "A sessão de autorização expirou. Tente novamente.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "O usuário não é um membro dos grupos definidos para o cliente. O usuário não tem permissão para recuperar um token de login.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Ocorreu uma falha durante a criação do JWT. Informe o administrador de seu cliente.",
+    "Authorization request is missing a redirect URI." : "Falta um URI de redirecionamento na solicitação de autorização.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Seu cliente não está autorizado a se conectar. Informe o administrador de seu cliente.",
     "Your client is expired. Please inform the administrator of your client." : "Seu cliente expirou. Informe o administrador de seu cliente.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "O URI de redirecionamento recebido não é aceito para conexão. Informe o administrador de seu cliente.",
