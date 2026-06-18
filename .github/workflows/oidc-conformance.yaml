@@ -27,6 +27,10 @@ jobs:
       OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
       OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
       OIDC_HYBRID_CLIENT_SECRET_2: nextcloud-conformance-hybrid-secret-00002
+      OIDC_IMPLICIT_CLIENT_ID_1: nextcloud-conformance-implicit-client-00001
+      OIDC_IMPLICIT_CLIENT_SECRET_1: nextcloud-conformance-implicit-secret-00001
+      OIDC_IMPLICIT_CLIENT_ID_2: nextcloud-conformance-implicit-client-00002
+      OIDC_IMPLICIT_CLIENT_SECRET_2: nextcloud-conformance-implicit-secret-00002
 
     steps:
       - name: Set app env
@@ -151,6 +155,19 @@ jobs:
             --type confidential \
             --flow "code id_token" \
             --allowed_scopes "openid profile email offline_access"
+          implicit_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-implicit/callback"
+          php occ oidc:create "OIDC Conformance Implicit 1" "${implicit_callback}" \
+            --client_id "${OIDC_IMPLICIT_CLIENT_ID_1}" \
+            --client_secret "${OIDC_IMPLICIT_CLIENT_SECRET_1}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create "OIDC Conformance Implicit 2" "${implicit_callback}" \
+            --client_id "${OIDC_IMPLICIT_CLIENT_ID_2}" \
+            --client_secret "${OIDC_IMPLICIT_CLIENT_SECRET_2}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
 
       - name: Start Nextcloud web server
         run: |
@@ -218,9 +235,13 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-hybrid-config.json \
             conformance-config/oidc-hybrid-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-implicit-config.json \
+            conformance-config/oidc-implicit-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-implicit-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -331,6 +352,41 @@ jobs:
             "oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${hybrid_code_id_token_module_list}" \
             ../conformance-config/oidc-hybrid-config.json \
             "../conformance-results/oidcc-hybrid-certification-test-plan-*.zip"
+
+          implicit_id_token_modules=(
+            oidcc-server
+            oidcc-ensure-request-without-nonce-fails
+            oidcc-scope-profile
+            oidcc-scope-email
+            oidcc-scope-address
+            oidcc-scope-phone
+            oidcc-scope-all
+            oidcc-alternate-happy-flow
+            oidcc-display-page
+            oidcc-display-popup
+            oidcc-prompt-login
+            oidcc-prompt-none-not-logged-in
+            oidcc-prompt-none-logged-in
+            oidcc-max-age-1
+            oidcc-max-age-10000
+            oidcc-ensure-request-with-unknown-parameter-succeeds
+            oidcc-id-token-hint
+            oidcc-login-hint
+            oidcc-ui-locales
+            oidcc-claims-locales
+            oidcc-ensure-request-with-acr-values-succeeds
+            oidcc-ensure-registered-redirect-uri
+            oidcc-request-uri-unsigned-supported-correctly-or-rejected-as-unsupported
+            oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported
+            oidcc-ensure-request-object-with-redirect-uri
+            oidcc-claims-essential
+          )
+          implicit_id_token_module_list="$(IFS=,; echo "${implicit_id_token_modules[*]}")"
+
+          run_conformance_plan \
+            "oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${implicit_id_token_module_list}" \
+            ../conformance-config/oidc-implicit-config.json \
+            "../conformance-results/oidcc-implicit-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
