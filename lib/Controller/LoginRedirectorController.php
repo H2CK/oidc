@@ -434,7 +434,7 @@ class LoginRedirectorController extends ApiController
             $this->logger->notice('Missing nonce in request for client ' . $client_id . '.');
             return $this->createAuthorizationErrorRedirect(
                 (string)$redirect_uri,
-                'request_not_supported',
+                'invalid_request',
                 'Missing nonce',
                 $state,
                 $response_type,
