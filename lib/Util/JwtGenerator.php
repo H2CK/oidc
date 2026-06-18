@@ -73,6 +73,23 @@ class JwtGenerator
     public const SUB_OUTPUT = ' sub=> ';
     public const AUD_OUTPUT = ' aud=> ';
     public const CLIENT_ID_OUTPUT = ' client_id=> ';
+    private const PROFILE_CLAIMS = [
+        'updated_at',
+        'preferred_username',
+        'name',
+        'family_name',
+        'given_name',
+        'middle_name',
+        'website',
+        'phone_number',
+        'address',
+        'picture',
+        'quota',
+    ];
+    private const EMAIL_CLAIMS = [
+        'email',
+        'email_verified',
+    ];
 
     public function __construct(
                     ICrypto $crypto,
@@ -108,6 +125,104 @@ class JwtGenerator
     }
 
     /**
+     * @return array<string, null|array<string, mixed>>
+     */
+    private function getRequestedClaimRequests(?string $encodedClaims): array
+    {
+        if ($encodedClaims === null || trim($encodedClaims) === '') {
+            return [];
+        }
+
+        $decodedClaims = json_decode($encodedClaims, true);
+        if (!is_array($decodedClaims)) {
+            return [];
+        }
+
+        if (array_is_list($decodedClaims)) {
+            $claimRequests = [];
+            foreach ($decodedClaims as $claimName) {
+                if (is_string($claimName) && $claimName !== '') {
+                    $claimRequests[$claimName] = null;
+                }
+            }
+
+            return $claimRequests;
+        }
+
+        $claimRequests = [];
+        foreach ($decodedClaims as $claimName => $claimRequest) {
+            if (is_string($claimName) && $claimName !== '' && ($claimRequest === null || is_array($claimRequest))) {
+                $claimRequests[$claimName] = $claimRequest;
+            }
+        }
+
+        return $claimRequests;
+    }
+
+    /**
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     */
+    private function shouldIncludeRequestedClaim(string $claimName, mixed $claimValue, array $claimRequests): bool
+    {
+        return array_key_exists($claimName, $claimRequests) && $this->claimMatchesRequest($claimName, $claimValue, $claimRequests);
+    }
+
+    /**
+     * @param array<string, mixed> $claims
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     * @return array<string, mixed>
+     */
+    private function filterClaims(array $claims, array $claimRequests, bool $includeScopeClaims): array
+    {
+        if ($includeScopeClaims) {
+            return $claims;
+        }
+
+        $filteredClaims = [];
+        foreach ($claims as $claimName => $claimValue) {
+            if (array_key_exists($claimName, $claimRequests) && $this->claimMatchesRequest($claimName, $claimValue, $claimRequests)) {
+                $filteredClaims[$claimName] = $claimValue;
+            }
+        }
+
+        return $filteredClaims;
+    }
+
+    /**
+     * @param string[] $claimNames
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     */
+    private function hasRequestedClaim(array $claimNames, array $claimRequests): bool
+    {
+        return count(array_intersect($claimNames, array_keys($claimRequests))) > 0;
+    }
+
+    /**
+     * @param array<string, null|array<string, mixed>> $claimRequests
+     */
+    private function claimMatchesRequest(string $claimName, mixed $claimValue, array $claimRequests): bool
+    {
+        if (!array_key_exists($claimName, $claimRequests)) {
+            return false;
+        }
+
+        $claimRequest = $claimRequests[$claimName];
+        if (!is_array($claimRequest)) {
+            return true;
+        }
+
+        if (array_key_exists('value', $claimRequest) && $claimValue !== $claimRequest['value']) {
+            return false;
+        }
+
+        if (array_key_exists('values', $claimRequest) && is_array($claimRequest['values']) && !in_array($claimValue, $claimRequest['values'], true)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Generate JWT ID Token
      *
      * @param AccessToken $accessToken
@@ -115,10 +230,12 @@ class JwtGenerator
      * @param string $issuerProtocol
      * @param string $issuerHost
      * @param bool $atHash
+     * @param bool $includeScopeClaims
+     * @param string|null $authorizationCode
      * @return string
      * @throws PropertyDoesNotExistException
      */
-    public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash): string {
+    public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash, bool $includeScopeClaims = true, ?string $authorizationCode = null): string {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $nonce = $accessToken->getNonce();
@@ -127,8 +244,13 @@ class JwtGenerator
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
+        $requestedIdTokenClaims = $this->getRequestedClaimRequests($accessToken->getIdTokenClaims());
 
-        $jwt_payload = $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid);
+        $jwt_payload = $this->filterClaims(
+            $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid),
+            $requestedIdTokenClaims,
+            $includeScopeClaims
+        );
 
         $jwt_payload_base = [
             'iss' => $issuer,
@@ -139,24 +261,28 @@ class JwtGenerator
             'iat' => $this->time->getTime(),
             'acr' => '0',
             'azp' => $client->getClientIdentifier(),
-            'preferred_username' => $uid,
-            'scope' => $accessToken->getScope(),
             'nbf' => $this->time->getTime(),
             'jti' => strval($accessToken->getId()),
         ];
 
+        if ($this->shouldIncludeRequestedClaim('scope', $accessToken->getScope(), $requestedIdTokenClaims)) {
+            $jwt_payload_base['scope'] = $accessToken->getScope();
+        }
+
         $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
 
         if ($atHash) {
-            $atHashData = str_replace(
-                ['+', '/', '='],
-                ['-', '_', ''],
-                base64_encode(substr(hash('sha256', $accessToken->getAccessToken()), 0, 128))
-            );
             $athashPayload = [
-                'at_hash' => $atHashData
+                'at_hash' => $this->generateIdTokenHash($accessToken->getAccessToken(), $client->getSigningAlg())
             ];
             $jwt_payload = array_merge($jwt_payload, $athashPayload);
+        }
+
+        if ($authorizationCode !== null && trim($authorizationCode) !== '') {
+            $cHashPayload = [
+                'c_hash' => $this->generateIdTokenHash($authorizationCode, $client->getSigningAlg())
+            ];
+            $jwt_payload = array_merge($jwt_payload, $cHashPayload);
         }
 
         if (!empty($nonce)) {
@@ -187,8 +313,10 @@ class JwtGenerator
         // Check for scopes
         // OpenID Connect requests MUST contain the openid scope value. - This implementation does not enforce that openid is specified.
         // OPTIONAL scope values of profile, email, address, phone, and offline_access are also defined.
-        $scopeArray = preg_split('/ +/', $accessToken->getScope());
-        if (in_array("roles", $scopeArray)) {
+        $scopeArray = preg_split('/ +/', $accessToken->getScope()) ?: [];
+        $includeRolesByScope = $includeScopeClaims && in_array("roles", $scopeArray, true);
+        $includeRolesByClaim = array_key_exists('roles', $requestedIdTokenClaims);
+        if ($includeRolesByScope || $includeRolesByClaim) {
             if ($rolesClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
                 $roles_payload = [
                     'roles' => $rolesDisplayName
@@ -198,9 +326,11 @@ class JwtGenerator
                     'roles' => $roles
                 ];
             }
-            $jwt_payload = array_merge($jwt_payload, $roles_payload);
+            $jwt_payload = array_merge($jwt_payload, $this->filterClaims($roles_payload, $requestedIdTokenClaims, $includeRolesByScope));
         }
-        if (in_array("groups", $scopeArray)) {
+        $includeGroupsByScope = $includeScopeClaims && in_array("groups", $scopeArray, true);
+        $includeGroupsByClaim = array_key_exists('groups', $requestedIdTokenClaims);
+        if ($includeGroupsByScope || $includeGroupsByClaim) {
             if ($groupClaimType === Application::GROUP_CLAIM_TYPE_DISPLAYNAME) {
                 $roles_payload = [
                     'groups' => $rolesDisplayName
@@ -210,7 +340,7 @@ class JwtGenerator
                     'groups' => $roles
                 ];
             }
-            $jwt_payload = array_merge($jwt_payload, $roles_payload);
+            $jwt_payload = array_merge($jwt_payload, $this->filterClaims($roles_payload, $requestedIdTokenClaims, $includeGroupsByScope));
         }
 
         $restrictUserInformationArr = explode(' ', strtolower(trim($this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
@@ -219,9 +349,12 @@ class JwtGenerator
             $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
 
-        if (in_array("profile", $scopeArray)) {
+        $includeProfileByScope = $includeScopeClaims && in_array("profile", $scopeArray, true);
+        $includeProfileByClaim = $this->hasRequestedClaim(self::PROFILE_CLAIMS, $requestedIdTokenClaims);
+        if ($includeProfileByScope || $includeProfileByClaim) {
             $profile = [
                 'updated_at' => $user->getLastLogin(),
+                'preferred_username' => $uid,
             ];
             if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
                 $displayName = $account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
@@ -266,10 +399,12 @@ class JwtGenerator
                 $profile = array_merge($profile,
                         ['quota' => $quota]);
             }
-            $jwt_payload = array_merge($jwt_payload, $profile);
+            $jwt_payload = array_merge($jwt_payload, $this->filterClaims($profile, $requestedIdTokenClaims, $includeProfileByScope));
         }
 
-        if (in_array("email", $scopeArray) && $user->getEMailAddress() !== null) {
+        $includeEmailByScope = $includeScopeClaims && in_array("email", $scopeArray, true);
+        $includeEmailByClaim = $this->hasRequestedClaim(self::EMAIL_CLAIMS, $requestedIdTokenClaims);
+        if (($includeEmailByScope || $includeEmailByClaim) && $user->getEMailAddress() !== null) {
             $emailProperty = $account->getProperty(IAccountManager::PROPERTY_EMAIL);
             $clientEmailRegex = $client->getEmailRegex();
             if ($clientEmailRegex !== '') {
@@ -296,7 +431,7 @@ class JwtGenerator
                     $email = array_merge($email, ['email_verified' => false]);
                 }
             }
-            $jwt_payload = array_merge($jwt_payload, $email);
+            $jwt_payload = array_merge($jwt_payload, $this->filterClaims($email, $requestedIdTokenClaims, $includeEmailByScope));
         }
 
         $payload = json_encode($jwt_payload);
@@ -320,8 +455,25 @@ class JwtGenerator
         }
 
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
-        $this->logger->debug('Generated JWT with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . ' aud/azp => ' . $client->getClientIdentifier() . ' preferred_username => ' . $uid);
+        $this->logger->debug('Generated JWT with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . ' aud/azp => ' . $client->getClientIdentifier());
         return $jwt;
+    }
+
+    private function generateIdTokenHash(string $value, string $signingAlg): string
+    {
+        $hashAlgorithm = match (substr(strtoupper($signingAlg), -3)) {
+            '384' => 'sha384',
+            '512' => 'sha512',
+            default => 'sha256',
+        };
+
+        $hash = hash($hashAlgorithm, $value, true);
+        return $this->base64UrlEncode(substr($hash, 0, intdiv(strlen($hash), 2)));
+    }
+
+    private function base64UrlEncode(string $value): string
+    {
+        return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
 

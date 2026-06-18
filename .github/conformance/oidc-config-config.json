@@ -1,0 +1,7 @@
+{
+  "description": "Nextcloud OIDC GitHub Actions config conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
+  }
+}

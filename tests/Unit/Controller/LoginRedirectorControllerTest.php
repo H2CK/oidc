@@ -31,6 +31,8 @@ use OC\Security\SecureRandom;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCode;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Controller\LoginRedirectorController;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
@@ -56,6 +58,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $clientMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper  */
     private $accessTokenMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AuthorizationCodeMapper  */
+    private $authorizationCodeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriMapper  */
     private $redirectUriMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper  */
@@ -147,6 +151,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $reflection3 = new \ReflectionClass(AccessTokenMapper::class);
         $constructor3 = $reflection3->getConstructor();
         $constructor3->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
+
+        $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
         
         // Create groupMapper with constructor arguments
         $this->groupMapper = $this->createMock(GroupMapper::class);
@@ -202,6 +208,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userSession,
             $this->groupManager,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->redirectUriMapper,
             $this->userConsentMapper,
             $this->appConfig,
@@ -322,6 +329,78 @@ class LoginRedirectorControllerTest extends TestCase {
         );
     }
 
+    public function testAuthorizePromptNoneNotLoggedInReturnsImplicitErrorInFragment() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code id_token',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(false);
+        $this->session
+            ->expects($this->never())
+            ->method('set');
+        $this->urlGenerator
+            ->expects($this->never())
+            ->method('linkToRoute');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            'id_token',
+            $redirectUri,
+            'openid',
+            'nonce-1',
+            null,
+            null,
+            null,
+            'none'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            $redirectUri . '#error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1',
+            $result->getRedirectURL()
+        );
+    }
+
+    public function testAuthorizeMissingNonceForImplicitFlowReturnsInvalidRequestInFragment() {
+        $this->assertMissingNonceReturnsInvalidRequestInFragment('id_token');
+    }
+
+    public function testAuthorizeMissingNonceForHybridFlowReturnsInvalidRequestInFragment() {
+        $this->assertMissingNonceReturnsInvalidRequestInFragment('code id_token');
+    }
+
     public function testAuthorizeUsesStoredOidcAuthenticationTimeForAccessToken() {
         $clientId = 'client1';
         $state = 'state-1';
@@ -369,6 +448,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userSession,
             $this->groupManager,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->redirectUriMapper,
             $this->userConsentMapper,
             $this->appConfig,
@@ -429,9 +509,20 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->accessTokenMapper
             ->expects($this->once())
             ->method('insert')
-            ->with($this->callback(function (AccessToken $accessToken) use ($authTime) {
-                return $accessToken->getCreated() === $authTime;
-            }));
+            ->willReturnCallback(function (AccessToken $accessToken) use ($authTime) {
+                $this->assertSame($authTime, $accessToken->getCreated());
+                $accessToken->id = 23;
+                return $accessToken;
+            });
+        $this->authorizationCodeMapper
+            ->expects($this->once())
+            ->method('createForAccessToken')
+            ->with(
+                23,
+                $this->isType('string'),
+                $this->isType('int')
+            )
+            ->willReturn(new AuthorizationCode());
 
         $result = $controller->authorize(
             $clientId,
@@ -439,6 +530,328 @@ class LoginRedirectorControllerTest extends TestCase {
             'code',
             $redirectUri,
             'openid',
+            'nonce-1',
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
+    }
+
+    public function testAuthorizeHybridSuccessReturnsFrontChannelValuesInFragment() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code id_token',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $user = $this->createMock(\OCP\IUser::class);
+        $user
+            ->method('getUID')
+            ->willReturn('testuser');
+
+        $jwtGenerator = $this->createMock(JwtGenerator::class);
+        $jwtGenerator
+            ->method('generateAccessToken')
+            ->willReturn('access-token');
+        $jwtGenerator
+            ->expects($this->once())
+            ->method('generateIdToken')
+            ->with(
+                $this->isInstanceOf(AccessToken::class),
+                $client,
+                'https',
+                'server.example.com',
+                false,
+                false,
+                $this->isType('string')
+            )
+            ->willReturn('id-token');
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $this->request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $this->session,
+            $this->l,
+            $this->time,
+            $this->userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $this->appConfig,
+            $jwtGenerator,
+            $this->redirectUriService,
+            $this->logger
+        );
+
+        $this->request
+            ->method('getServerProtocol')
+            ->willReturn('https');
+        $this->request
+            ->method('getServerHost')
+            ->willReturn('server.example.com');
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->userSession
+            ->method('getUser')
+            ->willReturn($user);
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1234567890,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->groupMapper
+            ->method('getGroupsByClientId')
+            ->with(1)
+            ->willReturn([]);
+        $this->groupManager
+            ->method('getUserGroups')
+            ->with($user)
+            ->willReturn([]);
+        $this->userConsentMapper
+            ->method('findByUserAndClient')
+            ->with('testuser', 1)
+            ->willReturn(null);
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default = '') {
+                if ($key === Application::APP_CONFIG_ALLOW_USER_SETTINGS) {
+                    return 'no';
+                }
+                return $default;
+            });
+        $this->accessTokenMapper
+            ->expects($this->once())
+            ->method('insert')
+            ->willReturnCallback(function (AccessToken $accessToken) {
+                $accessToken->id = 23;
+                return $accessToken;
+            });
+        $this->authorizationCodeMapper
+            ->expects($this->once())
+            ->method('createForAccessToken')
+            ->with(
+                23,
+                $this->isType('string'),
+                $this->isType('int')
+            )
+            ->willReturn(new AuthorizationCode());
+
+        $result = $controller->authorize(
+            $clientId,
+            $state,
+            'code id_token',
+            $redirectUri,
+            'openid',
+            'nonce-1'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $redirectUrl = $result->getRedirectURL();
+        $this->assertStringStartsWith($redirectUri . '#state=state-1&code=', $redirectUrl);
+        $this->assertStringContainsString('&id_token=id-token', $redirectUrl);
+        $this->assertStringNotContainsString('?state=', $redirectUrl);
+        $this->assertStringNotContainsString('token_type=', $redirectUrl);
+    }
+
+    public function testAuthorizeStoresRequestedClaimsForCodeFlow() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+        $claims = json_encode([
+            'id_token' => [
+                'preferred_username' => null,
+                'email' => [
+                    'essential' => true,
+                ],
+            ],
+            'userinfo' => [
+                'name' => null,
+            ],
+        ]);
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid profile email',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $user = $this->createMock(\OCP\IUser::class);
+        $user
+            ->method('getUID')
+            ->willReturn('testuser');
+
+        $jwtGenerator = $this->createMock(JwtGenerator::class);
+        $jwtGenerator
+            ->method('generateAccessToken')
+            ->willReturn('access-token');
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $this->request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $this->session,
+            $this->l,
+            $this->time,
+            $this->userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $this->appConfig,
+            $jwtGenerator,
+            $this->redirectUriService,
+            $this->logger
+        );
+
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) use ($claims) {
+                return $key === 'claims' ? $claims : null;
+            });
+        $this->request
+            ->method('getServerProtocol')
+            ->willReturn('https');
+        $this->request
+            ->method('getServerHost')
+            ->willReturn('server.example.com');
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->userSession
+            ->method('getUser')
+            ->willReturn($user);
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1234567890,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->groupMapper
+            ->method('getGroupsByClientId')
+            ->with(1)
+            ->willReturn([]);
+        $this->groupManager
+            ->method('getUserGroups')
+            ->with($user)
+            ->willReturn([]);
+        $this->userConsentMapper
+            ->method('findByUserAndClient')
+            ->with('testuser', 1)
+            ->willReturn(null);
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default = '') {
+                if ($key === Application::APP_CONFIG_ALLOW_USER_SETTINGS) {
+                    return 'no';
+                }
+                return $default;
+            });
+        $this->accessTokenMapper
+            ->expects($this->once())
+            ->method('insert')
+            ->willReturnCallback(function (AccessToken $accessToken) {
+                $this->assertSame(
+                    [
+                        'preferred_username' => null,
+                        'email' => [
+                            'essential' => true,
+                        ],
+                    ],
+                    json_decode($accessToken->getIdTokenClaims(), true)
+                );
+                $this->assertSame(
+                    [
+                        'name' => null,
+                    ],
+                    json_decode($accessToken->getUserinfoClaims(), true)
+                );
+
+                $accessToken->id = 23;
+                return $accessToken;
+            });
+        $this->authorizationCodeMapper
+            ->expects($this->once())
+            ->method('createForAccessToken')
+            ->with(
+                23,
+                $this->isType('string'),
+                $this->isType('int')
+            )
+            ->willReturn(new AuthorizationCode());
+
+        $result = $controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid profile email',
             'nonce-1',
             null,
             null,
@@ -492,6 +905,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->userSession,
             $this->groupManager,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->redirectUriMapper,
             $this->userConsentMapper,
             $this->appConfig,
@@ -702,6 +1116,71 @@ class LoginRedirectorControllerTest extends TestCase {
         );
     }
 
+    public function testAuthorizeRejectsUnsupportedImplicitRequestObjectInFragmentWithRequestObjectState() {
+        $clientId = 'client1';
+        $redirectUri = 'https://client.example.com/callback';
+        $requestObjectPayload = rtrim(strtr(base64_encode(json_encode([
+            'state' => 'request-object-state',
+        ]) ?: '{}'), '+/', '-_'), '=');
+        $requestObject = 'eyJhbGciOiJub25lIn0.' . $requestObjectPayload . '.';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code id_token',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->expects($this->never())
+            ->method('isLoggedIn');
+        $this->session
+            ->expects($this->never())
+            ->method('set');
+        $this->urlGenerator
+            ->expects($this->never())
+            ->method('linkToRoute');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) use ($requestObject) {
+                return $key === 'request' ? $requestObject : null;
+            });
+
+        $result = $this->controller->authorize(
+            $clientId,
+            null,
+            'id_token',
+            $redirectUri,
+            'openid',
+            'nonce-1'
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            $redirectUri . '#error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=request-object-state',
+            $result->getRedirectURL()
+        );
+    }
+
     public function testAuthorizeRejectsUnsupportedRequestObjectBeforeLogin() {
         $clientId = 'client1';
         $redirectUri = 'https://client.example.com/callback';
@@ -759,6 +1238,69 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
             $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.',
+            $result->getRedirectURL()
+        );
+    }
+
+    private function assertMissingNonceReturnsInvalidRequestInFragment(string $responseType): void {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code id_token',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1234567890,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            $responseType,
+            $redirectUri,
+            'openid',
+            null
+        );
+
+        $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
+        $this->assertEquals(
+            $redirectUri . '#error=invalid_request&error_description=Missing%20nonce&state=state-1',
             $result->getRedirectURL()
         );
     }

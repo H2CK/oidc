@@ -79,6 +79,27 @@ class AccessTokenMapper extends QBMapper {
         return $token;
     }
 
+    /**
+     * @param int $id
+     * @return AccessToken
+     * @throws AccessTokenNotFoundException
+     */
+    public function getById(int $id): AccessToken {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+
+        try {
+            $token = $this->findEntity($qb);
+        } catch (IMapperException $e) {
+            throw new AccessTokenNotFoundException('Could not find access token', 0, $e);
+        }
+
+        return $token;
+    }
+
 
     /**
      * delete all access token from a given client

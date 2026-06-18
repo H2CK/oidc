@@ -291,7 +291,8 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals($protocol . "://" . $issuer, $decodedJwt['iss']);
         $this->assertEquals($user_id, $decodedJwt['sub']);
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['aud']);
-        $this->assertEquals($scope, $decodedJwt['scope']);
+        $this->assertEquals($user_id, $decodedJwt['preferred_username']);
+        $this->assertArrayNotHasKey('scope', $decodedJwt);
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['azp']);
         $this->assertEquals('Test User', $decodedJwt['name']);
         $this->assertArrayNotHasKey('middle_name', $decodedJwt);
@@ -299,6 +300,321 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals('testuser@example.com', $decodedJwt['email']);
         $this->assertArrayHasKey('nonce', $decodedJwt);
         $this->assertEquals('12345678', $decodedJwt['nonce']);
+    }
+
+    public function testGenerateImplicitIdTokenOmitsUnrequestedExtraClaims() {
+        $signingConfig = $this->configureRs256Signing();
+
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getQuota')->willReturn('none');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        $mockAccount = $this->createMock(IAccount::class);
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $user_id = '34';
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'id_token', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user_id);
+        $accessToken->setScope('openid');
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+        $accessToken->setIdTokenClaims('');
+
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            'https',
+            'issuer.url',
+            false,
+            true
+        );
+
+        $decodedJwt = $this->decodeJwt($result, $signingConfig);
+
+        $this->assertEquals('https://issuer.url', $decodedJwt['iss']);
+        $this->assertEquals($user_id, $decodedJwt['sub']);
+        $this->assertEquals($client->getClientIdentifier(), $decodedJwt['aud']);
+        $this->assertArrayNotHasKey('preferred_username', $decodedJwt);
+        $this->assertArrayNotHasKey('scope', $decodedJwt);
+        $this->assertArrayNotHasKey('name', $decodedJwt);
+        $this->assertEquals('12345678', $decodedJwt['nonce']);
+    }
+
+    public function testGenerateImplicitIdTokenIncludesEssentialNameClaimOnly() {
+        $signingConfig = $this->configureRs256Signing();
+
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getQuota')->willReturn('none');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        $mockAccount = $this->createMock(IAccount::class);
+        $mockAccountProperty = $this->createMock(IAccountProperty::class);
+        $mockAccountProperty->method('getValue')->willReturn('');
+
+        $mockDisplayNameProperty = $this->createMock(IAccountProperty::class);
+        $mockDisplayNameProperty->method('getValue')->willReturn('Test User');
+
+        $mockAccount
+            ->method('getProperty')
+            ->willReturnCallback(function($prop) use ($mockDisplayNameProperty, $mockAccountProperty) {
+                if ($prop === IAccountManager::PROPERTY_DISPLAYNAME) {
+                    return $mockDisplayNameProperty;
+                }
+                return $mockAccountProperty;
+            });
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $user_id = '34';
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'id_token', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user_id);
+        $accessToken->setScope('openid');
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+        $accessToken->setIdTokenClaims(json_encode([
+            'name' => [
+                'essential' => true,
+            ],
+        ]));
+
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            'https',
+            'issuer.url',
+            false,
+            true
+        );
+
+        $decodedJwt = $this->decodeJwt($result, $signingConfig);
+
+        $this->assertEquals('Test User', $decodedJwt['name']);
+        $this->assertArrayNotHasKey('preferred_username', $decodedJwt);
+        $this->assertArrayNotHasKey('scope', $decodedJwt);
+        $this->assertArrayNotHasKey('updated_at', $decodedJwt);
+        $this->assertArrayNotHasKey('picture', $decodedJwt);
+    }
+
+    public function testGenerateCodeFlowIdTokenOmitsUnrequestedScopeClaims() {
+        $signingConfig = $this->configureRs256Signing();
+
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getQuota')->willReturn('none');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        $mockAccount = $this->createMock(IAccount::class);
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $user_id = '34';
+        $scope = 'openid profile email roles';
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user_id);
+        $accessToken->setScope($scope);
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+        $accessToken->setIdTokenClaims('');
+
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            'https',
+            'issuer.url',
+            false,
+            false
+        );
+
+        $decodedJwt = $this->decodeJwt($result, $signingConfig);
+
+        $this->assertEquals('https://issuer.url', $decodedJwt['iss']);
+        $this->assertEquals($user_id, $decodedJwt['sub']);
+        $this->assertEquals($client->getClientIdentifier(), $decodedJwt['aud']);
+        $this->assertArrayNotHasKey('preferred_username', $decodedJwt);
+        $this->assertArrayNotHasKey('scope', $decodedJwt);
+        $this->assertArrayNotHasKey('name', $decodedJwt);
+        $this->assertArrayNotHasKey('email', $decodedJwt);
+        $this->assertArrayNotHasKey('roles', $decodedJwt);
+        $this->assertEquals('12345678', $decodedJwt['nonce']);
+    }
+
+    public function testGenerateCodeFlowIdTokenIncludesExplicitlyRequestedClaims() {
+        $signingConfig = $this->configureRs256Signing();
+
+        $testEmail = 'testuser@example.com';
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getEMailAddress')->willReturn($testEmail);
+        $mockUser->method('getQuota')->willReturn('none');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        $mockAccount = $this->createMock(IAccount::class);
+        $mockAccountProperty = $this->createMock(IAccountProperty::class);
+        $mockAccountProperty->method('getValue')->willReturn('');
+
+        $mockDisplayNameProperty = $this->createMock(IAccountProperty::class);
+        $mockDisplayNameProperty->method('getValue')->willReturn('Test User');
+
+        $mockEmailProperty = $this->createMock(IAccountProperty::class);
+        $mockEmailProperty->method('getValue')->willReturn($testEmail);
+
+        $mockAccount
+            ->method('getProperty')
+            ->willReturnCallback(function($prop) use ($mockDisplayNameProperty, $mockEmailProperty, $mockAccountProperty) {
+                if ($prop === IAccountManager::PROPERTY_DISPLAYNAME) {
+                    return $mockDisplayNameProperty;
+                }
+                if ($prop === IAccountManager::PROPERTY_EMAIL) {
+                    return $mockEmailProperty;
+                }
+                return $mockAccountProperty;
+            });
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $user_id = '34';
+        $scope = 'openid profile email roles';
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($user_id);
+        $accessToken->setScope($scope);
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+        $accessToken->setIdTokenClaims(json_encode([
+            'preferred_username' => null,
+            'scope' => null,
+            'name' => null,
+            'email' => [
+                'value' => $testEmail,
+            ],
+            'email_verified' => [
+                'values' => [
+                    true,
+                ],
+            ],
+        ]));
+
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            'https',
+            'issuer.url',
+            false,
+            false
+        );
+
+        $decodedJwt = $this->decodeJwt($result, $signingConfig);
+
+        $this->assertEquals($user_id, $decodedJwt['preferred_username']);
+        $this->assertEquals($scope, $decodedJwt['scope']);
+        $this->assertEquals('Test User', $decodedJwt['name']);
+        $this->assertEquals($testEmail, $decodedJwt['email']);
+        $this->assertTrue($decodedJwt['email_verified']);
+        $this->assertArrayNotHasKey('roles', $decodedJwt);
+    }
+
+    public function testGenerateHybridIdTokenIncludesCodeHashAndAccessTokenHash() {
+        $signingConfig = $this->configureRs256Signing();
+
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getQuota')->willReturn('none');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        $mockAccount = $this->createMock(IAccount::class);
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code id_token token', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId('34');
+        $accessToken->setScope('openid');
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+        $accessToken->setAccessToken('front-channel-access-token');
+        $accessToken->setIdTokenClaims('');
+
+        $authorizationCode = 'authorization-code-123';
+
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            'https',
+            'issuer.url',
+            true,
+            false,
+            $authorizationCode
+        );
+
+        $decodedJwt = $this->decodeJwt($result, $signingConfig);
+
+        $this->assertEquals($this->expectedIdTokenHash($authorizationCode), $decodedJwt['c_hash']);
+        $this->assertEquals($this->expectedIdTokenHash('front-channel-access-token'), $decodedJwt['at_hash']);
     }
 
     public function testGenerateOpaqueAccessToken() {
@@ -563,6 +879,76 @@ class JwtGeneratorTest extends TestCase {
         ];
 
         JWT::decode($result, JWK::parseKeySet($jwks));
+    }
+
+    private function configureRs256Signing(): array
+    {
+        $config = array(
+            "digest_alg" => 'sha512',
+            "private_key_bits" => 4096,
+            "private_key_type" => OPENSSL_KEYTYPE_RSA
+        );
+        $keyPair = openssl_pkey_new($config);
+        $privateKey = null;
+        openssl_pkey_export($keyPair, $privateKey);
+        $keyDetails = openssl_pkey_get_details($keyPair);
+        $publicKey = $keyDetails['key'];
+        $modulus = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['n']));
+        $exponent = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($keyDetails['rsa']['e']));
+        $kid = $this->guidv4();
+
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function($key, $default = '') use ($privateKey, $publicKey, $modulus, $exponent, $kid) {
+                $map = [
+                    'dynamic_client_registration' => 'true',
+                    'expire_time' => '3600',
+                    'integrate_avatar' => 'id_token',
+                    'overwrite_email_verified' => 'true',
+                    'private_key' => $privateKey,
+                    'public_key' => $publicKey,
+                    'public_key_n' => $modulus,
+                    'public_key_e' => $exponent,
+                    'kid' => $kid,
+                ];
+                return $map[$key] ?? $default;
+            });
+        $this->credentialsManager
+            ->method('retrieve')
+            ->willReturn($privateKey);
+
+        return [
+            'kid' => $kid,
+            'modulus' => $modulus,
+            'exponent' => $exponent,
+        ];
+    }
+
+    private function decodeJwt(string $jwt, array $signingConfig): array
+    {
+        $oidcKey = [
+            'kty' => 'RSA',
+            'use' => 'sig',
+            'key_ops' => [ 'verify' ],
+            'alg' => 'RS256',
+            'kid' => $signingConfig['kid'],
+            'n' => $signingConfig['modulus'],
+            'e' => $signingConfig['exponent'],
+        ];
+
+        $decodedStdClass = JWT::decode($jwt, JWK::parseKeySet([
+            'keys' => [
+                $oidcKey,
+            ],
+        ]));
+
+        return (array) $decodedStdClass;
+    }
+
+    private function expectedIdTokenHash(string $value): string
+    {
+        $hash = hash('sha256', $value, true);
+        return rtrim(strtr(base64_encode(substr($hash, 0, intdiv(strlen($hash), 2))), '+/', '-_'), '=');
     }
 
     private function guidv4($data = null)

@@ -8,33 +8,45 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\BackgroundJob;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use OCP\IConfig;
 
 class CleanupExpiredTokens extends TimedJob {
-
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
+    /** @var AuthorizationCodeMapper */
+    private $authorizationCodeMapper;
     /** @var RegistrationTokenMapper */
     private $registrationTokenMapper;
+    /** @var IAppConfig */
+    private $appConfig;
     /** @var IConfig */
     private $settings;
 
     /**
      * @param ITimeFactory $time
      * @param AccessTokenMapper $accessTokenMapper
+     * @param AuthorizationCodeMapper $authorizationCodeMapper
      * @param RegistrationTokenMapper $registrationTokenMapper
+     * @param IAppConfig $appConfig
      */
     public function __construct(ITimeFactory $time,
                                 AccessTokenMapper $accessTokenMapper,
+                                AuthorizationCodeMapper $authorizationCodeMapper,
                                 RegistrationTokenMapper $registrationTokenMapper,
+                                IAppConfig $appConfig,
                                 IConfig $settings) {
         parent::__construct($time);
         $this->accessTokenMapper = $accessTokenMapper;
+        $this->authorizationCodeMapper = $authorizationCodeMapper;
         $this->registrationTokenMapper = $registrationTokenMapper;
+        $this->appConfig = $appConfig;
         $this->settings = $settings;
 
         // Run four times a day
@@ -45,7 +57,33 @@ class CleanupExpiredTokens extends TimedJob {
     protected function run($argument): void {
         // Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
         // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
+        $currentTime = $this->time->getTime();
         $this->accessTokenMapper->cleanUp();
-        $this->registrationTokenMapper->cleanUp($this->time->getTime());
+        $authorizationCodeRetention = $this->getAuthorizationCodeRetention();
+        $this->authorizationCodeMapper->cleanUp(
+            $currentTime - $authorizationCodeRetention['unused'],
+            $authorizationCodeRetention['used'] === null ? null : $currentTime - $authorizationCodeRetention['used']
+        );
+        $this->registrationTokenMapper->cleanUp($currentTime);
+    }
+
+    /**
+     * @return array{unused:int, used:int|null}
+     */
+    private function getAuthorizationCodeRetention(): array {
+        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
+
+        if ($refreshExpireTime === 'never') {
+            return [
+                'unused' => $expireTime,
+                'used' => null,
+            ];
+        }
+
+        return [
+            'unused' => $expireTime,
+            'used' => $expireTime + max($expireTime, (int)$refreshExpireTime),
+        ];
     }
 }

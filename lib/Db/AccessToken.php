@@ -31,6 +31,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCodeChallenge(string $codeChallenge)
  * @method string getCodeChallengeMethod()
  * @method void setCodeChallengeMethod(string $codeChallengeMethod)
+ * @method string|null getIdTokenClaims()
+ * @method void setIdTokenClaims(string|null $idTokenClaims)
+ * @method string|null getUserinfoClaims()
+ * @method void setUserinfoClaims(string|null $userinfoClaims)
  */
 class AccessToken extends Entity
 {
@@ -58,6 +62,10 @@ class AccessToken extends Entity
     protected $codeChallenge;
     /** @var string */
     protected $codeChallengeMethod;
+    /** @var string|null */
+    protected $idTokenClaims;
+    /** @var string|null */
+    protected $userinfoClaims;
 
     public function __construct() {
         $this->addType('id', 'int');
@@ -72,5 +80,7 @@ class AccessToken extends Entity
         $this->addType('resource', 'string');
         $this->addType('codeChallenge', 'string');
         $this->addType('codeChallengeMethod', 'string');
+        $this->addType('idTokenClaims', 'string');
+        $this->addType('userinfoClaims', 'string');
     }
 }

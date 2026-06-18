@@ -60,3 +60,33 @@ Execute  `php -dxdebug.remote_host=localhost -f cron.php` or use `php occ backgr
 Use `php occ background-job:list` to get necessary id for execution.
 
 To run the job again if you have errors, however, you may have to remove it from the oc_jobs table and disable/reenable the app.
+
+## Roadmap for OIDC compliance
+
+The CI pipeline currently executes the OpenID Foundation conformance suite with the Basic OP, Config OP, Hybrid OP, and Implicit OP certification profiles:
+
+```bash
+oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]
+oidcc-config-certification-test-plan
+oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]:<code-id-token-module-set>
+oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]:<id-token-module-set>
+```
+
+This verifies the basic authorization code flow with static clients, validates the OpenID Provider discovery metadata, runs Hybrid OP coverage for the app's advertised `code id_token` response type, and runs Implicit OP coverage for the app's advertised `id_token` response type. It does not cover every OIDC response type from the OpenID Foundation certification matrix.
+
+Further conformance profiles to evaluate and implement in the pipeline:
+
+- Additional Hybrid OP response types from `oidcc-hybrid-certification-test-plan`, especially `code token` and `code id_token token`, should only be enabled if the app intentionally supports and advertises them.
+- Additional Implicit OP response types from `oidcc-implicit-certification-test-plan`, especially `id_token token`, should only be enabled if the app intentionally supports and advertises them.
+- `oidcc-formpost-basic-certification-test-plan`, `oidcc-formpost-implicit-certification-test-plan`, and `oidcc-formpost-hybrid-certification-test-plan`: validate `response_mode=form_post`. These are only relevant if the app implements and advertises form post response mode.
+- Logout certification profiles such as RP-initiated logout, session management, front-channel logout, and back-channel logout should be considered if those features are intended to be fully OIDC-certified.
+- `oidcc-dynamic-certification-test-plan`: validates Dynamic Client Registration. This is relevant when dynamic client registration is enabled and intended to be certified.
+
+Before expanding implicit or hybrid profile coverage, align the implementation and discovery metadata:
+
+- Discovery currently advertises `implicit` grant support and `id_token` / `code id_token` response types.
+- The authorization response currently returns front-channel parameters through query serialization. Implicit and hybrid OIDC responses normally require fragment handling unless another supported response mode is used.
+- If implicit flow support is not a strategic goal, prefer removing or narrowing the advertised implicit capabilities instead of certifying them.
+- If implicit or hybrid support is kept, maintain real browser-level conformance coverage rather than relying only on integration tests that create tokens directly.
+
+Modern OAuth security guidance discourages new use of implicit/access-token-in-front-channel flows. Prefer authorization code flow with PKCE for new clients, and treat implicit support as legacy compatibility.

@@ -13,6 +13,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Controller\OIDCApiController;
 use OCA\OIDCIdentityProvider\Controller\UserInfoController;
@@ -49,6 +50,9 @@ class OIDCImplicitFlowTest extends \Test\TestCase
 
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
+
+    /** @var AuthorizationCodeMapper */
+    private $authorizationCodeMapper;
 
     /** @var GroupMapper */
     private $groupMapper;
@@ -118,6 +122,7 @@ class OIDCImplicitFlowTest extends \Test\TestCase
         // Get real services from the container
         $this->clientMapper = Server::get(ClientMapper::class);
         $this->accessTokenMapper = Server::get(AccessTokenMapper::class);
+        $this->authorizationCodeMapper = Server::get(AuthorizationCodeMapper::class);
         $this->groupMapper = Server::get(GroupMapper::class);
         $this->userManager = Server::get(IUserManager::class);
         $this->groupManager = Server::get(IGroupManager::class);
@@ -201,6 +206,7 @@ class OIDCImplicitFlowTest extends \Test\TestCase
             $this->request,
             $this->crypto,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->clientMapper,
             $this->groupMapper,
             $tokenProvider,

@@ -13,6 +13,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Controller\OIDCApiController;
 use OCA\OIDCIdentityProvider\Controller\UserInfoController;
@@ -48,6 +49,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
+
+    /** @var AuthorizationCodeMapper */
+    private $authorizationCodeMapper;
 
     /** @var GroupMapper */
     private $groupMapper;
@@ -120,6 +124,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         // Get real services from the container
         $this->clientMapper = Server::get(ClientMapper::class);
         $this->accessTokenMapper = Server::get(AccessTokenMapper::class);
+        $this->authorizationCodeMapper = Server::get(AuthorizationCodeMapper::class);
         $this->groupMapper = Server::get(GroupMapper::class);
         $this->userManager = Server::get(IUserManager::class);
         $this->groupManager = Server::get(IGroupManager::class);
@@ -204,6 +209,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->request,
             $this->crypto,
             $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
             $this->clientMapper,
             $this->groupMapper,
             $this->tokenProvider,
@@ -308,7 +314,12 @@ class OIDCCodeFlowTest extends \Test\TestCase
         return $this->userManager->get($this->testUserId);
     }
 
-    private function createAccessToken(Client $client, \OCP\IUser $user, string $scope = 'openid profile email'): array
+    private function createAccessToken(
+        Client $client,
+        \OCP\IUser $user,
+        string $scope = 'openid profile email',
+        bool $createAuthorizationCode = true
+    ): array
     {
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
@@ -325,6 +336,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $accessToken->setNonce('test-nonce-' . $this->secureRandom->generate(16));
 
         $insertedToken = $this->accessTokenMapper->insert($accessToken);
+        if ($createAuthorizationCode) {
+            $this->authorizationCodeMapper->createForAccessToken($insertedToken->getId(), $rawCode, $this->time->getTime());
+        }
 
         return ['token' => $insertedToken, 'rawCode' => $rawCode];
     }
@@ -418,6 +432,50 @@ class OIDCCodeFlowTest extends \Test\TestCase
     }
 
     /**
+     * Test authorization code reuse revokes the token issued by the first exchange
+     */
+    public function testAuthorizationCodeReuseRevokesIssuedAccessToken(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+        $tokenResult = $this->createAccessToken($client, $user);
+        $rawCode = $tokenResult['rawCode'];
+
+        $firstResponse = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            null
+        );
+
+        $this->assertEquals(200, $firstResponse->getStatus(), 'First authorization code exchange should succeed');
+        $firstResponseData = $firstResponse->getData();
+        $this->assertArrayHasKey('access_token', $firstResponseData, 'First response missing access_token');
+
+        $secondResponse = $this->oidcApiController->getToken(
+            'authorization_code',
+            $rawCode,
+            null,
+            $this->testClientId,
+            $this->testClientSecret,
+            null
+        );
+
+        $this->assertEquals(400, $secondResponse->getStatus(), 'Authorization code reuse should fail');
+        $secondResponseData = $secondResponse->getData();
+        $this->assertArrayHasKey('error', $secondResponseData, 'Reuse response missing error field');
+        $this->assertEquals('invalid_grant', $secondResponseData['error'], 'Reuse response should be invalid_grant');
+
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $firstResponseData['access_token'];
+        $this->request->server['HTTP_AUTHORIZATION'] = 'Bearer ' . $firstResponseData['access_token'];
+
+        $userInfoResponse = $this->userInfoController->getInfo();
+        $this->assertEquals(400, $userInfoResponse->getStatus(), 'Reused code should revoke the issued access token');
+    }
+
+    /**
      * Test token exchange with invalid client credentials
      */
     public function testTokenExchangeWithInvalidClient(): void
@@ -462,7 +520,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         );
         $user = $this->createTestUser();
 
-        $tokenResult = $this->createAccessToken($secondClient, $user, 'openid offline_access');
+        $tokenResult = $this->createAccessToken($secondClient, $user, 'openid offline_access', false);
         $refreshToken = $tokenResult['rawCode'];
 
         $response = $this->oidcApiController->getToken(
@@ -569,6 +627,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $accessToken->setNonce('test-nonce-' . $this->secureRandom->generate(16));
 
         $insertedToken = $this->accessTokenMapper->insert($accessToken);
+        $this->authorizationCodeMapper->createForAccessToken($insertedToken->getId(), $rawCode, $this->time->getTime());
 
         return ['token' => $insertedToken, 'rawCode' => $rawCode];
     }

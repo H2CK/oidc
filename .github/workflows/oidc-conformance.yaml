@@ -16,13 +16,21 @@ jobs:
 
     env:
       CONFORMANCE_ALIAS: nextcloud-${{ github.run_id }}
-      NEXTCLOUD_BASE_URL: http://host.docker.internal:8080
+      NEXTCLOUD_BASE_URL: https://nextcloud-proxy:8443
       OIDC_TEST_USER: oidc-test-user
       OIDC_TEST_PASSWORD: oidc-test-password
       OIDC_CLIENT_ID_1: nextcloud-conformance-client-00001
       OIDC_CLIENT_SECRET_1: nextcloud-conformance-secret-00001
       OIDC_CLIENT_ID_2: nextcloud-conformance-client-00002
       OIDC_CLIENT_SECRET_2: nextcloud-conformance-secret-00002
+      OIDC_HYBRID_CLIENT_ID_1: nextcloud-conformance-hybrid-client-00001
+      OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
+      OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
+      OIDC_HYBRID_CLIENT_SECRET_2: nextcloud-conformance-hybrid-secret-00002
+      OIDC_IMPLICIT_CLIENT_ID_1: nextcloud-conformance-implicit-client-00001
+      OIDC_IMPLICIT_CLIENT_SECRET_1: nextcloud-conformance-implicit-secret-00001
+      OIDC_IMPLICIT_CLIENT_ID_2: nextcloud-conformance-implicit-client-00002
+      OIDC_IMPLICIT_CLIENT_SECRET_2: nextcloud-conformance-implicit-secret-00002
 
     steps:
       - name: Set app env
@@ -114,9 +122,10 @@ jobs:
           php occ app:enable ${{ env.APP_NAME }}
           php occ config:system:set trusted_domains 1 --value=host.docker.internal
           php occ config:system:set trusted_domains 2 --value=127.0.0.1
+          php occ config:system:set trusted_domains 3 --value=nextcloud-proxy
           php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
-          php occ config:system:set overwritehost --value=host.docker.internal:8080
-          php occ config:system:set overwriteprotocol --value=http
+          php occ config:system:set overwritehost --value=nextcloud-proxy:8443
+          php occ config:system:set overwriteprotocol --value=https
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
           OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
           php occ user:setting "${OIDC_TEST_USER}" settings email oidc-test@example.test
@@ -132,6 +141,32 @@ jobs:
             --client_secret "${OIDC_CLIENT_SECRET_2}" \
             --type confidential \
             --flow code \
+            --allowed_scopes "openid profile email offline_access"
+          hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
+          php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
+            --client_id "${OIDC_HYBRID_CLIENT_ID_1}" \
+            --client_secret "${OIDC_HYBRID_CLIENT_SECRET_1}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create "OIDC Conformance Hybrid 2" "${hybrid_callback}" \
+            --client_id "${OIDC_HYBRID_CLIENT_ID_2}" \
+            --client_secret "${OIDC_HYBRID_CLIENT_SECRET_2}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          implicit_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-implicit/callback"
+          php occ oidc:create "OIDC Conformance Implicit 1" "${implicit_callback}" \
+            --client_id "${OIDC_IMPLICIT_CLIENT_ID_1}" \
+            --client_secret "${OIDC_IMPLICIT_CLIENT_SECRET_1}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create "OIDC Conformance Implicit 2" "${implicit_callback}" \
+            --client_id "${OIDC_IMPLICIT_CLIENT_ID_2}" \
+            --client_secret "${OIDC_IMPLICIT_CLIENT_SECRET_2}" \
+            --type confidential \
+            --flow "code id_token" \
             --allowed_scopes "openid profile email offline_access"
 
       - name: Start Nextcloud web server
@@ -162,7 +197,7 @@ jobs:
             -f docker-compose-localtest.yml \
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
-            up -d mongodb nginx server chrome
+            up -d mongodb nginx server chrome nextcloud-proxy
           # Wait for Chrome/Selenium service to be ready
           for i in {1..60}; do
             if curl --fail --silent http://chrome:4444/status > /dev/null 2>&1; then
@@ -194,9 +229,21 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-basic-config.json \
             conformance-config/oidc-basic-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-config-config.json \
+            conformance-config/oidc-config-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-hybrid-config.json \
+            conformance-config/oidc-hybrid-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-implicit-config.json \
+            conformance-config/oidc-implicit-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-implicit-config.json > /dev/null
 
-      - name: Run OIDC basic conformance plan
+      - name: Run OIDC conformance plans
         env:
           CONFORMANCE_DEV_MODE: 1
           CONFORMANCE_SERVER: https://nginx:8443/
@@ -205,6 +252,44 @@ jobs:
           CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite
+          : > ../conformance-runner.log
+          test_plan_status=0
+          missing_export_status=0
+          run_conformance_plan() {
+            local plan_invocation="$1"
+            local config_path="$2"
+            local export_pattern="$3"
+            local plan_status=0
+
+            echo "::group::Run ${plan_invocation}"
+            set +e
+            python3 scripts/run-test-plan.py \
+              --export-dir ../conformance-results \
+              --verbose \
+              "${plan_invocation}" \
+              "${config_path}" 2>&1 | tee -a ../conformance-runner.log
+            plan_status=${PIPESTATUS[0]}
+            set -e
+            echo "::endgroup::"
+
+            if [ "${plan_status}" -ne 0 ]; then
+              test_plan_status="${plan_status}"
+            fi
+
+            if ! compgen -G "${export_pattern}" > /dev/null; then
+              echo "Missing expected conformance export matching ${export_pattern}" >&2
+              missing_export_status=1
+              if [ "${test_plan_status}" -eq 0 ]; then
+                test_plan_status=1
+              fi
+            fi
+          }
+
+          run_conformance_plan \
+            "oidcc-config-certification-test-plan" \
+            ../conformance-config/oidc-config-config.json \
+            "../conformance-results/oidcc-config-certification-test-plan-*.zip"
+
           : > ../conformance-browser.log
           PYTHONUNBUFFERED=1 python3 ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/browser-runner.py \
             >> ../conformance-browser.log 2>&1 &
@@ -218,14 +303,91 @@ jobs:
             wait "${browser_log_tail_pid}" 2>/dev/null || true
           }
           trap cleanup_browser_runner EXIT
-          set +e
-          python3 scripts/run-test-plan.py \
-            --export-dir ../conformance-results \
-            --verbose \
+
+          run_conformance_plan \
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
-            ../conformance-config/oidc-basic-config.json
-          test_plan_status=$?
-          set -e
+            ../conformance-config/oidc-basic-config.json \
+            "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
+
+          hybrid_code_id_token_modules=(
+            oidcc-server
+            oidcc-response-type-missing
+            oidcc-userinfo-get
+            oidcc-userinfo-post-header
+            oidcc-userinfo-post-body
+            oidcc-ensure-request-without-nonce-fails
+            oidcc-scope-profile
+            oidcc-scope-email
+            oidcc-scope-address
+            oidcc-scope-phone
+            oidcc-scope-all
+            oidcc-alternate-happy-flow
+            oidcc-display-page
+            oidcc-display-popup
+            oidcc-prompt-login
+            oidcc-prompt-none-not-logged-in
+            oidcc-prompt-none-logged-in
+            oidcc-max-age-1
+            oidcc-max-age-10000
+            oidcc-ensure-request-with-unknown-parameter-succeeds
+            oidcc-id-token-hint
+            oidcc-login-hint
+            oidcc-ui-locales
+            oidcc-claims-locales
+            oidcc-ensure-request-with-acr-values-succeeds
+            oidcc-codereuse
+            oidcc-codereuse-30seconds
+            oidcc-ensure-registered-redirect-uri
+            oidcc-server-client-secret-post
+            oidcc-request-uri-unsigned-supported-correctly-or-rejected-as-unsupported
+            oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported
+            oidcc-claims-essential
+            oidcc-ensure-request-object-with-redirect-uri
+            oidcc-refresh-token
+            oidcc-ensure-request-with-valid-pkce-succeeds
+          )
+          hybrid_code_id_token_module_list="$(IFS=,; echo "${hybrid_code_id_token_modules[*]}")"
+
+          run_conformance_plan \
+            "oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${hybrid_code_id_token_module_list}" \
+            ../conformance-config/oidc-hybrid-config.json \
+            "../conformance-results/oidcc-hybrid-certification-test-plan-*.zip"
+
+          implicit_id_token_modules=(
+            oidcc-server
+            oidcc-ensure-request-without-nonce-fails
+            oidcc-scope-profile
+            oidcc-scope-email
+            oidcc-scope-address
+            oidcc-scope-phone
+            oidcc-scope-all
+            oidcc-alternate-happy-flow
+            oidcc-display-page
+            oidcc-display-popup
+            oidcc-prompt-login
+            oidcc-prompt-none-not-logged-in
+            oidcc-prompt-none-logged-in
+            oidcc-max-age-1
+            oidcc-max-age-10000
+            oidcc-ensure-request-with-unknown-parameter-succeeds
+            oidcc-id-token-hint
+            oidcc-login-hint
+            oidcc-ui-locales
+            oidcc-claims-locales
+            oidcc-ensure-request-with-acr-values-succeeds
+            oidcc-ensure-registered-redirect-uri
+            oidcc-request-uri-unsigned-supported-correctly-or-rejected-as-unsupported
+            oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported
+            oidcc-ensure-request-object-with-redirect-uri
+            oidcc-claims-essential
+          )
+          implicit_id_token_module_list="$(IFS=,; echo "${implicit_id_token_modules[*]}")"
+
+          run_conformance_plan \
+            "oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${implicit_id_token_module_list}" \
+            ../conformance-config/oidc-implicit-config.json \
+            "../conformance-results/oidcc-implicit-certification-test-plan-*.zip"
+
           cleanup_browser_runner
           trap - EXIT
           echo "::group::conformance-browser.log"
@@ -241,6 +403,9 @@ jobs:
               exit "${test_plan_status}"
             fi
             exit "${blocking_status}"
+          fi
+          if [ "${missing_export_status}" -ne 0 ]; then
+            exit "${test_plan_status}"
           fi
           if [ "${test_plan_status}" -ne 0 ]; then
             echo "Conformance suite exited with ${test_plan_status}, but exported results contain only non-blocking WARNING/REVIEW outcomes."
@@ -262,5 +427,6 @@ jobs:
           path: |
             CONFORMANCE.md
             conformance-results
+            conformance-runner.log
             conformance-browser.log
             nextcloud-server.log
