@@ -23,6 +23,10 @@ jobs:
       OIDC_CLIENT_SECRET_1: nextcloud-conformance-secret-00001
       OIDC_CLIENT_ID_2: nextcloud-conformance-client-00002
       OIDC_CLIENT_SECRET_2: nextcloud-conformance-secret-00002
+      OIDC_HYBRID_CLIENT_ID_1: nextcloud-conformance-hybrid-client-00001
+      OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
+      OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
+      OIDC_HYBRID_CLIENT_SECRET_2: nextcloud-conformance-hybrid-secret-00002
 
     steps:
       - name: Set app env
@@ -134,6 +138,19 @@ jobs:
             --type confidential \
             --flow code \
             --allowed_scopes "openid profile email offline_access"
+          hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
+          php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
+            --client_id "${OIDC_HYBRID_CLIENT_ID_1}" \
+            --client_secret "${OIDC_HYBRID_CLIENT_SECRET_1}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create "OIDC Conformance Hybrid 2" "${hybrid_callback}" \
+            --client_id "${OIDC_HYBRID_CLIENT_ID_2}" \
+            --client_secret "${OIDC_HYBRID_CLIENT_SECRET_2}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
 
       - name: Start Nextcloud web server
         run: |
@@ -198,8 +215,12 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-config-config.json \
             conformance-config/oidc-config-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-hybrid-config.json \
+            conformance-config/oidc-hybrid-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -266,6 +287,11 @@ jobs:
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-basic-config.json \
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client][response_type=code id_token]" \
+            ../conformance-config/oidc-hybrid-config.json \
+            "../conformance-results/oidcc-hybrid-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT

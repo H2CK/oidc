@@ -63,18 +63,19 @@ To run the job again if you have errors, however, you may have to remove it from
 
 ## Roadmap for OIDC compliance
 
-The CI pipeline currently executes the OpenID Foundation conformance suite with the Basic OP and Config OP certification profiles:
+The CI pipeline currently executes the OpenID Foundation conformance suite with the Basic OP, Config OP, and Hybrid OP certification profiles:
 
 ```bash
 oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]
-oidcc-config-certification-test-plan[server_metadata=discovery][client_registration=static_client]
+oidcc-config-certification-test-plan
+oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client][response_type=code id_token]
 ```
 
-This verifies the basic authorization code flow with static clients and validates the OpenID Provider discovery metadata. It does not cover all OIDC response types advertised by the app discovery metadata.
+This verifies the basic authorization code flow with static clients, validates the OpenID Provider discovery metadata, and runs Hybrid OP coverage for the app's advertised `code id_token` response type. It does not cover every OIDC response type from the OpenID Foundation certification matrix.
 
 Further conformance profiles to evaluate and implement in the pipeline:
 
-- `oidcc-hybrid-certification-test-plan`: validates Hybrid OP behavior, including `response_type=code id_token`, `code token`, and `code id_token token`. This is relevant because the app currently supports `code id_token` as a configurable client flow.
+- Additional Hybrid OP response types from `oidcc-hybrid-certification-test-plan`, especially `code token` and `code id_token token`, should only be enabled if the app intentionally supports and advertises them.
 - `oidcc-implicit-certification-test-plan`: validates Implicit OP behavior, including `response_type=id_token` and `id_token token`. Add this only if legacy implicit flow support is intentionally kept.
 - `oidcc-formpost-basic-certification-test-plan`, `oidcc-formpost-implicit-certification-test-plan`, and `oidcc-formpost-hybrid-certification-test-plan`: validate `response_mode=form_post`. These are only relevant if the app implements and advertises form post response mode.
 - Logout certification profiles such as RP-initiated logout, session management, front-channel logout, and back-channel logout should be considered if those features are intended to be fully OIDC-certified.
