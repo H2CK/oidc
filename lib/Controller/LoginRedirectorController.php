@@ -241,11 +241,14 @@ class LoginRedirectorController extends ApiController
         $prompt = $prompt ?? $this->request->getParam('prompt');
         $max_age = $max_age ?? $this->request->getParam('max_age');
         $claims = $this->request->getParam('claims');
+        $response_mode = $this->request->getParam('response_mode');
 
         $unsupportedRequestParameterResponse = $this->rejectUnsupportedRequestParameters(
             $client_id,
             $redirect_uri,
-            $state
+            $state,
+            $response_type,
+            $response_mode
         );
         if ($unsupportedRequestParameterResponse !== null) {
             return $unsupportedRequestParameterResponse;
@@ -268,7 +271,9 @@ class LoginRedirectorController extends ApiController
                     (string)$redirect_uri,
                     'login_required',
                     'User is not logged in.',
-                    $state
+                    $state,
+                    $response_type,
+                    $response_mode
                 );
             }
 
@@ -284,6 +289,7 @@ class LoginRedirectorController extends ApiController
                 $code_challenge_method,
                 $prompt,
                 $max_age,
+                $response_mode,
                 $claims,
                 'Not authenticated yet for client ' . $client_id . '. Redirect to login.'
             );
@@ -310,6 +316,7 @@ class LoginRedirectorController extends ApiController
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
             $prompt = $this->session->get('oidc_prompt');
             $max_age = $this->session->get('oidc_max_age');
+            $response_mode = $this->session->get('oidc_response_mode');
             $claims = $this->session->get('oidc_claims');
         }
 
@@ -386,22 +393,25 @@ class LoginRedirectorController extends ApiController
                 (string)$redirect_uri,
                 'invalid_request',
                 'Invalid claims parameter.',
-                $state
+                $state,
+                $response_type,
+                $response_mode
             );
         }
 
         if (empty($response_type)) {
             $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
-            $separator = str_contains($redirect_uri, '?') ? '&' : '?';
-            $url = $redirect_uri . $separator
-                . 'error=unsupported_response_type'
-                . '&error_description=Missing%20response_type'
-                . '&state=' . urlencode((string)$state);
-            return new RedirectResponse($url);
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'unsupported_response_type',
+                'Missing response_type',
+                $state
+            );
         }
 
         // Check response type
-        $responseTypeEntries = explode(' ', strtolower(trim($response_type)), 3);
+        $responseTypeEntries = $this->parseResponseTypeEntries($response_type);
+        $responseMode = $this->normalizeAuthorizationResponseMode($response_mode);
         $codeFlow = false;
         $implicitFlow = false;
         if (in_array('code', $responseTypeEntries)) {
@@ -410,15 +420,37 @@ class LoginRedirectorController extends ApiController
         if (in_array('token', $responseTypeEntries) || in_array('id_token', $responseTypeEntries)) {
             $implicitFlow = true;
         }
+        if (!$this->isSupportedAuthorizationResponseMode($responseMode, $responseTypeEntries)) {
+            $this->logger->notice('Unsupported response_mode in request for client ' . $client_id . ': ' . var_export($response_mode, true));
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'unsupported_response_mode',
+                'Unsupported response_mode',
+                $state,
+                $response_type
+            );
+        }
         if (in_array('id_token', $responseTypeEntries) && empty($nonce)) {
             $this->logger->notice('Missing nonce in request for client ' . $client_id . '.');
-            $url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20nonce&state=' . $state;
-            return new RedirectResponse($url);
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'request_not_supported',
+                'Missing nonce',
+                $state,
+                $response_type,
+                $response_mode
+            );
         }
         if (in_array('token', $responseTypeEntries) && !in_array('id_token', $responseTypeEntries)) {
             $this->logger->notice('Missing id_token in response_type of request for client ' . $client_id . '.');
-            $url = $redirect_uri . '?error=request_not_supported&error_description=Missing%20id_token&state=' . $state;
-            return new RedirectResponse($url);
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'request_not_supported',
+                'Missing id_token',
+                $state,
+                $response_type,
+                $response_mode
+            );
         }
 
         $allowedResponseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
@@ -428,8 +460,14 @@ class LoginRedirectorController extends ApiController
         }
         if (($implicitFlow && !$isImplicitFlowAllowed) || (!$codeFlow && !$implicitFlow)) {
             $this->logger->notice('Not allowed response_type in request for client ' . $client_id . '. Please check the configuration for not allowed flow types.');
-            $url = $redirect_uri . '?error=unsupported_response_type&state=' . $state;
-            return new RedirectResponse($url);
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'unsupported_response_type',
+                'Unsupported response_type',
+                $state,
+                $response_type,
+                $response_mode
+            );
         }
 
         if ($this->promptContains($prompt, 'login') && !$oidcLoginPending) {
@@ -447,6 +485,7 @@ class LoginRedirectorController extends ApiController
                 $code_challenge_method,
                 $prompt,
                 $max_age,
+                $response_mode,
                 $claims,
                 'Redirect to login for prompt=login reauthentication for client ' . $client_id . '.'
             );
@@ -459,7 +498,9 @@ class LoginRedirectorController extends ApiController
                     (string)$redirect_uri,
                     'login_required',
                     'User authentication is too old.',
-                    $state
+                    $state,
+                    $response_type,
+                    $response_mode
                 );
             }
 
@@ -477,6 +518,7 @@ class LoginRedirectorController extends ApiController
                 $code_challenge_method,
                 $prompt,
                 $max_age,
+                $response_mode,
                 $claims,
                 'Redirect to login for max_age reauthentication for client ' . $client_id . '.'
             );
@@ -576,6 +618,7 @@ class LoginRedirectorController extends ApiController
                 $this->session->set('oidc_code_challenge_method', $code_challenge_method);
                 $this->session->set('oidc_prompt', $prompt);
                 $this->session->set('oidc_max_age', $max_age);
+                $this->session->set('oidc_response_mode', $response_mode);
                 $this->session->set('oidc_claims', $claims);
 
                 $this->session->close(); // Close session to prevent session locking issues during redirect
@@ -599,8 +642,14 @@ class LoginRedirectorController extends ApiController
             // Validate code_challenge format: 43-128 characters, unreserved chars only
             if (!preg_match('/^[A-Za-z0-9._~-]{43,128}$/', $code_challenge)) {
                 $this->logger->notice('Invalid code_challenge format for client ' . $client_id . '.');
-                $url = $redirect_uri . '?error=invalid_request&error_description=Invalid%20code_challenge%20format&state=' . urlencode($state);
-                return new RedirectResponse($url);
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'invalid_request',
+                    'Invalid code_challenge format',
+                    $state,
+                    $response_type,
+                    $response_mode
+                );
             }
 
             // Default to S256 if method not specified
@@ -611,8 +660,14 @@ class LoginRedirectorController extends ApiController
             // Validate code_challenge_method: only S256 and plain are allowed
             if (!in_array($code_challenge_method, ['S256', 'plain'])) {
                 $this->logger->notice('Unsupported code_challenge_method for client ' . $client_id . ': ' . $code_challenge_method);
-                $url = $redirect_uri . '?error=invalid_request&error_description=Unsupported%20code_challenge_method&state=' . urlencode($state);
-                return new RedirectResponse($url);
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'invalid_request',
+                    'Unsupported code_challenge_method',
+                    $state,
+                    $response_type,
+                    $response_mode
+                );
             }
 
             $this->logger->debug('PKCE challenge received for client ' . $client_id . ' using method ' . $code_challenge_method);
@@ -670,15 +725,17 @@ class LoginRedirectorController extends ApiController
 
         $expireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
 
-        $url = $redirect_uri . '?state=' . urlencode($state);
-        if (str_contains($redirect_uri, '?')) {
-            $url = $redirect_uri . '&state=' . urlencode($state);
-        }
+        $responseParams = [
+            'state' => $state,
+        ];
         if (in_array('code', $responseTypeEntries)) {
-            $url = $url . '&code=' . $code;
+            $responseParams['code'] = $code;
         }
         if (in_array('token', $responseTypeEntries)) {
-            $url = $url . '&access_token=' . $accessToken->getAccessToken();
+            $responseParams['access_token'] = $accessToken->getAccessToken();
+            $responseParams['token_type'] = 'Bearer';
+            $responseParams['expires_in'] = $expireTime;
+            $responseParams['scope'] = $scope;
         }
         if (in_array('id_token', $responseTypeEntries)) {
             $jwt = $this->jwtGenerator->generateIdToken(
@@ -687,13 +744,17 @@ class LoginRedirectorController extends ApiController
                 $this->request->getServerProtocol(),
                 $this->request->getServerHost(),
                 in_array('token', $responseTypeEntries),
-                !$codeFlow
+                !$codeFlow,
+                in_array('code', $responseTypeEntries) ? $code : null
             );
-            $url = $url . '&id_token=' . $jwt;
+            $responseParams['id_token'] = $jwt;
         }
-        if (in_array('id_token', $responseTypeEntries) || in_array('token', $responseTypeEntries)) {
-            $url = $url . '&token_type=Bearer&expires_in=' . $expireTime . '&scope=' . $scope;
-        }
+
+        $url = $this->buildAuthorizationResponseRedirectUri(
+            (string)$redirect_uri,
+            $responseParams,
+            $this->authorizationResponseUsesFragment($responseTypeEntries, $responseMode)
+        );
 
         $this->session->close(); // Close session to prevent session locking issues during redirect
 
@@ -705,7 +766,9 @@ class LoginRedirectorController extends ApiController
     private function rejectUnsupportedRequestParameters(
         mixed $clientId,
         mixed $redirectUri,
-        mixed $state
+        mixed $state,
+        mixed $responseType,
+        mixed $responseMode
     ): ?Response {
         $requestObject = $this->request->getParam('request');
         $requestUri = $this->request->getParam('request_uri');
@@ -715,6 +778,11 @@ class LoginRedirectorController extends ApiController
             && !$this->hasNonEmptyRequestParameter($requestUri)
         ) {
             return null;
+        }
+
+        $errorState = $state;
+        if (!$this->hasNonEmptyRequestParameter($errorState) && $this->hasNonEmptyRequestParameter($requestObject)) {
+            $errorState = $this->extractStateFromUnsignedRequestObject($requestObject) ?? $errorState;
         }
 
         if (!$this->hasNonEmptyRequestParameter($redirectUri)) {
@@ -744,7 +812,9 @@ class LoginRedirectorController extends ApiController
                 (string)$redirectUri,
                 'request_not_supported',
                 'Request object parameter is not supported.',
-                $state
+                $errorState,
+                $responseType,
+                $responseMode
             );
         }
 
@@ -753,7 +823,9 @@ class LoginRedirectorController extends ApiController
             (string)$redirectUri,
             'request_uri_not_supported',
             'Request URI parameter is not supported.',
-            $state
+            $errorState,
+            $responseType,
+            $responseMode
         );
     }
 
@@ -848,6 +920,7 @@ class LoginRedirectorController extends ApiController
         mixed $codeChallengeMethod,
         mixed $prompt,
         mixed $maxAge,
+        mixed $responseMode,
         mixed $claims,
         string $logMessage
     ): RedirectResponse {
@@ -863,6 +936,7 @@ class LoginRedirectorController extends ApiController
         $this->session->set('oidc_code_challenge_method', $codeChallengeMethod);
         $this->session->set('oidc_prompt', $prompt);
         $this->session->set('oidc_max_age', $maxAge);
+        $this->session->set('oidc_response_mode', $responseMode);
         $this->session->set('oidc_claims', $claims);
         $this->session->set('oidc_login_pending', true);
 
@@ -878,6 +952,7 @@ class LoginRedirectorController extends ApiController
             'code_challenge_method' => $codeChallengeMethod,
             'prompt'                => $prompt,
             'max_age'               => $maxAge,
+            'response_mode'         => $responseMode,
             'claims'                => $claims,
         ], static function ($value): bool {
             return $value !== null && $value !== '';
@@ -1022,11 +1097,149 @@ class LoginRedirectorController extends ApiController
         return $value !== '' && ctype_digit($value);
     }
 
+    /**
+     * @return list<string>
+     */
+    private function parseResponseTypeEntries(mixed $responseType): array
+    {
+        if (!is_string($responseType)) {
+            return [];
+        }
+
+        $responseType = strtolower(trim($responseType));
+        if ($responseType === '') {
+            return [];
+        }
+
+        return array_values(array_filter(preg_split('/\s+/', $responseType) ?: []));
+    }
+
+    private function normalizeAuthorizationResponseMode(mixed $responseMode): ?string
+    {
+        if (!is_string($responseMode)) {
+            return null;
+        }
+
+        $responseMode = strtolower(trim($responseMode));
+        if ($responseMode === '' || $responseMode === 'default') {
+            return null;
+        }
+
+        return $responseMode;
+    }
+
+    /**
+     * @param list<string> $responseTypeEntries
+     */
+    private function authorizationResponseUsesFragment(array $responseTypeEntries, ?string $responseMode = null): bool
+    {
+        if ($responseMode === 'fragment') {
+            return true;
+        }
+
+        if ($responseMode === 'query') {
+            return in_array('id_token', $responseTypeEntries, true) || in_array('token', $responseTypeEntries, true);
+        }
+
+        return in_array('id_token', $responseTypeEntries, true) || in_array('token', $responseTypeEntries, true);
+    }
+
+    /**
+     * @param list<string> $responseTypeEntries
+     */
+    private function isSupportedAuthorizationResponseMode(?string $responseMode, array $responseTypeEntries): bool
+    {
+        if ($responseMode === null) {
+            return true;
+        }
+
+        if ($responseMode === 'fragment') {
+            return true;
+        }
+
+        if ($responseMode !== 'query') {
+            return false;
+        }
+
+        return !in_array('id_token', $responseTypeEntries, true) && !in_array('token', $responseTypeEntries, true);
+    }
+
+    /**
+     * @param array<string, mixed> $params
+     */
+    private function buildAuthorizationResponseRedirectUri(string $redirectUri, array $params, bool $useFragment): string
+    {
+        $encodedParams = [];
+        foreach ($params as $key => $value) {
+            if ($value === null) {
+                continue;
+            }
+            $encodedParams[$key] = (string)$value;
+        }
+
+        $query = http_build_query($encodedParams, '', '&', PHP_QUERY_RFC3986);
+        if ($query === '') {
+            return $redirectUri;
+        }
+
+        if ($useFragment) {
+            $separator = str_contains($redirectUri, '#') ? '&' : '#';
+            if (str_ends_with($redirectUri, '#') || str_ends_with($redirectUri, '&')) {
+                $separator = '';
+            }
+            return $redirectUri . $separator . $query;
+        }
+
+        $separator = str_contains($redirectUri, '?') ? '&' : '?';
+        if (str_ends_with($redirectUri, '?') || str_ends_with($redirectUri, '&')) {
+            $separator = '';
+        }
+        return $redirectUri . $separator . $query;
+    }
+
+    private function extractStateFromUnsignedRequestObject(mixed $requestObject): ?string
+    {
+        if (!is_string($requestObject)) {
+            return null;
+        }
+
+        $parts = explode('.', $requestObject);
+        if (count($parts) < 2) {
+            return null;
+        }
+
+        $payload = $this->base64UrlDecode($parts[1]);
+        if ($payload === null) {
+            return null;
+        }
+
+        $claims = json_decode($payload, true);
+        if (!is_array($claims) || !isset($claims['state']) || !is_string($claims['state'])) {
+            return null;
+        }
+
+        $state = trim($claims['state']);
+        return $state === '' ? null : $state;
+    }
+
+    private function base64UrlDecode(string $value): ?string
+    {
+        $padding = strlen($value) % 4;
+        if ($padding !== 0) {
+            $value .= str_repeat('=', 4 - $padding);
+        }
+
+        $decoded = base64_decode(strtr($value, '-_', '+/'), true);
+        return is_string($decoded) ? $decoded : null;
+    }
+
     private function createAuthorizationErrorRedirect(
         string $redirectUri,
         string $error,
         string $errorDescription,
-        mixed $state
+        mixed $state,
+        mixed $responseType = null,
+        mixed $responseMode = null
     ): RedirectResponse {
         $params = [
             'error' => $error,
@@ -1036,7 +1249,13 @@ class LoginRedirectorController extends ApiController
             $params['state'] = (string)$state;
         }
 
-        $separator = str_contains($redirectUri, '?') ? '&' : '?';
-        return new RedirectResponse($redirectUri . $separator . http_build_query($params, '', '&', PHP_QUERY_RFC3986));
+        $responseTypeEntries = $this->parseResponseTypeEntries($responseType);
+        $normalizedResponseMode = $this->normalizeAuthorizationResponseMode($responseMode);
+
+        return new RedirectResponse($this->buildAuthorizationResponseRedirectUri(
+            $redirectUri,
+            $params,
+            $this->authorizationResponseUsesFragment($responseTypeEntries, $normalizedResponseMode)
+        ));
     }
 }

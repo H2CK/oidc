@@ -75,6 +75,7 @@ class PageController extends Controller {
             $code_challenge_method = $this->request->getParam('code_challenge_method');
             $prompt        = $this->request->getParam('prompt');
             $max_age       = $this->request->getParam('max_age');
+            $response_mode = $this->request->getParam('response_mode');
             $claims        = $this->request->getParam('claims');
         } else {
             $client_id     = $this->session->get('oidc_client_id');
@@ -88,6 +89,7 @@ class PageController extends Controller {
             $code_challenge_method = $this->session->get('oidc_code_challenge_method');
             $prompt        = $this->session->get('oidc_prompt');
             $max_age       = $this->session->get('oidc_max_age');
+            $response_mode = $this->session->get('oidc_response_mode');
             $claims        = $this->session->get('oidc_claims');
         }
 
@@ -103,6 +105,7 @@ class PageController extends Controller {
             'resource' => $resource,
             'prompt' => $prompt,
             'max_age' => $max_age,
+            'response_mode' => $response_mode,
             'claims' => $claims
         ];
 

@@ -120,7 +120,7 @@ class DiscoveryGenerator
         ];
         $responseModesSupported = [
             'query',
-            // 'fragment',
+            'fragment',
         ];
         $grantTypesSupported = [
             'authorization_code',

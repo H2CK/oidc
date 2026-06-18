@@ -107,7 +107,7 @@ class DiscoveryControllerTest extends TestCase {
         ];
         $responseModesSupported = [
             'query',
-            // 'fragment',
+            'fragment',
         ];
         $grantTypesSupported = [
             'authorization_code',

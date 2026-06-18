@@ -444,6 +444,56 @@ class JwtGeneratorTest extends TestCase {
         $this->assertArrayNotHasKey('roles', $decodedJwt);
     }
 
+    public function testGenerateHybridIdTokenIncludesCodeHashAndAccessTokenHash() {
+        $signingConfig = $this->configureRs256Signing();
+
+        $mockUser = $this->createMock(IUser::class);
+        $mockUser->method('getQuota')->willReturn('none');
+        $this->userManager
+            ->method('get')
+            ->willReturn($mockUser);
+
+        $this->groupManager
+            ->method('getUserGroups')
+            ->willReturn([]);
+
+        $mockAccount = $this->createMock(IAccount::class);
+        $this->accountManager
+            ->method('getAccount')
+            ->willReturn($mockAccount);
+
+        $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code id_token token', 'jwt', false);
+        $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId('34');
+        $accessToken->setScope('openid');
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setRefreshed($this->time->getTime());
+        $accessToken->setNonce('12345678');
+        $accessToken->setAccessToken('front-channel-access-token');
+        $accessToken->setIdTokenClaims('');
+
+        $authorizationCode = 'authorization-code-123';
+
+        $result = $this->generator->generateIdToken(
+            $accessToken,
+            $client,
+            'https',
+            'issuer.url',
+            true,
+            false,
+            $authorizationCode
+        );
+
+        $decodedJwt = $this->decodeJwt($result, $signingConfig);
+
+        $this->assertEquals($this->expectedIdTokenHash($authorizationCode), $decodedJwt['c_hash']);
+        $this->assertEquals($this->expectedIdTokenHash('front-channel-access-token'), $decodedJwt['at_hash']);
+    }
+
     public function testGenerateOpaqueAccessToken() {
         $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'opaque', false);
         $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
@@ -770,6 +820,12 @@ class JwtGeneratorTest extends TestCase {
         ]));
 
         return (array) $decodedStdClass;
+    }
+
+    private function expectedIdTokenHash(string $value): string
+    {
+        $hash = hash('sha256', $value, true);
+        return rtrim(strtr(base64_encode(substr($hash, 0, intdiv(strlen($hash), 2))), '+/', '-_'), '=');
     }
 
     private function guidv4($data = null)

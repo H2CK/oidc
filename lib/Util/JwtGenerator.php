@@ -234,10 +234,11 @@ class JwtGenerator
      * @param string $issuerHost
      * @param bool $atHash
      * @param bool $includeScopeClaims
+     * @param string|null $authorizationCode
      * @return string
      * @throws PropertyDoesNotExistException
      */
-    public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash, bool $includeScopeClaims = true): string {
+    public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash, bool $includeScopeClaims = true, ?string $authorizationCode = null): string {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $nonce = $accessToken->getNonce();
@@ -278,15 +279,17 @@ class JwtGenerator
         $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
 
         if ($atHash) {
-            $atHashData = str_replace(
-                ['+', '/', '='],
-                ['-', '_', ''],
-                base64_encode(substr(hash('sha256', $accessToken->getAccessToken()), 0, 128))
-            );
             $athashPayload = [
-                'at_hash' => $atHashData
+                'at_hash' => $this->generateIdTokenHash($accessToken->getAccessToken(), $client->getSigningAlg())
             ];
             $jwt_payload = array_merge($jwt_payload, $athashPayload);
+        }
+
+        if ($authorizationCode !== null && trim($authorizationCode) !== '') {
+            $cHashPayload = [
+                'c_hash' => $this->generateIdTokenHash($authorizationCode, $client->getSigningAlg())
+            ];
+            $jwt_payload = array_merge($jwt_payload, $cHashPayload);
         }
 
         if (!empty($nonce)) {
@@ -452,6 +455,23 @@ class JwtGenerator
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
         $this->logger->debug('Generated JWT with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . ' aud/azp => ' . $client->getClientIdentifier() . ' preferred_username => ' . $uid);
         return $jwt;
+    }
+
+    private function generateIdTokenHash(string $value, string $signingAlg): string
+    {
+        $hashAlgorithm = match (substr(strtoupper($signingAlg), -3)) {
+            '384' => 'sha384',
+            '512' => 'sha512',
+            default => 'sha256',
+        };
+
+        $hash = hash($hashAlgorithm, $value, true);
+        return $this->base64UrlEncode(substr($hash, 0, intdiv(strlen($hash), 2)));
+    }
+
+    private function base64UrlEncode(string $value): string
+    {
+        return rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
     }
 
 
