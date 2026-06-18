@@ -288,8 +288,47 @@ jobs:
             ../conformance-config/oidc-basic-config.json \
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
 
+          hybrid_code_id_token_modules=(
+            oidcc-server
+            oidcc-response-type-missing
+            oidcc-userinfo-get
+            oidcc-userinfo-post-header
+            oidcc-userinfo-post-body
+            oidcc-ensure-request-without-nonce-fails
+            oidcc-scope-profile
+            oidcc-scope-email
+            oidcc-scope-address
+            oidcc-scope-phone
+            oidcc-scope-all
+            oidcc-alternate-happy-flow
+            oidcc-display-page
+            oidcc-display-popup
+            oidcc-prompt-login
+            oidcc-prompt-none-not-logged-in
+            oidcc-prompt-none-logged-in
+            oidcc-max-age-1
+            oidcc-max-age-10000
+            oidcc-ensure-request-with-unknown-parameter-succeeds
+            oidcc-id-token-hint
+            oidcc-login-hint
+            oidcc-ui-locales
+            oidcc-claims-locales
+            oidcc-ensure-request-with-acr-values-succeeds
+            oidcc-codereuse
+            oidcc-codereuse-30seconds
+            oidcc-ensure-registered-redirect-uri
+            oidcc-server-client-secret-post
+            oidcc-request-uri-unsigned-supported-correctly-or-rejected-as-unsupported
+            oidcc-unsigned-request-object-supported-correctly-or-rejected-as-unsupported
+            oidcc-claims-essential
+            oidcc-ensure-request-object-with-redirect-uri
+            oidcc-refresh-token
+            oidcc-ensure-request-with-valid-pkce-succeeds
+          )
+          hybrid_code_id_token_module_list="$(IFS=,; echo "${hybrid_code_id_token_modules[*]}")"
+
           run_conformance_plan \
-            "oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client][response_type=code id_token]" \
+            "oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${hybrid_code_id_token_module_list}" \
             ../conformance-config/oidc-hybrid-config.json \
             "../conformance-results/oidcc-hybrid-certification-test-plan-*.zip"
 

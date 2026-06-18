@@ -68,7 +68,7 @@ The CI pipeline currently executes the OpenID Foundation conformance suite with 
 ```bash
 oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]
 oidcc-config-certification-test-plan
-oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client][response_type=code id_token]
+oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]:<code-id-token-module-set>
 ```
 
 This verifies the basic authorization code flow with static clients, validates the OpenID Provider discovery metadata, and runs Hybrid OP coverage for the app's advertised `code id_token` response type. It does not cover every OIDC response type from the OpenID Foundation certification matrix.
