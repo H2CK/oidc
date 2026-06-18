@@ -37,25 +37,34 @@ Full documentation can be found at:
 
 ## Note - OIDC compliance
 
-The app complies with the basic oidc conformance test suite. The tests are executed daily in a workflow. More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
+The OIDC conformance workflow is executed daily and on demand against the OpenID Foundation conformance suite. It currently runs the following test plans:
+
+- `oidcc-config-certification-test-plan` for OpenID Provider discovery and metadata validation
+- `oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` for the authorization code flow with static clients
+- `oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with the selected `code id_token` module set for hybrid flow coverage
+- `oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with the selected `id_token` module set for implicit flow coverage
+
+More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
 ## Attention - Potential Breaking Change
 
-With version 1.12 the OIDC compliance for offline_access scope was added (OpenID Connect Core 1.0 Section 11)
+Version 2.0.0 tightens several behaviours to better match the OpenID Connect conformance suite. OIDC-compliant clients should continue to work, but clients that depend on legacy 1.x behaviour should be reviewed before upgrading.
 
-- **Breaking Change for Non-Compliant Clients**: Clients must now explicitly request the `offline_access` scope to receive refresh tokens. This brings the OIDC provider into full compliance with OpenID Connect Core 1.0 specification. OIDC-compliant clients are unaffected. For clients that cannot be updated, enable "Legacy mode" in admin settings.
+- **ID token claims in authorization code flow**: Profile, email, roles, groups, and custom claims are no longer added to the ID token only because their scopes were requested. In authorization code flow, these claims are returned by the UserInfo endpoint. If a relying party needs them directly in the ID token, it must request them explicitly with the OpenID Connect `claims` parameter, for example through `claims.id_token`.
+- **Authorization code reuse**: Authorization codes are now persisted and rejected after first use. Clients must exchange each authorization code only once and must not retry the same code after a failed or timed-out token request.
+- **Stricter conformance handling**: Requests using `prompt`, `max_age`, request objects, nonce-dependent response types, hybrid flow, or implicit flow are handled more strictly. Non-compliant requests that were previously accepted may now return an OIDC error response.
+- **Refresh tokens**: Clients still need to request the `offline_access` scope to receive refresh tokens. For legacy clients that cannot be updated, administrators can enable "Legacy mode" in Settings > OIDC > Refresh Token Behavior.
 
 ### Migration Guide
 
-- **For OIDC-Compliant Clients**: No action required if you're already requesting `offline_access` scope
-- **For Custom Clients**: Add `offline_access` to your authorization request scope parameter:
-  - Before: `scope=openid profile email`
-  - After: `scope=openid profile email offline_access`
-- **For Non-Compliant Clients**: If updating the client is not possible, enable "Legacy mode" in Settings > OIDC > Refresh Token Behavior
+- Check relying parties that read `email`, `preferred_username`, `groups`, `roles`, or custom claims from ID tokens. Move them to the UserInfo endpoint or add an explicit `claims.id_token` request.
+- Verify that clients exchange authorization codes exactly once and handle token endpoint failures by restarting the authorization flow.
+- Keep requesting `offline_access` when refresh tokens are required.
+- Test clients that use implicit or hybrid flow, `prompt=none`, `prompt=login`, `max_age`, `request`, or `request_uri` against a staging upgrade.
 
 ## Installation
 
-It is preferred to install the app via the Nextcloud App Store. If you prefer a manual installation please use the package provided in a release at Github (e.g. https://github.com/H2CK/oidc/releases/download/1.16.4/oidc-1.16.4.tar.gz).
+It is preferred to install the app via the Nextcloud App Store. If you prefer a manual installation please use the package provided in a release at Github (e.g. https://github.com/H2CK/oidc/releases/download/2.0.0/oidc-2.0.0.tar.gz).
 
 Just cloning the git repository will provide only the source code of the application. You will not be able to use the application out of the box. 3rd party php libraries and js webpack bundles are missing and must first be generated using the commands `make install`.
 

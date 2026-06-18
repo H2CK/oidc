@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2026-06-18
+
+### Added
+
+- Added OpenID Connect conformance workflow, badge, report generation, and certification test plans for basic, config, hybrid, and implicit profiles ([#656](https://github.com/H2CK/oidc/pull/656), [#660](https://github.com/H2CK/oidc/pull/660))
+- Added support for the OpenID Connect `claims` request parameter for ID token and userinfo claim selection
+- Added authorization code persistence to reject code reuse during token exchange
+- Added additional unit and integration coverage for code, implicit, PKCE, listener, controller, CLI, and background job flows
+- Added AI agent development and release guidance
+
+### Changed
+
+- Changed authorization code flow ID tokens to include profile, email, and custom claims only when explicitly requested through `claims.id_token`
+- Improved OIDC conformance handling for `prompt`, `max_age`, request objects, nonce, hybrid, implicit, refresh token, scope/profile, userinfo, and code reuse scenarios ([#656](https://github.com/H2CK/oidc/pull/656), [#660](https://github.com/H2CK/oidc/pull/660))
+- Fixed claim handling in code flow ([#658](https://github.com/H2CK/oidc/pull/658))
+- Replaced deprecated user value access
+- Updated dependencies ([#655](https://github.com/H2CK/oidc/pull/655), [#657](https://github.com/H2CK/oidc/pull/657), [#658](https://github.com/H2CK/oidc/pull/658), [#659](https://github.com/H2CK/oidc/pull/659), [#661](https://github.com/H2CK/oidc/pull/661))
+- Updated translations
+
 ## [1.17.0] - 2026-05-29
 
 ### Added
