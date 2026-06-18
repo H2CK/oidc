@@ -16,6 +16,7 @@ OC.L10N.register(
     "Name" : "Pavadinimas",
     "Redirection URI" : "Peradresavimo URI",
     "Signing Algorithm" : "Pasirašymo algoritmas",
+    "Select Type" : "Pasirinkite tipą",
     "Cancel" : "Atsisakyti",
     "Add" : "Pridėti",
     "Type" : "Tipas",

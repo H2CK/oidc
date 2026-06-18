@@ -13,6 +13,8 @@ OC.L10N.register(
     "Add" : "එකතු කරන්න",
     "Client Identifier" : "අනුග්‍රාහක හඳුන්වනය",
     "Secret" : "රහස",
+    "Save" : "Save",
+    "Delete" : "Delete",
     "5 minutes" : "විනාඩි 5 යි",
     "10 minutes" : "විනාඩි 10 යි",
     "15 minutes" : "විනාඩි 15 යි",
