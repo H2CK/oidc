@@ -242,7 +242,7 @@ class OIDCCreateTest extends TestCase
             ->willReturn($customClaim);
 
         // Test with different function types
-        $functions = ['isAdmin', 'isGroupAdmin', 'hasRole', 'isInGroup', 'getUserEmail', 'getUserGroups', 'getUserGroupsDisplayName'];
+        $functions = ['isAdmin', 'isGroupAdmin', 'hasRole', 'isInGroup', 'getUserEmail', 'getUserGroups', 'getUserGroupsDisplayName', 'getUserLanguage', 'getUserLocale', 'getUserFDOW', 'getUserTimezone'];
         
         foreach ($functions as $function) {
             $tester = new CommandTester($this->command);
