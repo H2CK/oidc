@@ -284,7 +284,7 @@ class CustomClaimService {
      * @param IUser $user
      * @return int|null Return the Users setting of used first day of week or use the locale setting; 0 = sunday, 1 = monday, ...
      */
-    public function getUserFWOD(IUser $user): int|null {
+    public function getUserFDOW(IUser $user): int|null {
         if ($user === null) {
             return null;
         }
