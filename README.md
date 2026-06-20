@@ -209,7 +209,7 @@ It is possible to define custom claims per client. A custom claim is defined per
 | getUserGroupsDisplayName | Returns the display name of the groups of the user as string[] |
 | getUserLanguage | Returns the language, that is used by the user or forced by system |
 | getUserLocale | Returns the locale, that is used by the user or forced by system |
-| getUserFWOD | Return the Users setting of first day of week or use the locale setting (0 = sunday, 1 = monday, ...) |
+| getUserFDOW | Return the Users setting of first day of week or use the locale setting (0 = sunday, 1 = monday, ...) |
 | getUserTimezone | Return the Users setting of timezone or or forced by system |
 
 ## Access Token & ID Token generation and validation via events by other Nextcloud apps
