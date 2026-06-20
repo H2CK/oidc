@@ -731,6 +731,22 @@ export default {
 								label: t('oidc', "Return user's groups as array of display names"),
 								value: 'getUserGroupsDisplayName',
 							},
+							{
+								label: t('oidc', "Return user's language settings"),
+								value: 'getUserLanguage',
+							},
+							{
+								label: t('oidc', "Return user's locale setting"),
+								value: 'getUserLocale',
+							},
+							{
+								label: t('oidc', "Return user's first day of week setting"),
+								value: 'getUserFDOW',
+							},
+							{
+								label: t('oidc', "Return user's timzone setting"),
+								value: 'getUserTimezone',
+							},
 						],
 						value: [
 							{
@@ -910,6 +926,22 @@ export default {
 					break
 				case 'getUserGroupsDisplayName':
 					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be an array of display names of the groups the user is in.')
+					this.customClaimModal.parametersRequired = false
+					break
+				case 'getUserLanguage':
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be an string of a language/locale according to ISO 639-1 codes.')
+					this.customClaimModal.parametersRequired = false
+					break
+				case 'getUserLocale':
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be an string of a language/locale according to ISO 639-1 codes.')
+					this.customClaimModal.parametersRequired = false
+					break
+				case 'getUserFDOW':
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a integer that indicates the first day of the week (0=sunday, 1=monday, ...).')
+					this.customClaimModal.parametersRequired = false
+					break
+				case 'getUserTimezone':
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a string of a IANA identifier.')
 					this.customClaimModal.parametersRequired = false
 					break
 				default:
