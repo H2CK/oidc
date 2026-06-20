@@ -138,9 +138,10 @@ class IntrospectionControllerTest extends TestCase {
             ->method('getByIdentifier')
             ->willReturn($client);
 
-        // Create an expired token
+        // Create an expired token (never refreshed: created == refreshed)
         $accessToken = new AccessToken();
         $accessToken->setCreated(1000000); // Old timestamp
+        $accessToken->setRefreshed(1000000);
         $accessToken->setUserId('user1');
         $accessToken->setClientId(1);
 
@@ -179,6 +180,7 @@ class IntrospectionControllerTest extends TestCase {
         // Create a valid token
         $accessToken = new AccessToken();
         $accessToken->setCreated(1000000);
+        $accessToken->setRefreshed(1000000);
         $accessToken->setUserId('user1');
         $accessToken->setClientId(1);
         $accessToken->setScope('openid profile email');
@@ -241,6 +243,7 @@ class IntrospectionControllerTest extends TestCase {
         // Create a valid token with resource matching the requesting client
         $accessToken = new AccessToken();
         $accessToken->setCreated(1000000);
+        $accessToken->setRefreshed(1000000);
         $accessToken->setUserId('user1');
         $accessToken->setClientId(1);
         $accessToken->setScope('openid profile email');
@@ -298,6 +301,7 @@ class IntrospectionControllerTest extends TestCase {
         // Create a valid token with different resource and client
         $accessToken = new AccessToken();
         $accessToken->setCreated(1000000);
+        $accessToken->setRefreshed(1000000);
         $accessToken->setUserId('user1');
         $accessToken->setClientId(1);
         $accessToken->setScope('openid profile email');
@@ -336,6 +340,72 @@ class IntrospectionControllerTest extends TestCase {
         // Should return inactive to not reveal token exists
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+    }
+
+    public function testRefreshedTokenIsActiveAfterOriginalLifetime() {
+        // Regression: a token refreshed via the refresh_token grant keeps its
+        // original `created` timestamp but advances `refreshed`. Introspection
+        // must judge expiry from `refreshed`, otherwise every refreshed token
+        // is reported inactive once the original token's lifetime has elapsed,
+        // breaking token renewal for resource servers that introspect.
+        $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setSecret('test-secret');
+        $client->setClientIdentifier('client123');
+
+        $this->request
+            ->method('getHeader')
+            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->willReturn($client);
+
+        // created is far in the past (well beyond expireTime ago), but the
+        // token was refreshed recently.
+        $accessToken = new AccessToken();
+        $accessToken->setCreated(1000000);     // original issuance, long ago
+        $accessToken->setRefreshed(1005000);   // recently refreshed
+        $accessToken->setUserId('user1');
+        $accessToken->setClientId(1);
+        $accessToken->setScope('openid profile email');
+        $accessToken->setResource('https://resource.example.com');
+
+        $this->accessTokenMapper
+            ->method('getByAccessToken')
+            ->willReturn($accessToken);
+
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturn('900'); // 900 seconds expire time
+
+        // now is past created+900 (would be "expired" under the old logic) but
+        // within refreshed+900, so the token is genuinely still valid.
+        $this->time
+            ->method('getTime')
+            ->willReturn(1005500);
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+
+        $this->userManager
+            ->method('get')
+            ->willReturn($user);
+
+        // Requesting client owns the token.
+        $tokenClient = new Client('token-client', ['https://app.org'], 'RS256');
+        $tokenClient->setClientIdentifier('client123');
+
+        $this->clientMapper
+            ->method('getByUid')
+            ->willReturn($tokenClient);
+
+        $result = $this->controller->introspectToken('refreshed_token');
+
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $data = $result->getData();
+        $this->assertTrue($data['active']);
+        // exp must reflect the refreshed-based expiry, not created-based.
+        $this->assertEquals(1005000 + 900, $data['exp']);
     }
 
     public function testClientAuthenticationWithPostBody() {

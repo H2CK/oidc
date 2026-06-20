@@ -160,15 +160,26 @@ class IntrospectionController extends ApiController
             return new JSONResponse(['active' => false]);
         }
 
-        // Check if token is expired
+        // Check if token is expired.
+        //
+        // Expiry is computed from `refreshed`, NOT `created`. The refresh_token
+        // grant (OIDCApiController::getToken) mints a fresh access token on the
+        // existing row and advances `refreshed`, but leaves `created` at the
+        // original issuance time. Using `created` here would report every
+        // refreshed token inactive once the *original* token's lifetime elapsed,
+        // even though the token is still valid — breaking token renewal for
+        // resource servers that introspect. This matches the expiry basis used
+        // by UserInfoController, TokenValidationRequestListener and
+        // OIDCApiController.
         $expireTime = (int)$this->appConfig->getAppValueString('expire_time', Application::DEFAULT_EXPIRE_TIME);
-        $tokenExpiryTime = $accessToken->getCreated() + $expireTime;
+        $tokenExpiryTime = $accessToken->getRefreshed() + $expireTime;
         $currentTime = $this->time->getTime();
 
         if ($currentTime > $tokenExpiryTime) {
             $this->logger->info('Token expired during introspection', [
                 'client_id' => $client->getClientIdentifier(),
                 'token_created' => $accessToken->getCreated(),
+                'token_refreshed' => $accessToken->getRefreshed(),
                 'token_expired_at' => $tokenExpiryTime,
                 'current_time' => $currentTime
             ]);
