@@ -44,7 +44,11 @@ class OIDCListFunctionsTest extends TestCase
             'isInGroup',
             'getUserEmail',
             'getUserGroups',
-            'getUserGroupsDisplayName'
+            'getUserGroupsDisplayName',
+            'getUserLanguage',
+            'getUserLocale',
+            'getUserFDOW',
+            'getUserTimezone'
         ];
         
         foreach ($expectedFunctions as $function) {
