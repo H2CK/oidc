@@ -396,8 +396,7 @@ class JwtGenerator
             // 'zoneinfo' => ,
             // 'locale' => ,
             if ($quota != 'none') {
-                $profile = array_merge($profile,
-                        ['quota' => $quota]);
+                $profile = array_merge($profile, ['quota' => $quota]);
             }
             $jwt_payload = array_merge($jwt_payload, $this->filterClaims($profile, $requestedIdTokenClaims, $includeProfileByScope));
         }
@@ -501,12 +500,19 @@ class JwtGenerator
         $user = $this->userManager->get($uid);
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
+        $quota = $user->getQuota();
         $aud = $accessToken->getResource();
         if (!isset($aud) || trim($aud)==='') {
             $aud = $client->getClientIdentifier();
         }
 
-        $jwt_payload = [
+        $jwt_payload = $this->filterClaims(
+            $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid),
+            [],
+            true
+        );
+
+        $jwt_payload_base = [
             'iss' => $issuer,
             'sub' => $uid,
             'aud' => $aud,
@@ -520,6 +526,8 @@ class JwtGenerator
             'scope' => $accessToken->getScope(),
             'jti' => strval($accessToken->getId()),
         ];
+
+        $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
 
         $roles = [];
         $rolesDisplayName = [];
@@ -606,6 +614,9 @@ class JwtGenerator
             if (!in_array('avatar', $restrictUserInformationArr) && !in_array('avatar', $restrictUserInformationPersonalArr)) {
                 $profile = array_merge($profile,
                         ['picture' => $issuer . '/avatar/' . rawurlencode($uid) . '/64']);
+            }
+            if ($quota != 'none') {
+                $profile = array_merge($profile, ['quota' => $quota]);
             }
             $jwt_payload = array_merge($jwt_payload, $profile);
         }

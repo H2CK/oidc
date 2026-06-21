@@ -718,6 +718,7 @@ class JwtGeneratorTest extends TestCase {
 
         $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
         $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
 
         $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
@@ -841,6 +842,7 @@ class JwtGeneratorTest extends TestCase {
 
         $client = new Client('TEST', 'http://redirect.uri/callback', 'RS256', 'confidential', 'code', 'jwt', false);
         $client->setClientIdentifier('TESTCLIENTIDENTIFIER');
+        $client->setId(1);
 
         $code = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
