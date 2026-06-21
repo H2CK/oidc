@@ -51,6 +51,7 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_DEFAULT_TOKEN_TYPE = 'default_token_type';
     public const APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS = 'provide_refresh_token_always';
     public const APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS = 'allow_subdomain_wildcards';
+    public const APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS = 'always_include_scope_claims';
 
     private $backend;
 
