@@ -629,6 +629,20 @@ class SettingsController extends Controller
         return new JSONResponse($result);
     }
 
+    public function setAlwaysIncludeScopeClaims(
+                    string $alwaysIncludeScopeClaims
+                    ): JSONResponse
+    {
+        $this->logger->debug("Setting always_include_scope_claims to " . $alwaysIncludeScopeClaims);
+        $normalizedValue = ($alwaysIncludeScopeClaims === 'true') ? true : false;
+        $this->appConfig->setAppValueBool(Application::APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS, $normalizedValue);
+        $stringValue = $this->appConfig->getAppValueBool(Application::APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS, Application::DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS) ? 'true' : 'false';
+        $result = [
+            'always_include_scope_claims' => $stringValue,
+        ];
+        return new JSONResponse($result);
+    }
+
     public function restrictUserInformation(
                     string $restrictUserInformation
                     ): JSONResponse

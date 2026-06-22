@@ -35,6 +35,8 @@ class Application extends App implements IBootstrap
     public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
     public const DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS = 'false';
 
+    public const DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS = false;
+
     public const GROUP_CLAIM_TYPE_GID = 'gid';
     public const GROUP_CLAIM_TYPE_DISPLAYNAME = 'displayname';
 

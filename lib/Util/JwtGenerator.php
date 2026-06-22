@@ -237,7 +237,7 @@ class JwtGenerator
      */
     public function generateIdToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost, bool $atHash, bool $includeScopeClaims = true, ?string $authorizationCode = null): string {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
-        $alwaysIncludeScopeClaims = $this->appConfig->getAppValueBool(Application::APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS, false);
+        $alwaysIncludeScopeClaims = $this->appConfig->getAppValueBool(Application::APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS, Application::DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS);
         if ($alwaysIncludeScopeClaims) {
             $includeScopeClaims = true;
         }

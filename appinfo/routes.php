@@ -118,6 +118,12 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setAlwaysIncludeScopeClaims',
+            'url' => '/api/v2/alwaysIncludeScopeClaims',
+            'verb' => 'POST',
+            'postfix' => 'v2',
+        ],
+        [
             'name' => 'Settings#restrictUserInformation',
             'url' => '/restrictUserInformation',
             'verb' => 'POST',

@@ -392,6 +392,9 @@
 								{{ t('oidc', 'User can edit settings') }}
 							</option>
 						</select>
+						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+							{{ t('oidc', 'This setting enables also the user consent management.') }}
+						</p>
 					</div>
 					<div class="container-inner">
 						<p style="margin-top: 1em;">
@@ -414,6 +417,29 @@
 						</select>
 						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
 							{{ t('oidc', 'OIDC-compliant clients must request the offline_access scope to receive refresh tokens. Enable legacy mode only if you have non-compliant clients that cannot be updated.') }}
+						</p>
+					</div>
+					<div class="container-inner">
+						<p style="margin-top: 1em;">
+							{{ t('oidc', 'Always Include Scope Claims') }}
+						</p>
+						<select id="alwaysIncludeScopeClaims"
+							v-model="localAlwaysIncludeScopeClaims"
+							:placeholder="t('oidc', 'Define scope claim inclusion behavior')"
+							style="max-width: 100%; width: 740px;"
+							@change="setAlwaysIncludeScopeClaims">
+							<option disabled value="">
+								{{ t('oidc', 'Select scope claim inclusion behavior') }}
+							</option>
+							<option value="false">
+								{{ t('oidc', 'OIDC Compliant (require explicte request of claims )') }}
+							</option>
+							<option value="true">
+								{{ t('oidc', 'Always include scope claims') }}
+							</option>
+						</select>
+						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+							{{ t('oidc', 'In OIDC-compliant code flow, the claims requested via scopes are not automatically included in the ID token. According to the OIDC specification, claims must be explicitly requested via the claims parameter during the token exchange. Enable this setting to include all scope claims in the ID token. (Legacy mode)') }}
 						</p>
 					</div>
 					<div class="container-inner">
@@ -684,6 +710,7 @@ export default {
 			localAllowUserSettings: this.allowUserSettings,
 			localDefaultTokenType: this.defaultTokenType,
 			localProvideRefreshTokenAlways: this.provideRefreshTokenAlways,
+			localAlwaysIncludeScopeClaims: this.alwaysIncludeScopeClaims,
 			error: false,
 			errorMsg: '',
 			customClaimModal: {
@@ -1341,6 +1368,15 @@ export default {
 					provideRefreshTokenAlways: this.localProvideRefreshTokenAlways,
 				}).then((response) => {
 				this.localProvideRefreshTokenAlways = response.data.provide_refresh_token_always
+			})
+		},
+		setAlwaysIncludeScopeClaims() {
+			axios.post(
+				generateUrl('apps/oidc/api/v2/alwaysIncludeScopeClaims'),
+				{
+					alwaysIncludeScopeClaims: this.localAlwaysIncludeScopeClaims,
+				}).then((response) => {
+				this.localAlwaysIncludeScopeClaims = response.data.always_include_scope_claims
 			})
 		},
 		regenerateKeys() {
