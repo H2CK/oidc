@@ -432,7 +432,7 @@
 								{{ t('oidc', 'Select scope claim inclusion behavior') }}
 							</option>
 							<option value="false">
-								{{ t('oidc', 'OIDC Compliant (requires explicte request of claims for ID token)') }}
+								{{ t('oidc', 'OIDC Compliant (requires explict request of claims for ID token)') }}
 							</option>
 							<option value="true">
 								{{ t('oidc', 'Always include scope claims') }}
