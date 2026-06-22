@@ -432,14 +432,14 @@
 								{{ t('oidc', 'Select scope claim inclusion behavior') }}
 							</option>
 							<option value="false">
-								{{ t('oidc', 'OIDC Compliant (require explicte request of claims )') }}
+								{{ t('oidc', 'OIDC Compliant (requires explicte request of claims for ID token)') }}
 							</option>
 							<option value="true">
 								{{ t('oidc', 'Always include scope claims') }}
 							</option>
 						</select>
 						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
-							{{ t('oidc', 'In OIDC-compliant code flow, the claims requested via scopes are not automatically included in the ID token. According to the OIDC specification, claims must be explicitly requested via the claims parameter during the token exchange. Enable this setting to include all scope claims in the ID token. (Legacy mode)') }}
+							{{ t('oidc', 'In OIDC-compliant code flow, the claims requested via scopes are not automatically included in the ID token. According to the OIDC specification, claims must be explicitly requested via the claims parameter during the authentication. Enable this setting to include all scope claims in the ID token. (Legacy mode)') }}
 						</p>
 					</div>
 					<div class="container-inner">
@@ -633,6 +633,10 @@ export default {
 			required: true,
 		},
 		provideRefreshTokenAlways: {
+			type: String,
+			required: true,
+		},
+		alwaysIncludeScopeClaims: {
 			type: String,
 			required: true,
 		},

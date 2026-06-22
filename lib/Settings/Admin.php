@@ -159,9 +159,8 @@ class Admin implements ISettings {
                 'defaultTokenType', $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_TOKEN_TYPE, Application::DEFAULT_TOKEN_TYPE));
         $this->initialState->provideInitialState(
                 'provideRefreshTokenAlways', $this->appConfig->getAppValueString(Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS, Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS));
-        $stringValue = $this->appConfig->getAppValueBool(Application::APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS, Application::DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS) ? 'true' : 'false';
         $this->initialState->provideInitialState(
-                'alwaysIncludeScopeClaims', $stringValue);
+                'alwaysIncludeScopeClaims', $this->appConfig->getAppValueBool(Application::APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS, Application::DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS) ? 'true' : 'false');
 
         return new TemplateResponse(
                         Application::APP_ID,
