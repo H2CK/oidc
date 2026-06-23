@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use OCP\IRequest;
 use OCP\IL10N;
+use OCP\L10N\IFactory AS L10nFactory;
 use OCP\IGroupManager;
 use OCP\Group\ISubAdmin;
 use OCP\IDBConnection;
@@ -72,6 +73,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $groupManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IL10N */
     private $l;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+    private $lFactory;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ICrypto */
     private $crypto;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IProvider */
@@ -110,6 +113,7 @@ class LoginRedirectorControllerTest extends TestCase {
     private $customClaimService;
     /** @var CredentialService */
     private $credentialService;
+    /** @var 
 
     private $client;
 
@@ -162,13 +166,16 @@ class LoginRedirectorControllerTest extends TestCase {
         
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
         $this->l = $this->createMock(IL10N::class);
+        $this->lFactory = $this->createMock(L10nFactory::class);
         $this->customClaimService = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
             $this->subAdminManager,
             $this->accountManager,
-            $this->logger
+            $this->logger,
+            $this->config,
+            $this->lFactory
         );
         $this->credentialService = new CredentialService(
             $this->createMock(ICredentialsManager::class),
