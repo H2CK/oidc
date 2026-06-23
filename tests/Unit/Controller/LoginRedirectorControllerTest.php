@@ -113,7 +113,6 @@ class LoginRedirectorControllerTest extends TestCase {
     private $customClaimService;
     /** @var CredentialService */
     private $credentialService;
-    /** @var 
 
     private $client;
 
