@@ -81,7 +81,6 @@ class CustomClaimService {
         $this->accountManager = $accountManager;
         $this->logger = $logger;
 		$this->config = $config;
-		$this->l = $l;
 		$this->lFactory = $lFactory;
     }
 
