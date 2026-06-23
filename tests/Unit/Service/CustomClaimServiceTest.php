@@ -86,7 +86,7 @@ class CustomClaimServiceTest extends TestCase {
         $this->groupManager = $this->createMock(IGroupManager::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
         $this->accountManager = $this->createMock(IAccountManager::class);
-        $this->lFactory = $this->createMock(L10N\lFactory::class);
+        $this->lFactory = $this->createMock(l10NFactory::class);
         $this->service = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
