@@ -18,11 +18,13 @@ use OCP\IUser;
 use OCP\IGroup;
 use OCP\IDBConnection;
 use OCP\Server;
+use OCP\IConfig;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OC\AppFramework\Utility\TimeFactory;
 use OCP\Security\ISecureRandom;
 use OC\Security\SecureRandom;
+use OCP\L10N\IFactory AS L10nFactory;
 
 use Psr\Log\LoggerInterface;
 
@@ -43,6 +45,8 @@ class CustomClaimServiceTest extends TestCase {
         private $logger;
         /** @var IDBConnection */
         private $db;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
+        private $config;
         /** @var IAppConfig */
         private $appConfig;
         /** @var ISecureRandom */
@@ -53,11 +57,14 @@ class CustomClaimServiceTest extends TestCase {
         private $redirectUriMapper;
         /** @var ClientMapper  */
         private $clientMapper;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+        private $lFactory;
 
     public function setUp(): void {
         $this->db = $this->createMock(IDBConnection::class);
         $this->time = Server::get(TimeFactory::class);
         $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->config = $this->createMock(IConfig::class);
         $this->secureRandom = Server::get(SecureRandom::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         
@@ -79,13 +86,16 @@ class CustomClaimServiceTest extends TestCase {
         $this->groupManager = $this->createMock(IGroupManager::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
         $this->accountManager = $this->createMock(IAccountManager::class);
+        $this->lFactory = $this->createMock(L10N\lFactory::class);
         $this->service = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
             $this->subAdminManager,
             $this->accountManager,
-            $this->logger
+            $this->logger,
+            $this->config,
+            $this->lFactory
         );
     }
 
