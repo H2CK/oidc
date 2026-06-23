@@ -131,7 +131,7 @@ class JwtGeneratorTest extends TestCase {
         $reflection2 = new \ReflectionClass(CustomClaimMapper::class);
         $constructor2 = $reflection2->getConstructor();
         $constructor2->invoke($this->customClaimMapper, $this->db, $this->logger);
-        $this->lFactory = $this->createMock(L10N\lFactory::class);
+        $this->lFactory = $this->createMock(l10NFactory::class);
         $this->customClaimService = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
