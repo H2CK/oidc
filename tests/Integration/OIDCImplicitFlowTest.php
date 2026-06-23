@@ -34,6 +34,7 @@ use OC\Security\Ip\BruteforceAllowList;
 use OC\Security\SecureRandom;
 use OCP\AppFramework\Http\JSONResponse;
 use Psr\Log\LoggerInterface;
+use OCP\L10N\IFactory AS L10nFactory;
 
 /**
  * Integration test for the OpenID Connect implicit flow.
