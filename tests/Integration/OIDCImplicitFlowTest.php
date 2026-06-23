@@ -111,6 +111,9 @@ class OIDCImplicitFlowTest extends \Test\TestCase
     /** @var \OCP\AppFramework\App */
     private $app;
 
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+    private $lFactory;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -163,13 +166,17 @@ class OIDCImplicitFlowTest extends \Test\TestCase
         $customClaimMapper = Server::get(\OCA\OIDCIdentityProvider\Db\CustomClaimMapper::class);
         $userConfig = Server::get(\OCP\Config\IUserConfig::class);
 
+        $this->lFactory = $this->createMock(l10NFactory::class);
+
         $customClaimService = new \OCA\OIDCIdentityProvider\Service\CustomClaimService(
             $customClaimMapper,
             $this->userManager,
             $this->groupManager,
             Server::get(\OCP\Group\ISubAdmin::class),
             $this->accountManager,
-            $this->logger
+            $this->logger,
+            $this->config,
+            $this->lFactory
         );
 
         $credentialService = new \OCA\OIDCIdentityProvider\Service\CredentialService(
