@@ -51,6 +51,7 @@ use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use Psr\Log\LoggerInterface;
 use OCP\EventDispatcher\IEventDispatcher;
+use OCP\L10N\IFactory AS L10nFactory;
 
 class JwtGeneratorTest extends TestCase {
         /** @var JwtGenerator */
@@ -97,6 +98,8 @@ class JwtGeneratorTest extends TestCase {
         private $redirectUriMapper;
         /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper  */
         private $clientMapper;
+        /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+        private $lFactory;
 
     public function setUp(): void {
         $this->db = $this->createMock(IDBConnection::class);
@@ -128,13 +131,16 @@ class JwtGeneratorTest extends TestCase {
         $reflection2 = new \ReflectionClass(CustomClaimMapper::class);
         $constructor2 = $reflection2->getConstructor();
         $constructor2->invoke($this->customClaimMapper, $this->db, $this->logger);
+        $this->lFactory = $this->createMock(l10NFactory::class);
         $this->customClaimService = new CustomClaimService(
             $this->customClaimMapper,
             $this->userManager,
             $this->groupManager,
             $this->subAdminManager,
             $this->accountManager,
-            $this->logger
+            $this->logger,
+            $this->config,
+            $this->lFactory
         );
         $this->credentialsManager = $this->createMock(ICredentialsManager::class);
         $this->credentialService = new CredentialService(

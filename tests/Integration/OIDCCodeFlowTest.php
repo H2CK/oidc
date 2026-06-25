@@ -34,6 +34,7 @@ use OC\Security\Ip\BruteforceAllowList;
 use OC\Security\SecureRandom;
 use OCP\AppFramework\Http\JSONResponse;
 use Psr\Log\LoggerInterface;
+use OCP\L10N\IFactory AS L10nFactory;
 
 /**
  * Integration test for the OpenID Connect code flow.
@@ -113,6 +114,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
     /** @var \OCP\AppFramework\App */
     private $app;
 
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+    private $lFactory;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -166,13 +170,17 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $customClaimMapper = Server::get(\OCA\OIDCIdentityProvider\Db\CustomClaimMapper::class);
         $userConfig = Server::get(\OCP\Config\IUserConfig::class);
 
+        $this->lFactory = $this->createMock(l10NFactory::class);
+
         $customClaimService = new \OCA\OIDCIdentityProvider\Service\CustomClaimService(
             $customClaimMapper,
             $this->userManager,
             $this->groupManager,
             Server::get(\OCP\Group\ISubAdmin::class),
             $this->accountManager,
-            $this->logger
+            $this->logger,
+            $this->config,
+            $this->lFactory
         );
 
         $credentialService = new \OCA\OIDCIdentityProvider\Service\CredentialService(
