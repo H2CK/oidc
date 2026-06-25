@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.0] - 2026-06-22
+## [2.0.0] - 2026-06-25
 
 ### Added
 
@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Added support for the OpenID Connect `claims` request parameter for ID token and userinfo claim selection
 - Added legacy admin setting to always include scope-based claims in authorization code flow ID tokens without an explicit `claims.id_token` request
 - Added custom claims to JWT access tokens
+- Added custom claim functions for user language, locale, first day of week, and timezone preferences ([#664](https://github.com/H2CK/oidc/pull/664))
 - Added authorization code persistence to reject code reuse during token exchange
 - Added additional unit and integration coverage for code, implicit, PKCE, listener, controller, CLI, and background job flows
 - Added AI agent development and release guidance

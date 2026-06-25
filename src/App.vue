@@ -968,7 +968,7 @@ export default {
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserFDOW':
-					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a integer that indicates the first day of the week (0=sunday, 1=monday, ...).')
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be an integer that indicates the first day of the week (0=sunday, 1=monday, ...).')
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserTimezone':
