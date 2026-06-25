@@ -276,7 +276,7 @@ class CustomClaimService {
         if ($user === null) {
             return null;
         }
-        return $this->getUserCoreValue($user, 'locale') ?? getSystemValue('default_locale', 'en');
+        return $this->getUserCoreValue($user, 'locale') ?? $this->config->getSystemValue('default_locale', 'en'); 
     }
 
 	/**
@@ -298,7 +298,7 @@ class CustomClaimService {
         if ($user === null) {
             return null;
         }
-        return $this->getUserCoreValue($user, 'timezone') ?? $this->getSystemValue('default_timezone', 'UTC');
+        return $this->getUserCoreValue($user, 'timezone') ?? $this->config->getSystemValue('default_timezone', 'UTC');;
     }
 
 	/**
@@ -311,13 +311,4 @@ class CustomClaimService {
 		
 		return $this->config->getUserValue($userId, 'core', $key, $default);
 	}
-
-	/**
-	 * @param \DateTimeZone $timezone
-	 * @param string $key
-	 * @return string|null The Value of a users config from core settings
-	 */
-	 public function getSystemValue(string $key, $default = null) {
-        return $this->config->getSystemValue($key, $default);
-    }
 }
