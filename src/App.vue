@@ -732,7 +732,7 @@ export default {
 								value: 'getUserGroupsDisplayName',
 							},
 							{
-								label: t('oidc', "Return user's language settings"),
+								label: t('oidc', "Return user's language setting"),
 								value: 'getUserLanguage',
 							},
 							{
@@ -744,7 +744,7 @@ export default {
 								value: 'getUserFDOW',
 							},
 							{
-								label: t('oidc', "Return user's timzone setting"),
+								label: t('oidc', "Return user's timezone setting"),
 								value: 'getUserTimezone',
 							},
 						],
@@ -929,11 +929,11 @@ export default {
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserLanguage':
-					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be an string of a language/locale according to ISO 639-1 codes.')
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a string of a language/locale according to ISO 639-1 codes.')
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserLocale':
-					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be an string of a language/locale according to ISO 639-1 codes.')
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a string of a language/locale according to ISO 639-1 codes.')
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserFDOW':
@@ -941,7 +941,7 @@ export default {
 					this.customClaimModal.parametersRequired = false
 					break
 				case 'getUserTimezone':
-					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a string of a IANA identifier.')
+					this.customClaimModal.functionInfo = t('oidc', 'The claim value will be a string of an IANA identifier.')
 					this.customClaimModal.parametersRequired = false
 					break
 				default:
