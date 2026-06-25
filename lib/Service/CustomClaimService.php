@@ -20,7 +20,7 @@ use OCP\Group\ISubAdmin;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
-use OCP\L10N\IFactory AS L10nFactory;
+use OCP\L10N\IFactory as L10nFactory;
 
 class CustomClaimService {
     public const FUNCTIONS = [
@@ -30,11 +30,13 @@ class CustomClaimService {
         [ 'name' => 'isInGroup', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::hasRole', 'parameters' => ['group'] ],
         [ 'name' => 'getUserEmail', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserEmail', 'parameters' => [] ],
         [ 'name' => 'getUserGroups', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroups', 'parameters' => [] ],
-		[ 'name' => 'getUserGroupsDisplayName', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroupsDisplayName', 'parameters' => [] ],
-		[ 'name' => 'getUserLanguage', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserLanguage', 'parameters' => [] ],
-		[ 'name' => 'getUserLocale', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserLocale', 'parameters' => [] ],
-		[ 'name' => 'getUserFDOW', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserFDOW', 'parameters' => [] ],
-		[ 'name' => 'getUserTimezone', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserTimezone', 'parameters' => [] ]
+        [ 'name' => 'getUserGroupsDisplayName', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroupsDisplayName', 'parameters' => [] ],
+        [ 'name' => 'getUserGroupsString', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroupsStr', 'parameters' => [] ],
+        [ 'name' => 'getUserGroupsDisplayNameString', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserGroupsDisplayNameStr', 'parameters' => [] ],
+        [ 'name' => 'getUserLanguage', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserLanguage', 'parameters' => [] ],
+        [ 'name' => 'getUserLocale', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserLocale', 'parameters' => [] ],
+        [ 'name' => 'getUserFDOW', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserFDOW', 'parameters' => [] ],
+        [ 'name' => 'getUserTimezone', 'method' => 'OCA\OIDCIdentityProvider\Service\CustomClaimService::getUserTimezone', 'parameters' => [] ]
     ];
 
     /** @var CustomClaimMapper */
@@ -49,10 +51,10 @@ class CustomClaimService {
     private $accountManager;
     /** @var LoggerInterface */
     private $logger;
-	/** @var Config */
-	private $config;
-	/** @var $lFactory **/
-	private $lFactory;
+    /** @var Config */
+    private $config;
+    /** @var $lFactory **/
+    private $lFactory;
 
     /**
      * @param CustomClaimMapper $customClaimMapper
@@ -61,8 +63,8 @@ class CustomClaimService {
      * @param ISubAdmin $subAdminManager
      * @param IAccountManager $accountManager
      * @param LoggerInterface $logger
-	 * @param IConfig $config
-	 * @param L10nFactory $lFactory
+     * @param IConfig $config
+     * @param L10nFactory $lFactory
      */
     public function __construct(
         CustomClaimMapper $customClaimMapper,
@@ -71,8 +73,8 @@ class CustomClaimService {
         ISubAdmin $subAdminManager,
         IAccountManager $accountManager,
         LoggerInterface $logger,
-		IConfig $config,
-		L10nFactory $lFactory
+        IConfig $config,
+        L10nFactory $lFactory
     ) {
         $this->customClaimMapper = $customClaimMapper;
         $this->userManager = $userManager;
@@ -80,8 +82,8 @@ class CustomClaimService {
         $this->subAdminManager = $subAdminManager;
         $this->accountManager = $accountManager;
         $this->logger = $logger;
-		$this->config = $config;
-		$this->lFactory = $lFactory;
+        $this->config = $config;
+        $this->lFactory = $lFactory;
     }
 
     /**
@@ -143,18 +145,27 @@ class CustomClaimService {
                     case 'getUserGroups':
                         $functionResult = $this->getUserGroups($user);
                         break;
-					case 'getUserLanguage':
-						$functionResult = $this->getUserLanguage($user);
-						break;
-					case 'getUserLocale':
-						$functionResult = $this->getUserLocale($user);
-						break;
-					case 'getUserFDOW':
-						$functionResult = $this->getUserFDOW($user);
-						break;
-					case 'getUserTimezone':
-						$functionResult = $this->getUserTimezone($user);
-						break;
+                    case 'getUserGroupsDisplayName':
+                        $functionResult = $this->getUserGroupsDisplayName($user);
+                        break;
+                    case 'getUserGroupsString':
+                        $functionResult = $this->getUserGroupsStr($user);
+                        break;
+                    case 'getUserGroupsDisplayNameString':
+                        $functionResult = $this->getUserGroupsDisplayNameStr($user);
+                        break;
+                    case 'getUserLanguage':
+                        $functionResult = $this->getUserLanguage($user);
+                        break;
+                    case 'getUserLocale':
+                        $functionResult = $this->getUserLocale($user);
+                        break;
+                    case 'getUserFDOW':
+                        $functionResult = $this->getUserFDOW($user);
+                        break;
+                    case 'getUserTimezone':
+                        $functionResult = $this->getUserTimezone($user);
+                        break;
                     default:
                         $functionResult = null;
                 }
@@ -210,8 +221,9 @@ class CustomClaimService {
     }
 
     /**
-     * Summary of getGroups
+     * Returns the group names of the user as an array
      *
+     * @param IUser $user
      * @return array|null
      */
     public function getUserGroups(IUser $user): array|null {
@@ -228,8 +240,28 @@ class CustomClaimService {
     }
 
     /**
-     * Summary of getGroups
+     * Returns the group names of the user as a coma sparated string
      *
+     * @param IUser $user
+     * @return string|null
+     */
+    public function getUserGroupsStr(IUser $user): string|null {
+        if ($user === null) {
+            return null;
+        }
+        $groups = $this->groupManager->getUserGroups($user);
+
+        $groupNames = [];
+        foreach ($groups as $group) {
+            $groupNames[] = $group->getGID();
+        }
+        return implode(', ', $groupNames);
+    }
+
+    /**
+     * Returns the group display names of the user as ann array
+     *
+     * @param IUser $user
      * @return array|null
      */
     public function getUserGroupsDisplayName(IUser $user): array|null {
@@ -246,6 +278,25 @@ class CustomClaimService {
     }
 
     /**
+     * Returns the group display names of the user as a coma sparated string
+     *
+     * @param IUser $user
+     * @return string|null
+     */
+    public function getUserGroupsDisplayNameStr(IUser $user): string|null {
+        if ($user === null) {
+            return null;
+        }
+        $groups = $this->groupManager->getUserGroups($user);
+
+        $groupNames = [];
+        foreach ($groups as $group) {
+            $groupNames[] = $group->getDisplayName();
+        }
+        return implode(', ', $groupNames);
+    }
+
+    /**
      * Summary of getUserEmail
      *
      * @return string|null
@@ -257,7 +308,7 @@ class CustomClaimService {
         return $user->getEMailAddress();
     }
 
-	/**
+    /**
      * @param IUser $user
      * @return string|null Return the language, that is used by the user or forced by system
      */
@@ -268,7 +319,7 @@ class CustomClaimService {
         return $this->lFactory->getUserLanguage($user);
     }
 
-	/**
+    /**
      * @param IUser $user
      * @return string|null Return the locale, that is used by the user or forced by system
      */
@@ -276,10 +327,10 @@ class CustomClaimService {
         if ($user === null) {
             return null;
         }
-        return $this->getUserCoreValue($user, 'locale') ?? $this->config->getSystemValue('default_locale', 'en'); 
+        return $this->getUserCoreValue($user, 'locale') ?? $this->config->getSystemValue('default_locale', 'en');
     }
 
-	/**
+    /**
      * @param IUser $user
      * @return int|null Return the Users setting of used first day of week or use the locale setting; 0 = sunday, 1 = monday, ...
      */
@@ -287,10 +338,10 @@ class CustomClaimService {
         if ($user === null) {
             return null;
         }
-		return $this->getUserCoreValue($user, 'first_day_of_week') ?? $this->lFactory->get('core', $this->getUserLocale($user) )->l('firstday', null);
+        return $this->getUserCoreValue($user, 'first_day_of_week') ?? $this->lFactory->get('core', $this->getUserLocale($user) )->l('firstday', null);
     }
 
-	/**
+    /**
      * @param IUser $user
      * @return string|null Return the Users setting of used Timezone
      */
@@ -301,14 +352,14 @@ class CustomClaimService {
         return $this->getUserCoreValue($user, 'timezone') ?? $this->config->getSystemValue('default_timezone', 'UTC');;
     }
 
-	/**
-	 * @param \DateTimeZone $timezone
-	 * @param string $key
-	 * @return string|null The Value of a users config from core settings
-	 */
-	private function getUserCoreValue(IUser $user, string $key, $default=null): string|null {
-		$userId = $user->getUID();
-		
-		return $this->config->getUserValue($userId, 'core', $key, $default);
-	}
+    /**
+     * @param \DateTimeZone $timezone
+     * @param string $key
+     * @return string|null The Value of a users config from core settings
+     */
+    private function getUserCoreValue(IUser $user, string $key, $default=null): string|null {
+        $userId = $user->getUID();
+
+        return $this->config->getUserValue($userId, 'core', $key, $default);
+    }
 }

@@ -763,6 +763,22 @@ export default {
 								value: 'getUserGroupsDisplayName',
 							},
 							{
+								label: t('oidc', "Return user's groups as array of group IDs"),
+								value: 'getUserGroups',
+							},
+							{
+								label: t('oidc', "Return user's groups as array of display names"),
+								value: 'getUserGroupsDisplayName',
+							},
+							{
+								label: t('oidc', "Return user's groups as comma-separated string"),
+								value: 'getUserGroupsString',
+							},
+							{
+								label: t('oidc', "Return user's groups as comma-separated display names"),
+								value: 'getUserGroupsDisplayNameString',
+							},
+							{
 								label: t('oidc', "Return user's language setting"),
 								value: 'getUserLanguage',
 							},

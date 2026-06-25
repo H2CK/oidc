@@ -24,7 +24,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OC\AppFramework\Utility\TimeFactory;
 use OCP\Security\ISecureRandom;
 use OC\Security\SecureRandom;
-use OCP\L10N\IFactory AS L10nFactory;
+use OCP\L10N\IFactory as L10nFactory;
 
 use Psr\Log\LoggerInterface;
 
@@ -67,21 +67,21 @@ class CustomClaimServiceTest extends TestCase {
         $this->config = $this->createMock(IConfig::class);
         $this->secureRandom = Server::get(SecureRandom::class);
         $this->logger = $this->createMock(LoggerInterface::class);
-        
+
         // Create redirectUriMapper with constructor arguments
         $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
         $reflection1 = new \ReflectionClass(RedirectUriMapper::class);
         $constructor1 = $reflection1->getConstructor();
         $constructor1->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
-        
+
         $this->clientMapper = $this->createMock(ClientMapper::class);
-        
+
         // Create customClaimMapper with constructor arguments
         $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
         $reflection2 = new \ReflectionClass(CustomClaimMapper::class);
         $constructor2 = $reflection2->getConstructor();
         $constructor2->invoke($this->customClaimMapper, $this->db, $this->logger);
-        
+
         $this->userManager = $this->createMock(IUserManager::class);
         $this->groupManager = $this->createMock(IGroupManager::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
