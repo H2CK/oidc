@@ -46,7 +46,7 @@
     "The claim value will be the user's primary email address." : "O valor da declaração será o endereço de e-mail principal do usuário.",
     "The claim value will be an array of group IDs of the groups the user is in." : "O valor da declaração será um arranjo de IDs dos grupos dos quais o usuário faz parte.",
     "The claim value will be an array of display names of the groups the user is in." : "O valor da declaração será um arranjo de nomes de exibição dos grupos dos quais o usuário faz parte.",
-    "The claim value will be a string of a language/locale according to ISO 639-1 codes." : "O valor da declaração será uma sequência de caracteres indicando um idioma/locale, de acordo com os códigos da norma ISO 639-1.",
+    "The claim value will be a string of a language/locale according to ISO 639-1 codes." : "O valor da declaração será uma sequência de caracteres indicando um idioma/local, de acordo com os códigos da norma ISO 639-1.",
     "The claim value will be an integer that indicates the first day of the week (0=sunday, 1=monday, ...)." : "O valor da declaração será um número inteiro que indica o primeiro dia da semana (0=domingo, 1=segunda-feira, …).",
     "The claim value will be a string of an IANA identifier." : "O valor da declaração será uma sequência de caracteres correspondente a um identificador da IANA.",
     "Name is required" : "O nome e obrigatório",

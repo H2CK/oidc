@@ -1,8 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
+    "No consent request pending." : "Nenhuma solicitação de consentimento pendente.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "O utilizador não é um membro dos grupos definidos para o cliente. Não está autorizado a recuperar um código de acesso.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Ocorreu uma falha durante a criação do JWT. Informe o administrador do seu cliente.",
+    "Authorization request is missing a redirect URI." : "Falta um URI de redirecionamento na solicitação de autorização.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "O seu cliente não está autorizado a conectar-se. Por favor, informe o administrador do seu cliente.",
     "Your client is expired. Please inform the administrator of your client." : "O seu cliente expirou. Por favor, informe o administrador do seu cliente.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "O URI redirecionado recebido não é aceite para ligação. Por favor, informe o administrador do seu cliente.",
@@ -13,12 +15,18 @@ OC.L10N.register(
     "OIDC Identity Provider" : "OIDC Provedor de Identidade",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud como fornecedor de identidades OpenID Connect",
     "Nextcloud as OpenID Connect Identity Provider\n\nWith this app you can use Nextcloud as OpenID Connect Identity Provider. If other services\nare configured correctly, you are able to access those services with your Nextcloud login.\n\nFull documentation can be found at:\n\n- [User Documentation](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)" : "Nextcloud como fornecedor de identidades OpenID Connect\n\nCom esta aplicação pode usar o Nextcloud como fornecedor de identidades OpenID Connect. Se outros serviços são configurados corretamente, pode aceder a esses serviços com o seu login na Nextcloud.\n\nA documentação completa pode ser encontrada em:\n\n- [Documentação do utilizador](https://github.com/H2CK/oidc/wiki#user-documentation)\n- [Documentação do desenvolvedor](https://github.com/H2CK/oidc/wiki#developer-documentation)",
+    "User has a specific role" : "Usuário tem função específica",
+    "Return user's groups as comma-separated string" : "Retornar os grupos do usuário como uma string separada por vírgulas",
+    "Return user's timezone setting" : "Retornar a configuração do fuso horário do usuário",
     "Confidential" : "Confidencial",
     "Public" : "Público",
     "Avatar" : "Avatar",
     "Address" : "Endereço",
     "Phone" : "Telefone",
     "Website" : "Website",
+    "The claim value will be true if the user is in the specified group, otherwise false. Required parameter: group ID of the group for which to check the membership." : "O valor da declaração será true se o usuário estiver no grupo especificado, caso contrário, será false. Parâmetro obrigatório: ID do grupo para o qual verificar a associação.",
+    "The claim value will be an integer that indicates the first day of the week (0=sunday, 1=monday, ...)." : "O valor da declaração será um número inteiro que indica o primeiro dia da semana (0=domingo, 1=segunda-feira, …).",
+    "Function is required" : "A função é obrigatória",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect permite autenticar em serviços externos com contas de utilizador de {instanceName}.",
     "OpenID Connect clients" : "Clientes OpenID Connect",
     "Settings" : "Definições",
@@ -89,8 +97,11 @@ OC.L10N.register(
     "Restrict Personal Information" : "Restringir informações pessoais",
     "Profile information" : "Informação de perfil",
     "Email address" : "Endereço de E-mail",
+    "Access your Nextcloud groups and roles" : "Acessar seus grupos e funções no Nextcloud",
     "Deny" : "Negar",
     "Allow" : "Permitir",
-    "OpenID Connect Redirect" : "Redirecionamento OpenID Connect"
+    "OpenID Connect Redirect" : "Redirecionamento OpenID Connect",
+    "Access revoked successfully" : "Acesso revogado com sucesso",
+    "Loading..." : "Carregando…"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
