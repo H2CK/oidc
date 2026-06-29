@@ -57,7 +57,7 @@ class Version0020Date20260615100100 extends SimpleMigrationStep {
                 'unsigned' => true,
             ]);
 
-            $table->setPrimaryKey(['id']);
+            $table->setPrimaryKey(['id'], 'oidc_auth_code_pk');
             $table->addUniqueIndex(['hashed_code'], 'oidc_auth_code_hash_idx');
             $table->addIndex(['access_token_id'], 'oidc_auth_code_token_idx');
             $table->addIndex(['created'], 'oidc_auth_code_created_idx');
