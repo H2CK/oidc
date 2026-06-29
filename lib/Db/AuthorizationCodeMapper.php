@@ -19,7 +19,7 @@ use OCP\IDBConnection;
 class AuthorizationCodeMapper extends QBMapper {
 
     public function __construct(IDBConnection $db) {
-        parent::__construct($db, 'oidc_authorization_codes', AuthorizationCode::class);
+        parent::__construct($db, 'oidc_auth_codes', AuthorizationCode::class);
     }
 
     public function createForAccessToken(int $accessTokenId, string $code, int $created): AuthorizationCode {

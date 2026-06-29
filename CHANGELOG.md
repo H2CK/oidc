@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2026-06-29
+
+### Changed
+
+- Fixed new DB table name for NC32
+
 ## [2.0.0] - 2026-06-29
 
 ### Added
