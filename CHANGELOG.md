@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Fixed new DB table name for NC32
+- Fixed db table name issue with NC32 ([#666](https://github.com/H2CK/oidc/pull/666))
 
 ## [2.0.0] - 2026-06-29
 
