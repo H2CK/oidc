@@ -766,6 +766,77 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertStringContainsString('<input type="hidden" name="state" value="state-1">', $html);
     }
 
+    public function testAuthorizeMissingResponseTypeFormPostReturnsErrorForm() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) {
+                return $key === 'response_mode' ? 'form_post' : null;
+            });
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1234567890,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            '',
+            $redirectUri,
+            'openid',
+            'nonce-1'
+        );
+
+        $this->assertInstanceOf(FormPostResponse::class, $result);
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus(), 'Status Code does not match!');
+
+        $html = $result->render();
+        $this->assertStringContainsString('<form method="post" action="' . $redirectUri . '">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error" value="unsupported_response_type">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error_description" value="Missing response_type">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="state" value="state-1">', $html);
+    }
+
     public function testAuthorizeHybridSuccessReturnsFrontChannelValuesInFragment() {
         $clientId = 'client1';
         $state = 'state-1';
@@ -1338,6 +1409,75 @@ class LoginRedirectorControllerTest extends TestCase {
             $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=state-1',
             $result->getRedirectURL()
         );
+    }
+
+    public function testAuthorizeRejectsUnsupportedRequestObjectWithFormPostFromRequestObject() {
+        $clientId = 'client1';
+        $redirectUri = 'https://client.example.com/callback';
+        $requestObjectPayload = rtrim(strtr(base64_encode(json_encode([
+            'state' => 'request-object-state',
+            'response_mode' => 'form_post',
+        ]) ?: '{}'), '+/', '-_'), '=');
+        $requestObject = 'eyJhbGciOiJub25lIn0.' . $requestObjectPayload . '.';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->userSession
+            ->expects($this->never())
+            ->method('isLoggedIn');
+        $this->session
+            ->expects($this->never())
+            ->method('set');
+        $this->urlGenerator
+            ->expects($this->never())
+            ->method('linkToRoute');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) use ($requestObject) {
+                return $key === 'request' ? $requestObject : null;
+            });
+
+        $result = $this->controller->authorize(
+            $clientId,
+            null,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1'
+        );
+
+        $this->assertInstanceOf(FormPostResponse::class, $result);
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus(), 'Status Code does not match!');
+
+        $html = $result->render();
+        $this->assertStringContainsString('<form method="post" action="' . $redirectUri . '">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error" value="request_not_supported">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error_description" value="Request object parameter is not supported.">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="state" value="request-object-state">', $html);
     }
 
     public function testAuthorizeRejectsUnsupportedImplicitRequestObjectInFragmentWithRequestObjectState() {

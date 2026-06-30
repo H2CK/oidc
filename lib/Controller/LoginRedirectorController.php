@@ -406,7 +406,9 @@ class LoginRedirectorController extends ApiController
                 (string)$redirect_uri,
                 'unsupported_response_type',
                 'Missing response_type',
-                $state
+                $state,
+                $response_type,
+                $response_mode
             );
         }
 
@@ -789,6 +791,9 @@ class LoginRedirectorController extends ApiController
         $errorState = $state;
         if (!$this->hasNonEmptyRequestParameter($errorState) && $this->hasNonEmptyRequestParameter($requestObject)) {
             $errorState = $this->extractStateFromUnsignedRequestObject($requestObject) ?? $errorState;
+        }
+        if (!$this->hasNonEmptyRequestParameter($responseMode) && $this->hasNonEmptyRequestParameter($requestObject)) {
+            $responseMode = $this->extractResponseModeFromUnsignedRequestObject($requestObject) ?? $responseMode;
         }
 
         if (!$this->hasNonEmptyRequestParameter($redirectUri)) {
@@ -1213,6 +1218,16 @@ class LoginRedirectorController extends ApiController
 
     private function extractStateFromUnsignedRequestObject(mixed $requestObject): ?string
     {
+        return $this->extractStringClaimFromUnsignedRequestObject($requestObject, 'state');
+    }
+
+    private function extractResponseModeFromUnsignedRequestObject(mixed $requestObject): ?string
+    {
+        return $this->extractStringClaimFromUnsignedRequestObject($requestObject, 'response_mode');
+    }
+
+    private function extractStringClaimFromUnsignedRequestObject(mixed $requestObject, string $claimName): ?string
+    {
         if (!is_string($requestObject)) {
             return null;
         }
@@ -1228,12 +1243,12 @@ class LoginRedirectorController extends ApiController
         }
 
         $claims = json_decode($payload, true);
-        if (!is_array($claims) || !isset($claims['state']) || !is_string($claims['state'])) {
+        if (!is_array($claims) || !isset($claims[$claimName]) || !is_string($claims[$claimName])) {
             return null;
         }
 
-        $state = trim($claims['state']);
-        return $state === '' ? null : $state;
+        $claimValue = trim($claims[$claimName]);
+        return $claimValue === '' ? null : $claimValue;
     }
 
     private function base64UrlDecode(string $value): ?string
