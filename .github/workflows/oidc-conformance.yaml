@@ -309,6 +309,11 @@ jobs:
             ../conformance-config/oidc-basic-config.json \
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
 
+          run_conformance_plan \
+            "oidcc-formpost-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
+            ../conformance-config/oidc-basic-config.json \
+            "../conformance-results/oidcc-formpost-basic-certification-test-plan-*.zip"
+
           hybrid_code_id_token_modules=(
             oidcc-server
             oidcc-response-type-missing
@@ -353,6 +358,11 @@ jobs:
             ../conformance-config/oidc-hybrid-config.json \
             "../conformance-results/oidcc-hybrid-certification-test-plan-*.zip"
 
+          run_conformance_plan \
+            "oidcc-formpost-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${hybrid_code_id_token_module_list}" \
+            ../conformance-config/oidc-hybrid-config.json \
+            "../conformance-results/oidcc-formpost-hybrid-certification-test-plan-*.zip"
+
           implicit_id_token_modules=(
             oidcc-server
             oidcc-ensure-request-without-nonce-fails
@@ -387,6 +397,11 @@ jobs:
             "oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${implicit_id_token_module_list}" \
             ../conformance-config/oidc-implicit-config.json \
             "../conformance-results/oidcc-implicit-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${implicit_id_token_module_list}" \
+            ../conformance-config/oidc-implicit-config.json \
+            "../conformance-results/oidcc-formpost-implicit-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
