@@ -121,6 +121,7 @@ class DiscoveryGenerator
         $responseModesSupported = [
             'query',
             'fragment',
+            'form_post',
         ];
         $grantTypesSupported = [
             'authorization_code',

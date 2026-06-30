@@ -41,6 +41,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
@@ -546,6 +547,223 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
+    }
+
+    public function testAuthorizeCodeFlowFormPostReturnsAutoSubmittingForm() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $user = $this->createMock(\OCP\IUser::class);
+        $user
+            ->method('getUID')
+            ->willReturn('testuser');
+
+        $jwtGenerator = $this->createMock(JwtGenerator::class);
+        $jwtGenerator
+            ->method('generateAccessToken')
+            ->willReturn('access-token');
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $this->request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $this->session,
+            $this->l,
+            $this->time,
+            $this->userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $this->appConfig,
+            $jwtGenerator,
+            $this->redirectUriService,
+            $this->logger
+        );
+
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) {
+                return $key === 'response_mode' ? 'form_post' : null;
+            });
+        $this->request
+            ->method('getServerProtocol')
+            ->willReturn('https');
+        $this->request
+            ->method('getServerHost')
+            ->willReturn('server.example.com');
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $this->userSession
+            ->method('getUser')
+            ->willReturn($user);
+        $this->session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                $values = [
+                    'oidc_auth_time' => 1234567890,
+                    'oidc_login_pending' => false,
+                ];
+                return $values[$key] ?? null;
+            });
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->groupMapper
+            ->method('getGroupsByClientId')
+            ->with(1)
+            ->willReturn([]);
+        $this->groupManager
+            ->method('getUserGroups')
+            ->with($user)
+            ->willReturn([]);
+        $this->userConsentMapper
+            ->method('findByUserAndClient')
+            ->with('testuser', 1)
+            ->willReturn(null);
+        $this->appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default = '') {
+                if ($key === Application::APP_CONFIG_ALLOW_USER_SETTINGS) {
+                    return 'no';
+                }
+                return $default;
+            });
+        $this->accessTokenMapper
+            ->expects($this->once())
+            ->method('insert')
+            ->willReturnCallback(function (AccessToken $accessToken) {
+                $accessToken->id = 23;
+                return $accessToken;
+            });
+        $this->authorizationCodeMapper
+            ->expects($this->once())
+            ->method('createForAccessToken')
+            ->with(
+                23,
+                $this->isType('string'),
+                $this->isType('int')
+            )
+            ->willReturn(new AuthorizationCode());
+
+        $result = $controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1'
+        );
+
+        $this->assertInstanceOf(FormPostResponse::class, $result);
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus(), 'Status Code does not match!');
+
+        $html = $result->render();
+        $this->assertStringContainsString('<form method="post" action="' . $redirectUri . '">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="state" value="state-1">', $html);
+        $this->assertMatchesRegularExpression('/<input type="hidden" name="code" value="[A-Za-z0-9]+">/', $html);
+        $this->assertStringContainsString('document.forms[0].submit()', $html);
+    }
+
+    public function testAuthorizePromptNoneFormPostReturnsLoginRequiredForm() {
+        $clientId = 'client1';
+        $state = 'state-1';
+        $redirectUri = 'https://client.example.com/callback';
+
+        $client = new Client(
+            'Test Client',
+            [$redirectUri],
+            'RS256',
+            'confidential',
+            'code',
+            'opaque',
+            'openid',
+            '',
+            false
+        );
+        $client->id = 1;
+        $client->setClientIdentifier($clientId);
+
+        $registeredRedirectUri = new RedirectUri();
+        $registeredRedirectUri->setClientId(1);
+        $registeredRedirectUri->setRedirectUri($redirectUri);
+
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) {
+                return $key === 'response_mode' ? 'form_post' : null;
+            });
+        $this->userSession
+            ->method('isLoggedIn')
+            ->willReturn(false);
+        $this->session
+            ->expects($this->never())
+            ->method('set');
+        $this->urlGenerator
+            ->expects($this->never())
+            ->method('linkToRoute');
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->with($clientId)
+            ->willReturn($client);
+        $this->redirectUriMapper
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$registeredRedirectUri]);
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('insert');
+
+        $result = $this->controller->authorize(
+            $clientId,
+            $state,
+            'code',
+            $redirectUri,
+            'openid',
+            'nonce-1',
+            null,
+            null,
+            null,
+            'none'
+        );
+
+        $this->assertInstanceOf(FormPostResponse::class, $result);
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus(), 'Status Code does not match!');
+
+        $html = $result->render();
+        $this->assertStringContainsString('<form method="post" action="' . $redirectUri . '">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error" value="login_required">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error_description" value="User is not logged in.">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="state" value="state-1">', $html);
     }
 
     public function testAuthorizeHybridSuccessReturnsFrontChannelValuesInFragment() {

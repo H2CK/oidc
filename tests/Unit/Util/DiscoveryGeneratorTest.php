@@ -148,6 +148,18 @@ class DiscoveryGeneratorTest extends TestCase {
         }
     }
 
+    public function testGenerateDiscoveryHasResponseModesSupported() {
+        $result = $this->generator->generateDiscovery($this->request);
+        $data = $result->getData();
+
+        $this->assertArrayHasKey('response_modes_supported', $data);
+        $responseModes = $data['response_modes_supported'];
+
+        $this->assertContains('query', $responseModes);
+        $this->assertContains('fragment', $responseModes);
+        $this->assertContains('form_post', $responseModes);
+    }
+
     public function testGenerateDiscoveryHasGrantTypesSupported() {
         $result = $this->generator->generateDiscovery($this->request);
         $data = $result->getData();
