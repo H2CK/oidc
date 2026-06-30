@@ -9,19 +9,30 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Tests\Integration;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Controller\LoginRedirectorController;
 use OCA\OIDCIdentityProvider\Controller\OIDCApiController;
 use OCA\OIDCIdentityProvider\Controller\UserInfoController;
+use OCA\OIDCIdentityProvider\Http\FormPostResponse;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\IRequest;
+use OCP\IL10N;
+use OCP\ISession;
 use OCP\IUserManager;
+use OCP\IUserSession;
 use OCP\IGroupManager;
 use OCP\IURLGenerator;
 use OCP\Accounts\IAccountManager;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Security\ISecureRandom;
 use OCP\Security\ICrypto;
@@ -57,6 +68,12 @@ class OIDCCodeFlowTest extends \Test\TestCase
     /** @var GroupMapper */
     private $groupMapper;
 
+    /** @var RedirectUriMapper */
+    private $redirectUriMapper;
+
+    /** @var UserConsentMapper */
+    private $userConsentMapper;
+
     /** @var IUserManager */
     private $userManager;
 
@@ -89,6 +106,12 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
     /** @var UserInfoController */
     private $userInfoController;
+
+    /** @var JwtGenerator */
+    private $jwtGenerator;
+
+    /** @var IAppConfig */
+    private $appConfig;
 
     /** @var IRequest|\PHPUnit\Framework\MockObject\MockObject */
     private $request;
@@ -130,6 +153,8 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->accessTokenMapper = Server::get(AccessTokenMapper::class);
         $this->authorizationCodeMapper = Server::get(AuthorizationCodeMapper::class);
         $this->groupMapper = Server::get(GroupMapper::class);
+        $this->redirectUriMapper = Server::get(RedirectUriMapper::class);
+        $this->userConsentMapper = Server::get(UserConsentMapper::class);
         $this->userManager = Server::get(IUserManager::class);
         $this->groupManager = Server::get(IGroupManager::class);
         $this->accountManager = Server::get(\OCP\Accounts\IAccountManager::class);
@@ -165,6 +190,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Get app-specific services from the app container
         $this->tokenProvider = $appContainer->get(IProvider::class);
+        $this->appConfig = $appContainer->get(IAppConfig::class);
 
         // Get JwtGenerator and other app services
         $customClaimMapper = Server::get(\OCA\OIDCIdentityProvider\Db\CustomClaimMapper::class);
@@ -189,7 +215,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->logger
         );
 
-        $jwtGenerator = new \OCA\OIDCIdentityProvider\Util\JwtGenerator(
+        $this->jwtGenerator = new \OCA\OIDCIdentityProvider\Util\JwtGenerator(
             $this->crypto,
             $this->tokenProvider,
             $this->secureRandom,
@@ -198,7 +224,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->groupManager,
             $this->accountManager,
             $this->urlGenerator,
-            $appContainer->get(\OCP\AppFramework\Services\IAppConfig::class),
+            $this->appConfig,
             $userConfig,
             $this->config,
             $customClaimService,
@@ -228,8 +254,8 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->groupManager,
             $this->accountManager,
             $this->urlGenerator,
-            $appContainer->get(\OCP\AppFramework\Services\IAppConfig::class),
-            $jwtGenerator,
+            $this->appConfig,
+            $this->jwtGenerator,
             $this->logger
         );
 
@@ -245,7 +271,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->userManager,
             $this->groupManager,
             $this->accountManager,
-            $appContainer->get(\OCP\AppFramework\Services\IAppConfig::class),
+            $this->appConfig,
             $userInfoConfig,
             $this->config,
             $customClaimService,
@@ -269,11 +295,18 @@ class OIDCCodeFlowTest extends \Test\TestCase
                 // Delete the test client (this will cascade and delete related redirect URIs and access tokens)
                 $client = $this->clientMapper->getByIdentifier($clientId);
                 if ($client !== null) {
+                    $this->userConsentMapper->deleteByClientId($client->getId());
                     $this->clientMapper->delete($client);
                 }
             } catch (\Exception $e) {
                 // Ignore errors during cleanup
             }
+        }
+
+        try {
+            $this->userConsentMapper->deleteByUserId($this->testUserId);
+        } catch (\Exception $e) {
+            // Ignore errors during cleanup
         }
 
         try {
@@ -437,6 +470,110 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->assertArrayHasKey('email', $userInfoData, 'UserInfo missing email claim');
             $this->assertEquals($user->getEMailAddress(), $userInfoData['email'], 'Email does not match user email');
         }
+    }
+
+    public function testAuthorizationEndpointCodeFlowWithFormPostResponseMode(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+        $state = 'state-form-post';
+
+        $request = $this->createMock(IRequest::class);
+        $request
+            ->method('getParam')
+            ->willReturnCallback(function ($key) {
+                return match ($key) {
+                    'response_mode' => 'form_post',
+                    default => null,
+                };
+            });
+        $request
+            ->method('getServerProtocol')
+            ->willReturn('https');
+        $request
+            ->method('getServerHost')
+            ->willReturn('nextcloud.local');
+
+        $session = $this->createMock(ISession::class);
+        $session
+            ->method('get')
+            ->willReturnCallback(function ($key) {
+                return match ($key) {
+                    'oidc_auth_time' => $this->time->getTime(),
+                    'oidc_login_pending' => false,
+                    default => null,
+                };
+            });
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession
+            ->method('isLoggedIn')
+            ->willReturn(true);
+        $userSession
+            ->method('getUser')
+            ->willReturn($user);
+
+        $l10n = $this->createMock(IL10N::class);
+        $l10n
+            ->method('t')
+            ->willReturnCallback(static fn (string $text): string => $text);
+
+        $appConfig = $this->createMock(IAppConfig::class);
+        $appConfig
+            ->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default = '') {
+                if ($key === Application::APP_CONFIG_ALLOW_USER_SETTINGS) {
+                    return 'no';
+                }
+
+                return $default;
+            });
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $session,
+            $l10n,
+            $this->time,
+            $userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $appConfig,
+            $this->jwtGenerator,
+            new RedirectUriService($this->logger),
+            $this->logger
+        );
+
+        $response = $controller->authorize(
+            $this->testClientId,
+            $state,
+            'code',
+            $this->testRedirectUri,
+            'openid profile email',
+            'nonce-1'
+        );
+
+        $this->assertInstanceOf(FormPostResponse::class, $response);
+        $this->assertEquals(200, $response->getStatus());
+
+        $html = $response->render();
+        $this->assertStringContainsString('<form method="post" action="' . $this->testRedirectUri . '">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="state" value="' . $state . '">', $html);
+        $this->assertMatchesRegularExpression('/<input type="hidden" name="code" value="([A-Za-z0-9]+)">/', $html);
+
+        preg_match('/<input type="hidden" name="code" value="([A-Za-z0-9]+)">/', $html, $matches);
+        $this->assertNotEmpty($matches[1], 'form_post response did not contain an authorization code');
+
+        $accessToken = $this->accessTokenMapper->getByCode($matches[1]);
+        $this->assertEquals($client->getId(), $accessToken->getClientId());
+        $this->assertEquals($user->getUID(), $accessToken->getUserId());
     }
 
     /**
