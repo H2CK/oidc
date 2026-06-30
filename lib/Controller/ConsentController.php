@@ -12,9 +12,11 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -415,7 +417,7 @@ class ConsentController extends Controller {
      */
     #[NoAdminRequired]
     #[UseSession]
-    public function deny(): RedirectResponse {
+    public function deny(): Response {
         // Check if user is logged in
         if (!$this->userSession->isLoggedIn()) {
             return new RedirectResponse($this->urlGenerator->linkToRoute('core.login.showLoginForm'));
@@ -423,6 +425,7 @@ class ConsentController extends Controller {
 
         $redirectUri = $this->session->get('oidc_redirect_uri');
         $state = $this->session->get('oidc_state');
+        $responseMode = $this->session->get('oidc_response_mode');
         $clientId = $this->session->get('oidc_client_id');
         $uid = $this->userSession->getUser()->getUID();
 
@@ -448,6 +451,18 @@ class ConsentController extends Controller {
 
         // Return error to client
         if (!empty($redirectUri)) {
+            $params = [
+                'error' => 'access_denied',
+                'error_description' => 'User denied consent',
+            ];
+            if (!empty($state)) {
+                $params['state'] = $state;
+            }
+
+            if (is_string($responseMode) && strtolower(trim($responseMode)) === 'form_post') {
+                return new FormPostResponse((string)$redirectUri, $params);
+            }
+
             $separator = str_contains($redirectUri, '?') ? '&' : '?';
             $url = $redirectUri . $separator . 'error=access_denied&error_description=User%20denied%20consent';
             if (!empty($state)) {

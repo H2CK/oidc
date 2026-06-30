@@ -13,6 +13,7 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
+use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -405,7 +406,9 @@ class LoginRedirectorController extends ApiController
                 (string)$redirect_uri,
                 'unsupported_response_type',
                 'Missing response_type',
-                $state
+                $state,
+                $response_type,
+                $response_mode
             );
         }
 
@@ -750,13 +753,18 @@ class LoginRedirectorController extends ApiController
             $responseParams['id_token'] = $jwt;
         }
 
+        $this->session->close(); // Close session to prevent session locking issues during redirect
+
+        if ($responseMode === 'form_post') {
+            $this->logger->debug('Send form_post response for client ' . $client_id . '.');
+            return new FormPostResponse((string)$redirect_uri, $responseParams);
+        }
+
         $url = $this->buildAuthorizationResponseRedirectUri(
             (string)$redirect_uri,
             $responseParams,
             $this->authorizationResponseUsesFragment($responseTypeEntries, $responseMode)
         );
-
-        $this->session->close(); // Close session to prevent session locking issues during redirect
 
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
@@ -783,6 +791,9 @@ class LoginRedirectorController extends ApiController
         $errorState = $state;
         if (!$this->hasNonEmptyRequestParameter($errorState) && $this->hasNonEmptyRequestParameter($requestObject)) {
             $errorState = $this->extractStateFromUnsignedRequestObject($requestObject) ?? $errorState;
+        }
+        if (!$this->hasNonEmptyRequestParameter($responseMode) && $this->hasNonEmptyRequestParameter($requestObject)) {
+            $responseMode = $this->extractResponseModeFromUnsignedRequestObject($requestObject) ?? $responseMode;
         }
 
         if (!$this->hasNonEmptyRequestParameter($redirectUri)) {
@@ -1141,6 +1152,10 @@ class LoginRedirectorController extends ApiController
             return in_array('id_token', $responseTypeEntries, true) || in_array('token', $responseTypeEntries, true);
         }
 
+        if ($responseMode === 'form_post') {
+            return false;
+        }
+
         return in_array('id_token', $responseTypeEntries, true) || in_array('token', $responseTypeEntries, true);
     }
 
@@ -1154,6 +1169,10 @@ class LoginRedirectorController extends ApiController
         }
 
         if ($responseMode === 'fragment') {
+            return true;
+        }
+
+        if ($responseMode === 'form_post') {
             return true;
         }
 
@@ -1199,6 +1218,16 @@ class LoginRedirectorController extends ApiController
 
     private function extractStateFromUnsignedRequestObject(mixed $requestObject): ?string
     {
+        return $this->extractStringClaimFromUnsignedRequestObject($requestObject, 'state');
+    }
+
+    private function extractResponseModeFromUnsignedRequestObject(mixed $requestObject): ?string
+    {
+        return $this->extractStringClaimFromUnsignedRequestObject($requestObject, 'response_mode');
+    }
+
+    private function extractStringClaimFromUnsignedRequestObject(mixed $requestObject, string $claimName): ?string
+    {
         if (!is_string($requestObject)) {
             return null;
         }
@@ -1214,12 +1243,12 @@ class LoginRedirectorController extends ApiController
         }
 
         $claims = json_decode($payload, true);
-        if (!is_array($claims) || !isset($claims['state']) || !is_string($claims['state'])) {
+        if (!is_array($claims) || !isset($claims[$claimName]) || !is_string($claims[$claimName])) {
             return null;
         }
 
-        $state = trim($claims['state']);
-        return $state === '' ? null : $state;
+        $claimValue = trim($claims[$claimName]);
+        return $claimValue === '' ? null : $claimValue;
     }
 
     private function base64UrlDecode(string $value): ?string
@@ -1240,7 +1269,7 @@ class LoginRedirectorController extends ApiController
         mixed $state,
         mixed $responseType = null,
         mixed $responseMode = null
-    ): RedirectResponse {
+    ): Response {
         $params = [
             'error' => $error,
             'error_description' => $errorDescription,
@@ -1251,6 +1280,10 @@ class LoginRedirectorController extends ApiController
 
         $responseTypeEntries = $this->parseResponseTypeEntries($responseType);
         $normalizedResponseMode = $this->normalizeAuthorizationResponseMode($responseMode);
+
+        if ($normalizedResponseMode === 'form_post') {
+            return new FormPostResponse($redirectUri, $params);
+        }
 
         return new RedirectResponse($this->buildAuthorizationResponseRedirectUri(
             $redirectUri,
