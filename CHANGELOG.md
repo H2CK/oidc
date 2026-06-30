@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.2] - 2026-06-30
+
+### Changed
+
+- Added form_post response mode support ([#668](https://github.com/H2CK/oidc/pull/668))
+- Updated dependencies
+- Updated translations
+
 ## [2.0.1] - 2026-06-29
 
 ### Changed
