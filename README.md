@@ -40,9 +40,9 @@ Full documentation can be found at:
 The OIDC conformance workflow is executed daily and on demand against the OpenID Foundation conformance suite. It currently runs the following test plans:
 
 - `oidcc-config-certification-test-plan` for OpenID Provider discovery and metadata validation
-- `oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` for the authorization code flow with static clients
-- `oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with the selected `code id_token` module set for hybrid flow coverage
-- `oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with the selected `id_token` module set for implicit flow coverage
+- `oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` for authorization code flow
+- `oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `code id_token` response type, testing modules: server, userinfo (GET/POST), nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, code reuse, PKCE, refresh tokens, claims essential, redirect URI validation, request object support/rejection, and form post
+- `oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `id_token` response type, testing modules: server, nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, redirect URI validation, request object support/rejection, claims essential, and form post
 
 More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
