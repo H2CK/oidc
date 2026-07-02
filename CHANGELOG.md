@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2026-07-02
+
+### Changed
+
+- Fixed package metadata: Removed NC31 from supported versions
+- Updated translations
+
 ## [2.0.2] - 2026-06-30
 
 ### Changed
