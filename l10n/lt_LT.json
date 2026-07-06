@@ -158,7 +158,7 @@
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "„OpenID Connect“ leidžia prisijungti prie išorinių paslaugų naudojant savo {instanceName}  vartotojo paskyrą.",
     "All settings for the login at other services are managed by your administrator." : "Visus prisijungimo prie kitų paslaugų nustatymus tvarko jūsų administratorius.",
     "Restrict Personal Information" : "Asmens duomenų apribojimas",
-    "Basic authentication" : "Pagrindinis autentifikavimas",
+    "Basic authentication" : "Bazinis autentifikavimas",
     "Verify your identity (required)" : "Patvirtinkite savo tapatybę (būtina)",
     "Profile information" : "Profilio informacija",
     "Access your name, username, profile picture, and quota" : "Pasiekti savo vardą, vartotojo vardą, profilio nuotrauką ir kvotą",
