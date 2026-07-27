@@ -12,6 +12,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Integration;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
@@ -763,6 +764,26 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $responseData = $userInfoResponse->getData();
         $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
         $this->assertEquals('invalid_request', $responseData['error'], 'Error should be invalid_request');
+    }
+
+    public function testDeletingClientRemovesUserConsents(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        $consent = new UserConsent();
+        $consent->setUserId($user->getUID());
+        $consent->setClientId($client->getId());
+        $consent->setScopesGranted('openid profile email');
+        $consent->setCreatedAt($this->time->getTime());
+        $consent->setUpdatedAt($this->time->getTime());
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
+        $this->userConsentMapper->insert($consent);
+
+        $this->clientMapper->delete($client);
+
+        $remainingConsent = $this->userConsentMapper->findByUserAndClient($user->getUID(), $client->getId());
+        $this->assertNull($remainingConsent, 'User consent should be deleted when the client is deleted');
     }
 
     /**

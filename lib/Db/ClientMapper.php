@@ -16,6 +16,7 @@ use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
 use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Server;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Security\ISecureRandom;
@@ -94,6 +95,15 @@ class ClientMapper extends QBMapper {
         }
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
+
+        // remove user consents referencing this client to avoid orphaned rows
+        try {
+            $userConsentMapper = Server::get(UserConsentMapper::class);
+            $userConsentMapper->deleteByClientId($entity->getId());
+        } catch (\Exception $e) {
+            // log and continue; do not block client deletion on consent cleanup
+            $this->logger->warning('Failed to delete user consents for client '.$entity->getId().': '.$e->getMessage());
+        }
 
         // remove the client
         $entity = parent::delete($entity);
@@ -188,6 +198,14 @@ class ClientMapper extends QBMapper {
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
 
+        // remove user consents referencing this client to avoid orphaned rows
+        try {
+            $userConsentMapper = Server::get(UserConsentMapper::class);
+            $userConsentMapper->deleteByClientId($entity->getId());
+        } catch (\Exception $e) {
+            $this->logger->warning('Failed to delete user consents for client '.$entity->getId().': '.$e->getMessage());
+        }
+
         $qb = $this->db->getQueryBuilder();
         $qb
             ->delete($this->tableName)
@@ -221,6 +239,13 @@ class ClientMapper extends QBMapper {
             $this->redirectUriMapper->deleteByClientId($entity->getId());
             // remove custom claims
             $this->customClaimMapper->deleteByClientId($entity->getId());
+            // remove user consents referencing this client
+            try {
+                $userConsentMapper = Server::get(UserConsentMapper::class);
+                $userConsentMapper->deleteByClientId($entity->getId());
+            } catch (\Exception $e) {
+                $this->logger->warning('Failed to delete user consents for client '.$entity->getId().': '.$e->getMessage());
+            }
         }
 
         $qb = $this->db->getQueryBuilder();

@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Revoke user consent now invalidates already-issued access tokens and prevents refresh-token grants after consent revocation (fixes [#674](https://github.com/H2CK/oidc/issues/674)).
-- Added regression tests covering consent revocation and refresh token behavior.
+- Fixed client deletion cleanup so associated `oidc_user_consents` rows are removed and do not remain orphaned.
+- Added regression tests covering consent revocation, refresh token behavior, and client deletion consent cleanup.
 
 ## [2.0.3] - 2026-07-02
 
