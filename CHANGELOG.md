@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.4] - 2026-07-27
+
+### Fixed
+
+- Revoke user consent now invalidates already-issued access tokens and prevents refresh-token grants after consent revocation (fixes [#674](https://github.com/H2CK/oidc/issues/674)).
+- Added regression tests covering consent revocation and refresh token behavior.
+
 ## [2.0.3] - 2026-07-02
 
 ### Changed
