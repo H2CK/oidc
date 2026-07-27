@@ -14,6 +14,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
+use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Controller\OIDCApiController;
 use OCA\OIDCIdentityProvider\Controller\UserInfoController;
@@ -34,7 +35,7 @@ use OC\Security\Ip\BruteforceAllowList;
 use OC\Security\SecureRandom;
 use OCP\AppFramework\Http\JSONResponse;
 use Psr\Log\LoggerInterface;
-use OCP\L10N\IFactory AS L10nFactory;
+use OCP\L10N\IFactory as L10nFactory;
 
 /**
  * Integration test for the OpenID Connect implicit flow.
@@ -91,11 +92,17 @@ class OIDCImplicitFlowTest extends \Test\TestCase
     /** @var UserInfoController */
     private $userInfoController;
 
-    /** @var IRequest|\PHPUnit\Framework\MockObject\MockObject */
+    /** @var mixed */
     private $request;
 
     /** @var IConfig */
     private $config;
+
+    /** @var IProvider|\PHPUnit\Framework\MockObject\MockObject */
+    private $tokenProvider;
+
+    /** @var UserConsentMapper */
+    private $userConsentMapper;
 
     /** @var string */
     private $testUserId = 'test-implicit-user';
@@ -112,7 +119,7 @@ class OIDCImplicitFlowTest extends \Test\TestCase
     /** @var \OCP\AppFramework\App */
     private $app;
 
-    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|L10nFactory */
     private $lFactory;
 
     protected function setUp(): void
@@ -162,12 +169,15 @@ class OIDCImplicitFlowTest extends \Test\TestCase
 
         // Get app-specific services from the app container
         $tokenProvider = $appContainer->get(IProvider::class);
+        $this->tokenProvider = $tokenProvider;
+
+        $this->userConsentMapper = Server::get(UserConsentMapper::class);
 
         // Get JwtGenerator and other app services
         $customClaimMapper = Server::get(\OCA\OIDCIdentityProvider\Db\CustomClaimMapper::class);
         $userConfig = Server::get(\OCP\Config\IUserConfig::class);
 
-        $this->lFactory = $this->createMock(l10NFactory::class);
+        $this->lFactory = $this->createMock(L10nFactory::class);
 
         $customClaimService = new \OCA\OIDCIdentityProvider\Service\CustomClaimService(
             $customClaimMapper,
@@ -207,7 +217,6 @@ class OIDCImplicitFlowTest extends \Test\TestCase
         $this->request = $this->createMock(IRequest::class);
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('nextcloud.local');
-        $this->request->server = [];
 
         $this->oidcApiController = new OIDCApiController(
             'oidc',
@@ -217,6 +226,7 @@ class OIDCImplicitFlowTest extends \Test\TestCase
             $this->authorizationCodeMapper,
             $this->clientMapper,
             $this->groupMapper,
+            $this->userConsentMapper,
             $tokenProvider,
             $this->secureRandom,
             $this->time,
@@ -380,7 +390,6 @@ class OIDCImplicitFlowTest extends \Test\TestCase
 
         // Step 4: Use the access token to get user info (simulating implicit flow token usage)
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $rawToken;
-        $this->request->server['HTTP_AUTHORIZATION'] = 'Bearer ' . $rawToken;
 
         $userInfoResponse = $this->userInfoController->getInfo();
 

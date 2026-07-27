@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 use OCA\OIDCIdentityProvider\Controller\ConsentController;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -33,6 +35,8 @@ class ConsentControllerTest extends TestCase {
     protected $urlGenerator;
     /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper */
     protected $userConsentMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper */
+    protected $accessTokenMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     protected $clientMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
@@ -54,6 +58,7 @@ class ConsentControllerTest extends TestCase {
         $this->userSession = $this->createMock(IUserSession::class);
         $this->urlGenerator = $this->createMock(IURLGenerator::class);
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
+        $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->time = $this->createMock(ITimeFactory::class);
         $this->l = $this->createMock(IL10N::class);
@@ -72,6 +77,7 @@ class ConsentControllerTest extends TestCase {
             $this->userSession,
             $this->urlGenerator,
             $this->userConsentMapper,
+            $this->accessTokenMapper,
             $this->clientMapper,
             $this->time,
             $this->l,
@@ -120,6 +126,32 @@ class ConsentControllerTest extends TestCase {
         $params = $response->getParams();
         $this->assertEquals('Test Client', $params['clientName']);
         $this->assertEquals('openid profile email', $params['requestedScopes']);
+    }
+
+    public function testRevokeConsentDeletesAccessTokens(): void {
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        $this->user->method('getUID')->willReturn('testuser');
+        $this->userSession->method('getUser')->willReturn($this->user);
+
+        $this->appConfig->method('getAppValueString')
+            ->with(
+                Application::APP_CONFIG_ALLOW_USER_SETTINGS,
+                Application::DEFAULT_ALLOW_USER_SETTINGS
+            )
+            ->willReturn('yes');
+
+        $this->userConsentMapper->expects($this->once())
+            ->method('deleteByUserAndClient')
+            ->with('testuser', 1);
+
+        $this->accessTokenMapper->expects($this->once())
+            ->method('deleteByUserAndClient')
+            ->with('testuser', 1);
+
+        $response = $this->controller->revokeConsent(1);
+
+        $this->assertEquals(200, $response->getStatus());
+        $this->assertEquals(['success' => true], $response->getData());
     }
 
     public function testGrantSuccess() {
