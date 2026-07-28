@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -38,6 +39,8 @@ class ConsentController extends Controller {
     private $userSession;
     /** @var IURLGenerator */
     private $urlGenerator;
+    /** @var AccessTokenMapper */
+    private $accessTokenMapper;
     /** @var UserConsentMapper */
     private $userConsentMapper;
     /** @var ClientMapper */
@@ -58,6 +61,7 @@ class ConsentController extends Controller {
         IUserSession $userSession,
         IURLGenerator $urlGenerator,
         UserConsentMapper $userConsentMapper,
+        AccessTokenMapper $accessTokenMapper,
         ClientMapper $clientMapper,
         ITimeFactory $time,
         IL10N $l,
@@ -69,6 +73,7 @@ class ConsentController extends Controller {
         $this->userSession = $userSession;
         $this->urlGenerator = $urlGenerator;
         $this->userConsentMapper = $userConsentMapper;
+        $this->accessTokenMapper = $accessTokenMapper;
         $this->clientMapper = $clientMapper;
         $this->time = $time;
         $this->l = $l;
@@ -301,6 +306,7 @@ class ConsentController extends Controller {
 
         try {
             $this->userConsentMapper->deleteByUserAndClient($uid, $clientId);
+            $this->accessTokenMapper->deleteByUserAndClient($uid, $clientId);
             $this->logger->info('User ' . $uid . ' revoked consent for client ID: ' . $clientId);
             return new JSONResponse(['success' => true]);
         } catch (\Exception $e) {

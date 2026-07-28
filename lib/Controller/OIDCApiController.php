@@ -21,6 +21,7 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
+use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
@@ -56,6 +57,8 @@ class OIDCApiController extends ApiController {
     private $clientMapper;
     /** @var GroupMapper */
     private $groupMapper;
+    /** @var UserConsentMapper */
+    private $userConsentMapper;
     /** @var ICrypto */
     private $crypto;
     /** @var TokenProvider */
@@ -108,6 +111,7 @@ class OIDCApiController extends ApiController {
                     AuthorizationCodeMapper $authorizationCodeMapper,
                     ClientMapper $clientMapper,
                     GroupMapper $groupMapper,
+                    UserConsentMapper $userConsentMapper,
                     TokenProvider $tokenProvider,
                     ISecureRandom $secureRandom,
                     ITimeFactory $time,
@@ -127,6 +131,7 @@ class OIDCApiController extends ApiController {
         $this->authorizationCodeMapper = $authorizationCodeMapper;
         $this->clientMapper = $clientMapper;
         $this->groupMapper = $groupMapper;
+        $this->userConsentMapper = $userConsentMapper;
         $this->tokenProvider = $tokenProvider;
         $this->secureRandom = $secureRandom;
         $this->time = $time;
@@ -390,6 +395,15 @@ class OIDCApiController extends ApiController {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->info('Access token used for allowed for user groups. Client id was ' . $client_id . '.');
             return $this->invalidGrantResponse('Access token not allowed for user groups.');
+        }
+
+        if ($grant_type === 'refresh_token') {
+            $userConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
+            if ($userConsent === null) {
+                $this->accessTokenMapper->delete($accessToken);
+                $this->logger->info('Consent revoked or missing for refresh token grant. Client id was ' . $client_id . '.');
+                return $this->invalidGrantResponse('Consent has been revoked.');
+            }
         }
 
         if ($grant_type === 'authorization_code' && $authorizationCode !== null) {

@@ -1473,22 +1473,25 @@ export default {
 		},
 		async updateFlowTypes() {
 			const id = this.editClient.id
+			const flowType = this.editClient.flowData.props.value[0].value
 			await axios.patch(
 				generateUrl('apps/oidc/clients/flows/{id}', { id }),
 				{
 					id,
-					flowType: this.editClient.flowData.props.value[0].value,
+					flowType,
 				},
 			).then(response => {
-				// Update local clients list with changed data
-				this.localClients = this.localClients.filter(client => client.id !== id)
-				this.localClients[0].flowType = this.editClient.flowData.props.value[0].value
-				if (this.editClient.flowData.props.value[0].value === 'code') {
-					this.localClients[0].flowTypeLabel = t('oidc', 'Code Authorization Flow')
-				} else {
-					this.localClients[0].flowTypeLabel = t('oidc', 'Code & Implicit Authorization Flow')
+				// Update the edited client in local state without depending on array position
+				const clientIndex = this.localClients.findIndex(c => c.id === id)
+				if (clientIndex !== -1) {
+					this.localClients[clientIndex].flowType = flowType
+					if (flowType === 'code') {
+						this.localClients[clientIndex].flowTypeLabel = t('oidc', 'Code Authorization Flow')
+					} else {
+						this.localClients[clientIndex].flowTypeLabel = t('oidc', 'Code & Implicit Authorization Flow')
+					}
+					this.version += 1
 				}
-				this.version += 1
 			}).catch(error_ => {
 				this.error = true
 				this.errorMsg = this.extractErrorMessage(error_)

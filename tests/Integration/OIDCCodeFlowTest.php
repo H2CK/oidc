@@ -12,6 +12,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Integration;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
@@ -45,7 +46,7 @@ use OC\Security\Ip\BruteforceAllowList;
 use OC\Security\SecureRandom;
 use OCP\AppFramework\Http\JSONResponse;
 use Psr\Log\LoggerInterface;
-use OCP\L10N\IFactory AS L10nFactory;
+use OCP\L10N\IFactory as L10nFactory;
 
 /**
  * Integration test for the OpenID Connect code flow.
@@ -113,8 +114,14 @@ class OIDCCodeFlowTest extends \Test\TestCase
     /** @var IAppConfig */
     private $appConfig;
 
-    /** @var IRequest|\PHPUnit\Framework\MockObject\MockObject */
+    /** @var mixed */
     private $request;
+
+    /** @var IConfig */
+    private $config;
+
+    /** @var IProvider|\PHPUnit\Framework\MockObject\MockObject */
+    private $tokenProvider;
 
     /** @var string */
     private $testUserId = 'test-oidc-user';
@@ -137,7 +144,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
     /** @var \OCP\AppFramework\App */
     private $app;
 
-    /** @var \PHPUnit\Framework\MockObject\MockObject|IL10NFactory */
+    /** @var \PHPUnit\Framework\MockObject\MockObject|L10nFactory */
     private $lFactory;
 
     protected function setUp(): void
@@ -196,7 +203,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $customClaimMapper = Server::get(\OCA\OIDCIdentityProvider\Db\CustomClaimMapper::class);
         $userConfig = Server::get(\OCP\Config\IUserConfig::class);
 
-        $this->lFactory = $this->createMock(l10NFactory::class);
+        $this->lFactory = $this->createMock(L10nFactory::class);
 
         $customClaimService = new \OCA\OIDCIdentityProvider\Service\CustomClaimService(
             $customClaimMapper,
@@ -236,7 +243,6 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->request = $this->createMock(IRequest::class);
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('nextcloud.local');
-        $this->request->server = [];
 
         $this->oidcApiController = new OIDCApiController(
             'oidc',
@@ -246,6 +252,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->authorizationCodeMapper,
             $this->clientMapper,
             $this->groupMapper,
+            $this->userConsentMapper,
             $this->tokenProvider,
             $this->secureRandom,
             $this->time,
@@ -438,7 +445,6 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Set up the request to include the Authorization header
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $accessTokenString;
-        $this->request->server['HTTP_AUTHORIZATION'] = 'Bearer ' . $accessTokenString;
 
         $userInfoResponse = $this->userInfoController->getInfo();
 
@@ -614,7 +620,6 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertEquals('invalid_grant', $secondResponseData['error'], 'Reuse response should be invalid_grant');
 
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $firstResponseData['access_token'];
-        $this->request->server['HTTP_AUTHORIZATION'] = 'Bearer ' . $firstResponseData['access_token'];
 
         $userInfoResponse = $this->userInfoController->getInfo();
         $this->assertEquals(400, $userInfoResponse->getStatus(), 'Reused code should revoke the issued access token');
@@ -685,6 +690,43 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertEquals('invalid_grant', $responseData['error'], 'Error should be invalid_grant');
     }
 
+    public function testRefreshTokenFailsAfterConsentRevocation(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        $tokenResult = $this->createAccessToken($client, $user, 'openid offline_access', false);
+        $refreshToken = $tokenResult['rawCode'];
+
+        $consent = new \OCA\OIDCIdentityProvider\Db\UserConsent();
+        $consent->setUserId($user->getUID());
+        $consent->setClientId($client->getId());
+        $consent->setScopesGranted('openid offline_access');
+        $consent->setCreatedAt($this->time->getTime());
+        $consent->setUpdatedAt($this->time->getTime());
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
+        $this->userConsentMapper->insert($consent);
+
+        // Revoke consent for the user and client
+        $this->userConsentMapper->deleteByUserAndClient($user->getUID(), $client->getId());
+
+        $response = $this->oidcApiController->getToken(
+            'refresh_token',
+            null,
+            $refreshToken,
+            $this->testClientId,
+            $this->testClientSecret,
+            null
+        );
+
+        $this->assertInstanceOf(JSONResponse::class, $response, 'Response is not a JSONResponse');
+        $this->assertEquals(400, $response->getStatus(), 'Refresh token grant should fail after consent revocation');
+
+        $responseData = $response->getData();
+        $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
+        $this->assertEquals('invalid_grant', $responseData['error'], 'Error should be invalid_grant');
+    }
+
     /**
      * Test user info with invalid access token
      */
@@ -712,7 +754,6 @@ class OIDCCodeFlowTest extends \Test\TestCase
     {
         // Clear any existing auth header
         unset($_SERVER['HTTP_AUTHORIZATION']);
-        $this->request->server = [];
 
         $userInfoResponse = $this->userInfoController->getInfo();
 
@@ -723,6 +764,26 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $responseData = $userInfoResponse->getData();
         $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
         $this->assertEquals('invalid_request', $responseData['error'], 'Error should be invalid_request');
+    }
+
+    public function testDeletingClientRemovesUserConsents(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        $consent = new UserConsent();
+        $consent->setUserId($user->getUID());
+        $consent->setClientId($client->getId());
+        $consent->setScopesGranted('openid profile email');
+        $consent->setCreatedAt($this->time->getTime());
+        $consent->setUpdatedAt($this->time->getTime());
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
+        $this->userConsentMapper->insert($consent);
+
+        $this->clientMapper->delete($client);
+
+        $remainingConsent = $this->userConsentMapper->findByUserAndClient($user->getUID(), $client->getId());
+        $this->assertNull($remainingConsent, 'User consent should be deleted when the client is deleted');
     }
 
     /**
