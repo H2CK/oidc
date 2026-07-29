@@ -127,6 +127,7 @@ jobs:
           php occ config:system:set overwritehost --value=nextcloud-proxy:8443
           php occ config:system:set overwriteprotocol --value=https
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
+          php occ config:app:set ${{ env.APP_NAME }} dynamic_client_registration --value true
           OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
           php occ user:setting "${OIDC_TEST_USER}" settings email oidc-test@example.test
           callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}/callback"
@@ -238,10 +239,14 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-implicit-config.json \
             conformance-config/oidc-implicit-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-dynamic-config.json \
+            conformance-config/oidc-dynamic-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-implicit-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-dynamic-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -402,6 +407,11 @@ jobs:
             "oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]:${implicit_id_token_module_list}" \
             ../conformance-config/oidc-implicit-config.json \
             "../conformance-results/oidcc-formpost-implicit-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-client-dynamic-certification-test-plan" \
+            ../conformance-config/oidc-dynamic-config.json \
+            "../conformance-results/oidcc-client-dynamic-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
