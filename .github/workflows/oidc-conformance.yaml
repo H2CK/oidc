@@ -409,7 +409,7 @@ jobs:
             "../conformance-results/oidcc-formpost-implicit-certification-test-plan-*.zip"
 
           run_conformance_plan \
-            "oidcc-client-dynamic-certification-test-plan" \
+            "oidcc-client-dynamic-certification-test-plan[client_auth_type=client_secret_basic]" \
             ../conformance-config/oidc-dynamic-config.json \
             "../conformance-results/oidcc-client-dynamic-certification-test-plan-*.zip"
 
