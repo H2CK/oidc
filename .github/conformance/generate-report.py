@@ -92,6 +92,16 @@ def issue_summary(results: list[dict], max_issues: int) -> str:
     return "; ".join(selected)
 
 
+def format_variant(variant: object) -> str:
+    if not isinstance(variant, dict) or not variant:
+        return ""
+    return ", ".join(
+        f"{key}={variant[key]}"
+        for key in sorted(variant)
+        if variant[key] is not None
+    )
+
+
 def collect_tests(results_dir: pathlib.Path, max_issues: int) -> list[dict]:
     tests = []
     for export_name, log_name, data in iter_export_logs(results_dir):
@@ -107,6 +117,12 @@ def collect_tests(results_dir: pathlib.Path, max_issues: int) -> list[dict]:
                 "result": result,
                 "summary": compact(test_info.get("summary")),
                 "issues": issue_summary(test_results, max_issues),
+                "variant": format_variant(test_info.get("variant")),
+                "client_registration": (
+                    test_info.get("variant", {}).get("client_registration", "unknown")
+                    if isinstance(test_info.get("variant"), dict)
+                    else "unknown"
+                ),
                 "started": test_info.get("started", ""),
                 "export": export_name,
             }
@@ -145,30 +161,35 @@ def write_report(tests: list[dict], output: pathlib.Path, results_dir: pathlib.P
     else:
         lines.append("| UNKNOWN | 0 |")
 
-    plan_counts = Counter(test["plan"] for test in tests)
+    plan_counts = Counter(
+        (test["plan"], test["client_registration"])
+        for test in tests
+    )
     lines.extend(
         [
             "",
             "## Plan Summary",
             "",
-            "| Plan | Tests |",
-            "| --- | ---: |",
+            "| Plan | Client registration | Tests |",
+            "| --- | --- | ---: |",
         ]
     )
 
     if plan_counts:
-        for plan, count in sorted(plan_counts.items()):
-            lines.append(f"| {table_cell(plan)} | {count} |")
+        for (plan, client_registration), count in sorted(plan_counts.items()):
+            lines.append(
+                f"| {table_cell(plan)} | {table_cell(client_registration)} | {count} |"
+            )
     else:
-        lines.append("| UNKNOWN | 0 |")
+        lines.append("| UNKNOWN | UNKNOWN | 0 |")
 
     lines.extend(
         [
             "",
             "## Executed Tests",
             "",
-            "| Result | Status | Plan | Test | Description | Issues |",
-            "| --- | --- | --- | --- | --- | --- |",
+            "| Result | Status | Plan | Variant | Test | Description | Issues |",
+            "| --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
 
@@ -184,6 +205,7 @@ def write_report(tests: list[dict], output: pathlib.Path, results_dir: pathlib.P
                         table_cell(test["result"]),
                         table_cell(test["status"]),
                         table_cell(test["plan"]),
+                        table_cell(test["variant"]),
                         table_cell(test_name),
                         table_cell(truncate(test["summary"], 260)),
                         table_cell(truncate(test["issues"], 320)),
@@ -192,7 +214,7 @@ def write_report(tests: list[dict], output: pathlib.Path, results_dir: pathlib.P
                 + " |"
             )
     else:
-        lines.append("| UNKNOWN | UNKNOWN | UNKNOWN | No conformance test logs found |  |  |")
+        lines.append("| UNKNOWN | UNKNOWN | UNKNOWN | UNKNOWN | No conformance test logs found |  |  |")
 
     lines.extend(
         [
