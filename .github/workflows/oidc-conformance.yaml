@@ -409,9 +409,9 @@ jobs:
             "../conformance-results/oidcc-formpost-implicit-certification-test-plan-*.zip"
 
           run_conformance_plan \
-            "oidcc-client-dynamic-certification-test-plan[client_auth_type=client_secret_basic]" \
+            "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client]:oidcc-server" \
             ../conformance-config/oidc-dynamic-config.json \
-            "../conformance-results/oidcc-client-dynamic-certification-test-plan-*.zip"
+            "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT

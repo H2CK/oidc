@@ -1,6 +1,6 @@
 {
-  "alias": "${CONFORMANCE_ALIAS}-dynamic",
-  "description": "Nextcloud OIDC GitHub Actions dynamic registration conformance",
+  "alias": "${CONFORMANCE_ALIAS}-dcr",
+  "description": "Nextcloud OIDC Provider dynamic client registration conformance",
   "publish": "no",
   "server": {
     "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
