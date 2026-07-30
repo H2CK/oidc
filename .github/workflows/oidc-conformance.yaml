@@ -16,7 +16,7 @@ jobs:
 
     env:
       CONFORMANCE_ALIAS: nextcloud-${{ github.run_id }}
-      NEXTCLOUD_BASE_URL: https://nginx:8443
+      NEXTCLOUD_BASE_URL: https://nextcloud-proxy:8443
       OIDC_TEST_USER: oidc-test-user
       OIDC_TEST_PASSWORD: oidc-test-password
       OIDC_CLIENT_ID_1: nextcloud-conformance-client-00001
@@ -123,10 +123,8 @@ jobs:
           php occ config:system:set trusted_domains 1 --value=host.docker.internal
           php occ config:system:set trusted_domains 2 --value=127.0.0.1
           php occ config:system:set trusted_domains 3 --value=nextcloud-proxy
-          php occ config:system:set trusted_domains 4 --value=nginx
-          php occ config:system:set trusted_domains 5 --value=nginx:8443
           php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
-          php occ config:system:set overwritehost --value=nginx:8443
+          php occ config:system:set overwritehost --value=nextcloud-proxy:8443
           php occ config:system:set overwriteprotocol --value=https
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
           php occ config:app:set ${{ env.APP_NAME }} dynamic_client_registration --value true
