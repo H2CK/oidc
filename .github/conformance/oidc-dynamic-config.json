@@ -1,0 +1,9 @@
+{
+  "alias": "${CONFORMANCE_ALIAS}-dcr",
+  "description": "Nextcloud OIDC Provider dynamic client registration conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
+  },
+  "client_auth_type": "client_secret_basic"
+}
