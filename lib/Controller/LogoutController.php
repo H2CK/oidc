@@ -208,7 +208,14 @@ class LogoutController extends ApiController
             }
 
             if ($decodedJwt != null) {
-                $uid = $decodedJwt['preferred_username'];
+                $uid = $decodedJwt['sub'] ?? null;
+                if (empty($uid)) {
+                    $this->logger->error('Provided JWT does not contain a subject.');
+                    return new JSONResponse([
+                        'error' => 'invalid_jwt',
+                        'error_description' => 'Provided JWT does not contain a subject.'
+                    ], Http::STATUS_UNAUTHORIZED);
+                }
                 $this->logger->notice('JWT token for uid ' . $uid . ' received.' );
                 // create user session for user with id perform login without pw
                 $user = $this->userManager->get($uid);
