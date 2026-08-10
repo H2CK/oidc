@@ -418,9 +418,9 @@ jobs:
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
 
           run_conformance_plan \
-            "oidcc-logout-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
+            "oidcc-rp-initiated-logout-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
             ../conformance-config/oidc-logout-config.json \
-            "../conformance-results/oidcc-logout-certification-test-plan-*.zip"
+            "../conformance-results/oidcc-rp-initiated-logout-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
