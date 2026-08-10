@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.5] - 2026-08-10
+
+### Changed
+
+- Stopped relying on the `preferred_username` claim for user identification in OIDC flows, improving compatibility and avoiding incorrect fallback behavior ([#679](https://github.com/H2CK/oidc/pull/679)).
+- Extended the conformance suite with a dynamic client registration test for broader coverage ([#676](https://github.com/H2CK/oidc/pull/676)).
+- Support for Nextcloud 35
+- Updated dependencies
+- Updated translations
+
 ## [2.0.4] - 2026-07-28
 
 ### Changed
