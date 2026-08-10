@@ -23,6 +23,8 @@ jobs:
       OIDC_CLIENT_SECRET_1: nextcloud-conformance-secret-00001
       OIDC_CLIENT_ID_2: nextcloud-conformance-client-00002
       OIDC_CLIENT_SECRET_2: nextcloud-conformance-secret-00002
+      OIDC_LOGOUT_CLIENT_ID: nextcloud-conformance-logout-client-00001
+      OIDC_LOGOUT_CLIENT_SECRET: nextcloud-conformance-logout-secret-00001
       OIDC_HYBRID_CLIENT_ID_1: nextcloud-conformance-hybrid-client-00001
       OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
       OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
@@ -142,6 +144,13 @@ jobs:
             --client_secret "${OIDC_CLIENT_SECRET_2}" \
             --type confidential \
             --flow code \
+            --allowed_scopes "openid profile email offline_access"
+          logout_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/callback"
+          php occ oidc:create "OIDC Conformance Logout" "${logout_callback}" \
+            --client_id "${OIDC_LOGOUT_CLIENT_ID}" \
+            --client_secret "${OIDC_LOGOUT_CLIENT_SECRET}" \
+            --type confidential \
+            --flow "code id_token" \
             --allowed_scopes "openid profile email offline_access"
           hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
           php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
@@ -418,7 +427,7 @@ jobs:
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
 
           run_conformance_plan \
-            "oidcc-rp-initiated-logout-certification-test-plan[client_registration=static_client]" \
+            "oidcc-rp-initiated-logout-certification-test-plan[response_type=code\\ id_token][client_registration=static_client]" \
             ../conformance-config/oidc-logout-config.json \
             "../conformance-results/oidcc-rp-initiated-logout-certification-test-plan-*.zip"
 
