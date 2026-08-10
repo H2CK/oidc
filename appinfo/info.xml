@@ -40,7 +40,7 @@ Full documentation can be found at:
   <screenshot>https://raw.githubusercontent.com/H2CK/oidc/master/docs/oidc-app.png</screenshot>
   <dependencies>
     <lib>openssl</lib>
-    <nextcloud min-version="32" max-version="35"/>
+    <nextcloud min-version="32" max-version="34"/>
   </dependencies>
 
   <commands>
