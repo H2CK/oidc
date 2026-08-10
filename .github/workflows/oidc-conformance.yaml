@@ -242,11 +242,15 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-dynamic-config.json \
             conformance-config/oidc-dynamic-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-logout-config.json \
+            conformance-config/oidc-logout-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-implicit-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-dynamic-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-logout-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -412,6 +416,11 @@ jobs:
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client]:oidcc-server" \
             ../conformance-config/oidc-dynamic-config.json \
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-logout-certification-test-plan[server_metadata=discovery][client_registration=static_client]" \
+            ../conformance-config/oidc-logout-config.json \
+            "../conformance-results/oidcc-logout-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT

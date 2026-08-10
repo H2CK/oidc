@@ -1,0 +1,16 @@
+{
+  "alias": "${CONFORMANCE_ALIAS}-logout",
+  "description": "Nextcloud OIDC GitHub Actions logout conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
+  },
+  "client": {
+    "client_id": "${OIDC_CLIENT_ID_1}",
+    "client_secret": "${OIDC_CLIENT_SECRET_1}"
+  },
+  "client_secret_post": {
+    "client_id": "${OIDC_CLIENT_ID_1}",
+    "client_secret": "${OIDC_CLIENT_SECRET_1}"
+  }
+}
