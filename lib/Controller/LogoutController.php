@@ -198,13 +198,47 @@ class LogoutController extends ApiController
         // Only evaluate id_token_hint if no active session exists
         if (!$sessionLogout && $id_token_hint) {
             // Only evaluate id_token_hint if no active session exists
+            // First, validate the JWT header and basic claims before decoding
+            
+            // Check if we can decode the header
+            $header = null;
+            try {
+                $header = JWT::urlsafeB64Decode(explode('.', $id_token_hint)[0]);
+                $headerData = json_decode($header, true);
+            } catch (\Exception $e) {
+                $this->logger->error('Could not decode id_token_hint header: ' . $e->getMessage());
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'Provided id_token_hint has invalid format'
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
+            // Validate algorithm - must be RS256
+            if (isset($headerData['alg']) && $headerData['alg'] !== 'RS256') {
+                $this->logger->error('id_token_hint uses unsupported algorithm: ' . ($headerData['alg'] ?? 'unknown'));
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'id_token_hint must use RS256 algorithm'
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
+            // Validate kid if present in header
+            $ourKid = $this->appConfig->getAppValueString('kid');
+            if (!empty($ourKid) && isset($headerData['kid']) && $headerData['kid'] !== $ourKid) {
+                $this->logger->error('id_token_hint has invalid kid: ' . ($headerData['kid'] ?? 'unknown'));
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'id_token_hint has invalid kid'
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
             // check Token to get user id
             $oidcKey = [
                 'kty' => 'RSA',
                 'use' => 'sig',
                 'key_ops' => [ 'verify' ],
                 'alg' => 'RS256',
-                'kid' => $this->appConfig->getAppValueString('kid'),
+                'kid' => $ourKid,
                 'n' => $this->appConfig->getAppValueString('public_key_n'),
                 'e' => $this->appConfig->getAppValueString('public_key_e'),
             ];
@@ -226,6 +260,16 @@ class LogoutController extends ApiController
                 return new JSONResponse([
                     'error' => 'invalid_jwt',
                     'error_description' => 'Provided id_token_hint is invalid: ' . $e->getMessage()
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
+            // Validate issuer
+            $ourIssuer = $this->urlGenerator->getAbsoluteURL('/');
+            if (isset($decodedJwt['iss']) && $decodedJwt['iss'] !== $ourIssuer) {
+                $this->logger->error('id_token_hint has invalid issuer: ' . ($decodedJwt['iss'] ?? 'unknown'));
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'id_token_hint has invalid issuer'
                 ], Http::STATUS_UNAUTHORIZED);
             }
 
