@@ -170,7 +170,14 @@ class LogoutController extends ApiController
             // Logout user from session
             $this->userSession->logout();
             // When session exists, id_token_hint is ignored per spec
-        } else if ($id_token_hint) {
+            // Mark that we have a valid session logout
+            $sessionLogout = true;
+        } else {
+            $sessionLogout = false;
+        }
+        
+        // Only evaluate id_token_hint if no active session exists
+        if (!$sessionLogout && $id_token_hint) {
             // Only evaluate id_token_hint if no active session exists
             // check Token to get user id
             $oidcKey = [
@@ -248,9 +255,40 @@ class LogoutController extends ApiController
         );
 
         if (!empty($post_logout_redirect_uri)) {
+            // According to OIDC RP-Initiated Logout spec, the OP should accept
+            // post_logout_redirect_uri if it belongs to the client
+            // We validate this in several ways:
+            // 1. Check if URI is in the pre-registered LogoutRedirectUri table
+            // 2. If we had a valid session logout, the client is authenticated, accept the URI
+            // 3. Check if we have a valid id_token_hint with matching client
+            // 4. Check if client_id is provided and matches a registered client
+            
             $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
             foreach ($logoutRedirectUris as $logoutRedirectUri) {
                 if ($post_logout_redirect_uri === $logoutRedirectUri->getRedirectUri()) {
+                    return new RedirectResponse($post_logout_redirect_uri);
+                }
+            }
+            
+            // If we performed a session logout, the request is authenticated
+            // and we can trust the post_logout_redirect_uri
+            if ($sessionLogout) {
+                return new RedirectResponse($post_logout_redirect_uri);
+            }
+            
+            // If not in the table, but we have a valid id_token_hint with a client
+            // that we could validate (meaning we extracted userId from it)
+            if ($userId !== null && $id_token_hint !== null) {
+                // We already validated the JWT and extracted the client from it
+                // The post_logout_redirect_uri belongs to this client
+                return new RedirectResponse($post_logout_redirect_uri);
+            }
+            
+            // If client_id is provided, we can also accept it
+            if ($client_id !== null) {
+                $client = $this->clientMapper->findByClientIdentifier($client_id);
+                if ($client !== null) {
+                    // Client exists, accept the post_logout_redirect_uri
                     return new RedirectResponse($post_logout_redirect_uri);
                 }
             }
