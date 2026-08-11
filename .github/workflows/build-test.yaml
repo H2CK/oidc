@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Check actor permission
         if: github.actor != 'dependabot[bot]'
-        uses: skjnldsv/check-actor-permission@v2
+        uses: skjnldsv/check-actor-permission@v3
         with:
           require: read
 
@@ -35,13 +35,13 @@ jobs:
           #echo "APP_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           path: ${{ env.APP_NAME }}
 
       - name: Get appinfo data
         id: appinfo
-        uses: mavrosxristoforos/get-xml-info@1.1.1
+        uses: mavrosxristoforos/get-xml-info@2.2.1
         with:
           xml-file: ${{ env.APP_NAME }}/appinfo/info.xml
           xpath: "//info//dependencies//nextcloud/@max-version"
@@ -62,7 +62,7 @@ jobs:
             echo "NEXTCLOUD_REF=stable$major" >> $GITHUB_ENV
 
       - name: Read package.json node and npm engines version
-        uses: skjnldsv/read-package-engines-version-actions@v2
+        uses: skjnldsv/read-package-engines-version-actions@v3
         id: versions
         # Continue if no package.json
         continue-on-error: true
@@ -74,7 +74,7 @@ jobs:
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         # Skip if no package.json
         if: ${{ steps.versions.outputs.nodeVersion }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ steps.versions.outputs.nodeVersion }}
 
@@ -84,14 +84,14 @@ jobs:
         run: npm i -g npm@"${{ steps.versions.outputs.npmVersion }}"
 
       - name: Set up php ${{ env.PHP_VERSION }}
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@v2.37.2
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
 
       - name: Check composer.json
         id: check_composer
-        uses: andstor/file-existence-action@v2
+        uses: andstor/file-existence-action@v3.1.0
         with:
           files: "${{ env.APP_NAME }}/composer.json"
 
@@ -111,7 +111,7 @@ jobs:
 
       - name: Checkout Nextcloud server master
         id: server-checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           repository: nextcloud/server
           path: nextcloud
