@@ -167,9 +167,10 @@ class LogoutController extends ApiController
         // First, check if there is an active user session
         if ($this->userSession !== null && $this->userSession->isLoggedIn()) {
             $userId = $this->userSession->getUser()->getUID();
-            // Logout user from session
+            // Logout user from Nextcloud session
+            // This terminates the current session and invalidates the session cookies
             $this->userSession->logout();
-            // When session exists, id_token_hint is ignored per spec
+            // When session exists, id_token_hint is ignored per OIDC spec
             // Mark that we have a valid session logout
             $sessionLogout = true;
         } else {
@@ -220,7 +221,7 @@ class LogoutController extends ApiController
                     ], Http::STATUS_UNAUTHORIZED);
                 }
                 $this->logger->notice('JWT token for uid ' . $uid . ' received.');
-                // create user session for user with id perform login without pw
+                // Validate that the user exists in Nextcloud
                 $user = $this->userManager->get($uid);
                 if (null === $user) {
                     $this->logger->error('Provided user in JWT is unknown.');
@@ -243,9 +244,13 @@ class LogoutController extends ApiController
         }
 
         if ($userId != null) {
+            // Revoke all access tokens for the user to prevent further API access
+            // Note: This does NOT log the user out from other Nextcloud sessions
+            // If the user has multiple sessions, they will remain logged in to Nextcloud
+            // but will not have valid OIDC tokens anymore
             $this->accessTokenMapper->deleteByUserId($userId);
 
-            $this->logger->debug('Logout for user ' . $userId . ' performed.');
+            $this->logger->debug('OIDC tokens revoked for user ' . $userId . '.');
         }
 
         $defaultLogoutRedirectUrl = $this->urlGenerator->linkToRoute(
