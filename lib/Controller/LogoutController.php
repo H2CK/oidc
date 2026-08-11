@@ -119,7 +119,32 @@ class LogoutController extends ApiController
      * @BruteForceProtection(action=oidc_logout)
      *
      * @param string $client_id
-     * @param string $refresh_token
+     * @param string $id_token_hint
+     * @param string $post_logout_redirect_uri
+     * @return Response
+     */
+    #[BruteForceProtection(action: 'oidc_logout')]
+    #[NoCSRFRequired]
+    #[UseSession]
+    #[PublicPage]
+    public function logoutPost(
+                    string|null $client_id = null, // Optional
+                    string|null $id_token_hint = null, // Recommended to be used
+                    string|null $post_logout_redirect_uri = null // Optional url to be redirected to after logout
+                    ): Response
+    {
+        return $this->logout($client_id, $id_token_hint, $post_logout_redirect_uri);
+    }
+
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     * @UseSession
+     * @BruteForceProtection(action=oidc_logout)
+     *
+     * @param string $client_id
+     * @param string $id_token_hint
+     * @param string $post_logout_redirect_uri
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_logout')]
