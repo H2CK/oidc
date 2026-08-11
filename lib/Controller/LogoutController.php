@@ -113,6 +113,22 @@ class LogoutController extends ApiController
     }
 
     /**
+     * Build a logout redirect URL with optional state parameter
+     *
+     * @param string $url The base URL to redirect to
+     * @param string|null $state The state parameter to include in the redirect
+     * @return RedirectResponse
+     */
+    private function buildLogoutRedirect(string $url, ?string $state): RedirectResponse {
+        if ($state !== null && $state !== '') {
+            // Append state parameter to the URL
+            $separator = (str_contains($url, '?') ? '&' : '?');
+            $url .= $separator . 'state=' . urlencode($state);
+        }
+        return new RedirectResponse($url);
+    }
+
+    /**
      * @PublicPage
      * @NoCSRFRequired
      * @UseSession
@@ -130,10 +146,11 @@ class LogoutController extends ApiController
     public function logoutPost(
                     string|null $client_id = null, // Optional
                     string|null $id_token_hint = null, // Recommended to be used
-                    string|null $post_logout_redirect_uri = null // Optional url to be redirected to after logout
+                    string|null $post_logout_redirect_uri = null, // Optional url to be redirected to after logout
+                    string|null $state = null // REQUIRED if post_logout_redirect_uri is present
                     ): Response
     {
-        return $this->logout($client_id, $id_token_hint, $post_logout_redirect_uri);
+        return $this->logout($client_id, $id_token_hint, $post_logout_redirect_uri, $state);
     }
 
     /**
@@ -154,7 +171,8 @@ class LogoutController extends ApiController
     public function logout(
                     string|null $client_id = null, // Optional
                     string|null $id_token_hint = null, // Recommended to be used
-                    string|null $post_logout_redirect_uri = null // Optional url to be redirected to after logout
+                    string|null $post_logout_redirect_uri = null, // Optional url to be redirected to after logout
+                    string|null $state = null // REQUIRED if post_logout_redirect_uri is present
                     ): Response
     {
         $userId = null;
@@ -271,14 +289,14 @@ class LogoutController extends ApiController
             $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
             foreach ($logoutRedirectUris as $logoutRedirectUri) {
                 if ($post_logout_redirect_uri === $logoutRedirectUri->getRedirectUri()) {
-                    return new RedirectResponse($post_logout_redirect_uri);
+                    return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
                 }
             }
             
             // If we performed a session logout, the request is authenticated
             // and we can trust the post_logout_redirect_uri
             if ($sessionLogout) {
-                return new RedirectResponse($post_logout_redirect_uri);
+                return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
             }
             
             // If not in the table, but we have a valid id_token_hint with a client
@@ -286,7 +304,7 @@ class LogoutController extends ApiController
             if ($userId !== null && $id_token_hint !== null) {
                 // We already validated the JWT and extracted the client from it
                 // The post_logout_redirect_uri belongs to this client
-                return new RedirectResponse($post_logout_redirect_uri);
+                return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
             }
             
             // If client_id is provided, we can also accept it
@@ -294,7 +312,7 @@ class LogoutController extends ApiController
                 $client = $this->clientMapper->findByClientIdentifier($client_id);
                 if ($client !== null) {
                     // Client exists, accept the post_logout_redirect_uri
-                    return new RedirectResponse($post_logout_redirect_uri);
+                    return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
                 }
             }
         }
