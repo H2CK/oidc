@@ -158,7 +158,20 @@ class LogoutController extends ApiController
                     ): Response
     {
         $userId = null;
-        if ($id_token_hint) {
+        
+        // According to OIDC RP-Initiated Logout spec: 
+        // The OP SHOULD NOT rely on the id_token_hint as the only way to identify the logged-in End-User
+        // If the End-User is logged in at the OP, the OP MUST log the End-User out
+        // Therefore, we prioritize the active session over the id_token_hint
+        
+        // First, check if there is an active user session
+        if ($this->userSession !== null && $this->userSession->isLoggedIn()) {
+            $userId = $this->userSession->getUser()->getUID();
+            // Logout user from session
+            $this->userSession->logout();
+            // When session exists, id_token_hint is ignored per spec
+        } else if ($id_token_hint) {
+            // Only evaluate id_token_hint if no active session exists
             // check Token to get user id
             $oidcKey = [
                 'kty' => 'RSA',
@@ -182,11 +195,12 @@ class LogoutController extends ApiController
                 $decodedStdClass = JWT::decode($id_token_hint, JWK::parseKeySet($jwks));
                 $decodedJwt = (array) $decodedStdClass;
             } catch (InvalidArgumentException | DomainException | SignatureInvalidException | BeforeValidException | ExpiredException | UnexpectedValueException $e) {
-                // According to OIDC RP-Initiated Logout spec, the OP SHOULD NOT rely on id_token_hint as the only way
-                // to identify the logged-in user. If the token is invalid, we should still proceed with
-                // session-based logout. Only log a warning and continue.
-                $this->logger->warning('Could not validate id_token_hint: ' . $e->getMessage());
-                $decodedJwt = null;
+                // If we cannot validate the token and there's no session, we cannot proceed
+                $this->logger->error('Could not validate id_token_hint: ' . $e->getMessage());
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'Provided id_token_hint is invalid: ' . $e->getMessage()
+                ], Http::STATUS_UNAUTHORIZED);
             }
 
             if ($decodedJwt != null) {
@@ -219,12 +233,6 @@ class LogoutController extends ApiController
                     ], Http::STATUS_UNAUTHORIZED);
                 }
             }
-        }
-
-        if ($this->userSession !== null && $this->userSession->isLoggedIn()) {
-            $userId = $this->userSession->getUser()->getUID();
-            // Logout user from session
-            $this->userSession->logout();
         }
 
         if ($userId != null) {
