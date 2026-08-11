@@ -181,55 +181,12 @@ class LogoutController extends ApiController
             try {
                 $decodedStdClass = JWT::decode($id_token_hint, JWK::parseKeySet($jwks));
                 $decodedJwt = (array) $decodedStdClass;
-            } catch (InvalidArgumentException $e) {
-                // provided key/key-array is empty or malformed.
-                $this->logger->error('Provided key/key-array is empty or malformed.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided key/key-array is empty or malformed.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (DomainException $e) {
-                // provided algorithm is unsupported OR
-                // provided key is invalid OR
-                // unknown error thrown in openSSL or libsodium OR
-                // libsodium is required but not available.
-                $this->logger->error('Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (SignatureInvalidException $e) {
-                // provided JWT signature verification failed.
-                $this->logger->error('Provided JWT signature verification failed.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided JWT signature verification failed.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (BeforeValidException $e) {
-                // provided JWT is trying to be used before "nbf" claim OR
-                // provided JWT is trying to be used before "iat" claim.
-                $this->logger->error('Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (ExpiredException $e) {
-                // provided JWT is trying to be used after "exp" claim.
-                // $this->logger->error('Provided JWT is trying to be used after "exp" claim.');
-                // return new JSONResponse([
-                //   'error' => 'invalid_jwt',
-                //   'error_description' => 'Provided JWT is trying to be used after "exp" claim.'
-                // ], Http::STATUS_UNAUTHORIZED);
-            } catch (UnexpectedValueException $e) {
-                // provided JWT is malformed OR
-                // provided JWT is missing an algorithm / using an unsupported algorithm OR
-                // provided JWT algorithm does not match provided key OR
-                // provided key ID in key/key-array is empty or invalid.
-                $this->logger->error('Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.'
-                ], Http::STATUS_UNAUTHORIZED);
+            } catch (InvalidArgumentException | DomainException | SignatureInvalidException | BeforeValidException | ExpiredException | UnexpectedValueException $e) {
+                // According to OIDC RP-Initiated Logout spec, the OP SHOULD NOT rely on id_token_hint as the only way
+                // to identify the logged-in user. If the token is invalid, we should still proceed with
+                // session-based logout. Only log a warning and continue.
+                $this->logger->warning('Could not validate id_token_hint: ' . $e->getMessage());
+                $decodedJwt = null;
             }
 
             if ($decodedJwt != null) {
@@ -241,7 +198,7 @@ class LogoutController extends ApiController
                         'error_description' => 'Provided JWT does not contain a subject.'
                     ], Http::STATUS_UNAUTHORIZED);
                 }
-                $this->logger->notice('JWT token for uid ' . $uid . ' received.' );
+                $this->logger->notice('JWT token for uid ' . $uid . ' received.');
                 // create user session for user with id perform login without pw
                 $user = $this->userManager->get($uid);
                 if (null === $user) {
@@ -285,7 +242,7 @@ class LogoutController extends ApiController
         if (!empty($post_logout_redirect_uri)) {
             $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
             foreach ($logoutRedirectUris as $logoutRedirectUri) {
-                if (str_starts_with($post_logout_redirect_uri, $logoutRedirectUri->getRedirectUri())) {
+                if ($post_logout_redirect_uri === $logoutRedirectUri->getRedirectUri()) {
                     return new RedirectResponse($post_logout_redirect_uri);
                 }
             }
