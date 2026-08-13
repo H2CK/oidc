@@ -152,6 +152,7 @@ jobs:
             --type confidential \
             --flow "code id_token" \
             --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/post_logout_redirect"
           hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
           php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
             --client_id "${OIDC_HYBRID_CLIENT_ID_1}" \

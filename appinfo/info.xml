@@ -47,6 +47,9 @@ Full documentation can be found at:
     <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCList</command>
     <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCCreate</command>
     <command>OCA\OIDCIdentityProvider\Command\Clients\OIDCRemove</command>
+    <command>OCA\OIDCIdentityProvider\Command\LogoutRedirectUris\OIDCCreate</command>
+    <command>OCA\OIDCIdentityProvider\Command\LogoutRedirectUris\OIDCList</command>
+    <command>OCA\OIDCIdentityProvider\Command\LogoutRedirectUris\OIDCRemove</command>
     <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCList</command>
     <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCListFunctions</command>
     <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCCreate</command>

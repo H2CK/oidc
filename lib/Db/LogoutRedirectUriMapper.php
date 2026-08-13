@@ -117,4 +117,16 @@ class LogoutRedirectUriMapper extends QBMapper {
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
         $qb->executeStatement();
     }
+
+    /**
+     * Delete logout redirect URIs by their exact URI.
+     */
+    public function deleteByRedirectUri(string $redirectUri): bool {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->delete($this->tableName)
+            ->where($qb->expr()->eq('redirect_uri', $qb->createNamedParameter($redirectUri)));
+
+        return $qb->executeStatement() > 0;
+    }
 }
