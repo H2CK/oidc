@@ -66,7 +66,10 @@ class LogoutControllerTest extends TestCase {
             ->willReturn('/login');
         $urlGenerator->method('getAbsoluteURL')
             ->with('/')
-            ->willReturn('https://nextcloud.local');
+            ->willReturn('https://internal.nextcloud.local');
+        $urlGenerator->method('getWebroot')->willReturn('');
+        $request->method('getServerProtocol')->willReturn('https');
+        $request->method('getServerHost')->willReturn('nextcloud.local');
         $this->controller = new LogoutController(
             'oidc',
             $request,

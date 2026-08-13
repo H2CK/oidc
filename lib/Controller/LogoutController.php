@@ -261,7 +261,10 @@ class LogoutController extends ApiController
             }
             
             // Validate issuer
-            $ourIssuer = $this->urlGenerator->getAbsoluteURL('/');
+            $ourIssuer = $this->request->getServerProtocol()
+                . '://'
+                . $this->request->getServerHost()
+                . $this->urlGenerator->getWebroot();
             if (isset($decodedJwt['iss']) && $decodedJwt['iss'] !== $ourIssuer) {
                 $this->logger->error('id_token_hint has invalid issuer: ' . ($decodedJwt['iss'] ?? 'unknown'));
                 return new JSONResponse([
