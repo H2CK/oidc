@@ -63,6 +63,9 @@ class LogoutControllerTest extends TestCase {
         $urlGenerator->method('linkToRoute')
             ->with('core.login.showLoginForm', [])
             ->willReturn('/login');
+        $urlGenerator->method('getAbsoluteURL')
+            ->with('/')
+            ->willReturn('https://nextcloud.local');
         $this->logoutRedirectUriMapper->method('getAll')->willReturn([]);
 
         $this->controller = new LogoutController(
