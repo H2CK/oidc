@@ -43,6 +43,7 @@ The OIDC conformance workflow is executed daily and on demand against the OpenID
 - `oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` for authorization code flow
 - `oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `code id_token` response type, testing modules: server, userinfo (GET/POST), nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, code reuse, PKCE, refresh tokens, claims essential, redirect URI validation, request object support/rejection, and form post
 - `oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `id_token` response type, testing modules: server, nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, redirect URI validation, request object support/rejection, claims essential, and form post
+- `oidcc-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]` for RP-Initiated Logout, including valid logout flows, state handling, ID token hint validation, and post-logout redirect URI validation
 
 More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
@@ -150,7 +151,7 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Token: `token`(POST) - Credentials for authentication can be passed via Authorization header or in body. (Ususally the Authorization header is fetched directly by the Nextcloud server itself and is not passed to the oidc application. To allow the use of this mechanism a pseudo user backend is provided. Nevertheless this causes an exception shown in the logs on each login using the Authorization header.)
 - UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
-- Logout: `logout` (GET)
+- Logout: `logout` (GET / POST)
 - Dynamic Client Registration: `register` (POST) - Disabled by default. Must be enabled in settings.
 - Client Configuration Management: `register/<client_id>` (PUT / GET / DELETE) - Authenticate with retrieved registration token during creation as Bearer.
 - Instrospection: `introspect`(POST) - Validation of access tokens
@@ -161,15 +162,16 @@ The discovery and web finger endpoint should be made available at the URL: `<Iss
 
 ### Logout Details
 
-To support logout functionality the discovery enpoint contains the attribute `end_session_endpoint`to announce the support for [RP-Initiated logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html). The current implementation only partially supports this specification.
+The discovery document advertises `end_session_endpoint` to signal support for [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html). The endpoint accepts both `GET` and `POST` requests and supports the optional `id_token_hint`, `client_id`, `post_logout_redirect_uri`, and `state` parameters.
 
-Current limitations:
+An active Nextcloud session is terminated whenever the endpoint is called. When a valid `id_token_hint` identifies a user, that user's OIDC access tokens are also revoked. Invalid ID token hints are rejected with an error response.
 
-- Only GET requests to logout endpoint are supported (POST might be added in future)
-- Only the optional attributes `id_token_hint`, `client_id` and `post_logout_redirect_uri` are supported
+For security, a `post_logout_redirect_uri` is used only when all of the following are true:
 
-Remark on `post_logout_redirect_uri`: The passed URIs are checked against the list of allowed logout redirect URIs from the app configuration. The provided `post_logout_redirect_uri` must start with one of the configured URIs.
-If no `post_logout_redirect_uri` is passed or the `post_logout_redirect_uri` does not match any allowed redirect URI, there will be a redirect to the login page of the Nextcloud instance.
+- A valid `id_token_hint` is supplied.
+- The URI is an exact match for an accepted logout redirect URI configured in the app.
+
+When accepted, `state` is appended to the redirect URI. Without an accepted post-logout redirect URI, the user is redirected to the Nextcloud login page. Accepted logout redirect URIs can be managed in the admin settings or with the `oidc:create-logout-redirect-uri`, `oidc:list-logout-redirect-uri`, and `oidc:remove-logout-redirect-uri` OCC commands.
 
 Up to now there is NO support for:
 
