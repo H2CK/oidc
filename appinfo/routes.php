@@ -364,6 +364,11 @@ return [
             'verb' => 'GET'
         ],
         [
+            'name' => 'Logout#logoutPost',
+            'url' => '/logout',
+            'verb' => 'POST'
+        ],
+        [
             'name' => 'Cors#logoutCorsResponse',
             'url' => '/logout',
             'verb' => 'OPTIONS',

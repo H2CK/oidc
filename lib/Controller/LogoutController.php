@@ -113,13 +113,55 @@ class LogoutController extends ApiController
     }
 
     /**
+     * Build a logout redirect URL with optional state parameter
+     *
+     * @param string $url The base URL to redirect to
+     * @param string|null $state The state parameter to include in the redirect
+     * @return RedirectResponse
+     */
+    private function buildLogoutRedirect(string $url, ?string $state): RedirectResponse {
+        if ($state !== null && $state !== '') {
+            // Append state parameter to the URL
+            $separator = (str_contains($url, '?') ? '&' : '?');
+            $url .= $separator . 'state=' . urlencode($state);
+        }
+        return new RedirectResponse($url);
+    }
+
+    /**
      * @PublicPage
      * @NoCSRFRequired
      * @UseSession
      * @BruteForceProtection(action=oidc_logout)
      *
      * @param string $client_id
-     * @param string $refresh_token
+     * @param string $id_token_hint
+     * @param string $post_logout_redirect_uri
+     * @return Response
+     */
+    #[BruteForceProtection(action: 'oidc_logout')]
+    #[NoCSRFRequired]
+    #[UseSession]
+    #[PublicPage]
+    public function logoutPost(
+                    string|null $client_id = null, // Optional
+                    string|null $id_token_hint = null, // Recommended to be used
+                    string|null $post_logout_redirect_uri = null, // Optional url to be redirected to after logout
+                    string|null $state = null // REQUIRED if post_logout_redirect_uri is present
+                    ): Response
+    {
+        return $this->logout($client_id, $id_token_hint, $post_logout_redirect_uri, $state);
+    }
+
+    /**
+     * @PublicPage
+     * @NoCSRFRequired
+     * @UseSession
+     * @BruteForceProtection(action=oidc_logout)
+     *
+     * @param string $client_id
+     * @param string $id_token_hint
+     * @param string $post_logout_redirect_uri
      * @return Response
      */
     #[BruteForceProtection(action: 'oidc_logout')]
@@ -129,18 +171,71 @@ class LogoutController extends ApiController
     public function logout(
                     string|null $client_id = null, // Optional
                     string|null $id_token_hint = null, // Recommended to be used
-                    string|null $post_logout_redirect_uri = null // Optional url to be redirected to after logout
+                    string|null $post_logout_redirect_uri = null, // Optional url to be redirected to after logout
+                    string|null $state = null // REQUIRED if post_logout_redirect_uri is present
                     ): Response
     {
         $userId = null;
+        $validatedIdTokenHint = false;
+        
+        // According to OIDC RP-Initiated Logout spec: 
+        // The OP SHOULD NOT rely on the id_token_hint as the only way to identify the logged-in End-User
+        // If the End-User is logged in at the OP, the OP MUST log the End-User out
+        // Therefore, we prioritize the active session over the id_token_hint
+        
+        // First, check if there is an active user session
+        if ($this->userSession !== null && $this->userSession->isLoggedIn()) {
+            $userId = $this->userSession->getUser()->getUID();
+            // Logout user from Nextcloud session
+            // This terminates the current session and invalidates the session cookies
+            $this->userSession->logout();
+        }
+        
+        // Validate an ID Token Hint even if there is an active session.  A hint is
+        // optional for logging out, but it is required to authenticate a
+        // post_logout_redirect_uri.
         if ($id_token_hint) {
+            // First, validate the JWT header and basic claims before decoding
+            
+            // Check if we can decode the header
+            $header = null;
+            try {
+                $header = JWT::urlsafeB64Decode(explode('.', $id_token_hint)[0]);
+                $headerData = json_decode($header, true);
+            } catch (\Exception $e) {
+                $this->logger->error('Could not decode id_token_hint header: ' . $e->getMessage());
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'Provided id_token_hint has invalid format'
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
+            // Validate algorithm - must be RS256
+            if (isset($headerData['alg']) && $headerData['alg'] !== 'RS256') {
+                $this->logger->error('id_token_hint uses unsupported algorithm: ' . ($headerData['alg'] ?? 'unknown'));
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'id_token_hint must use RS256 algorithm'
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
+            // Validate kid if present in header
+            $ourKid = $this->appConfig->getAppValueString('kid');
+            if (!empty($ourKid) && isset($headerData['kid']) && $headerData['kid'] !== $ourKid) {
+                $this->logger->error('id_token_hint has invalid kid: ' . ($headerData['kid'] ?? 'unknown'));
+                return new JSONResponse([
+                    'error' => 'invalid_jwt',
+                    'error_description' => 'id_token_hint has invalid kid'
+                ], Http::STATUS_UNAUTHORIZED);
+            }
+            
             // check Token to get user id
             $oidcKey = [
                 'kty' => 'RSA',
                 'use' => 'sig',
                 'key_ops' => [ 'verify' ],
                 'alg' => 'RS256',
-                'kid' => $this->appConfig->getAppValueString('kid'),
+                'kid' => $ourKid,
                 'n' => $this->appConfig->getAppValueString('public_key_n'),
                 'e' => $this->appConfig->getAppValueString('public_key_e'),
             ];
@@ -156,54 +251,25 @@ class LogoutController extends ApiController
             try {
                 $decodedStdClass = JWT::decode($id_token_hint, JWK::parseKeySet($jwks));
                 $decodedJwt = (array) $decodedStdClass;
-            } catch (InvalidArgumentException $e) {
-                // provided key/key-array is empty or malformed.
-                $this->logger->error('Provided key/key-array is empty or malformed.');
+            } catch (InvalidArgumentException | DomainException | SignatureInvalidException | BeforeValidException | ExpiredException | UnexpectedValueException $e) {
+                // If we cannot validate the token and there's no session, we cannot proceed
+                $this->logger->error('Could not validate id_token_hint: ' . $e->getMessage());
                 return new JSONResponse([
                     'error' => 'invalid_jwt',
-                    'error_description' => 'Provided key/key-array is empty or malformed.'
+                    'error_description' => 'Provided id_token_hint is invalid: ' . $e->getMessage()
                 ], Http::STATUS_UNAUTHORIZED);
-            } catch (DomainException $e) {
-                // provided algorithm is unsupported OR
-                // provided key is invalid OR
-                // unknown error thrown in openSSL or libsodium OR
-                // libsodium is required but not available.
-                $this->logger->error('Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.');
+            }
+            
+            // Validate issuer
+            $ourIssuer = $this->request->getServerProtocol()
+                . '://'
+                . $this->request->getServerHost()
+                . $this->urlGenerator->getWebroot();
+            if (isset($decodedJwt['iss']) && $decodedJwt['iss'] !== $ourIssuer) {
+                $this->logger->error('id_token_hint has invalid issuer: ' . ($decodedJwt['iss'] ?? 'unknown'));
                 return new JSONResponse([
                     'error' => 'invalid_jwt',
-                    'error_description' => 'Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (SignatureInvalidException $e) {
-                // provided JWT signature verification failed.
-                $this->logger->error('Provided JWT signature verification failed.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided JWT signature verification failed.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (BeforeValidException $e) {
-                // provided JWT is trying to be used before "nbf" claim OR
-                // provided JWT is trying to be used before "iat" claim.
-                $this->logger->error('Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.'
-                ], Http::STATUS_UNAUTHORIZED);
-            } catch (ExpiredException $e) {
-                // provided JWT is trying to be used after "exp" claim.
-                // $this->logger->error('Provided JWT is trying to be used after "exp" claim.');
-                // return new JSONResponse([
-                //   'error' => 'invalid_jwt',
-                //   'error_description' => 'Provided JWT is trying to be used after "exp" claim.'
-                // ], Http::STATUS_UNAUTHORIZED);
-            } catch (UnexpectedValueException $e) {
-                // provided JWT is malformed OR
-                // provided JWT is missing an algorithm / using an unsupported algorithm OR
-                // provided JWT algorithm does not match provided key OR
-                // provided key ID in key/key-array is empty or invalid.
-                $this->logger->error('Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.');
-                return new JSONResponse([
-                    'error' => 'invalid_jwt',
-                    'error_description' => 'Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.'
+                    'error_description' => 'id_token_hint has invalid issuer'
                 ], Http::STATUS_UNAUTHORIZED);
             }
 
@@ -216,8 +282,8 @@ class LogoutController extends ApiController
                         'error_description' => 'Provided JWT does not contain a subject.'
                     ], Http::STATUS_UNAUTHORIZED);
                 }
-                $this->logger->notice('JWT token for uid ' . $uid . ' received.' );
-                // create user session for user with id perform login without pw
+                $this->logger->notice('JWT token for uid ' . $uid . ' received.');
+                // Validate that the user exists in Nextcloud
                 $user = $this->userManager->get($uid);
                 if (null === $user) {
                     $this->logger->error('Provided user in JWT is unknown.');
@@ -236,19 +302,19 @@ class LogoutController extends ApiController
                         'error_description' => 'Provided client_id does not match to the one issued the JWT.'
                     ], Http::STATUS_UNAUTHORIZED);
                 }
+
+                $validatedIdTokenHint = true;
             }
         }
 
-        if ($this->userSession !== null && $this->userSession->isLoggedIn()) {
-            $userId = $this->userSession->getUser()->getUID();
-            // Logout user from session
-            $this->userSession->logout();
-        }
-
         if ($userId != null) {
+            // Revoke all access tokens for the user to prevent further API access
+            // Note: This does NOT log the user out from other Nextcloud sessions
+            // If the user has multiple sessions, they will remain logged in to Nextcloud
+            // but will not have valid OIDC tokens anymore
             $this->accessTokenMapper->deleteByUserId($userId);
 
-            $this->logger->debug('Logout for user ' . $userId . ' performed.');
+            $this->logger->debug('OIDC tokens revoked for user ' . $userId . '.');
         }
 
         $defaultLogoutRedirectUrl = $this->urlGenerator->linkToRoute(
@@ -257,11 +323,15 @@ class LogoutController extends ApiController
                         ]
         );
 
-        if (!empty($post_logout_redirect_uri)) {
+        if (!empty($post_logout_redirect_uri) && $validatedIdTokenHint) {
+            // RP-Initiated Logout permits a post-logout redirect only if the RP
+            // is identified by a valid ID Token Hint and the URI is registered.
+            // Matching must be exact; accepting a URI based on an active OP
+            // session or a client_id alone would allow open redirects.
             $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
             foreach ($logoutRedirectUris as $logoutRedirectUri) {
-                if (str_starts_with($post_logout_redirect_uri, $logoutRedirectUri->getRedirectUri())) {
-                    return new RedirectResponse($post_logout_redirect_uri);
+                if ($post_logout_redirect_uri === $logoutRedirectUri->getRedirectUri()) {
+                    return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
                 }
             }
         }

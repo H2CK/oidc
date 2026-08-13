@@ -23,6 +23,8 @@ jobs:
       OIDC_CLIENT_SECRET_1: nextcloud-conformance-secret-00001
       OIDC_CLIENT_ID_2: nextcloud-conformance-client-00002
       OIDC_CLIENT_SECRET_2: nextcloud-conformance-secret-00002
+      OIDC_LOGOUT_CLIENT_ID: nextcloud-conformance-logout-client-00001
+      OIDC_LOGOUT_CLIENT_SECRET: nextcloud-conformance-logout-secret-00001
       OIDC_HYBRID_CLIENT_ID_1: nextcloud-conformance-hybrid-client-00001
       OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
       OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
@@ -143,6 +145,14 @@ jobs:
             --type confidential \
             --flow code \
             --allowed_scopes "openid profile email offline_access"
+          logout_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/callback"
+          php occ oidc:create "OIDC Conformance Logout" "${logout_callback}" \
+            --client_id "${OIDC_LOGOUT_CLIENT_ID}" \
+            --client_secret "${OIDC_LOGOUT_CLIENT_SECRET}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/post_logout_redirect"
           hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
           php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
             --client_id "${OIDC_HYBRID_CLIENT_ID_1}" \
@@ -242,11 +252,15 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-dynamic-config.json \
             conformance-config/oidc-dynamic-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-logout-config.json \
+            conformance-config/oidc-logout-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-implicit-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-dynamic-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-logout-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -412,6 +426,11 @@ jobs:
             "oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=dynamic_client]:oidcc-server" \
             ../conformance-config/oidc-dynamic-config.json \
             "../conformance-results/oidcc-basic-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
+            ../conformance-config/oidc-logout-config.json \
+            "../conformance-results/oidcc-rp-initiated-logout-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
