@@ -7,6 +7,7 @@ use OCA\OIDCIdentityProvider\Controller\LogoutController;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http;
@@ -66,8 +67,6 @@ class LogoutControllerTest extends TestCase {
         $urlGenerator->method('getAbsoluteURL')
             ->with('/')
             ->willReturn('https://nextcloud.local');
-        $this->logoutRedirectUriMapper->method('getAll')->willReturn([]);
-
         $this->controller = new LogoutController(
             'oidc',
             $request,
@@ -124,6 +123,67 @@ class LogoutControllerTest extends TestCase {
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_jwt', $result->getData()['error']);
+    }
+
+    public function testLogoutDoesNotRedirectWithoutIdTokenHint(): void {
+        $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
+
+        $result = $this->controller->logout(null, null, 'https://rp.example/logout');
+
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertEquals('/login', $result->getRedirectURL());
+    }
+
+    public function testLogoutRejectsInvalidIdTokenHintEvenWithActiveSession(): void {
+        $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        $this->userSession->method('getUser')->willReturn($user);
+        $this->userSession->expects($this->once())->method('logout');
+
+        $result = $this->controller->logout(null, 'not-a-jwt', 'https://rp.example/logout');
+
+        $this->assertInstanceOf(JSONResponse::class, $result);
+        $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+    }
+
+    public function testLogoutOnlyRedirectsToAnExactlyRegisteredUri(): void {
+        $userId = 'user1';
+        $clientId = 'client1';
+        $idTokenHint = $this->createIdTokenHint([
+            'sub' => $userId,
+            'aud' => $clientId,
+        ]);
+        $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
+        $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
+
+        $result = $this->controller->logout($clientId, $idTokenHint, 'https://rp.example/logout?foo=bar');
+
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertEquals('/login', $result->getRedirectURL());
+    }
+
+    public function testLogoutRedirectsWithValidIdTokenHintAndRegisteredUri(): void {
+        $userId = 'user1';
+        $clientId = 'client1';
+        $idTokenHint = $this->createIdTokenHint([
+            'sub' => $userId,
+            'aud' => $clientId,
+        ]);
+        $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
+        $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
+
+        $result = $this->controller->logout($clientId, $idTokenHint, 'https://rp.example/logout', 'state value');
+
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertEquals('https://rp.example/logout?state=state+value', $result->getRedirectURL());
+    }
+
+    private function addRegisteredLogoutRedirectUri(string $uri): void {
+        $logoutRedirectUri = new LogoutRedirectUri();
+        $logoutRedirectUri->setRedirectUri($uri);
+        $this->logoutRedirectUriMapper->method('getAll')->willReturn([$logoutRedirectUri]);
     }
 
     /**
