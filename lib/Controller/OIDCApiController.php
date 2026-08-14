@@ -208,7 +208,7 @@ class OIDCApiController extends ApiController {
         string|null $client_secret = null,
         string|null $code_verifier = null): JSONResponse
     {
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
+        $expireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         $refreshExpireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         // We only handle two types
         if ($grant_type !== 'authorization_code' && $grant_type !== 'refresh_token') {
