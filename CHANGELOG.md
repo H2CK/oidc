@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.6] - 2026-08-14
+
+### Changed
+
+- Extended logout functionality for RP-Initiated Logout ([#682](https://github.com/H2CK/oidc/pull/682))
+- Updated GitHub Actions ([#681](https://github.com/H2CK/oidc/pull/681))
+- Added support for Nextcloud 35
+- Updated dependencies
+- Updated translations
+
 ## [2.0.5] - 2026-08-10
 
 ### Changed
