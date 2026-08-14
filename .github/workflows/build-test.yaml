@@ -59,7 +59,19 @@ jobs:
               exit 1
             fi
             major="${max_version%%.*}"
-            echo "NEXTCLOUD_REF=stable$major" >> $GITHUB_ENV
+
+            # Try the current major version first
+            NEXTCLOUD_REF="stable$major"
+
+            # Check if the branch exists remotely
+            if ! git ls-remote --heads --exit-code https://github.com/nextcloud/server.git "$NEXTCLOUD_REF" > /dev/null 2>&1; then
+              # Fallback: use previous major version
+              fallback_major=$((major - 1))
+              NEXTCLOUD_REF="stable$fallback_major"
+              echo "Branch stable$major not found, falling back to $NEXTCLOUD_REF"
+            fi
+
+            echo "NEXTCLOUD_REF=$NEXTCLOUD_REF" >> $GITHUB_ENV
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v3
