@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.7] - 2026-08-15
+
+### Changed
+
+- Fixed refresh token expiration when set to "never" ([#683](https://github.com/H2CK/oidc/pull/683))
+- Fixed Nextcloud ref fallback for OIDC conformance workflow
+- Updated dependencies
+- Updated translations
+
 ## [2.0.6] - 2026-08-14
 
 ### Changed
