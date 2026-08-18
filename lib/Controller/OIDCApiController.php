@@ -253,13 +253,13 @@ class OIDCApiController extends ApiController {
             return $this->invalidGrantResponse('Could not find access token for code or refresh_token.');
         }
 
-        if (!empty($client_id)) {
+        if (!isset($client_id)) {
             $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
-            if (empty($this->request->server['PHP_AUTH_USER'])) {
+            if (isset($this->request->server['PHP_AUTH_USER'])) {
                 $client_id = urldecode($this->request->server['PHP_AUTH_USER']);
                 $client_secret = urldecode($this->request->server['PHP_AUTH_PW'] ?? '');
             }
-            if (!empty($client_id)) {
+            if (!isset($client_id)) {
                 $this->logger->debug('No client_id in PHP_AUTH_USER superglobal. Trying to fetch from Authorization Header directly.');
                 $authHeader = $this->getAuthorizationHeader();
                 if ($authHeader && stripos($authHeader, 'Basic ') === 0) {
