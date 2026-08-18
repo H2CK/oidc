@@ -148,6 +148,9 @@ class DiscoveryGenerator
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];
+        if ($this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC)) {
+            $tokenEndpointAuthMethodsSupported = ['client_secret_post'];
+        }
         $displayValuesSupported = [
             'page',
             // 'popup',
