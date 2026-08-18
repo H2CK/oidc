@@ -196,23 +196,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      * @return boolean
      */
     public function userExists($uid) {
-        if (strlen($uid) < 32 || strlen($uid) > 64) {
-            return false;
-        }
-
-        try {
-            $client = $this->clientMapper->getByIdentifier($uid);
-        } catch (ClientNotFoundException $e) {
-            $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Could not find client. Client id was ' . $uid . '.');
-            return false;
-        }
-
-        if ($client->getClientIdentifier() !== $uid) {
-            $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Client not found. Client id was ' . $uid . '.');
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     /**
