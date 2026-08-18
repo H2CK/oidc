@@ -305,6 +305,7 @@ Several global OIDC app settings can be changed with the Nextcloud `occ config:a
 | `group_claim_type` | Controls whether the `groups` claim contains internal group IDs or display names. Supported values are `gid` and `displayname`. | `occ config:app:set oidc group_claim_type --value "displayname"` |
 | `role_claim_type` | Controls whether the `roles` claim contains internal group IDs or display names. Supported values are `gid`, `displayname`, and `null`; `null` follows `group_claim_type`. | `occ config:app:set oidc role_claim_type --value "gid"` |
 | `allow_subdomain_wildcards` | Enables or disables subdomain wildcards in redirect URIs, for example `https://*.example.com/callback`. Supported values are `true` and `false`. | `occ config:app:set oidc allow_subdomain_wildcards --value "true"` |
+| `disable_auth_client_secret_basic` | Enables or disables support for the client_secret_basic authentication method. Supported values are `true` and `false`. | `occ config:app:set oidc disable_auth_client_secret_basic --value true` |
 
 ## JWT Access Tokens (RFC9068)
 
