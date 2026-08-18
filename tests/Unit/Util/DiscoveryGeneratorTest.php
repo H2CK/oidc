@@ -5,6 +5,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Util;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Http\JSONResponse;
@@ -40,6 +41,9 @@ class DiscoveryGeneratorTest extends TestCase {
     /** @var \PHPUnit\Framework\MockObject\MockObject|IRequest */
     private $request;
 
+    /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
+    private $config;
+
     public function setUp(): void {
         $this->time = $this->createMock(ITimeFactory::class);
         $this->urlGenerator = $this->createMock(IURLGenerator::class);
@@ -47,6 +51,11 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->request = $this->createMock(IRequest::class);
+        $this->config = $this->createMock(IConfig::class);
+        $this->config->method('getSystemValueBool')
+            ->willReturnCallback(function($key, $default) {
+                return $default;
+            });
         
         $this->urlGenerator->method('getWebroot')->willReturn('/');
         $this->urlGenerator->method('linkToRoute')
@@ -68,7 +77,8 @@ class DiscoveryGeneratorTest extends TestCase {
             $this->urlGenerator,
             $this->appConfig,
             $this->logger,
-            $this->clientMapper
+            $this->clientMapper,
+            $this->config
         );
     }
 
@@ -366,5 +376,36 @@ class DiscoveryGeneratorTest extends TestCase {
             ->with('Request to Discovery Endpoint.');
         
         $this->generator->generateDiscovery($this->request);
+    }
+
+    public function testGenerateDiscoveryTokenAuthEnforcedDisablesClientSecretBasic() {
+        $this->config = $this->createMock(IConfig::class);
+        $this->config->method('getSystemValueBool')
+            ->willReturnCallback(function($key, $default) {
+                if ($key === 'token_auth_enforced') {
+                    return true;
+                }
+                return $default;
+            });
+
+        $generator = new DiscoveryGenerator(
+            $this->time,
+            $this->urlGenerator,
+            $this->appConfig,
+            $this->logger,
+            $this->clientMapper,
+            $this->config
+        );
+
+        $result = $generator->generateDiscovery($this->request);
+        $data = $result->getData();
+
+        $tokenMethods = $data['token_endpoint_auth_methods_supported'];
+        $this->assertContains('client_secret_post', $tokenMethods);
+        $this->assertNotContains('client_secret_basic', $tokenMethods);
+
+        $introspectionMethods = $data['introspection_endpoint_auth_methods_supported'];
+        $this->assertContains('client_secret_post', $introspectionMethods);
+        $this->assertNotContains('client_secret_basic', $introspectionMethods);
     }
 }
