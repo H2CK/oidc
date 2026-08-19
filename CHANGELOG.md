@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.8] - 2026-08-19
+
+### Changed
+
+- Fixed client secret basic authentication ([#685](https://github.com/H2CK/oidc/pull/685))
+- Updated dependencies
+- Updated translations
+
 ## [2.0.7] - 2026-08-15
 
 ### Changed
