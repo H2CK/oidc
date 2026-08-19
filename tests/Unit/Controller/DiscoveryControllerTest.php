@@ -67,13 +67,18 @@ class DiscoveryControllerTest extends TestCase {
         $constructor = $reflection->getConstructor();
         $constructor->invoke($this->throttler, $this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList);
         
+        $this->config->method('getSystemValueBool')
+            ->willReturnCallback(function($key, $default) {
+                return $default;
+            });
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->discoveryGenerator = new DiscoveryGenerator(
                                                             $this->time,
                                                             $this->urlGenerator,
                                                             $this->appConfig,
                                                             $this->logger,
-                                                            $this->clientMapper
+                                                            $this->clientMapper,
+                                                            $this->config
         );
 
         $this->controller = new DiscoveryController(

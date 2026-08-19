@@ -14,6 +14,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Http\Response;
+use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
@@ -31,19 +32,23 @@ class DiscoveryGenerator
     private $logger;
     /** @var ClientMapper */
     private $clientMapper;
+    /** @var IConfig */
+    private $config;
 
     public function __construct(
                     ITimeFactory $time,
                     IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
                     LoggerInterface $logger,
-                    ClientMapper $clientMapper
+                    ClientMapper $clientMapper,
+                    IConfig $config
     ) {
         $this->time = $time;
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
         $this->logger = $logger;
         $this->clientMapper = $clientMapper;
+        $this->config = $config;
     }
 
     /**
@@ -142,12 +147,19 @@ class DiscoveryGenerator
         // $userinfoSigningAlgValuesSupported = [
         //     'none',
         // ];
+        $tokenAuthEnforced = $this->config->getSystemValueBool(
+            'token_auth_enforced',
+            false
+        );
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
             'client_secret_basic',
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];
+        if ($tokenAuthEnforced || $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+            $tokenEndpointAuthMethodsSupported = ['client_secret_post'];
+        }
         $displayValuesSupported = [
             'page',
             // 'popup',
@@ -237,6 +249,9 @@ class DiscoveryGenerator
             'client_secret_post',
             'client_secret_basic'
         ];
+        if ($tokenAuthEnforced || $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+            $discoveryPayload['introspection_endpoint_auth_methods_supported'] = ['client_secret_post'];
+        }
 
         // Add PKCE support to discovery endpoint
         $discoveryPayload['code_challenge_methods_supported'] = ['S256', 'plain'];

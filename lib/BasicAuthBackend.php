@@ -83,11 +83,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      *
      * Check if the password is correct without logging in the user
      */
-    public function checkPassword($uid, $password) {
-        if (strlen($uid) < 32 || strlen($uid) > 64 || strlen($password) < 32 || strlen($password) > 64) {
-            return false;
-        }
-
+    public function checkPassword($loginName, $password) {
         // Limit access to token and introspection endpoints only
         $requestUri = $this->request->getRequestUri();
         $requestUri = strtok($requestUri,"?");
@@ -97,28 +93,41 @@ class BasicAuthBackend extends \OC\User\Backend {
             return false;
         }
 
+        // RFC 6749 client_secret_basic encoding
+        $clientId = urldecode($loginName);
+        $clientSecret = urldecode($password);
+
+        if (
+            strlen($clientId) < 32 ||
+            strlen($clientId) > 64 ||
+            strlen($clientSecret) < 32 ||
+            strlen($clientSecret) > 64
+        ) {
+            return false;
+        }
+
         try {
-            $client = $this->clientMapper->getByIdentifier($uid);
+            $client = $this->clientMapper->getByIdentifier($clientId);
         } catch (ClientNotFoundException $e) {
-            $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Could not find client. Client id was ' . $uid . '.');
+            $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Could not find client. Client id was ' . $clientId . '.');
             return false;
         }
 
         if ($client->getType() === 'public') {
             // Only the client id must match for a public client. Else we don't provide an access token!
-            if ($client->getClientIdentifier() !== $uid) {
-                $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Client not found. Client id was ' . $uid . '.');
+            if ($client->getClientIdentifier() !== $clientId) {
+                $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Client not found. Client id was ' . $clientId . '.');
                 return false;
             }
         } else {
             // The client id and secret must match. Else we don't provide an access token!
-            if ($client->getClientIdentifier() !== $uid || $client->getSecret() !== $password) {
-                $this->logger->error('OIDCIdentityProvider BasicAuthBackend: Client authentication failed. Client id was ' . $uid . '.');
+            if ($client->getClientIdentifier() !== $clientId || $client->getSecret() !== $clientSecret) {
+                $this->logger->error('OIDCIdentityProvider BasicAuthBackend: Client authentication failed. Client id was ' . $clientId . '.');
                 return false;
             }
         }
 
-        return true;
+        return $clientId;
     }
 
     /**
@@ -187,23 +196,7 @@ class BasicAuthBackend extends \OC\User\Backend {
      * @return boolean
      */
     public function userExists($uid) {
-        if (strlen($uid) < 32 || strlen($uid) > 64) {
-            return false;
-        }
-
-        try {
-            $client = $this->clientMapper->getByIdentifier($uid);
-        } catch (ClientNotFoundException $e) {
-            $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Could not find client. Client id was ' . $uid . '.');
-            return false;
-        }
-
-        if ($client->getClientIdentifier() !== $uid) {
-            $this->logger->notice('OIDCIdentityProvider BasicAuthBackend: Client not found. Client id was ' . $uid . '.');
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
     /**

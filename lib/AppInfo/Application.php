@@ -35,6 +35,7 @@ class Application extends App implements IBootstrap
     public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
     public const DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS = 'false';
 
+    public const DEFAULT_DISABLE_AUTH_CLIENT_SECRET_BASIC = false;
     public const DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS = false;
 
     public const GROUP_CLAIM_TYPE_GID = 'gid';
@@ -54,6 +55,7 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS = 'provide_refresh_token_always';
     public const APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS = 'allow_subdomain_wildcards';
     public const APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS = 'always_include_scope_claims';
+    public const APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC = 'disable_auth_client_secret_basic';
 
     private $backend;
 

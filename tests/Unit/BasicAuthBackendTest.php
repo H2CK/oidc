@@ -91,17 +91,24 @@ class BasicAuthBackendTest extends TestCase {
     // --- checkPassword: length validation ---
 
     public function testCheckPasswordRejectsTooShort() {
-        $this->assertFalse($this->backend->checkPassword('short', 'short'));
+        $clientId = 'short';
+        $clientSecret = 'short';
+        $this->setupValidClient($clientId, $clientSecret);
+        $this->assertFalse($this->backend->checkPassword($clientId, $clientSecret));
     }
 
     public function testCheckPasswordRejectsTooLong() {
-        $uid = str_repeat('a', 65);
-        $secret = str_repeat('b', 65);
-        $this->assertFalse($this->backend->checkPassword($uid, $secret));
+        $clientId = str_repeat('a', 65);
+        $clientSecret = str_repeat('b', 65);
+        $this->setupValidClient($clientId, $clientSecret);
+        $this->assertFalse($this->backend->checkPassword($clientId, $clientSecret));
     }
 
     public function testCheckPasswordRejectsEmpty() {
-        $this->assertFalse($this->backend->checkPassword('', ''));
+        $clientId = '';
+        $clientSecret = '';
+        $this->setupValidClient($clientId, $clientSecret);
+        $this->assertFalse($this->backend->checkPassword($clientId, $clientSecret));
     }
 
     // --- checkPassword: accepts valid lengths on token endpoint ---
@@ -122,17 +129,17 @@ class BasicAuthBackendTest extends TestCase {
 
     public function testCheckPasswordAccepts64CharCredentials() {
         $this->setupValidClient($this->uid64, $this->secret64);
-        $this->assertTrue($this->backend->checkPassword($this->uid64, $this->secret64));
+        $this->assertNotFalse($this->backend->checkPassword($this->uid64, $this->secret64));
     }
 
     public function testCheckPasswordAccepts48CharCredentials() {
         $this->setupValidClient($this->uid48, $this->secret48);
-        $this->assertTrue($this->backend->checkPassword($this->uid48, $this->secret48));
+        $this->assertNotFalse($this->backend->checkPassword($this->uid48, $this->secret48));
     }
 
     public function testCheckPasswordAccepts32CharCredentials() {
         $this->setupValidClient($this->uid32, $this->secret32);
-        $this->assertTrue($this->backend->checkPassword($this->uid32, $this->secret32));
+        $this->assertNotFalse($this->backend->checkPassword($this->uid32, $this->secret32));
     }
 
     // --- checkPassword: endpoint restriction ---
@@ -157,7 +164,7 @@ class BasicAuthBackendTest extends TestCase {
             ->with($this->uid64)
             ->willReturn($client);
 
-        $this->assertTrue($this->backend->checkPassword($this->uid64, $this->secret64));
+        $this->assertNotFalse($this->backend->checkPassword($this->uid64, $this->secret64));
     }
 
     // --- checkPassword: wrong secret ---
@@ -201,42 +208,18 @@ class BasicAuthBackendTest extends TestCase {
     }
 
     public function testUserExistsAccepts64Char() {
-        $client = new Client();
-        $client->setClientIdentifier($this->uid64);
-
-        $this->clientMapper->method('getByIdentifier')
-            ->with($this->uid64)
-            ->willReturn($client);
-
-        $this->assertTrue($this->backend->userExists($this->uid64));
+        $this->assertFalse($this->backend->userExists($this->uid64));
     }
 
     public function testUserExistsAccepts48Char() {
-        $client = new Client();
-        $client->setClientIdentifier($this->uid48);
-
-        $this->clientMapper->method('getByIdentifier')
-            ->with($this->uid48)
-            ->willReturn($client);
-
-        $this->assertTrue($this->backend->userExists($this->uid48));
+        $this->assertFalse($this->backend->userExists($this->uid48));
     }
 
     public function testUserExistsAccepts32Char() {
-        $client = new Client();
-        $client->setClientIdentifier($this->uid32);
-
-        $this->clientMapper->method('getByIdentifier')
-            ->with($this->uid32)
-            ->willReturn($client);
-
-        $this->assertTrue($this->backend->userExists($this->uid32));
+        $this->assertFalse($this->backend->userExists($this->uid32));
     }
 
     public function testUserExistsReturnsFalseForUnknownClient() {
-        $this->clientMapper->method('getByIdentifier')
-            ->willThrowException(new ClientNotFoundException());
-
         $this->assertFalse($this->backend->userExists($this->uid64));
     }
 }

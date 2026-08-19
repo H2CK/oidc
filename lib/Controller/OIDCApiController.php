@@ -256,8 +256,8 @@ class OIDCApiController extends ApiController {
         if (!isset($client_id)) {
             $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
             if (isset($this->request->server['PHP_AUTH_USER'])) {
-                $client_id = $this->request->server['PHP_AUTH_USER'];
-                $client_secret = $this->request->server['PHP_AUTH_PW'] ?? null;
+                $client_id = urldecode($this->request->server['PHP_AUTH_USER']);
+                $client_secret = urldecode($this->request->server['PHP_AUTH_PW'] ?? '');
             }
             if (!isset($client_id)) {
                 $this->logger->debug('No client_id in PHP_AUTH_USER superglobal. Trying to fetch from Authorization Header directly.');
@@ -267,6 +267,8 @@ class OIDCApiController extends ApiController {
                     $decoded = base64_decode($base64, true);
                     if ($decoded !== false && strpos($decoded, ':') !== false) {
                         list($client_id, $client_secret) = explode(':', $decoded, 2);
+                        $client_id = urldecode($client_id);
+                        $client_secret = urldecode($client_secret);
                     }
                 } else {
                     $this->logger->debug('No Authorization Header with client_id found.');
