@@ -84,7 +84,7 @@ class OIDCApiController extends ApiController {
     /** @var LoggerInterface */
     private $logger;
 
-	/**
+    /**
      * @param string $appName
      * @param IRequest $request
      * @param ICrypto $crypto
@@ -94,7 +94,7 @@ class OIDCApiController extends ApiController {
      * @param GroupMapper $groupMapper
      * @param ISecureRandom $random
      * @param ITimeFactory $time
-	 * @param Throttler $throttler
+     * @param Throttler $throttler
      * @param IUserManager $userManager
      * @param IGroupManager $groupManager
      * @param IAccountManager $accountManager
@@ -145,20 +145,42 @@ class OIDCApiController extends ApiController {
         $this->logger = $logger;
     }
 
-    private function getAuthorizationHeader() {
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            if (isset($headers['Authorization'])) {
-                return $headers['Authorization'];
-            }
+    private function getBasicClientCredentials(): ?array
+    {
+        $authorization = $this->request->getHeader('Authorization');
+
+        if ($authorization === '') {
+            return null;
         }
 
-        // Fallback via $_SERVER
-        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-            return $_SERVER['HTTP_AUTHORIZATION'];
+        if (stripos($authorization, 'Basic ') !== 0) {
+            return null;
         }
 
-        return null;
+        $encoded = trim(substr($authorization, 6));
+
+        $decoded = base64_decode($encoded, true);
+        if ($decoded === false) {
+            return null;
+        }
+
+        $separator = strpos($decoded, ':');
+        if ($separator === false) {
+            return null;
+        }
+
+        $clientId = substr($decoded, 0, $separator);
+        $clientSecret = substr($decoded, $separator + 1);
+
+        /*
+        * RFC 6749 section 2.3.1:
+        * client_id and client_secret use application/x-www-form-urlencoded
+        * encoding before being put into Basic auth.
+        */
+        return [
+            rawurldecode($clientId),
+            rawurldecode($clientSecret),
+        ];
     }
 
     private function invalidGrantResponse(string $description): JSONResponse {
@@ -187,16 +209,17 @@ class OIDCApiController extends ApiController {
      * @PublicPage
      * @NoCSRFRequired
      * @BruteForceProtection(action=oidc_token)
+     * @NoTwoFactorRequired
      *
      * @param string $grant_type
      * @param string|null $code
-     * @param string|null $refresh_token
      * @param string|null $refresh_token
      * @param string|null $client_id
      * @param string|null $client_secret
      * @param string|null $code_verifier
      * @return JSONResponse
      */
+    // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
     #[BruteForceProtection(action: 'oidc_token')]
     #[PublicPage]
     #[NoCSRFRequired]
@@ -255,24 +278,9 @@ class OIDCApiController extends ApiController {
 
         if (!isset($client_id)) {
             $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
-            if (isset($this->request->server['PHP_AUTH_USER'])) {
-                $client_id = urldecode($this->request->server['PHP_AUTH_USER']);
-                $client_secret = urldecode($this->request->server['PHP_AUTH_PW'] ?? '');
-            }
-            if (!isset($client_id)) {
-                $this->logger->debug('No client_id in PHP_AUTH_USER superglobal. Trying to fetch from Authorization Header directly.');
-                $authHeader = $this->getAuthorizationHeader();
-                if ($authHeader && stripos($authHeader, 'Basic ') === 0) {
-                    $base64 = substr($authHeader, 6);
-                    $decoded = base64_decode($base64, true);
-                    if ($decoded !== false && strpos($decoded, ':') !== false) {
-                        list($client_id, $client_secret) = explode(':', $decoded, 2);
-                        $client_id = urldecode($client_id);
-                        $client_secret = urldecode($client_secret);
-                    }
-                } else {
-                    $this->logger->debug('No Authorization Header with client_id found.');
-                }
+            $credentials = $this->getBasicClientCredentials();
+            if ($credentials !== null) {
+                [$client_id, $client_secret] = $credentials;
             }
         }
 

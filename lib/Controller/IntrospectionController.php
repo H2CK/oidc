@@ -103,11 +103,13 @@ class IntrospectionController extends ApiController
     /**
      * @PublicPage
      * @NoCSRFRequired
+     * @NoTwoFactorRequired
      *
      * @param string $token The token to introspect
      * @param string|null $token_type_hint Optional hint about the token type
      * @return JSONResponse
      */
+    // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
     #[NoCSRFRequired]
     #[PublicPage]
     public function introspectToken(
