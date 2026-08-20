@@ -148,7 +148,7 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Discovery: `openid-configuration` (GET) or at `index.php/.well-known/openid-configuration`
 - WebFinger: at `index.php/.well-known/webfinger`
 - Authorization: `authorize`(GET)
-- Token: `token`(POST) - Credentials for authentication can be passed via Authorization header or in body. (Ususally the Authorization header is fetched directly by the Nextcloud server itself and is not passed to the oidc application. To allow the use of this mechanism a pseudo user backend is provided. Nevertheless this causes an exception shown in the logs on each login using the Authorization header.)
+- Token: `token`(POST) - Credentials for authentication can be passed via Authorization header (client_secret_basic) or in body (client_secret_post).
 - UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
 - Logout: `logout` (GET / POST)

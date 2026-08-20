@@ -147,17 +147,13 @@ class DiscoveryGenerator
         // $userinfoSigningAlgValuesSupported = [
         //     'none',
         // ];
-        $tokenAuthEnforced = $this->config->getSystemValueBool(
-            'token_auth_enforced',
-            false
-        );
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
             'client_secret_basic',
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];
-        if ($tokenAuthEnforced || $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+        if ($this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
             $tokenEndpointAuthMethodsSupported = ['client_secret_post'];
         }
         $displayValuesSupported = [
@@ -249,7 +245,7 @@ class DiscoveryGenerator
             'client_secret_post',
             'client_secret_basic'
         ];
-        if ($tokenAuthEnforced || $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+        if ($this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
             $discoveryPayload['introspection_endpoint_auth_methods_supported'] = ['client_secret_post'];
         }
 

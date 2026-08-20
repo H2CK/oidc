@@ -11,11 +11,10 @@ use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
 use OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent;
 use OCA\OIDCIdentityProvider\Http\WellKnown\WebFingerHandler;
 use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
-use OCA\OIDCIdentityProvider\BasicAuthBackend;
+use OCA\OIDCIdentityProvider\Http\BasicAuthRequestSanitizer;
 use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
 use OCP\AppFramework\App;
-use OC_User;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
@@ -57,8 +56,6 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS = 'always_include_scope_claims';
     public const APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC = 'disable_auth_client_secret_basic';
 
-    private $backend;
-
     public function __construct()
     {
         parent::__construct(self::APP_ID);
@@ -68,6 +65,8 @@ class Application extends App implements IBootstrap
     {
         // Register the composer autoloader for packages shipped by this app
         require_once __DIR__ . '/../../vendor/autoload.php';
+
+        $this->getContainer()->get(BasicAuthRequestSanitizer::class)->sanitize();
         // Register WebFingerHandler
         $context->registerWellKnownHandler(WebFingerHandler::class);
         // Register OIDCDiscoveryHandler
@@ -75,9 +74,6 @@ class Application extends App implements IBootstrap
 
         $context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
         $context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
-
-        $this->backend = $this->getContainer()->get(BasicAuthBackend::class);
-        OC_User::useBackend($this->backend);
     }
 
     public function boot(IBootContext $context): void
