@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.9] - 2026-08-20
+
+### Changed
+
+- Refactored client secret basic authentication to bypass Nextcloud Core interception ([#688](https://github.com/H2CK/oidc/pull/688))
+
 ## [2.0.8] - 2026-08-19
 
 ### Changed
