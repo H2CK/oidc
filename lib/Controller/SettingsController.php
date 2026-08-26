@@ -231,6 +231,9 @@ class SettingsController extends Controller
         if (array_key_exists('type', $params)) {
             $client->setType($params['type'] === 'public' ? 'public' : 'confidential');
         }
+        if ($client->getType() === 'public') {
+            $client->setTexEnabled(false);
+        }
         if (array_key_exists('flowType', $params)) {
             $client->setFlowType(str_contains((string)$params['flowType'], 'id_token') ? 'code id_token' : 'code');
         }
@@ -284,7 +287,9 @@ class SettingsController extends Controller
             }
         }
         if (array_key_exists('texEnabled', $params)) {
-            $client->setTexEnabled((bool)$params['texEnabled']);
+            if ($client->getType() === 'confidential') {
+                $client->setTexEnabled((bool)$params['texEnabled']);
+            }
         }
         if (array_key_exists('texAllowedScopes', $params)) {
             $texAllowedScopes = trim((string)$params['texAllowedScopes']);

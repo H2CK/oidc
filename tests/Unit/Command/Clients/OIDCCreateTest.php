@@ -118,6 +118,24 @@ class OIDCCreateTest extends TestCase
         $this->assertSame('openid profile', $client->getTexAllowedScopes());
     }
 
+    public function testExecuteRejectsTokenExchangeForPublicClient(): void
+    {
+        $tester = new CommandTester($this->command);
+
+        $statusCode = $tester->execute([
+            'name' => 'Public Client',
+            'redirect_uris' => ['https://local.lo/callback'],
+            '--type' => 'public',
+            '--tex_enabled' => true,
+        ]);
+
+        $this->assertSame(Command::FAILURE, $statusCode);
+        $this->assertStringContainsString(
+            'Token Exchange cannot be enabled for public clients.',
+            $tester->getDisplay()
+        );
+    }
+
     public static function validCredentialProvider(): array
     {
         return [

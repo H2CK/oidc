@@ -85,7 +85,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function setUp(): void {
         parent::setUp();
-        
+
         $this->request = $this->createMock(IRequest::class);
         $this->db = $this->createMock(IDBConnection::class);
         $this->time = $this->createMock(ITimeFactory::class);
@@ -114,7 +114,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->texTargetMapper = $this->createMock(TexTargetMapper::class);
 
         $throttler = $this->createMock(Throttler::class);
-        
+
         $this->controller = new OIDCApiController(
             'oidc',
             $this->request,
@@ -196,7 +196,7 @@ class OIDCApiControllerTest extends TestCase {
                         return null;
                 }
             });
-        
+
         $this->request
             ->method('getHeader')
             ->willReturn('');
@@ -306,6 +306,34 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertStringContainsString('not enabled', $result->getData()['error_description']);
     }
 
+    public function testTokenExchangeIsNotAllowedForPublicClient() {
+        $client = new Client('public-client', ['https://test.org'], 'RS256', 'public');
+        $client->setClientIdentifier('public-client');
+        $client->setTexEnabled(true);
+
+        $this->request
+            ->method('getParam')
+            ->willReturnMap([
+                ['subject_token', null, 'some-token'],
+                ['subject_token_type', 'access_token', 'access_token'],
+            ]);
+
+        $this->clientMapper
+            ->method('getByIdentifier')
+            ->willReturn($client);
+
+        $result = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:token-exchange',
+            null,
+            null,
+            'public-client'
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('not allowed for public', $result->getData()['error_description']);
+    }
+
     public function testTokenExchangeInvalidSubjectToken() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setClientIdentifier('test-client');
@@ -337,7 +365,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->accessTokenMapper
             ->method('getByCode')
             ->willThrowException(new AccessTokenNotFoundException('Token not found'));
-        
+
         $this->accessTokenMapper
             ->method('getByAccessToken')
             ->willThrowException(new AccessTokenNotFoundException('Token not found'));
@@ -428,13 +456,13 @@ class OIDCApiControllerTest extends TestCase {
         // Mock new token generation
         $newToken = new AccessToken();
         $newToken->setAccessToken('new_jwt_token');
-        
+
         $this->secureRandom->method('generate')->willReturn('new_refresh_token');
         $this->jwtGenerator->method('generateAccessToken')
             ->willReturn('new_jwt_token');
         $this->jwtGenerator->method('generateIdToken')
             ->willReturn('new_id_token');
-        
+
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
 
@@ -507,11 +535,11 @@ class OIDCApiControllerTest extends TestCase {
         // Mock new token generation
         $newToken = new AccessToken();
         $newToken->setAccessToken('new_jwt_token');
-        
+
         $this->secureRandom->method('generate')->willReturn('new_refresh_token');
         $this->jwtGenerator->method('generateAccessToken')->willReturn('new_jwt_token');
         $this->jwtGenerator->method('generateIdToken')->willReturn('id_token_value');
-        
+
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
 
@@ -534,7 +562,7 @@ class OIDCApiControllerTest extends TestCase {
 
         $this->accessTokenMapper->method('insert')->willReturn($newToken);
         $this->texTargetMapper->method('markUsed')->willReturn(true);
-        
+
         // Mock server protocol and host
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('example.com');

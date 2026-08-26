@@ -171,6 +171,10 @@ class OIDCCreate extends Command
                 }
             }
 
+            if ($input->getOption('type') === 'public' && $input->getOption('tex_enabled')) {
+                throw new CliException('Token Exchange cannot be enabled for public clients.');
+            }
+
             // create new client
             $client = new Client(
                 $input->getArgument('name'),

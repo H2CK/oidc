@@ -550,17 +550,21 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Validate client authentication
         if ($client->getType() === 'public') {
-            $this->logger->debug('Authenticated public client in Token Exchange. Client id was ' . $client_id . '.');
-        } else {
-            if ($client->getSecret() !== $client_secret) {
-                $this->logger->error('Client authentication failed in Token Exchange. Client id was ' . $client_id . '.');
-                return new JSONResponse([
-                    'error' => 'invalid_client',
-                    'error_description' => 'Client authentication failed.',
-                ], Http::STATUS_BAD_REQUEST);
-            }
+            $this->logger->info('Token Exchange is not allowed for public client ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Token Exchange is not allowed for public clients.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Validate client authentication
+        if ($client->getSecret() !== $client_secret) {
+            $this->logger->error('Client authentication failed in Token Exchange. Client id was ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_client',
+                'error_description' => 'Client authentication failed.',
+            ], Http::STATUS_BAD_REQUEST);
         }
 
         // Check if Token Exchange is enabled for this client
@@ -652,17 +656,17 @@ class OIDCApiController extends ApiController {
         if (!empty($scope)) {
             // Parse and validate requested scopes
             $requestedScopes = trim($scope);
-            
+
             // Check if all requested scopes are allowed by the client's tex_allowed_scopes
             $texAllowedScopes = $client->getTexAllowedScopes();
-            
+
             if (!empty($texAllowedScopes)) {
                 // Parse allowed scopes
                 $allowedScopesArray = preg_split('/ +/', trim($texAllowedScopes), -1, PREG_SPLIT_NO_EMPTY);
-                
+
                 // Parse requested scopes
                 $requestedScopesArray = preg_split('/ +/', $requestedScopes, -1, PREG_SPLIT_NO_EMPTY);
-                
+
                 // Check each requested scope is in allowed scopes
                 foreach ($requestedScopesArray as $requestedScope) {
                     if (!in_array($requestedScope, $allowedScopesArray)) {
@@ -684,8 +688,8 @@ class OIDCApiController extends ApiController {
         // Check if user is in allowed groups for client
         $clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
         $groupFound = false;
-        if (count($clientGroups) < 1) { 
-            $groupFound = true; 
+        if (count($clientGroups) < 1) {
+            $groupFound = true;
         }
         foreach ($clientGroups as $clientGroup) {
             foreach ($groups as $userGroup) {
@@ -706,7 +710,7 @@ class OIDCApiController extends ApiController {
         // Create a new access token for the exchanged token
         $newAccessToken = new AccessToken();
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
-        
+
         $newAccessToken->setClientId($client->getId());
         $newAccessToken->setUserId($uid);
         $newAccessToken->setScope($requestedScopes !== '' ? $requestedScopes : $subjectTokenAccessToken->getScope());

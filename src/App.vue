@@ -182,16 +182,16 @@
 							placeholder="https://resource-server.com/"
 							:helper-text="t('oidc', 'Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource.')"
 							type="url" />
-						<NcCheckboxRadioSwitch v-model="editClient.texEnabled"
+						<NcCheckboxRadioSwitch v-if="!isPublic" v-model="editClient.texEnabled"
 							name="tex_enabled"
 							type="checkbox">
 							{{ t('oidc', 'Enable Token Exchange according to RFC 8693') }}
 						</NcCheckboxRadioSwitch>
-						<NcTextField v-model="editClient.texAllowedScopes"
+						<NcTextField v-if="!isPublic" v-model="editClient.texAllowedScopes"
 							:label="t('oidc', 'Token Exchange Allowed Scopes according to RFC 8693')"
 							placeholder="openid profile"
 							:helper-text="t('oidc', 'Scopes allowed during Token Exchange. Separate scopes with spaces.')" />
-						<NcTextField v-model="editClient.texTargetsText"
+						<NcTextField v-if="!isPublic" v-model="editClient.texTargetsText"
 							:label="t('oidc', 'Token Exchange Targets according to RFC 8693')"
 							placeholder="https://resource-server.example/"
 							:helper-text="t('oidc', 'Allowed target URLs for Token Exchange, separated by commas.')" />
@@ -1380,7 +1380,7 @@ export default {
 						emailRegex: this.editClient.emailRegex,
 						resourceUrl: this.editClient.resourceUrl,
 						groups: this.editClient.groupData.props.value,
-						texEnabled: this.editClient.texEnabled,
+						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
 						texTargets: this.editClient.texTargetsText.split(',').map(target => target.trim()).filter(Boolean),
 					},
@@ -1396,7 +1396,7 @@ export default {
 						allowedScopes: this.editClient.allowedScopes,
 						emailRegex: this.editClient.emailRegex,
 						resourceUrl: this.editClient.resourceUrl,
-						texEnabled: this.editClient.texEnabled,
+						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
 						texTargets: this.editClient.texTargetsText.split(',').map(target => ({ resourceUrl: target.trim() })).filter(target => target.resourceUrl),
 						groups: this.editClient.groupData.props.value,
