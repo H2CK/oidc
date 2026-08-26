@@ -223,6 +223,7 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertEquals('client123', $data['client_id']);
         $this->assertEquals('user1', $data['username']);
         $this->assertEquals('Bearer', $data['token_type']);
+        $this->assertEquals('https://resource.example.com', $data['aud']);
         $this->assertEquals('user1', $data['sub']);
     }
 

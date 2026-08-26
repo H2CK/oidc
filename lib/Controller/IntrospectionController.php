@@ -280,7 +280,7 @@ class IntrospectionController extends ApiController
             'exp' => $tokenExpiryTime,
             'iat' => $accessToken->getCreated(),
             'sub' => $accessToken->getUserId(),
-            'aud' => $tokenClient->getClientIdentifier()
+            'aud' => !empty($tokenResource) ? $tokenResource : $tokenClient->getClientIdentifier()
         ];
 
         $this->logger->info('Token introspection successful', [

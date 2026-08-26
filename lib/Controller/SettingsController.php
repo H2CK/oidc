@@ -280,8 +280,8 @@ class SettingsController extends Controller
             $texTargetUrls = [];
             foreach ((array)$params['texTargets'] as $resourceUrl) {
                 $resourceUrl = trim((string)$resourceUrl);
-                if (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
-                    return new JSONResponse(['error' => 'Invalid Token Exchange target URL.'], Http::STATUS_BAD_REQUEST);
+                if (mb_strlen($resourceUrl) > 512 || !$this->isValidTokenExchangeResourceUri($resourceUrl)) {
+                    return new JSONResponse(['error' => 'Invalid Token Exchange target URI. The value must be an absolute URI without a fragment.'], Http::STATUS_BAD_REQUEST);
                 }
                 $texTargetUrls[] = $resourceUrl;
             }
@@ -825,4 +825,22 @@ class SettingsController extends Controller
         ];
         return new JSONResponse($result);
     }
+    /**
+     * RFC 8693 resource values are absolute RFC 3986 URIs and MUST NOT contain
+     * a fragment. Query components are allowed.
+     */
+    private function isValidTokenExchangeResourceUri(string $resource): bool
+    {
+        if ($resource === '' || preg_match('/[\x00-\x20]/', $resource) === 1) {
+            return false;
+        }
+
+        $parts = parse_url($resource);
+        if ($parts === false || !isset($parts['scheme']) || isset($parts['fragment'])) {
+            return false;
+        }
+
+        return preg_match('/^[A-Za-z][A-Za-z0-9+.-]*$/', (string)$parts['scheme']) === 1;
+    }
+
 }

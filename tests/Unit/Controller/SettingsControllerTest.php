@@ -641,6 +641,21 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals('opaque', $this->client->getTokenType(), 'TokenType does not match!');
     }
 
+    public function testRejectsTokenExchangeTargetWithFragment(): void {
+        $client = new Client('TEST', ['https://local.lo'], 'RS256', 'confidential');
+        $client->setId(1);
+        $this->clientMapper->method('getByUid')->willReturn($client);
+        $this->request->method('getParams')->willReturn([
+            'texTargets' => ['https://resource.example/api#fragment'],
+        ]);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertStringContainsString('absolute URI without a fragment', $result->getData()['error']);
+    }
+
     public function testChangingClientToPublicDisablesTokenExchange(): void {
         $client = new Client('TEST', ['https://local.lo'], 'RS256', 'confidential');
         $client->setTexEnabled(true);

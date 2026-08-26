@@ -50,6 +50,8 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
+    private const TOKEN_EXCHANGE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:token-exchange';
+    private const TOKEN_TYPE_ACCESS_TOKEN = 'urn:ietf:params:oauth:token-type:access_token';
     /** @var AccessTokenMapper */
     private $accessTokenMapper;
     /** @var AuthorizationCodeMapper */
@@ -242,8 +244,7 @@ class OIDCApiController extends ApiController {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         // Handle token exchange (RFC 8693)
-        $tokenExchangeGrantType = 'urn:ietf:params:oauth:grant-type:token-exchange';
-        if ($grant_type === $tokenExchangeGrantType) {
+        if ($grant_type === self::TOKEN_EXCHANGE_GRANT_TYPE) {
             return $this->handleTokenExchange($client_id, $client_secret);
         }
 
@@ -489,7 +490,13 @@ class OIDCApiController extends ApiController {
     }
 
     /**
-     * Handle Token Exchange (RFC 8693)
+     * Handle Token Exchange (RFC 8693).
+     *
+     * This implementation intentionally supports a constrained RFC 8693 profile:
+     * same-issuer OAuth access token -> OAuth access token, a single optional
+     * resource URI, no actor token, and no logical audience parameter.
+     * Unsupported optional RFC 8693 features are rejected explicitly instead of
+     * being silently ignored.
      *
      * @param string|null $client_id
      * @param string|null $client_secret
@@ -499,23 +506,94 @@ class OIDCApiController extends ApiController {
     {
         $this->logger->info('Processing Token Exchange request.');
 
-        // Get required parameters from request body
         $subjectToken = $this->request->getParam('subject_token');
-        $subjectTokenType = $this->request->getParam('subject_token_type', 'access_token');
+        $subjectTokenType = $this->request->getParam('subject_token_type');
         $resource = $this->request->getParam('resource');
+        $audience = $this->request->getParam('audience');
         $scope = $this->request->getParam('scope');
+        $requestedTokenType = $this->request->getParam('requested_token_type');
+        $actorToken = $this->request->getParam('actor_token');
+        $actorTokenType = $this->request->getParam('actor_token_type');
 
-        // Validate subject_token is provided
-        if (empty($subjectToken)) {
-            $this->logger->info('Missing subject_token in Token Exchange request.');
+        // RFC 8693 Section 2.1: subject_token and subject_token_type are REQUIRED.
+        if (!is_string($subjectToken) || trim($subjectToken) === '') {
+            $this->logger->info('Missing or invalid subject_token in Token Exchange request.');
             return new JSONResponse([
                 'error' => 'invalid_request',
-                'error_description' => 'Missing required parameter: subject_token.',
+                'error_description' => 'Missing or invalid required parameter: subject_token.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Get client authentication from request or headers
-        if (!isset($client_id) || empty($client_id)) {
+        if (!is_string($subjectTokenType) || trim($subjectTokenType) === '') {
+            $this->logger->info('Missing subject_token_type in Token Exchange request.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Missing required parameter: subject_token_type.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // This profile supports OAuth access tokens issued by this authorization server.
+        if ($subjectTokenType !== self::TOKEN_TYPE_ACCESS_TOKEN) {
+            $this->logger->info('Unsupported subject_token_type in Token Exchange request.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Unsupported subject_token_type. Only urn:ietf:params:oauth:token-type:access_token is supported.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // requested_token_type is optional. If present, this implementation only
+        // supports issuing another OAuth access token.
+        if ($requestedTokenType !== null
+            && (!is_string($requestedTokenType) || $requestedTokenType !== self::TOKEN_TYPE_ACCESS_TOKEN)) {
+            $this->logger->info('Unsupported requested_token_type in Token Exchange request.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Unsupported requested_token_type. Only urn:ietf:params:oauth:token-type:access_token is supported.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Actor/delegation semantics are not part of the supported profile. RFC 8693
+        // requires actor_token_type when actor_token is present and forbids it otherwise;
+        // reject either parameter so unsupported delegation is never silently ignored.
+        if ($actorToken !== null || $actorTokenType !== null) {
+            $this->logger->info('actor_token/actor_token_type is not supported for Token Exchange.');
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'actor_token and actor_token_type are not supported.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Logical audiences are not configured by the current TEX target model. Reject
+        // them explicitly; clients can use a configured resource URI instead.
+        if ($audience !== null) {
+            $this->logger->info('audience parameter is not supported for Token Exchange.');
+            return new JSONResponse([
+                'error' => 'invalid_target',
+                'error_description' => 'The audience parameter is not supported. Use a configured resource URI.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // The current target model supports exactly one resource URI. RFC 8693 permits
+        // multiple resources, but an AS may reject a target request it cannot fulfill.
+        if ($resource !== null) {
+            if (!is_string($resource) || !$this->isValidTokenExchangeResourceUri($resource)) {
+                $this->logger->info('Invalid resource URI in Token Exchange request.');
+                return new JSONResponse([
+                    'error' => 'invalid_target',
+                    'error_description' => 'The resource must be a single absolute URI without a fragment.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+        }
+
+        if ($scope !== null && !is_string($scope)) {
+            return new JSONResponse([
+                'error' => 'invalid_scope',
+                'error_description' => 'The scope parameter must be a space-delimited string.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Get client authentication from request or HTTP Basic credentials.
+        if (!isset($client_id) || trim((string)$client_id) === '') {
             $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
             $credentials = $this->getBasicClientCredentials();
             if ($credentials !== null) {
@@ -531,7 +609,6 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Get client from database
         try {
             $client = $this->clientMapper->getByIdentifier($client_id);
         } catch (ClientNotFoundException $e) {
@@ -558,7 +635,6 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Validate client authentication
         if ($client->getSecret() !== $client_secret) {
             $this->logger->error('Client authentication failed in Token Exchange. Client id was ' . $client_id . '.');
             return new JSONResponse([
@@ -567,7 +643,6 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Check if Token Exchange is enabled for this client
         if (!$client->getTexEnabled()) {
             $this->logger->info('Token Exchange is not enabled for client ' . $client_id . '.');
             return new JSONResponse([
@@ -576,51 +651,49 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Validate and parse the subject token
-        $subjectTokenAccessToken = null;
+        // subject_token_type=access_token is validated only against the access-token
+        // store. Authorization codes and refresh tokens must never be accepted here.
         try {
             $subjectTokenAccessToken = $this->accessTokenMapper->getByAccessToken($subjectToken);
         } catch (AccessTokenNotFoundException $e) {
             $this->logger->info('Subject token not found or invalid. Client id: ' . $client_id);
             return new JSONResponse([
-                'error' => 'invalid_grant',
+                'error' => 'invalid_request',
                 'error_description' => 'Subject token is invalid or has expired.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Validate that the subject token belongs to this client
+        // Local authorization policy: only a token issued to the authenticated client
+        // can be exchanged by that client.
         if ($subjectTokenAccessToken->getClientId() !== $client->getId()) {
             $this->logger->info('Subject token does not belong to requesting client. Client id: ' . $client_id);
             return new JSONResponse([
-                'error' => 'invalid_grant',
+                'error' => 'invalid_request',
                 'error_description' => 'Subject token is not valid for this client.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Validate subject token is not expired
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         if ($this->time->getTime() > $subjectTokenAccessToken->getRefreshed() + $expireTime) {
             $this->logger->info('Subject token has expired. Client id: ' . $client_id);
             return new JSONResponse([
-                'error' => 'invalid_grant',
+                'error' => 'invalid_request',
                 'error_description' => 'Subject token has expired.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Validate resource parameter if provided
-        if (!empty($resource)) {
-            // Check if the resource matches any of the client's TEX targets
-            $texTargets = $this->texTargetMapper->getByClientId($client->getId());
-            $resourceValid = false;
-
-            if (empty($texTargets)) {
-                $this->logger->info('No TEX targets configured for client, but resource parameter provided. Client id: ' . $client_id);
+        $texTargets = [];
+        if ($resource !== null) {
+            if ($this->texTargetMapper === null) {
+                $this->logger->error('TEX target mapper is unavailable while resource was requested.');
                 return new JSONResponse([
-                    'error' => 'invalid_target',
-                    'error_description' => 'The specified resource is not allowed for Token Exchange.',
-                ], Http::STATUS_BAD_REQUEST);
+                    'error' => 'server_error',
+                    'error_description' => 'Token Exchange target configuration is unavailable.',
+                ], Http::STATUS_INTERNAL_SERVER_ERROR);
             }
 
+            $texTargets = $this->texTargetMapper->getByClientId($client->getId());
+            $resourceValid = false;
             foreach ($texTargets as $target) {
                 if ($target->getResourceUrl() === $resource) {
                     $resourceValid = true;
@@ -637,79 +710,119 @@ class OIDCApiController extends ApiController {
             }
         }
 
-        // Validate scope parameter
-        $requestedScopes = '';
-        if (!empty($scope)) {
-            // Parse and validate requested scopes
-            $requestedScopes = trim($scope);
+        // Scope downscoping: an exchanged token can never gain scopes that were not
+        // present in the subject token. tex_allowed_scopes is an additional ceiling.
+        $subjectScopes = preg_split('/ +/', trim((string)$subjectTokenAccessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $subjectScopes = array_values(array_unique($subjectScopes));
 
-            // Check if all requested scopes are allowed by the client's tex_allowed_scopes
-            $texAllowedScopes = $client->getTexAllowedScopes();
+        $texAllowedScopesValue = $client->getTexAllowedScopes();
+        $texAllowedScopes = [];
+        if (is_string($texAllowedScopesValue) && trim($texAllowedScopesValue) !== '') {
+            $texAllowedScopes = preg_split('/ +/', trim($texAllowedScopesValue), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $texAllowedScopes = array_values(array_unique($texAllowedScopes));
+        }
 
-            if (!empty($texAllowedScopes)) {
-                // Parse allowed scopes
-                $allowedScopesArray = preg_split('/ +/', trim($texAllowedScopes), -1, PREG_SPLIT_NO_EMPTY);
+        if ($scope !== null) {
+            $scope = trim($scope);
+            if ($scope === '') {
+                return new JSONResponse([
+                    'error' => 'invalid_scope',
+                    'error_description' => 'The requested scope must not be empty.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
 
-                // Parse requested scopes
-                $requestedScopesArray = preg_split('/ +/', $requestedScopes, -1, PREG_SPLIT_NO_EMPTY);
-
-                // Check each requested scope is in allowed scopes
-                foreach ($requestedScopesArray as $requestedScope) {
-                    if (!in_array($requestedScope, $allowedScopesArray)) {
-                        $this->logger->info('Requested scope not allowed for TEX. Client id: ' . $client_id . ', Scope: ' . $requestedScope);
-                        return new JSONResponse([
-                            'error' => 'invalid_scope',
-                            'error_description' => 'The requested scope is not allowed for Token Exchange.',
-                        ], Http::STATUS_BAD_REQUEST);
-                    }
+            $effectiveScopes = preg_split('/ +/', $scope, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $effectiveScopes = array_values(array_unique($effectiveScopes));
+            foreach ($effectiveScopes as $requestedScope) {
+                if (!in_array($requestedScope, $subjectScopes, true)) {
+                    $this->logger->info('Requested scope exceeds subject token scope. Client id: ' . $client_id . ', Scope: ' . $requestedScope);
+                    return new JSONResponse([
+                        'error' => 'invalid_scope',
+                        'error_description' => 'The requested scope exceeds the subject token scope.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+                if ($texAllowedScopes !== [] && !in_array($requestedScope, $texAllowedScopes, true)) {
+                    $this->logger->info('Requested scope not allowed for TEX. Client id: ' . $client_id . ', Scope: ' . $requestedScope);
+                    return new JSONResponse([
+                        'error' => 'invalid_scope',
+                        'error_description' => 'The requested scope is not allowed for Token Exchange.',
+                    ], Http::STATUS_BAD_REQUEST);
                 }
             }
+        } else {
+            $effectiveScopes = $subjectScopes;
+            if ($texAllowedScopes !== []) {
+                $effectiveScopes = array_values(array_filter(
+                    $effectiveScopes,
+                    static fn (string $subjectScope): bool => in_array($subjectScope, $texAllowedScopes, true)
+                ));
+            }
         }
+        $effectiveScope = implode(' ', $effectiveScopes);
 
-        // Get the user and groups from the subject token
         $uid = $subjectTokenAccessToken->getUserId();
         $user = $this->userManager->get($uid);
-        $groups = $this->groupManager->getUserGroups($user);
-
-        // Check if user is in allowed groups for client
-        $clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
-        $groupFound = false;
-        if (count($clientGroups) < 1) {
-            $groupFound = true;
+        if ($user === null) {
+            $this->logger->info('Subject token references a user that no longer exists. Client id: ' . $client_id);
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Subject token is not acceptable.',
+            ], Http::STATUS_BAD_REQUEST);
         }
+
+        $groups = $this->groupManager->getUserGroups($user);
+        $clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
+        $groupFound = count($clientGroups) < 1;
         foreach ($clientGroups as $clientGroup) {
             foreach ($groups as $userGroup) {
                 if ($clientGroup->getGroupId() === $userGroup->getGID()) {
                     $groupFound = true;
-                    break;
+                    break 2;
                 }
             }
         }
         if (!$groupFound) {
             $this->logger->info('User not in allowed groups for Token Exchange. Client id: ' . $client_id . ', User: ' . $uid);
             return new JSONResponse([
-                'error' => 'invalid_grant',
+                'error' => 'invalid_request',
                 'error_description' => 'Token Exchange not allowed for user groups.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Create a new access token for the exchanged token
+        // A token exchange creates a new, independently stored token. Insert first so
+        // JWT generation sees a stable database ID (jti) and correct creation time.
+        $now = $this->time->getTime();
         $newAccessToken = new AccessToken();
-        $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
+        $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+        $effectiveResource = $resource !== null ? $resource : (string)($subjectTokenAccessToken->getResource() ?? '');
 
         $newAccessToken->setClientId($client->getId());
         $newAccessToken->setUserId($uid);
-        $newAccessToken->setScope($requestedScopes !== '' ? $requestedScopes : $subjectTokenAccessToken->getScope());
+        $newAccessToken->setScope($effectiveScope);
         $newAccessToken->setHashedCode(hash('sha512', $newCode));
-        $newAccessToken->setAccessToken(''); // Will be set below
-        $newAccessToken->setRefreshed($this->time->getTime());
+        $newAccessToken->setAccessToken('');
+        $newAccessToken->setCreated($now);
+        $newAccessToken->setRefreshed($now);
+        $newAccessToken->setNonce('');
+        $newAccessToken->setResource($effectiveResource);
         $newAccessToken->setCodeChallenge('');
         $newAccessToken->setCodeChallengeMethod('');
 
-        // Generate the access token (opaque or JWT based on client configuration)
+        $inserted = false;
         try {
-            $newAccessToken->setAccessToken($this->jwtGenerator->generateAccessToken($newAccessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+            $newAccessToken = $this->accessTokenMapper->insert($newAccessToken);
+            $inserted = true;
+            $newAccessToken->setAccessToken($this->jwtGenerator->generateAccessToken(
+                $newAccessToken,
+                $client,
+                $this->request->getServerProtocol(),
+                $this->request->getServerHost()
+            ));
+            $this->accessTokenMapper->update($newAccessToken);
         } catch (JwtCreationErrorException $e) {
+            if ($inserted) {
+                $this->accessTokenMapper->delete($newAccessToken);
+            }
             $this->logger->error('Failed to generate access token during Token Exchange.');
             return new JSONResponse([
                 'error' => 'server_error',
@@ -717,48 +830,50 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
 
-        $this->accessTokenMapper->insert($newAccessToken);
-
-        // Generate ID token if scope includes openid
-        $jwt = null;
-        $scopeArray = preg_split('/ +/', trim($newAccessToken->getScope()));
-        if (in_array('openid', $scopeArray)) {
-            try {
-                $jwt = $this->jwtGenerator->generateIdToken($newAccessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), false, false);
-            } catch (JwtCreationErrorException $e) {
-                $this->logger->error('Failed to generate ID token during Token Exchange.');
-                // Continue without ID token - not critical
-            }
-        }
-
         $this->logger->info('Token Exchange successful. User: ' . $uid . ', Client: ' . $client_id);
 
         $responseData = [
             'access_token' => $newAccessToken->getAccessToken(),
+            'issued_token_type' => self::TOKEN_TYPE_ACCESS_TOKEN,
             'token_type' => 'Bearer',
             'expires_in' => $expireTime,
+            'scope' => $newAccessToken->getScope(),
         ];
 
-        if ($jwt !== null) {
-            $responseData['id_token'] = $jwt;
-        }
-
-        // Mark the TEX target as used if resource was specified
-        if (!empty($resource)) {
-            $texTargets = $this->texTargetMapper->getByClientId($client->getId());
+        if ($resource !== null && $this->texTargetMapper !== null) {
             foreach ($texTargets as $target) {
                 if ($target->getResourceUrl() === $resource) {
-                    $this->texTargetMapper->markUsed($target, $this->time->getTime());
+                    $this->texTargetMapper->markUsed($target, $now);
                     break;
                 }
             }
         }
 
         $response = new JSONResponse($responseData);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 
         return $response;
+    }
+
+    /**
+     * Validate an RFC 8693 resource value as one absolute RFC 3986 URI without
+     * a fragment. Query components are allowed.
+     */
+    private function isValidTokenExchangeResourceUri(string $resource): bool
+    {
+        if ($resource === '' || preg_match('/[\x00-\x20]/', $resource) === 1) {
+            return false;
+        }
+
+        $parts = parse_url($resource);
+        if ($parts === false || !isset($parts['scheme']) || isset($parts['fragment'])) {
+            return false;
+        }
+
+        return preg_match('/^[A-Za-z][A-Za-z0-9+.-]*$/', (string)$parts['scheme']) === 1;
     }
 
     /**

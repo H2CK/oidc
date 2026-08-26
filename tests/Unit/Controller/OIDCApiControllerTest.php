@@ -154,6 +154,98 @@ class OIDCApiControllerTest extends TestCase {
 
     // ==================== Token Exchange Tests ====================
 
+    public function testTokenExchangeMissingSubjectTokenType() {
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return $key === 'subject_token' ? 'some_token' : null;
+        });
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('subject_token_type', $result->getData()['error_description']);
+    }
+
+    public function testTokenExchangeRejectsShortSubjectTokenType() {
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'access_token',
+                default => null,
+            };
+        });
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsUnsupportedRequestedTokenType() {
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'requested_token_type' => 'urn:ietf:params:oauth:token-type:refresh_token',
+                default => null,
+            };
+        });
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsActorToken() {
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'actor_token' => 'actor-token',
+                'actor_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                default => null,
+            };
+        });
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsUnsupportedAudience() {
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'audience' => 'backend-service',
+                default => null,
+            };
+        });
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsResourceWithFragment() {
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'resource' => 'https://resource.example/api#fragment',
+                default => null,
+            };
+        });
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_target', $result->getData()['error']);
+    }
+
     public function testTokenExchangeMissingSubjectToken() {
         $this->request
             ->method('getParam')
@@ -162,7 +254,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return null;
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -187,7 +279,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'some_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -215,7 +307,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'some_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -252,7 +344,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'some_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -285,7 +377,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'some_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -315,7 +407,7 @@ class OIDCApiControllerTest extends TestCase {
             ->method('getParam')
             ->willReturnMap([
                 ['subject_token', null, 'some-token'],
-                ['subject_token_type', 'access_token', 'access_token'],
+                ['subject_token_type', null, 'urn:ietf:params:oauth:token-type:access_token'],
             ]);
 
         $this->clientMapper
@@ -348,7 +440,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'invalid_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -363,8 +455,8 @@ class OIDCApiControllerTest extends TestCase {
             ->willReturn($client);
 
         $this->accessTokenMapper
-            ->method('getByCode')
-            ->willThrowException(new AccessTokenNotFoundException('Token not found'));
+            ->expects($this->never())
+            ->method('getByCode');
 
         $this->accessTokenMapper
             ->method('getByAccessToken')
@@ -373,7 +465,7 @@ class OIDCApiControllerTest extends TestCase {
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_grant', $result->getData()['error']);
+        $this->assertEquals('invalid_request', $result->getData()['error']);
     }
 
     public function testTokenExchangeSubjectTokenWrongClient() {
@@ -399,7 +491,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'valid_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -420,7 +512,7 @@ class OIDCApiControllerTest extends TestCase {
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_grant', $result->getData()['error']);
+        $this->assertEquals('invalid_request', $result->getData()['error']);
         $this->assertStringContainsString('not valid for this client', $result->getData()['error_description']);
     }
 
@@ -453,15 +545,11 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
         $this->texTargetMapper->method('getByClientId')->willReturn([]);
 
-        // Mock new token generation
-        $newToken = new AccessToken();
-        $newToken->setAccessToken('new_jwt_token');
-
         $this->secureRandom->method('generate')->willReturn('new_refresh_token');
         $this->jwtGenerator->method('generateAccessToken')
             ->willReturn('new_jwt_token');
-        $this->jwtGenerator->method('generateIdToken')
-            ->willReturn('new_id_token');
+        $this->jwtGenerator->expects($this->never())
+            ->method('generateIdToken');
 
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
@@ -473,7 +561,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'old_jwt_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -487,14 +575,22 @@ class OIDCApiControllerTest extends TestCase {
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('example.com');
 
-        $this->accessTokenMapper->method('insert')->willReturn($newToken);
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
+            $token->setId(42);
+            return $token;
+        });
 
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
 
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertArrayHasKey('access_token', $result->getData());
+        $this->assertArrayHasKey('issued_token_type', $result->getData());
         $this->assertArrayHasKey('token_type', $result->getData());
+        $this->assertArrayHasKey('scope', $result->getData());
+        $this->assertEquals('urn:ietf:params:oauth:token-type:access_token', $result->getData()['issued_token_type']);
         $this->assertEquals('Bearer', $result->getData()['token_type']);
+        $this->assertEquals('openid profile', $result->getData()['scope']);
+        $this->assertArrayNotHasKey('id_token', $result->getData());
     }
 
     public function testTokenExchangeWithResource() {
@@ -550,7 +646,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'old_jwt_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return 'https://resource-server.example/';
                     case 'scope':
@@ -560,7 +656,11 @@ class OIDCApiControllerTest extends TestCase {
                 }
             });
 
-        $this->accessTokenMapper->method('insert')->willReturn($newToken);
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
+            $this->assertSame('https://resource-server.example/', $token->getResource());
+            $token->setId(43);
+            return $token;
+        });
         $this->texTargetMapper->method('markUsed')->willReturn(true);
 
         // Mock server protocol and host
@@ -610,7 +710,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'old_jwt_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return 'https://invalid-resource.example/';
                     case 'scope':
@@ -638,6 +738,47 @@ class OIDCApiControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeCannotEscalateScopeWithoutTexScopeLimit() {
+        $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
+        $client->setSecret('test-secret');
+        $client->setId(1);
+        $client->setTexEnabled(true);
+        $client->setTexAllowedScopes(null);
+
+        $subjectToken = new AccessToken();
+        $subjectToken->setClientId(1);
+        $subjectToken->setUserId('user1');
+        $subjectToken->setScope('openid profile');
+        $subjectToken->setRefreshed(999);
+        $subjectToken->setAccessToken('old_token');
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        $this->time->method('getTime')->willReturn(1000);
+
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'old_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'scope' => 'openid profile admin',
+                default => null,
+            };
+        });
+
+        $result = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:token-exchange',
+            null,
+            null,
+            'test-client',
+            'test-secret'
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_scope', $result->getData()['error']);
+        $this->assertStringContainsString('subject token scope', $result->getData()['error_description']);
     }
 
     public function testTokenExchangeWithInvalidScope() {
@@ -684,7 +825,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'subject_token':
                         return 'old_jwt_token';
                     case 'subject_token_type':
-                        return 'access_token';
+                        return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
                         return null;
                     case 'scope':
@@ -704,6 +845,22 @@ class OIDCApiControllerTest extends TestCase {
     }
 
     // ==================== Authorization Code Flow Tests ====================
+
+    public function testAuthorizationCodeGrantRemainsSupported(): void {
+        $result = $this->controller->getToken('authorization_code');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('code', $result->getData()['error_description']);
+    }
+
+    public function testRefreshTokenGrantRemainsSupported(): void {
+        $result = $this->controller->getToken('refresh_token');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('refresh_token', $result->getData()['error_description']);
+    }
 
     public function testGetTokenWithInvalidGrantType() {
         $result = $this->controller->getToken('invalid_grant_type');
