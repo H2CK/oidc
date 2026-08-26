@@ -241,6 +241,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeClientAuthenticationFailed() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setTexEnabled(true);
 
@@ -273,6 +274,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeNotEnabled() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setTexEnabled(false); // TEX not enabled
 
@@ -306,6 +308,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeInvalidSubjectToken() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -347,6 +350,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeSubjectTokenWrongClient() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -394,6 +398,8 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeSuccess() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -402,7 +408,7 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setClientId(1);
         $subjectToken->setUserId('user1');
         $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(time());
+        $subjectToken->setRefreshed(999); // Set to just before current time
         $subjectToken->setAccessToken('old_jwt_token');
 
         $user = $this->createMock(IUser::class);
@@ -414,6 +420,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
         $this->texTargetMapper->method('getByClientId')->willReturn([]);
@@ -464,6 +471,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeWithResource() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -472,7 +480,7 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setClientId(1);
         $subjectToken->setUserId('user1');
         $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(time());
+        $subjectToken->setRefreshed(999);
         $subjectToken->setAccessToken('old_jwt_token');
 
         $user = $this->createMock(IUser::class);
@@ -484,6 +492,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
 
@@ -501,7 +510,7 @@ class OIDCApiControllerTest extends TestCase {
         
         $this->secureRandom->method('generate')->willReturn('new_refresh_token');
         $this->jwtGenerator->method('generateAccessToken')->willReturn('new_jwt_token');
-        $this->jwtGenerator->method('generateIdToken')->willReturn(null);
+        $this->jwtGenerator->method('generateIdToken')->willReturn('id_token_value');
         
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
@@ -517,7 +526,7 @@ class OIDCApiControllerTest extends TestCase {
                     case 'resource':
                         return 'https://resource-server.example/';
                     case 'scope':
-                        return 'openid profile';
+                        return 'profile'; // No openid, so no id_token
                     default:
                         return null;
                 }
@@ -525,8 +534,10 @@ class OIDCApiControllerTest extends TestCase {
 
         $this->accessTokenMapper->method('insert')->willReturn($newToken);
         $this->texTargetMapper->method('markUsed')->willReturn(true);
-        $this->urlGenerator->method('getServerProtocol')->willReturn('https');
-        $this->urlGenerator->method('getServerHost')->willReturn('example.com');
+        
+        // Mock server protocol and host
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('example.com');
 
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
 
@@ -536,6 +547,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeWithInvalidResource() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -544,7 +556,7 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setClientId(1);
         $subjectToken->setUserId('user1');
         $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(time());
+        $subjectToken->setRefreshed(999);
         $subjectToken->setAccessToken('old_jwt_token');
 
         $user = $this->createMock(IUser::class);
@@ -556,6 +568,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
 
@@ -582,6 +595,17 @@ class OIDCApiControllerTest extends TestCase {
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
 
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userManager->method('get')->willReturn($user);
+
+        $group1 = $this->createMock(IGroup::class);
+        $group1->method('getGID')->willReturn('group1');
+        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
+
+        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+        $this->texTargetMapper->method('getByClientId')->willReturn([]);
+
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
@@ -590,6 +614,7 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testTokenExchangeWithInvalidScope() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -599,7 +624,7 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setClientId(1);
         $subjectToken->setUserId('user1');
         $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(time());
+        $subjectToken->setRefreshed(999);
         $subjectToken->setAccessToken('old_jwt_token');
 
         $user = $this->createMock(IUser::class);
@@ -611,9 +636,18 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
         $this->texTargetMapper->method('getByClientId')->willReturn([]);
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userManager->method('get')->willReturn($user);
+
+        $group1 = $this->createMock(IGroup::class);
+        $group1->method('getGID')->willReturn('group1');
+        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->request
             ->method('getParam')

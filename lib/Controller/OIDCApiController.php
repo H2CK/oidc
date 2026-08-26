@@ -715,7 +715,6 @@ class OIDCApiController extends ApiController {
         $newAccessToken->setRefreshed($this->time->getTime());
         $newAccessToken->setCodeChallenge('');
         $newAccessToken->setCodeChallengeMethod('');
-        $newAccessToken->setIssuedAt($this->time->getTime());
 
         // Generate the access token (opaque or JWT based on client configuration)
         try {
