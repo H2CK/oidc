@@ -182,6 +182,19 @@
 							placeholder="https://resource-server.com/"
 							:helper-text="t('oidc', 'Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource.')"
 							type="url" />
+						<NcCheckboxRadioSwitch v-model="editClient.texEnabled"
+							name="tex_enabled"
+							type="checkbox">
+							{{ t('oidc', 'Enable Token Exchange according to RFC 8693') }}
+						</NcCheckboxRadioSwitch>
+						<NcTextField v-model="editClient.texAllowedScopes"
+							:label="t('oidc', 'Token Exchange Allowed Scopes according to RFC 8693')"
+							placeholder="openid profile"
+							:helper-text="t('oidc', 'Scopes allowed during Token Exchange. Separate scopes with spaces.')" />
+						<NcTextField v-model="editClient.texTargetsText"
+							:label="t('oidc', 'Token Exchange Targets according to RFC 8693')"
+							placeholder="https://resource-server.example/"
+							:helper-text="t('oidc', 'Allowed target URLs for Token Exchange, separated by commas.')" />
 					</NcFormGroup>
 					<NcFormGroup :label="t('oidc', 'Custom Claims')"
 						style="max-width: 100%; width: 740px;">
@@ -668,6 +681,9 @@ export default {
 				allowedScopes: '',
 				emailRegex: '',
 				resourceUrl: '',
+				texEnabled: false,
+				texAllowedScopes: '',
+				texTargetsText: '',
 				customClaims: [],
 				flowData: {
 					props: {
@@ -921,14 +937,14 @@ export default {
 			return error && error.message ? error.message : String(error)
 		},
 		scrollTop() {
+			if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+			const app = document.querySelector('#oidc')
 			const content = document.querySelector('#app-content')
-			if (content) {
-				content.scrollTo({
-					top: 0,
-					left: 0,
-					behavior: 'smooth',
-				})
-			}
+			if (content) content.scrollTop = 0
+			if (document.documentElement) document.documentElement.scrollTop = 0
+			if (document.body) document.body.scrollTop = 0
+			window.scrollTo(0, 0)
+			if (app) app.scrollIntoView({ block: 'start', behavior: 'auto' })
 		},
 		updateCustomClaimFunction() {
 			if (this.customClaimModal.function.props.value !== null && !Array.isArray(this.customClaimModal.function.props.value)) {
@@ -1093,6 +1109,9 @@ export default {
 				this.editClient.allowedScopes = tmpClient.allowedScopes
 				this.editClient.emailRegex = tmpClient.emailRegex
 				this.editClient.resourceUrl = tmpClient.resourceUrl || ''
+				this.editClient.texEnabled = tmpClient.texEnabled === true || tmpClient.texEnabled === 1 || tmpClient.texEnabled === '1' || tmpClient.texEnabled === 'true'
+				this.editClient.texAllowedScopes = tmpClient.texAllowedScopes || ''
+				this.editClient.texTargetsText = (tmpClient.texTargets || []).map(target => target.resourceUrl).join(', ')
 				this.editClient.customClaims = []
 				this.editClient.flowData = {
 					props: {
@@ -1345,18 +1364,52 @@ export default {
 				this.errorMsg = this.extractErrorMessage(error_)
 			})
 		},
-		saveEditClient() {
+		async saveEditClient() {
 			this.clearError()
-			this.updateFlowTypes()
-			this.updateTokenType()
-			this.updateGroups()
-			this.setAllowedScopes()
-			this.setEmailRegex()
-			this.setResourceUrl()
-			if (this.error) {
-				this.openOIDCTabEditClient(this.editClient.id, false)
-			} else {
+			try {
+				await axios.patch(
+					generateUrl('apps/oidc/api/v2/client/{client_id}', { client_id: this.editClient.id }),
+					{
+						name: this.editClient.name,
+						redirectUris: this.editClient.redirectUris.map(uri => uri.redirect_uri || uri),
+						signingAlg: this.editClient.signingAlg,
+						type: this.editClient.type,
+						flowType: this.editClient.flowData.props.value[0].value,
+						tokenType: this.editClient.tokenType,
+						allowedScopes: this.editClient.allowedScopes,
+						emailRegex: this.editClient.emailRegex,
+						resourceUrl: this.editClient.resourceUrl,
+						groups: this.editClient.groupData.props.value,
+						texEnabled: this.editClient.texEnabled,
+						texAllowedScopes: this.editClient.texAllowedScopes,
+						texTargets: this.editClient.texTargetsText.split(',').map(target => target.trim()).filter(Boolean),
+					},
+				)
+				const clientIndex = this.localClients.findIndex(client => client.id === this.editClient.id)
+				if (clientIndex !== -1) {
+					this.localClients[clientIndex] = {
+						...this.localClients[clientIndex],
+						name: this.editClient.name,
+						signingAlg: this.editClient.signingAlg,
+						type: this.editClient.type,
+						tokenType: this.editClient.tokenType,
+						allowedScopes: this.editClient.allowedScopes,
+						emailRegex: this.editClient.emailRegex,
+						resourceUrl: this.editClient.resourceUrl,
+						texEnabled: this.editClient.texEnabled,
+						texAllowedScopes: this.editClient.texAllowedScopes,
+						texTargets: this.editClient.texTargetsText.split(',').map(target => ({ resourceUrl: target.trim() })).filter(target => target.resourceUrl),
+						groups: this.editClient.groupData.props.value,
+					}
+				}
+				this.version += 1
 				this.openOIDCTabClients()
+				this.$nextTick(() => window.requestAnimationFrame(() => this.scrollTop()))
+			} catch (error_) {
+				this.error = true
+				this.errorMsg = this.extractErrorMessage(error_)
+				this.openOIDCTabEditClient(this.editClient.id, false)
+				this.$nextTick(() => window.requestAnimationFrame(() => this.scrollTop()))
 			}
 		},
 		setTokenExpireTime() {

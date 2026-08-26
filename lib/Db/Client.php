@@ -90,19 +90,6 @@ class Client extends Entity implements JsonSerializable {
         $texEnabled = false,
         $texAllowedScopes = null
     ) {
-        $this->setName($name);
-        $this->redirectUris = $redirectUris;
-        $this->setSigningAlg($algorithm == 'RS256' ? 'RS256' : 'HS256');
-        $this->setType($type == 'public' ? 'public' : 'confidential');
-        $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
-        $this->setTokenType($tokenType);
-        $this->setDcr($dcr);
-        $this->setAllowedScopes($allowedScopes);
-        $this->setEmailRegex($emailRegex);
-        $this->setIssuedAt(time());
-        $this->setTexEnabled($texEnabled);
-        $this->setTexAllowedScopes($texAllowedScopes);
-
         $this->addType('id', Types::INTEGER);
         $this->addType('name', Types::STRING);
         $this->addType('client_identifier', Types::STRING);
@@ -118,6 +105,20 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('resource_url', Types::STRING);
         $this->addType('tex_enabled', Types::BOOLEAN);
         $this->addType('tex_allowed_scopes', Types::STRING);
+
+        $this->setName($name);
+        $this->redirectUris = $redirectUris;
+        $this->setSigningAlg($algorithm == 'RS256' ? 'RS256' : 'HS256');
+        $this->setType($type == 'public' ? 'public' : 'confidential');
+        $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
+        $this->setTokenType($tokenType);
+        $this->setDcr($dcr);
+        $this->setAllowedScopes($allowedScopes);
+        $this->setEmailRegex($emailRegex);
+        $this->setIssuedAt(time());
+        $this->setTexEnabled($texEnabled);
+        $this->setTexAllowedScopes($texAllowedScopes);
+
     }
 
     public function getRedirectUris(): array {

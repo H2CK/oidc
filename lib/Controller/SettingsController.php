@@ -14,6 +14,8 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
@@ -213,6 +215,123 @@ class SettingsController extends Controller
             }
         }
         return new JSONResponse([]);
+    }
+
+    public function updateClientConfiguration(int $client_id): JSONResponse
+    {
+        $params = $this->request->getParams();
+        $client = $this->clientMapper->getByUid($client_id);
+
+        if (array_key_exists('name', $params)) {
+            $client->setName(trim((string)$params['name']));
+        }
+        if (array_key_exists('signingAlg', $params)) {
+            $client->setSigningAlg($params['signingAlg'] === 'RS256' ? 'RS256' : 'HS256');
+        }
+        if (array_key_exists('type', $params)) {
+            $client->setType($params['type'] === 'public' ? 'public' : 'confidential');
+        }
+        if (array_key_exists('flowType', $params)) {
+            $client->setFlowType(str_contains((string)$params['flowType'], 'id_token') ? 'code id_token' : 'code');
+        }
+        if (array_key_exists('tokenType', $params)) {
+            $client->setTokenType($params['tokenType'] === 'jwt' ? 'jwt' : 'opaque');
+        }
+        if (array_key_exists('allowedScopes', $params)) {
+            $allowedScopes = trim((string)$params['allowedScopes']);
+            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]{0,512}$/u', $allowedScopes)) {
+                return new JSONResponse(['error' => 'Scope contains invalid characters.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setAllowedScopes($allowedScopes);
+        }
+        if (array_key_exists('emailRegex', $params)) {
+            $client->setEmailRegex(mb_substr(trim((string)$params['emailRegex']), 0, 255));
+        }
+        if (array_key_exists('resourceUrl', $params)) {
+            $resourceUrl = trim((string)$params['resourceUrl']);
+            if ($resourceUrl !== '' && (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL))) {
+                return new JSONResponse(['error' => 'Invalid resource URL format.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setResourceUrl($resourceUrl === '' ? null : $resourceUrl);
+        }
+        if (array_key_exists('redirectUris', $params)) {
+            $redirectUris = array_map('trim', (array)$params['redirectUris']);
+            foreach ($redirectUris as $redirectUri) {
+                try {
+                    if (!$this->redirectUriService->isValidRedirectUri(
+                        $redirectUri,
+                        $this->appConfig->getAppValueString(
+                            Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS,
+                            Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS
+                        ) === 'true'
+                    )) {
+                        return new JSONResponse(['error' => 'Invalid redirect URI.'], Http::STATUS_BAD_REQUEST);
+                    }
+                } catch (RedirectUriValidationException $e) {
+                    return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+                }
+            }
+        }
+        $texTargetUrls = null;
+        if (array_key_exists('texTargets', $params)) {
+            $texTargetUrls = [];
+            foreach ((array)$params['texTargets'] as $resourceUrl) {
+                $resourceUrl = trim((string)$resourceUrl);
+                if (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
+                    return new JSONResponse(['error' => 'Invalid Token Exchange target URL.'], Http::STATUS_BAD_REQUEST);
+                }
+                $texTargetUrls[] = $resourceUrl;
+            }
+        }
+        if (array_key_exists('texEnabled', $params)) {
+            $client->setTexEnabled((bool)$params['texEnabled']);
+        }
+        if (array_key_exists('texAllowedScopes', $params)) {
+            $texAllowedScopes = trim((string)$params['texAllowedScopes']);
+            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]{0,512}$/u', $texAllowedScopes)) {
+                return new JSONResponse(['error' => 'Token Exchange scope contains invalid characters.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setTexAllowedScopes($texAllowedScopes === '' ? null : $texAllowedScopes);
+        }
+
+        $this->clientMapper->update($client);
+
+        if (array_key_exists('redirectUris', $params)) {
+            $this->redirectUriMapper->deleteByClientId($client_id);
+            foreach ($redirectUris as $redirectUri) {
+                $redirectUriEntity = new RedirectUri();
+                $redirectUriEntity->setClientId($client_id);
+                $redirectUriEntity->setRedirectUri($redirectUri);
+                $this->redirectUriMapper->insert($redirectUriEntity);
+            }
+        }
+
+        if (array_key_exists('groups', $params)) {
+            $this->groupMapper->deleteByClientId($client_id);
+            foreach ((array)$params['groups'] as $group) {
+                if ($this->groupManager->groupExists($group)) {
+                    $groupEntity = new Group();
+                    $groupEntity->setClientId($client_id);
+                    $groupEntity->setGroupId($group);
+                    $this->groupMapper->insert($groupEntity);
+                }
+            }
+        }
+
+        if (array_key_exists('texTargets', $params)) {
+            $texTargetMapper = \OCP\Server::get(TexTargetMapper::class);
+            $texTargetMapper->deleteByClientId($client_id);
+            foreach ($texTargetUrls as $resourceUrl) {
+                $target = new TexTargets();
+                $target->setClientId($client_id);
+                $target->setResourceUrl($resourceUrl);
+                $target->setCreated(time());
+                $target->setUsedAt(0);
+                $texTargetMapper->insert($target);
+            }
+        }
+
+        return new JSONResponse(['client' => $client->jsonSerialize()]);
     }
 
     public function updateClientFlow(

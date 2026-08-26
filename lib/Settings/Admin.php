@@ -17,6 +17,8 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCP\Server;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Settings\ISettings;
 use OCP\AppFramework\Services\IInitialState;
@@ -119,6 +121,16 @@ class Admin implements ISettings {
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
                 'resourceUrl' => $client->getResourceUrl(),
+                'texEnabled' => $client->getTexEnabled(),
+                'texAllowedScopes' => $client->getTexAllowedScopes(),
+                'texTargets' => array_map(
+                    static fn ($target): array => [
+                        'resourceUrl' => $target->getResourceUrl(),
+                        'created' => $target->getCreated(),
+                        'usedAt' => $target->getUsedAt(),
+                    ],
+                    Server::get(TexTargetMapper::class)->getByClientId($client->getId())
+                ),
             ];
         }
 

@@ -110,7 +110,7 @@ class OIDCCreateTest extends TestCase
             'redirect_uris' => ['https://local.lo/callback'],
             '--tex_enabled' => true,
             '--tex_allowed_scopes' => 'openid profile',
-            '--tex_targets' => ['https://resource.example/one', 'https://resource.example/two'],
+            '--tex_target_resource' => ['https://resource.example/one', 'https://resource.example/two'],
         ]);
 
         $this->assertSame(Command::SUCCESS, $statusCode);

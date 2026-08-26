@@ -129,7 +129,7 @@ class OIDCCreate extends Command
                 'tex_enabled',
                 null,
                 InputOption::VALUE_NONE,
-                'Enable Token Exchange (TEX) for this client according to RFC 8693.'
+                'Enable Token Exchange for this client according to RFC 8693.'
             )
             ->addOption(
                 'tex_allowed_scopes',
@@ -222,7 +222,7 @@ class OIDCCreate extends Command
             foreach ($input->getOption('tex_target_resource') as $resourceUrl) {
                 $resourceUrl = trim($resourceUrl);
                 if (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
-                    throw new CliException("The TEX target '$resourceUrl' is not a valid URL or exceeds the maximum length of 512 characters.");
+                    throw new CliException("The Token Exchange target '$resourceUrl' is not a valid URL or exceeds the maximum length of 512 characters.");
                 }
                 $texTargetUrls[] = $resourceUrl;
             }
