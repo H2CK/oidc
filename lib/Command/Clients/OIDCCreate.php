@@ -11,11 +11,14 @@ namespace OCA\OIDCIdentityProvider\Command\Clients;
 
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Exceptions\CliException;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Server;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -121,7 +124,32 @@ class OIDCCreate extends Command
                 InputOption::VALUE_OPTIONAL,
                 'The resource URL for this client (RFC 9728). Must be a valid URL with max length 512 characters.',
                 ''
+            )
+            ->addOption(
+                'tex_enabled',
+                null,
+                InputOption::VALUE_NONE,
+                'Enable Token Exchange (TEX) for this client according to RFC 8693.'
+            )
+            ->addOption(
+                'tex_allowed_scopes',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Scopes that may be requested during Token Exchange (RFC 8693), separated by spaces.',
+                ''
+            )
+            ->addOption(
+                'tex_target_resource',
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Allowed target resource URL for Token Exchange (RFC 8693). Repeat this option for multiple targets.',
+                []
             );
+    }
+
+    protected function getTexTargetMapper(): TexTargetMapper
+    {
+        return Server::get(TexTargetMapper::class);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -186,8 +214,32 @@ class OIDCCreate extends Command
 
                 $client->setResourceUrl($resourceUrl);
             }
+
+            $client->setTexEnabled((bool)$input->getOption('tex_enabled'));
+            $client->setTexAllowedScopes(trim((string)$input->getOption('tex_allowed_scopes')) ?: null);
+
+            $texTargetUrls = [];
+            foreach ($input->getOption('tex_target_resource') as $resourceUrl) {
+                $resourceUrl = trim($resourceUrl);
+                if (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
+                    throw new CliException("The TEX target '$resourceUrl' is not a valid URL or exceeds the maximum length of 512 characters.");
+                }
+                $texTargetUrls[] = $resourceUrl;
+            }
+
             // insert new client into database
             $client = $this->mapper->insert($client);
+
+            $texTargetMapper = $this->getTexTargetMapper();
+            foreach ($texTargetUrls as $resourceUrl) {
+                $texTarget = new TexTargets();
+                $texTarget->setClientId($client->getId());
+                $texTarget->setResourceUrl($resourceUrl);
+                $texTarget->setCreated(time());
+                $texTarget->setUsedAt(0);
+                $texTargetMapper->insert($texTarget);
+            }
+
             // print client as pretty json
             $output->writeln(json_encode($client, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             return Command::SUCCESS;

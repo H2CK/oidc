@@ -8,6 +8,8 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Command\Clients\OIDCCreate;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCP\AppFramework\Services\IAppConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -20,6 +22,7 @@ class OIDCCreateTest extends TestCase
     private IAppConfig $appConfig;
     private ClientMapper $clientMapper;
     private RedirectUriService $redirectUriService;
+    private TexTargetMapper $texTargetMapper;
     private OIDCCreate $command;
 
     protected function setUp(): void
@@ -27,6 +30,8 @@ class OIDCCreateTest extends TestCase
         $this->appConfig = $this->createMock(IAppConfig::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->redirectUriService = $this->createMock(RedirectUriService::class);
+        $this->texTargetMapper = $this->createMock(TexTargetMapper::class);
+        $this->texTargetMapper->method('insert')->willReturnCallback(static fn (TexTargets $target) => $target);
 
         $this->appConfig
             ->method('getAppValueString')
@@ -43,11 +48,11 @@ class OIDCCreateTest extends TestCase
             ->method('insert')
             ->willReturnCallback(static fn (Client $client) => $client);
 
-        $this->command = new OIDCCreate(
-            $this->appConfig,
-            $this->clientMapper,
-            $this->redirectUriService
-        );
+        $this->command = $this->getMockBuilder(OIDCCreate::class)
+            ->onlyMethods(['getTexTargetMapper'])
+            ->setConstructorArgs([$this->appConfig, $this->clientMapper, $this->redirectUriService])
+            ->getMock();
+        $this->command->method('getTexTargetMapper')->willReturn($this->texTargetMapper);
     }
 
     #[DataProvider('validCredentialProvider')]
@@ -84,6 +89,33 @@ class OIDCCreateTest extends TestCase
             'Your clientId must comply with the following rules: printable ASCII except : and length 32-64',
             $tester->getDisplay()
         );
+    }
+
+    public function testExecuteSetsTexOptionsAndCreatesTargets(): void
+    {
+        $client = null;
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallback(static function (Client $value) use (&$client): Client {
+                $value->setId(7);
+                $client = $value;
+                return $value;
+            });
+
+        $this->texTargetMapper->expects($this->exactly(2))->method('insert');
+
+        $tester = new CommandTester($this->command);
+        $statusCode = $tester->execute([
+            'name' => 'TEX Client',
+            'redirect_uris' => ['https://local.lo/callback'],
+            '--tex_enabled' => true,
+            '--tex_allowed_scopes' => 'openid profile',
+            '--tex_targets' => ['https://resource.example/one', 'https://resource.example/two'],
+        ]);
+
+        $this->assertSame(Command::SUCCESS, $statusCode);
+        $this->assertTrue($client->getTexEnabled());
+        $this->assertSame('openid profile', $client->getTexAllowedScopes());
     }
 
     public static function validCredentialProvider(): array

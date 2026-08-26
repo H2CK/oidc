@@ -38,6 +38,10 @@ use JsonSerializable;
  * @method void setEmailRegex(string $emailRegex)
  * @method string|null getResourceUrl()
  * @method void setResourceUrl(string|null $resourceUrl)
+ * @method bool getTexEnabled()
+ * @method void setTexEnabled(bool $texEnabled)
+ * @method string|null getTexAllowedScopes()
+ * @method void setTexAllowedScopes(string|null $texAllowedScopes)
  */
 class Client extends Entity implements JsonSerializable {
     /** @var int */
@@ -68,6 +72,10 @@ class Client extends Entity implements JsonSerializable {
     protected $emailRegex;
     /** @var string|null */
     protected $resourceUrl;
+    /** @var bool */
+    protected $texEnabled = false;
+    /** @var string|null */
+    protected $texAllowedScopes;
 
     public function __construct(
         $name = '',
@@ -78,7 +86,9 @@ class Client extends Entity implements JsonSerializable {
         $tokenType = 'opaque',
         $allowedScopes = '',
         $emailRegex = '',
-        $dcr = false
+        $dcr = false,
+        $texEnabled = false,
+        $texAllowedScopes = null
     ) {
         $this->setName($name);
         $this->redirectUris = $redirectUris;
@@ -90,6 +100,8 @@ class Client extends Entity implements JsonSerializable {
         $this->setAllowedScopes($allowedScopes);
         $this->setEmailRegex($emailRegex);
         $this->setIssuedAt(time());
+        $this->setTexEnabled($texEnabled);
+        $this->setTexAllowedScopes($texAllowedScopes);
 
         $this->addType('id', Types::INTEGER);
         $this->addType('name', Types::STRING);
@@ -104,6 +116,8 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('allowed_scopes', Types::STRING);
         $this->addType('email_regex', Types::STRING);
         $this->addType('resource_url', Types::STRING);
+        $this->addType('tex_enabled', Types::BOOLEAN);
+        $this->addType('tex_allowed_scopes', Types::STRING);
     }
 
     public function getRedirectUris(): array {
@@ -132,7 +146,9 @@ class Client extends Entity implements JsonSerializable {
             'token_type' => $this->getTokenType(),
             'allowed_scopes' => $this->getAllowedScopes(),
             'email_regex' => $this->getEmailRegex(),
-            'resource_url' => $this->getResourceUrl()
+            'resource_url' => $this->getResourceUrl(),
+            'tex_enabled' => $this->getTexEnabled(),
+            'tex_allowed_scopes' => $this->getTexAllowedScopes()
         ];
     }
 }
