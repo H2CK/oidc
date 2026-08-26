@@ -96,7 +96,6 @@ class OIDCApiController extends ApiController {
      * @param ClientMapper $clientMapper
      * @param GroupMapper $groupMapper
      * @param UserConsentMapper $userConsentMapper
-     * @param TexTargetMapper $texTargetMapper
      * @param TokenProvider $tokenProvider
      * @param ISecureRandom $secureRandom
      * @param ITimeFactory $time
@@ -108,6 +107,7 @@ class OIDCApiController extends ApiController {
      * @param IAppConfig $appConfig
      * @param JwtGenerator $jwtGenerator
      * @param LoggerInterface $logger
+     * @param TexTargetMapper $texTargetMapper
      */
     public function __construct(
                     string $appName,
@@ -118,7 +118,6 @@ class OIDCApiController extends ApiController {
                     ClientMapper $clientMapper,
                     GroupMapper $groupMapper,
                     UserConsentMapper $userConsentMapper,
-                    TexTargetMapper $texTargetMapper,
                     TokenProvider $tokenProvider,
                     ISecureRandom $secureRandom,
                     ITimeFactory $time,
@@ -129,7 +128,8 @@ class OIDCApiController extends ApiController {
                     IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
-                    LoggerInterface $logger
+                    LoggerInterface $logger,
+                    ?TexTargetMapper $texTargetMapper = null
                     )
     {
         parent::__construct($appName, $request);
@@ -139,7 +139,6 @@ class OIDCApiController extends ApiController {
         $this->clientMapper = $clientMapper;
         $this->groupMapper = $groupMapper;
         $this->userConsentMapper = $userConsentMapper;
-        $this->texTargetMapper = $texTargetMapper;
         $this->tokenProvider = $tokenProvider;
         $this->secureRandom = $secureRandom;
         $this->time = $time;
@@ -151,6 +150,7 @@ class OIDCApiController extends ApiController {
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
         $this->logger = $logger;
+        $this->texTargetMapper = $texTargetMapper;
     }
 
     private function getBasicClientCredentials(): ?array

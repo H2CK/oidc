@@ -124,7 +124,6 @@ class OIDCApiControllerTest extends TestCase {
             $this->clientMapper,
             $this->groupMapper,
             $this->userConsentMapper,
-            $this->texTargetMapper,
             $this->tokenProvider,
             $this->secureRandom,
             $this->time,
@@ -135,7 +134,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->urlGenerator,
             $this->appConfig,
             $this->jwtGenerator,
-            $this->logger
+            $this->logger,
+            $this->texTargetMapper
         );
 
         // Default configuration
