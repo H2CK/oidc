@@ -119,6 +119,7 @@ class DiscoveryControllerTest extends TestCase {
             'authorization_code',
             'implicit',
             'refresh_token',
+            'urn:ietf:params:oauth:grant-type:token-exchange',
         ];
         $acrValuesSupported = [
             '0',
