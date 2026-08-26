@@ -579,23 +579,9 @@ class OIDCApiController extends ApiController {
         // Validate and parse the subject token
         $subjectTokenAccessToken = null;
         try {
-            // Try to find the access token by its code (for opaque tokens) or by the token itself (for JWT)
-            try {
-                $subjectTokenAccessToken = $this->accessTokenMapper->getByCode($subjectToken);
-            } catch (AccessTokenNotFoundException $e) {
-                // If not found by code, try to find it by access token value (for JWT tokens)
-                try {
-                    $subjectTokenAccessToken = $this->accessTokenMapper->getByAccessToken($subjectToken);
-                } catch (AccessTokenNotFoundException $e2) {
-                    $this->logger->info('Subject token not found or invalid. Client id: ' . $client_id);
-                    return new JSONResponse([
-                        'error' => 'invalid_grant',
-                        'error_description' => 'Subject token is invalid or has expired.',
-                    ], Http::STATUS_BAD_REQUEST);
-                }
-            }
+            $subjectTokenAccessToken = $this->accessTokenMapper->getByAccessToken($subjectToken);
         } catch (AccessTokenNotFoundException $e) {
-            $this->logger->info('Subject token not found. Client id: ' . $client_id);
+            $this->logger->info('Subject token not found or invalid. Client id: ' . $client_id);
             return new JSONResponse([
                 'error' => 'invalid_grant',
                 'error_description' => 'Subject token is invalid or has expired.',
