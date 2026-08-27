@@ -1,10 +1,6 @@
 # Nextcloud OIDC App
 
-[![Release](https://img.shields.io/github/release/H2CK/oidc.svg)](https://github.com/H2CK/oidc/releases/latest)
-[![Issues](https://img.shields.io/github/issues/H2CK/oidc.svg)](https://github.com/H2CK/oidc/issues)
-[![License](https://img.shields.io/github/license/H2CK/oidc)](https://github.com/H2CK/oidc/blob/master/COPYING)
-[![OIDC Compliance Test](https://img.shields.io/github/actions/workflow/status/H2CK/oidc/oidc-conformance.yaml?branch=master&label=OIDC%20Compliance%20Test)](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml)
-[![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QRSDVQA2UMJQC&source=url)
+![Release](https://img.shields.io/github/release/H2CK/oidc.svg)![Issues](https://img.shields.io/github/issues/H2CK/oidc.svg)![License](https://img.shields.io/github/license/H2CK/oidc)![OIDC Compliance Test](https://img.shields.io/github/actions/workflow/status/H2CK/oidc/oidc-conformance.yaml?branch=master&label=OIDC%20Compliance%20Test)![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)
 
 This is the an OIDC App for Nextcloud. This application allows to use your Nextcloud Login at other services supporting OpenID Connect.
 
@@ -18,6 +14,7 @@ Provided features:
 - Group memberships can be passed as roles or groups claims
 - Clients can be assigned to dedicated user groups - Only users in the configured group are allowed to retrieve an access token to fetch the ID token
 - Support for RFC9068 JWT Access Tokens (must be activated per client)
+- Support for OAuth 2.0 Token Exchange (RFC 8693) using a constrained access-token-to-access-token profile
 - Discovery & WebFinger endpoint provided
 - Logout endpoint
 - Dynamic Client Registration
@@ -186,20 +183,107 @@ It is possible to use the dynamic client registration according to [OpenID Conne
 Due to security reasons there is a BruteForce throttleing as well as a limitation of dynamically registered clients to 100. Additionally a dynamically registered client is only valid for 3600 seconds. Both parameters can currently not be changed via the settings.
 The registration endpoint is accessible for everybody without any authentication and authorization. So please enable this feature with the possible thread in mind.
 
+## Token Exchange (RFC 8693)
+
+The OIDC app supports [OAuth 2.0 Token Exchange (RFC 8693)](https://www.rfc-editor.org/rfc/rfc8693.html) at the normal token endpoint. The implementation intentionally provides a constrained profile focused on exchanging an access token issued by this OIDC provider for another access token that is suitable for a configured backend resource.
+
+### Typical use cases
+
+Token Exchange is useful when a confidential application or backend receives a user access token but should not forward that token unchanged to another service. Typical scenarios are:
+
+- **Backend-for-Frontend (BFF):** A backend receives a user's access token and exchanges it for a token intended for a downstream API.
+- **Backend or microservice calls:** A confidential service exchanges an incoming user token for a token whose resource and scopes are restricted to another internal service.
+- **Cross-client exchange:** The subject token may have been issued to a different OIDC client. The client performing the exchange becomes the client of the newly issued token. The Token Exchange target, scope, and group policies of the authenticated requesting client are authoritative.
+- **Privilege reduction / downscoping:** A client can request a subset of the subject token's scopes for a specific configured resource.
+
+Token Exchange must be enabled for the **requesting client**. The requesting client must be a confidential client and must authenticate at the token endpoint. Administrators can additionally configure allowed Token Exchange scopes and resource targets for that client. A requested or inherited resource is issued only if it exactly matches one of the configured Token Exchange target URIs.
+
+### Supported request profile
+
+The request uses the token endpoint with `POST` and `application/x-www-form-urlencoded` as defined by RFC 8693. The following profile is supported:
+
+| Parameter                          | Support                                                                                                                                                                                                    |
+|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `grant_type`                       | Required. Must be `urn:ietf:params:oauth:grant-type:token-exchange`.                                                                                                                                       |
+| `subject_token`                    | Required. Must be a valid, non-expired access token issued by this OIDC provider.                                                                                                                          |
+| `subject_token_type`               | Required. Only `urn:ietf:params:oauth:token-type:access_token` is supported.                                                                                                                               |
+| `resource`                         | Optional. Zero or one absolute URI is supported. Query components are allowed; fragments are not. The effective resource must be configured as a Token Exchange target for the requesting client.          |
+| `scope`                            | Optional. May only reduce privileges. Every requested scope must already be present in the subject token and, if a Token Exchange scope allow-list is configured, must also be present in that allow-list. |
+| `requested_token_type`             | Optional. If supplied, only `urn:ietf:params:oauth:token-type:access_token` is supported.                                                                                                                  |
+| `audience`                         | Not supported. Any `audience` parameter is rejected with `invalid_target`.                                                                                                                                 |
+| `actor_token` / `actor_token_type` | Not supported. Delegation/actor semantics are rejected.                                                                                                                                                    |
+
+RFC 8693 permits multiple `resource` and `audience` parameters. This implementation deliberately does not issue tokens for multiple target services. The original form-encoded request body is inspected so repeated parameters cannot be hidden by PHP/Nextcloud request parsing. More than one `resource` parameter, including duplicate values, is rejected with `invalid_target`; any `audience` parameter is rejected as unsupported.
+
+If `resource` is omitted, the resource of the subject token is inherited when present. The inherited value is **revalidated against the Token Exchange target allow-list of the requesting client** before it is copied to the new token. An unapproved inherited resource is rejected with `invalid_target`. If neither the request nor the subject token contains a resource, no resource URI is set on the exchanged token and the normal client audience fallback applies.
+
+Example request:
+
+```http
+POST /index.php/apps/oidc/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic <client-credentials>
+
+grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange
+&subject_token=<access-token>
+&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token
+&resource=https%3A%2F%2Fbackend.example.com%2Fapi
+&scope=api.read
+```
+
+A successful response contains a bearer access token and identifies the issued token type:
+
+```json
+{
+  "access_token": "<exchanged-access-token>",
+  "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+  "token_type": "Bearer",
+  "expires_in": 300,
+  "scope": "api.read"
+}
+```
+
+### Token properties and security policy
+
+- The exchanged token represents the same user as the subject token.
+- The exchanged token is associated with the authenticated **requesting client**, not necessarily the client to which the subject token was originally issued.
+- The effective scope can never exceed the subject token scope. A configured Token Exchange scope allow-list adds another upper bound.
+- The exchanged token never outlives the subject token. Its lifetime is the smaller of the configured access-token lifetime and the remaining lifetime of the subject token.
+- Depending on the requesting client's access-token configuration, the exchanged token can be a JWT or an opaque access token.
+- For exchanged JWT access tokens, `auth_time` is omitted. The exchange time is not an authentication time, and the implementation does not invent a new authentication event during Token Exchange.
+- If a resource is set, it is used as the token audience/resource and is also returned as the audience by token introspection. Only allow-listed resource URIs can be set.
+- The requesting client's configured user-group restrictions are applied before a token is issued.
+- The exchange creates a new independently stored token. Revoking or renewing the subject token does not automatically update an already issued exchanged token.
+
+### Current limitations
+
+The current implementation is not intended to cover every RFC 8693 deployment model. In particular:
+
+- Only access-token-to-access-token exchange is supported.
+- Only access tokens issued by this OIDC provider can be used as `subject_token`; external issuers and federation are not supported.
+- Public clients cannot perform Token Exchange.
+- At most one resource URI can be targeted by one exchange request.
+- Logical `audience` parameters and combinations of `resource` plus `audience` are not supported.
+- `actor_token` delegation and JWT `act` claim chains are not supported.
+- No ID token or refresh token is issued by Token Exchange.
+- Multiple resource targets are rejected instead of producing a token with a multi-valued audience.
+
+These restrictions are intentional authorization-server policy choices. RFC 8693 allows an authorization server to reject target combinations it is unwilling or unable to fulfill with `invalid_target`.
+
 ## Scopes
 
 Following the supported scopes are described. If no scope is defined during the authorization request, the following scopes will be used: `openid profile email roles`. Based on the defined scope different information about the user will be provided at the userinfo endpoint. For authorization code flow, profile and email scope claims are not added to the ID token unless they are explicitly requested with the OpenID Connect `claims` parameter.
 
 Further scopes are passed transparently. Also namescaped scopes are supported. E.g. read:messages, api:admin.
 
-| Scope | Description |
-|---|---|
-| openid | Default scope. Will be added if missing. The subject is provided as `sub`; `preferred_username` is returned from the userinfo endpoint and can be explicitly requested for the ID token with the `claims` parameter. |
-| profile | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at` to the userinfo response. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) The claim `picture` contains a link to the avatar of the user provided by the Nextcloud server (format: `https://hostname/avatar/userid/size`). The picture size is limited to 64px. |
-| email | Adds the email address of the user to the claim `email` in the userinfo response. Furthermore the claim `email_verified` is added. |
-| groups | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID might not be identical to the group name (display name) shown in the UI (especially after renaming groups or depending on your ldap configuration). To provide the display name of a group in the claim it is possible to change an application setting via the `occ` command. You can use the following commands to switch between GID and displayname: `occ config:app:set oidc group_claim_type --value "gid"` or  `occ config:app:set oidc group_claim_type --value "displayname"`. |
-| roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. In general the claim contains a list of group ids. If you want to explicitly set if GID or displayname is used, you can set this by: `occ config:app:set oidc role_claim_type --value "gid"` or  `occ config:app:set oidc role_claim_type --value "displayname"`. |
-| offline_access | **Required for refresh tokens** (OpenID Connect Core 1.0 Section 11). When this scope is requested and granted, a refresh token will be issued that allows obtaining new access tokens even when the user is not present. If this scope is not requested, no refresh token will be issued in OIDC-compliant mode. Administrators can enable "Legacy mode" in settings to always issue refresh tokens for backward compatibility with non-compliant clients. |
+| Scope          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+|----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| openid         | Default scope. Will be added if missing. The subject is provided as `sub`; `preferred_username` is returned from the userinfo endpoint and can be explicitly requested for the ID token with the `claims` parameter.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| profile        | Adds the claims `name`, `family_name`, `given_name`, `middle_name`, `address`, `phone_number`, `quota` and `updated_at` to the userinfo response. `address` and `phone_number` are only available, if those attributes are set in the users profile in Nextcloud. The claim `name` contains the display name as configured in the users profile in Nextcloud. If no display name is set the username is provided in this claim. The claims `family_name`, `given_name` and `middle_name` are generated from the display name. The generation of those claims is based on the implementation also used by the system address book of Nextcloud. The claim `quota` is only contained if a quota is set for the user. The format of the quota is provided as delivered by Nextcloud (e.g. `5 GB`) The claim `picture` contains a link to the avatar of the user provided by the Nextcloud server (format: `https://hostname/avatar/userid/size`). The picture size is limited to 64px. |
+| email          | Adds the email address of the user to the claim `email` in the userinfo response. Furthermore the claim `email_verified` is added.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| groups         | Adds the groups of the user in the claim `groups`. The claim `groups` contains a list of the GIDs (internal Group ID) the user is assigned to. The GID might not be identical to the group name (display name) shown in the UI (especially after renaming groups or depending on your ldap configuration). To provide the display name of a group in the claim it is possible to change an application setting via the `occ` command. You can use the following commands to switch between GID and displayname: `occ config:app:set oidc group_claim_type --value "gid"` or  `occ config:app:set oidc group_claim_type --value "displayname"`.                                                                                                                                                                                                                                                                                                                                      |
+| roles          | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. In general the claim contains a list of group ids. If you want to explicitly set if GID or displayname is used, you can set this by: `occ config:app:set oidc role_claim_type --value "gid"` or  `occ config:app:set oidc role_claim_type --value "displayname"`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| offline_access | **Required for refresh tokens** (OpenID Connect Core 1.0 Section 11). When this scope is requested and granted, a refresh token will be issued that allows obtaining new access tokens even when the user is not present. If this scope is not requested, no refresh token will be issued in OIDC-compliant mode. Administrators can enable "Legacy mode" in settings to always issue refresh tokens for backward compatibility with non-compliant clients.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ### Requesting claims in the ID token
 
@@ -224,19 +308,20 @@ The `claims` value must be sent as URL-encoded JSON in the authorization request
 ## Custom claims
 
 It is possible to define custom claims per client. A custom claim is defined per client and will be added to the userinfo endpoint if the specified scope is requested. For authorization code flow, a custom claim is added to the ID token only when its claim name is also explicitly requested with `claims.id_token`. The following functions can be used to provide data to the custom claims.
-| Function | Description |
-|---|---|
-| isAdmin | Provides true or false (boolean) if the user is Nextcloud administrator. |
-| isGroupAdmin | A single parameter must be provided which contains the Nextcloud group id (not the display name). Provides true or false (boolean) if the user is a subadmin (group admin) of the specified group, or null if the group does not exist. In case the group does not exist, the claim is not added to the ID token or userinfo endpoint. |
-| hasRole | A single parameter must be provided which contains the Nextcloud group id (not the display name) against which the check is performed. Provides true or false (boolean) if the user is in the specified group. |
-| isInGroup | Same as `hasRole` |
-| getUserEmail | Returns the users primary email address as string |
-| getUserGroups | Returns the groups of the user as string[] |
-| getUserGroupsDisplayName | Returns the display name of the groups of the user as string[] |
-| getUserLanguage | Returns the language, that is used by the user or forced by system |
-| getUserLocale | Returns the locale, that is used by the user or forced by system |
-| getUserFDOW | Return the users setting of first day of week or use the locale setting (0 = sunday, 1 = monday, ...) |
-| getUserTimezone | Return the users setting of timezone or or forced by system |
+
+| Function                 | Description                                                                                                                                                                                                                                                                                                                            |
+|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| isAdmin                  | Provides true or false (boolean) if the user is Nextcloud administrator.                                                                                                                                                                                                                                                               |
+| isGroupAdmin             | A single parameter must be provided which contains the Nextcloud group id (not the display name). Provides true or false (boolean) if the user is a subadmin (group admin) of the specified group, or null if the group does not exist. In case the group does not exist, the claim is not added to the ID token or userinfo endpoint. |
+| hasRole                  | A single parameter must be provided which contains the Nextcloud group id (not the display name) against which the check is performed. Provides true or false (boolean) if the user is in the specified group.                                                                                                                         |
+| isInGroup                | Same as `hasRole`                                                                                                                                                                                                                                                                                                                      |
+| getUserEmail             | Returns the users primary email address as string                                                                                                                                                                                                                                                                                      |
+| getUserGroups            | Returns the groups of the user as string\[\]                                                                                                                                                                                                                                                                                           |
+| getUserGroupsDisplayName | Returns the display name of the groups of the user as string\[\]                                                                                                                                                                                                                                                                       |
+| getUserLanguage          | Returns the language, that is used by the user or forced by system                                                                                                                                                                                                                                                                     |
+| getUserLocale            | Returns the locale, that is used by the user or forced by system                                                                                                                                                                                                                                                                       |
+| getUserFDOW              | Return the users setting of first day of week or use the locale setting (0 = sunday, 1 = monday, ...)                                                                                                                                                                                                                                  |
+| getUserTimezone          | Return the users setting of timezone or or forced by system                                                                                                                                                                                                                                                                            |
 
 ## Access Token & ID Token generation and validation via events by other Nextcloud apps
 
@@ -290,22 +375,22 @@ It is possible to created new clients where the client id and client secret is n
 
 Several global OIDC app settings can be changed with the Nextcloud `occ config:app:set` command. Run the commands from the Nextcloud installation directory and add the required PHP or web-server user prefix for your installation, if needed.
 
-| Setting | Description | Example |
-|---|---|---|
-| `expire_time` | Access token and ID token lifetime in seconds. | `occ config:app:set oidc expire_time --value "1800"` |
-| `refresh_expire_time` | Refresh token lifetime in seconds. Use `never` for refresh tokens that do not expire by time. | `occ config:app:set oidc refresh_expire_time --value "604800"` |
-| `client_expire_time` | Lifetime of dynamically registered clients in seconds. | `occ config:app:set oidc client_expire_time --value "86400"` |
-| `default_token_type` | Default access token type for newly created clients. Supported values are `opaque` and `jwt`. | `occ config:app:set oidc default_token_type --value "jwt"` |
-| `provide_refresh_token_always` | Legacy mode for refresh tokens. Set to `true` to issue refresh tokens even without the `offline_access` scope; set to `false` for OIDC-compliant behavior. | `occ config:app:set oidc provide_refresh_token_always --value "false"` |
-| `always_include_scope_claims` | Legacy mode for ID token claims in authorization code flow. Set to `true` to include scope claims in the ID token without an explicit `claims.id_token` request; set to `false` for OIDC-compliant behavior. | `occ config:app:set oidc always_include_scope_claims --value "false"` |
-| `dynamic_client_registration` | Enables or disables Dynamic Client Registration and the `registration_endpoint` discovery metadata. Supported values are `true` and `false`. | `occ config:app:set oidc dynamic_client_registration --value "true"` |
-| `overwrite_email_verified` | Set to `true` to always return `email_verified: true`; set to `false` to use the verification state from the Nextcloud account. | `occ config:app:set oidc overwrite_email_verified --value "false"` |
-| `allow_user_settings` | Enables or disables personal privacy settings for users. Supported values are `enabled` and `no`. | `occ config:app:set oidc allow_user_settings --value "enabled"` |
-| `restrict_user_information` | Globally removes selected optional profile data from ID token and UserInfo responses. Supported values are `avatar`, `address`, `phone`, `website`, or a space-separated combination. Use `no` to allow all supported optional profile data. | `occ config:app:set oidc restrict_user_information --value "avatar phone"` |
-| `group_claim_type` | Controls whether the `groups` claim contains internal group IDs or display names. Supported values are `gid` and `displayname`. | `occ config:app:set oidc group_claim_type --value "displayname"` |
-| `role_claim_type` | Controls whether the `roles` claim contains internal group IDs or display names. Supported values are `gid`, `displayname`, and `null`; `null` follows `group_claim_type`. | `occ config:app:set oidc role_claim_type --value "gid"` |
-| `allow_subdomain_wildcards` | Enables or disables subdomain wildcards in redirect URIs, for example `https://*.example.com/callback`. Supported values are `true` and `false`. | `occ config:app:set oidc allow_subdomain_wildcards --value "true"` |
-| `disable_auth_client_secret_basic` | Enables or disables support for the client_secret_basic authentication method. Supported values are `true` and `false`. | `occ config:app:set oidc disable_auth_client_secret_basic --value true` |
+| Setting                            | Description                                                                                                                                                                                                                                  | Example                                                                    |
+|------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| `expire_time`                      | Access token and ID token lifetime in seconds.                                                                                                                                                                                               | `occ config:app:set oidc expire_time --value "1800"`                       |
+| `refresh_expire_time`              | Refresh token lifetime in seconds. Use `never` for refresh tokens that do not expire by time.                                                                                                                                                | `occ config:app:set oidc refresh_expire_time --value "604800"`             |
+| `client_expire_time`               | Lifetime of dynamically registered clients in seconds.                                                                                                                                                                                       | `occ config:app:set oidc client_expire_time --value "86400"`               |
+| `default_token_type`               | Default access token type for newly created clients. Supported values are `opaque` and `jwt`.                                                                                                                                                | `occ config:app:set oidc default_token_type --value "jwt"`                 |
+| `provide_refresh_token_always`     | Legacy mode for refresh tokens. Set to `true` to issue refresh tokens even without the `offline_access` scope; set to `false` for OIDC-compliant behavior.                                                                                   | `occ config:app:set oidc provide_refresh_token_always --value "false"`     |
+| `always_include_scope_claims`      | Legacy mode for ID token claims in authorization code flow. Set to `true` to include scope claims in the ID token without an explicit `claims.id_token` request; set to `false` for OIDC-compliant behavior.                                 | `occ config:app:set oidc always_include_scope_claims --value "false"`      |
+| `dynamic_client_registration`      | Enables or disables Dynamic Client Registration and the `registration_endpoint` discovery metadata. Supported values are `true` and `false`.                                                                                                 | `occ config:app:set oidc dynamic_client_registration --value "true"`       |
+| `overwrite_email_verified`         | Set to `true` to always return `email_verified: true`; set to `false` to use the verification state from the Nextcloud account.                                                                                                              | `occ config:app:set oidc overwrite_email_verified --value "false"`         |
+| `allow_user_settings`              | Enables or disables personal privacy settings for users. Supported values are `enabled` and `no`.                                                                                                                                            | `occ config:app:set oidc allow_user_settings --value "enabled"`            |
+| `restrict_user_information`        | Globally removes selected optional profile data from ID token and UserInfo responses. Supported values are `avatar`, `address`, `phone`, `website`, or a space-separated combination. Use `no` to allow all supported optional profile data. | `occ config:app:set oidc restrict_user_information --value "avatar phone"` |
+| `group_claim_type`                 | Controls whether the `groups` claim contains internal group IDs or display names. Supported values are `gid` and `displayname`.                                                                                                              | `occ config:app:set oidc group_claim_type --value "displayname"`           |
+| `role_claim_type`                  | Controls whether the `roles` claim contains internal group IDs or display names. Supported values are `gid`, `displayname`, and `null`; `null` follows `group_claim_type`.                                                                   | `occ config:app:set oidc role_claim_type --value "gid"`                    |
+| `allow_subdomain_wildcards`        | Enables or disables subdomain wildcards in redirect URIs, for example `https://*.example.com/callback`. Supported values are `true` and `false`.                                                                                             | `occ config:app:set oidc allow_subdomain_wildcards --value "true"`         |
+| `disable_auth_client_secret_basic` | Enables or disables support for the client_secret_basic authentication method. Supported values are `true` and `false`.                                                                                                                      | `occ config:app:set oidc disable_auth_client_secret_basic --value true`    |
 
 ## JWT Access Tokens (RFC9068)
 

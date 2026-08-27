@@ -37,6 +37,7 @@ use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
+use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 
 use OC\Security\Bruteforce\Throttler;
 
@@ -82,6 +83,8 @@ class OIDCApiControllerTest extends TestCase {
     protected $config;
     /** @var \PHPUnit\Framework\MockObject\MockObject|JwtGenerator */
     protected $jwtGenerator;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|FormUrlencodedParameterParser */
+    protected $formUrlencodedParameterParser;
 
     public function setUp(): void {
         parent::setUp();
@@ -100,6 +103,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->urlGenerator = $this->createMock(IURLGenerator::class);
         $this->config = $this->createMock(IConfig::class);
         $this->jwtGenerator = $this->createMock(JwtGenerator::class);
+        $this->formUrlencodedParameterParser = $this->createMock(FormUrlencodedParameterParser::class);
 
         // Create accessTokenMapper with constructor arguments
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
@@ -135,7 +139,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->appConfig,
             $this->jwtGenerator,
             $this->logger,
-            $this->texTargetMapper
+            $this->texTargetMapper,
+            $this->formUrlencodedParameterParser
         );
 
         // Default configuration
@@ -228,6 +233,155 @@ class OIDCApiControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsRepeatedResourceParametersFromRawFormBody() {
+        $this->request->method('getHeader')->willReturnCallback(function($key) {
+            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
+        });
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                // Simulate the value PHP/Nextcloud might expose after collapsing
+                // repeated form fields. The raw body parser must remain authoritative.
+                'resource' => 'https://api-b.example/',
+                default => null,
+            };
+        });
+        $this->formUrlencodedParameterParser->expects($this->once())
+            ->method('readSelectedParameters')
+            ->with(['resource', 'audience'])
+            ->willReturn([
+                'resource' => ['https://api-a.example/', 'https://api-b.example/'],
+                'audience' => [],
+            ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_target', $result->getData()['error']);
+        $this->assertStringContainsString('Multiple resource', $result->getData()['error_description']);
+    }
+
+    public function testTokenExchangeRejectsRepeatedIdenticalResourceParameters() {
+        $this->request->method('getHeader')->willReturnCallback(function($key) {
+            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded; charset=UTF-8' : '';
+        });
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'resource' => 'https://api.example/',
+                default => null,
+            };
+        });
+        $this->formUrlencodedParameterParser->method('readSelectedParameters')
+            ->willReturn([
+                'resource' => ['https://api.example/', 'https://api.example/'],
+                'audience' => [],
+            ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsRepeatedAudienceParametersFromRawFormBody() {
+        $this->request->method('getHeader')->willReturnCallback(function($key) {
+            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
+        });
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'audience' => 'backend-b',
+                default => null,
+            };
+        });
+        $this->formUrlencodedParameterParser->method('readSelectedParameters')
+            ->willReturn([
+                'resource' => [],
+                'audience' => ['backend-a', 'backend-b'],
+            ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRawResourceIsAuthoritativeOverCollapsedRequestParameter() {
+        $this->request->method('getHeader')->willReturnCallback(function($key) {
+            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
+        });
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'resource' => 'https://collapsed.example/',
+                default => null,
+            };
+        });
+        $this->formUrlencodedParameterParser->method('readSelectedParameters')
+            ->willReturn([
+                'resource' => ['https://raw.example/api#fragment'],
+                'audience' => [],
+            ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_target', $result->getData()['error']);
+        $this->assertStringContainsString('absolute URI without a fragment', $result->getData()['error_description']);
+    }
+
+    public function testTokenExchangeFormBodyDoesNotFallBackToMergedTargetParameter() {
+        $this->request->method('getHeader')->willReturnCallback(function($key) {
+            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
+        });
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                // A target exposed only by IRequest's merged parameter map (for
+                // example from the query string) must not become a Token Exchange
+                // target when it was not present in the form entity body.
+                'resource' => 'https://merged-only.example/api#fragment',
+                default => null,
+            };
+        });
+        $this->formUrlencodedParameterParser->method('readSelectedParameters')
+            ->willReturn([
+                'resource' => [],
+                'audience' => [],
+            ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_client', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsUnreadableRawFormBody() {
+        $this->request->method('getHeader')->willReturnCallback(function($key) {
+            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
+        });
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'some_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                default => null,
+            };
+        });
+        $this->formUrlencodedParameterParser->method('readSelectedParameters')
+            ->willReturn(null);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_request', $result->getData()['error']);
     }
 
     public function testTokenExchangeRejectsResourceWithFragment() {

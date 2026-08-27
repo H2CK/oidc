@@ -26,6 +26,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
+use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
@@ -88,6 +89,8 @@ class OIDCApiController extends ApiController {
     private $jwtGenerator;
     /** @var LoggerInterface */
     private $logger;
+    /** @var FormUrlencodedParameterParser */
+    private $formUrlencodedParameterParser;
 
     /**
      * @param string $appName
@@ -110,6 +113,7 @@ class OIDCApiController extends ApiController {
      * @param JwtGenerator $jwtGenerator
      * @param LoggerInterface $logger
      * @param TexTargetMapper $texTargetMapper
+     * @param FormUrlencodedParameterParser|null $formUrlencodedParameterParser
      */
     public function __construct(
                     string $appName,
@@ -131,7 +135,8 @@ class OIDCApiController extends ApiController {
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
                     LoggerInterface $logger,
-                    ?TexTargetMapper $texTargetMapper = null
+                    ?TexTargetMapper $texTargetMapper = null,
+                    ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null
                     )
     {
         parent::__construct($appName, $request);
@@ -153,6 +158,24 @@ class OIDCApiController extends ApiController {
         $this->jwtGenerator = $jwtGenerator;
         $this->logger = $logger;
         $this->texTargetMapper = $texTargetMapper;
+        $this->formUrlencodedParameterParser = $formUrlencodedParameterParser ?? new FormUrlencodedParameterParser();
+    }
+
+    /**
+     * Check whether the original request body uses the encoding required by the
+     * OAuth token endpoint. Parameters that may occur more than once according
+     * to RFC 8693 must be inspected in the raw form body because IRequest's
+     * parsed parameter map cannot reliably preserve repeated names.
+     */
+    private function isFormUrlencodedRequest(): bool
+    {
+        $contentType = trim($this->request->getHeader('Content-Type'));
+        if ($contentType === '') {
+            return false;
+        }
+
+        $mediaType = strtolower(trim(explode(';', $contentType, 2)[0]));
+        return $mediaType === 'application/x-www-form-urlencoded';
     }
 
     private function getBasicClientCredentials(): ?array
@@ -515,6 +538,36 @@ class OIDCApiController extends ApiController {
         $actorToken = $this->request->getParam('actor_token');
         $actorTokenType = $this->request->getParam('actor_token_type');
 
+        // RFC 8693 permits resource and audience to occur multiple times. PHP and
+        // Nextcloud expose normal POST form fields as an associative parameter map,
+        // so repeated names can otherwise be collapsed before getParam() sees them.
+        // For form-encoded token requests, inspect the original body and use it as
+        // the authoritative source for both target parameters.
+        $rawTargetParameters = [
+            'resource' => [],
+            'audience' => [],
+        ];
+        if ($this->isFormUrlencodedRequest()) {
+            $parsedTargetParameters = $this->formUrlencodedParameterParser->readSelectedParameters([
+                'resource',
+                'audience',
+            ]);
+            if ($parsedTargetParameters === null) {
+                $this->logger->error('Unable to read form-encoded Token Exchange request body.');
+                return new JSONResponse([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Unable to read the Token Exchange request body.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $rawTargetParameters = $parsedTargetParameters;
+
+            // For standards-compliant form-encoded requests the entity body is
+            // authoritative. Do not fall back to IRequest's merged GET/POST map,
+            // because doing so could reintroduce a collapsed query/form value.
+            $resource = $rawTargetParameters['resource'][0] ?? null;
+            $audience = $rawTargetParameters['audience'][0] ?? null;
+        }
+
         // RFC 8693 Section 2.1: subject_token and subject_token_type are REQUIRED.
         if (!is_string($subjectToken) || trim($subjectToken) === '') {
             $this->logger->info('Missing or invalid subject_token in Token Exchange request.');
@@ -564,9 +617,12 @@ class OIDCApiController extends ApiController {
         }
 
         // Logical audiences are not configured by the current TEX target model. Reject
-        // them explicitly; clients can use a configured resource URI instead.
+        // them explicitly, including RFC-compliant repeated audience parameters;
+        // clients can use a configured resource URI instead.
         if ($audience !== null) {
-            $this->logger->info('audience parameter is not supported for Token Exchange.');
+            $this->logger->info('audience parameter is not supported for Token Exchange.', [
+                'audience_count' => count($rawTargetParameters['audience']) ?: 1,
+            ]);
             return new JSONResponse([
                 'error' => 'invalid_target',
                 'error_description' => 'The audience parameter is not supported. Use a configured resource URI.',
@@ -574,7 +630,18 @@ class OIDCApiController extends ApiController {
         }
 
         // The current target model supports exactly one resource URI. RFC 8693 permits
-        // multiple resources, but an AS may reject a target request it cannot fulfill.
+        // multiple resources, but this constrained profile rejects such a target set.
+        // Detect repetitions from the original form body before validating the URI.
+        if (count($rawTargetParameters['resource']) > 1) {
+            $this->logger->info('Multiple resource parameters are not supported for Token Exchange.', [
+                'resource_count' => count($rawTargetParameters['resource']),
+            ]);
+            return new JSONResponse([
+                'error' => 'invalid_target',
+                'error_description' => 'Multiple resource parameters are not supported. Use a single configured resource URI.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
         if ($resource !== null) {
             if (!is_string($resource) || !$this->isValidTokenExchangeResourceUri($resource)) {
                 $this->logger->info('Invalid resource URI in Token Exchange request.');
