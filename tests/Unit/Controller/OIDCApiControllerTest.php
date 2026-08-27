@@ -157,6 +157,17 @@ class OIDCApiControllerTest extends TestCase {
             });
     }
 
+    /**
+     * RFC 8693 subject_token_type=access_token must only use the access-token
+     * lookup path. Authorization-code lookup here would reintroduce the token
+     * type confusion that the Token Exchange implementation explicitly avoids.
+     */
+    private function expectTokenExchangeNeverUsesAuthorizationCodeLookup(): void {
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('getByCode');
+    }
+
     // ==================== Token Exchange Tests ====================
 
     public function testTokenExchangeMissingSubjectTokenType() {
@@ -608,9 +619,7 @@ class OIDCApiControllerTest extends TestCase {
             ->method('getByIdentifier')
             ->willReturn($client);
 
-        $this->accessTokenMapper
-            ->expects($this->never())
-            ->method('getByCode');
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
 
         $this->accessTokenMapper
             ->method('getByAccessToken')
@@ -648,9 +657,7 @@ class OIDCApiControllerTest extends TestCase {
         $target->setUsedAt(0);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->accessTokenMapper
-            ->expects($this->never())
-            ->method('getByCode');
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
         $this->texTargetMapper
@@ -721,6 +728,7 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setAccessToken('subject_token');
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->texTargetMapper
             ->expects($this->once())
@@ -784,6 +792,7 @@ class OIDCApiControllerTest extends TestCase {
         $target->setUsedAt(0);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->texTargetMapper->expects($this->once())
             ->method('getByClientId')
@@ -831,7 +840,6 @@ class OIDCApiControllerTest extends TestCase {
     public function testTokenExchangeSuccess() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setClientIdentifier('test-client');
-        $client->setClientIdentifier('test-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
@@ -852,7 +860,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
         $this->texTargetMapper->method('getByClientId')->willReturn([]);
@@ -943,7 +951,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
 
@@ -955,13 +963,10 @@ class OIDCApiControllerTest extends TestCase {
 
         $this->texTargetMapper->method('getByClientId')->willReturn([$texTarget]);
 
-        // Mock new token generation
-        $newToken = new AccessToken();
-        $newToken->setAccessToken('new_jwt_token');
-
+        // Mock new token generation. Token Exchange never issues an ID token.
         $this->secureRandom->method('generate')->willReturn('new_refresh_token');
         $this->jwtGenerator->method('generateAccessToken')->willReturn('new_jwt_token');
-        $this->jwtGenerator->method('generateIdToken')->willReturn('id_token_value');
+        $this->jwtGenerator->expects($this->never())->method('generateIdToken');
 
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
@@ -1023,7 +1028,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
 
@@ -1050,17 +1055,6 @@ class OIDCApiControllerTest extends TestCase {
         // Mock time
         $this->time->method('getTime')->willReturn(1000);
 
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-
-        $group1 = $this->createMock(IGroup::class);
-        $group1->method('getGID')->willReturn('group1');
-        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
-
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
-        $this->texTargetMapper->method('getByClientId')->willReturn([]);
-
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
@@ -1083,6 +1077,7 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setAccessToken('old_token');
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->time->method('getTime')->willReturn(1000);
 
@@ -1132,18 +1127,10 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException('Token not found by code'));
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
         $this->texTargetMapper->method('getByClientId')->willReturn([]);
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-
-        $group1 = $this->createMock(IGroup::class);
-        $group1->method('getGID')->willReturn('group1');
-        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
 
         $this->request
             ->method('getParam')
