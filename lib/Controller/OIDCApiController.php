@@ -663,19 +663,21 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // RFC 8693 does not require the subject token to have been issued to the
-        // requesting client. Cross-client exchange is allowed by local policy. The
-        // authenticated requesting client's TEX configuration remains authoritative
-        // for targets, scopes, and group restrictions.
+        // RFC 8693 does not require the requesting client to be the client to which
+        // the subject token was originally issued. Cross-client exchanges are therefore
+        // allowed, while the authenticated requesting client's TEX target, scope and
+        // group policies remain authoritative for the issued token.
         if ($subjectTokenAccessToken->getClientId() !== $client->getId()) {
-            $this->logger->info(
-                'Processing cross-client Token Exchange. Requesting client id: ' . $client_id
-                . ', subject token client id: ' . $subjectTokenAccessToken->getClientId()
-            );
+            $this->logger->info('Processing cross-client Token Exchange.', [
+                'requesting_client' => $client_id,
+                'subject_token_client_id' => $subjectTokenAccessToken->getClientId(),
+            ]);
         }
 
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
-        if ($this->time->getTime() > $subjectTokenAccessToken->getRefreshed() + $expireTime) {
+        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $now = $this->time->getTime();
+        $subjectExpiresAt = $subjectTokenAccessToken->getRefreshed() + $expireTime;
+        if ($now >= $subjectExpiresAt) {
             $this->logger->info('Subject token has expired. Client id: ' . $client_id);
             return new JSONResponse([
                 'error' => 'invalid_request',
@@ -683,18 +685,24 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // The output token is always governed by the requesting client's target
-        // policy. If no resource is explicitly requested, preserve the subject token's
-        // resource, but validate that inherited target against the requesting client as
-        // well. This is especially important for cross-client exchanges.
+        // The exchanged token must never outlive its subject token. Cap its lifetime
+        // to the configured access-token lifetime and the subject token's remaining
+        // lifetime, whichever is shorter.
+        $exchangeExpireTime = min($expireTime, $subjectExpiresAt - $now);
+
+        // If resource is omitted, RFC 8693 permits the AS to apply policy for the target.
+        // This implementation inherits the subject token resource, but only after the
+        // effective value has been re-validated against the requesting client's TEX
+        // target whitelist. An empty effective resource remains unset and falls back to
+        // the requesting client as audience in JwtGenerator.
         $effectiveResource = $resource !== null
             ? $resource
-            : (string)($subjectTokenAccessToken->getResource() ?? '');
+            : trim((string)($subjectTokenAccessToken->getResource() ?? ''));
 
         $texTargets = [];
         if ($effectiveResource !== '') {
             if ($this->texTargetMapper === null) {
-                $this->logger->error('TEX target mapper is unavailable while a target resource is effective.');
+                $this->logger->error('TEX target mapper is unavailable while an effective resource is present.');
                 return new JSONResponse([
                     'error' => 'server_error',
                     'error_description' => 'Token Exchange target configuration is unavailable.',
@@ -711,10 +719,11 @@ class OIDCApiController extends ApiController {
             }
 
             if (!$resourceValid) {
-                $this->logger->info(
-                    'Effective resource does not match any TEX target of requesting client. Client id: '
-                    . $client_id . ', Resource: ' . $effectiveResource
-                );
+                $this->logger->info('Effective resource does not match any TEX target.', [
+                    'client_id' => $client_id,
+                    'resource' => $effectiveResource,
+                    'resource_in_request' => $resource !== null,
+                ]);
                 return new JSONResponse([
                     'error' => 'invalid_target',
                     'error_description' => 'The effective resource is not allowed for Token Exchange.',
@@ -803,19 +812,19 @@ class OIDCApiController extends ApiController {
 
         // A token exchange creates a new, independently stored token. Insert first so
         // JWT generation sees a stable database ID (jti) and correct creation time.
-        $now = $this->time->getTime();
         $newAccessToken = new AccessToken();
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
 
-        // The exchanged token belongs to the authenticated requesting client, while
-        // retaining the subject (user) represented by the subject token.
         $newAccessToken->setClientId($client->getId());
         $newAccessToken->setUserId($uid);
         $newAccessToken->setScope($effectiveScope);
         $newAccessToken->setHashedCode(hash('sha512', $newCode));
         $newAccessToken->setAccessToken('');
         $newAccessToken->setCreated($now);
-        $newAccessToken->setRefreshed($now);
+        // Existing token validation derives expiry as refreshed + configured lifetime.
+        // Shift the refresh anchor so opaque-token validation and JWT exp enforce the
+        // same shortened Token Exchange lifetime without changing the database schema.
+        $newAccessToken->setRefreshed($now + $exchangeExpireTime - $expireTime);
         $newAccessToken->setNonce('');
         $newAccessToken->setResource($effectiveResource);
         $newAccessToken->setCodeChallenge('');
@@ -829,7 +838,9 @@ class OIDCApiController extends ApiController {
                 $newAccessToken,
                 $client,
                 $this->request->getServerProtocol(),
-                $this->request->getServerHost()
+                $this->request->getServerHost(),
+                $exchangeExpireTime,
+                false
             ));
             $this->accessTokenMapper->update($newAccessToken);
         } catch (JwtCreationErrorException $e) {
@@ -849,13 +860,13 @@ class OIDCApiController extends ApiController {
             'access_token' => $newAccessToken->getAccessToken(),
             'issued_token_type' => self::TOKEN_TYPE_ACCESS_TOKEN,
             'token_type' => 'Bearer',
-            'expires_in' => $expireTime,
+            'expires_in' => $exchangeExpireTime,
             'scope' => $newAccessToken->getScope(),
         ];
 
-        if ($resource !== null && $this->texTargetMapper !== null) {
+        if ($effectiveResource !== '' && $this->texTargetMapper !== null) {
             foreach ($texTargets as $target) {
-                if ($target->getResourceUrl() === $resource) {
+                if ($target->getResourceUrl() === $effectiveResource) {
                     $this->texTargetMapper->markUsed($target, $now);
                     break;
                 }

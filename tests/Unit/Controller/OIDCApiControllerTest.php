@@ -603,6 +603,77 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertEquals('invalid_target', $result->getData()['error']);
     }
 
+    public function testTokenExchangeInheritedResourceIsRevalidatedAndAcceptedWhenWhitelisted() {
+        $client = new Client('requesting-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('requesting-client');
+        $client->setSecret('test-secret');
+        $client->setId(1);
+        $client->setTexEnabled(true);
+
+        $subjectToken = new AccessToken();
+        $subjectToken->setClientId(2);
+        $subjectToken->setUserId('user1');
+        $subjectToken->setScope('profile');
+        $subjectToken->setRefreshed(999);
+        $subjectToken->setResource('https://allowed-resource.example/');
+        $subjectToken->setAccessToken('subject_token');
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userManager->method('get')->willReturn($user);
+        $this->groupManager->method('getUserGroups')->willReturn([]);
+        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+
+        $target = new TexTargets();
+        $target->setResourceUrl('https://allowed-resource.example/');
+        $target->setId(1);
+        $target->setUsedAt(0);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        $this->texTargetMapper->expects($this->once())
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$target]);
+        $this->texTargetMapper->expects($this->once())
+            ->method('markUsed')
+            ->with($target, 1000)
+            ->willReturn(true);
+
+        $this->time->method('getTime')->willReturn(1000);
+        $this->secureRandom->method('generate')->willReturn('new_code');
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new_access_token');
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('example.com');
+        $this->request->method('getParam')->willReturnCallback(function($key) {
+            return match ($key) {
+                'subject_token' => 'subject_token',
+                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+                'resource' => null,
+                'scope' => null,
+                default => null,
+            };
+        });
+
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
+            $this->assertSame('https://allowed-resource.example/', $token->getResource());
+            $token->setId(44);
+            return $token;
+        });
+
+        $result = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:token-exchange',
+            null,
+            null,
+            'requesting-client',
+            'test-secret'
+        );
+
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $this->assertEquals('new_access_token', $result->getData()['access_token']);
+        $this->assertEquals(899, $result->getData()['expires_in']);
+    }
+
     public function testTokenExchangeSuccess() {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setClientIdentifier('test-client');
@@ -633,7 +704,16 @@ class OIDCApiControllerTest extends TestCase {
         $this->texTargetMapper->method('getByClientId')->willReturn([]);
 
         $this->secureRandom->method('generate')->willReturn('new_refresh_token');
-        $this->jwtGenerator->method('generateAccessToken')
+        $this->jwtGenerator->expects($this->once())
+            ->method('generateAccessToken')
+            ->with(
+                $this->isInstanceOf(AccessToken::class),
+                $this->identicalTo($client),
+                'https',
+                'example.com',
+                899,
+                false
+            )
             ->willReturn('new_jwt_token');
         $this->jwtGenerator->expects($this->never())
             ->method('generateIdToken');
@@ -663,6 +743,11 @@ class OIDCApiControllerTest extends TestCase {
         $this->request->method('getServerHost')->willReturn('example.com');
 
         $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
+            $this->assertSame(1000, $token->getCreated());
+            // With 899 seconds remaining on the subject token and a configured
+            // lifetime of 900 seconds, the expiry anchor is shifted to 999 so
+            // existing refreshed + lifetime validation expires both at 1899.
+            $this->assertSame(999, $token->getRefreshed());
             $token->setId(42);
             return $token;
         });
@@ -676,6 +761,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertArrayHasKey('scope', $result->getData());
         $this->assertEquals('urn:ietf:params:oauth:token-type:access_token', $result->getData()['issued_token_type']);
         $this->assertEquals('Bearer', $result->getData()['token_type']);
+        $this->assertEquals(899, $result->getData()['expires_in']);
         $this->assertEquals('openid profile', $result->getData()['scope']);
         $this->assertArrayNotHasKey('id_token', $result->getData());
     }

@@ -773,6 +773,23 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals($client->getClientIdentifier(), $decodedJwt['client_id']);
         $this->assertArrayHasKey('email', $decodedJwt);
         $this->assertEquals('testuser@example.com', $decodedJwt['email']);
+        $this->assertArrayHasKey('auth_time', $decodedJwt, 'Existing JWT access-token behavior must remain unchanged by default.');
+
+        // RFC 9068 makes auth_time optional. Token Exchange is not a new End-User
+        // authentication event, so exchanged JWTs omit auth_time and use the
+        // caller-provided shortened lifetime.
+        $exchangedResult = $this->generator->generateAccessToken(
+            $accessToken,
+            $client,
+            $protocol,
+            $issuer,
+            300,
+            false
+        );
+        $exchangedDecoded = (array) JWT::decode($exchangedResult, JWK::parseKeySet($jwks));
+
+        $this->assertArrayNotHasKey('auth_time', $exchangedDecoded);
+        $this->assertEquals(300, $exchangedDecoded['exp'] - $exchangedDecoded['iat']);
     }
 
     public function testGenerateJwtAccessTokenException() {

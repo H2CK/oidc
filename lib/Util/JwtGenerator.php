@@ -488,17 +488,33 @@ class JwtGenerator
      * @param Client $client
      * @param string $issuerProtocol
      * @param string $issuerHost
+     * @param int|null $expireTimeOverride Optional lifetime in seconds for this access token.
+     *        When omitted, the configured default access-token lifetime is used.
+     * @param bool $includeAuthTime Whether to include the optional RFC 9068 auth_time claim.
+     *        Token Exchange calls set this to false because the exchange itself is not
+     *        an End-User authentication event.
      * @return string
      * @throws PropertyDoesNotExistException
      * @throws JwtCreationErrorException
      */
-    public function generateAccessToken(AccessToken $accessToken, Client $client, string $issuerProtocol, string $issuerHost): string {
+    public function generateAccessToken(
+        AccessToken $accessToken,
+        Client $client,
+        string $issuerProtocol,
+        string $issuerHost,
+        ?int $expireTimeOverride = null,
+        bool $includeAuthTime = true
+    ): string {
         if (strtolower($client->getTokenType())!=='jwt') {
             $this->logger->debug('Generated opaque access token for client ' . $client->getClientIdentifier());
             return $this->secureRandom->generate(72, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         }
 
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $configuredExpireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $expireTime = $expireTimeOverride ?? $configuredExpireTime;
+        if ($expireTime <= 0) {
+            throw new JwtCreationErrorException('Access token lifetime must be greater than zero.', 0, null);
+        }
         $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
@@ -516,13 +532,13 @@ class JwtGenerator
             true
         );
 
+        $now = $this->time->getTime();
         $jwt_payload_base = [
             'iss' => $issuer,
             'sub' => $uid,
             'aud' => $aud,
-            'exp' => $this->time->getTime() + $expireTime,
-            'auth_time' => $accessToken->getCreated(),
-            'iat' => $this->time->getTime(),
+            'exp' => $now + $expireTime,
+            'iat' => $now,
             'acr' => '0',
             'client_id' => $client->getClientIdentifier(),
             'azp' => $client->getClientIdentifier(),
@@ -531,7 +547,16 @@ class JwtGenerator
             'jti' => strval($accessToken->getId()),
         ];
 
+        if ($includeAuthTime) {
+            $jwt_payload_base['auth_time'] = $accessToken->getCreated();
+        }
+
         $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
+        // Custom claims must not re-introduce auth_time when the caller intentionally
+        // omits it (e.g. RFC 8693 Token Exchange).
+        if (!$includeAuthTime) {
+            unset($jwt_payload['auth_time']);
+        }
 
         $roles = [];
         $rolesDisplayName = [];
