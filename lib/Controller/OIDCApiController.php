@@ -663,14 +663,15 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Local authorization policy: only a token issued to the authenticated client
-        // can be exchanged by that client.
+        // RFC 8693 does not require the subject token to have been issued to the
+        // requesting client. Cross-client exchange is allowed by local policy. The
+        // authenticated requesting client's TEX configuration remains authoritative
+        // for targets, scopes, and group restrictions.
         if ($subjectTokenAccessToken->getClientId() !== $client->getId()) {
-            $this->logger->info('Subject token does not belong to requesting client. Client id: ' . $client_id);
-            return new JSONResponse([
-                'error' => 'invalid_request',
-                'error_description' => 'Subject token is not valid for this client.',
-            ], Http::STATUS_BAD_REQUEST);
+            $this->logger->info(
+                'Processing cross-client Token Exchange. Requesting client id: ' . $client_id
+                . ', subject token client id: ' . $subjectTokenAccessToken->getClientId()
+            );
         }
 
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
@@ -682,10 +683,18 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        // The output token is always governed by the requesting client's target
+        // policy. If no resource is explicitly requested, preserve the subject token's
+        // resource, but validate that inherited target against the requesting client as
+        // well. This is especially important for cross-client exchanges.
+        $effectiveResource = $resource !== null
+            ? $resource
+            : (string)($subjectTokenAccessToken->getResource() ?? '');
+
         $texTargets = [];
-        if ($resource !== null) {
+        if ($effectiveResource !== '') {
             if ($this->texTargetMapper === null) {
-                $this->logger->error('TEX target mapper is unavailable while resource was requested.');
+                $this->logger->error('TEX target mapper is unavailable while a target resource is effective.');
                 return new JSONResponse([
                     'error' => 'server_error',
                     'error_description' => 'Token Exchange target configuration is unavailable.',
@@ -695,17 +704,20 @@ class OIDCApiController extends ApiController {
             $texTargets = $this->texTargetMapper->getByClientId($client->getId());
             $resourceValid = false;
             foreach ($texTargets as $target) {
-                if ($target->getResourceUrl() === $resource) {
+                if ($target->getResourceUrl() === $effectiveResource) {
                     $resourceValid = true;
                     break;
                 }
             }
 
             if (!$resourceValid) {
-                $this->logger->info('Resource parameter does not match any TEX target. Client id: ' . $client_id . ', Resource: ' . $resource);
+                $this->logger->info(
+                    'Effective resource does not match any TEX target of requesting client. Client id: '
+                    . $client_id . ', Resource: ' . $effectiveResource
+                );
                 return new JSONResponse([
                     'error' => 'invalid_target',
-                    'error_description' => 'The specified resource is not allowed for Token Exchange.',
+                    'error_description' => 'The effective resource is not allowed for Token Exchange.',
                 ], Http::STATUS_BAD_REQUEST);
             }
         }
@@ -794,8 +806,9 @@ class OIDCApiController extends ApiController {
         $now = $this->time->getTime();
         $newAccessToken = new AccessToken();
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-        $effectiveResource = $resource !== null ? $resource : (string)($subjectTokenAccessToken->getResource() ?? '');
 
+        // The exchanged token belongs to the authenticated requesting client, while
+        // retaining the subject (user) represented by the subject token.
         $newAccessToken->setClientId($client->getId());
         $newAccessToken->setUserId($uid);
         $newAccessToken->setScope($effectiveScope);

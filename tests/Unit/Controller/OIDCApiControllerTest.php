@@ -468,32 +468,122 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertEquals('invalid_request', $result->getData()['error']);
     }
 
-    public function testTokenExchangeSubjectTokenWrongClient() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
+    public function testTokenExchangeCrossClientSubjectTokenAllowed() {
+        $client = new Client('requesting-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('requesting-client');
+        $client->setSecret('test-secret');
+        $client->setId(1);
+        $client->setTexEnabled(true);
+        $client->setTexAllowedScopes('profile');
+
+        $subjectToken = new AccessToken();
+        $subjectToken->setClientId(2); // Issued to a different client
+        $subjectToken->setUserId('user1');
+        $subjectToken->setScope('openid profile');
+        $subjectToken->setRefreshed(999);
+        $subjectToken->setAccessToken('subject_token');
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userManager->method('get')->willReturn($user);
+        $this->groupManager->method('getUserGroups')->willReturn([]);
+
+        $target = new TexTargets();
+        $target->setResourceUrl('https://resource-server.example/');
+        $target->setId(1);
+        $target->setUsedAt(0);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper
+            ->expects($this->never())
+            ->method('getByCode');
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+        $this->texTargetMapper
+            ->expects($this->once())
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([$target]);
+
+        $this->time->method('getTime')->willReturn(1000);
+        $this->secureRandom->method('generate')->willReturn('new_refresh_token');
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new_access_token');
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('example.com');
+        $this->request
+            ->method('getParam')
+            ->willReturnCallback(function($key) {
+                switch ($key) {
+                    case 'subject_token':
+                        return 'subject_token';
+                    case 'subject_token_type':
+                        return 'urn:ietf:params:oauth:token-type:access_token';
+                    case 'resource':
+                        return 'https://resource-server.example/';
+                    case 'scope':
+                        return 'profile';
+                    default:
+                        return null;
+                }
+            });
+
+        $insertedToken = null;
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) use (&$insertedToken) {
+            $token->setId(42);
+            $insertedToken = $token;
+            return $token;
+        });
+
+        $result = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:token-exchange',
+            null,
+            null,
+            'requesting-client',
+            'test-secret'
+        );
+
+        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
+        $this->assertEquals('new_access_token', $result->getData()['access_token']);
+        $this->assertEquals('profile', $result->getData()['scope']);
+        $this->assertNotNull($insertedToken);
+        $this->assertEquals(1, $insertedToken->getClientId(), 'Output token must belong to requesting client');
+        $this->assertEquals('user1', $insertedToken->getUserId());
+        $this->assertEquals('https://resource-server.example/', $insertedToken->getResource());
+    }
+
+    public function testTokenExchangeCrossClientInheritedResourceMustBeAllowedForRequestingClient() {
+        $client = new Client('requesting-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('requesting-client');
         $client->setSecret('test-secret');
         $client->setId(1);
         $client->setTexEnabled(true);
 
-        $otherClient = new Client('other-client', ['https://test.org'], 'RS256');
-        $otherClient->setId(2);
+        $subjectToken = new AccessToken();
+        $subjectToken->setClientId(2); // Issued to a different client
+        $subjectToken->setUserId('user1');
+        $subjectToken->setScope('profile');
+        $subjectToken->setRefreshed(999);
+        $subjectToken->setResource('https://subject-resource.example/');
+        $subjectToken->setAccessToken('subject_token');
 
-        $accessToken = new AccessToken();
-        $accessToken->setClientId(2); // Token belongs to other client
-        $accessToken->setUserId('user1');
-        $accessToken->setScope('openid profile');
-        $accessToken->setRefreshed(time());
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        $this->texTargetMapper
+            ->expects($this->once())
+            ->method('getByClientId')
+            ->with(1)
+            ->willReturn([]); // Requesting client is not allowed to target inherited resource
+        $this->time->method('getTime')->willReturn(1000);
 
         $this->request
             ->method('getParam')
             ->willReturnCallback(function($key) {
                 switch ($key) {
                     case 'subject_token':
-                        return 'valid_token';
+                        return 'subject_token';
                     case 'subject_token_type':
                         return 'urn:ietf:params:oauth:token-type:access_token';
                     case 'resource':
-                        return null;
                     case 'scope':
                         return null;
                     default:
@@ -501,19 +591,16 @@ class OIDCApiControllerTest extends TestCase {
                 }
             });
 
-        $this->clientMapper
-            ->method('getByIdentifier')
-            ->willReturn($client);
-
-        $this->accessTokenMapper
-            ->method('getByAccessToken')
-            ->willReturn($accessToken);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
+        $result = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:token-exchange',
+            null,
+            null,
+            'requesting-client',
+            'test-secret'
+        );
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertStringContainsString('not valid for this client', $result->getData()['error_description']);
+        $this->assertEquals('invalid_target', $result->getData()['error']);
     }
 
     public function testTokenExchangeSuccess() {
