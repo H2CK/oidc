@@ -57,7 +57,7 @@ class TokenValidationRequestListener implements IEventListener {
         // check if it's an access token
         try {
             $accessToken = $this->accessTokenMapper->getByAccessToken($tokenString);
-            $hasExpired = $this->time->getTime() > $accessToken->getRefreshed() + $expireTime;
+            $hasExpired = $this->time->getTime() >= $accessToken->getEffectiveExpiresAt($expireTime);
             // cleanup expired access token
             if ($hasExpired) {
                 $this->accessTokenMapper->delete($accessToken);

@@ -40,6 +40,8 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
     private const SUBJECT_CLIENT_ID = 'tex-http-subject-client';
     private const JWT_CLIENT_ID = 'tex-http-jwt-client';
     private const OPAQUE_CLIENT_ID = 'tex-http-opaque-client';
+    private const RESOURCE_SERVER_CLIENT_ID = 'tex-http-resource-server';
+    private const WRONG_RESOURCE_SERVER_CLIENT_ID = 'tex-http-wrong-resource-server';
     private const CLIENT_SECRET = 'tex-http-test-secret-0123456789abcdef';
     private const TEST_USER_ID = 'tex-http-user';
     private const TOKEN_PATH = '/index.php/apps/oidc/token';
@@ -130,6 +132,8 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertNotSame('', $accessToken);
 
         $jwt = $this->decodeJwtPayload($accessToken);
+        $discovery = $this->assertJwtSignatureValidViaDiscovery($accessToken);
+        $this->assertSame($discovery['issuer'] ?? null, $jwt['iss'] ?? null);
         $this->assertSame(self::TEST_USER_ID, $jwt['sub'] ?? null);
         $this->assertSame($resource, $jwt['aud'] ?? null);
         $this->assertSame(self::JWT_CLIENT_ID, $jwt['client_id'] ?? null);
@@ -148,6 +152,8 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertSame(self::TEST_USER_ID, $persisted->getUserId());
         $this->assertSame($resource, $persisted->getResource());
         $this->assertSame('profile', $persisted->getScope());
+        $this->assertSame((int)$jwt['iat'], $persisted->getRefreshed());
+        $this->assertSame((int)$jwt['exp'], $persisted->getExpiresAt());
         $this->assertSame((string)$persisted->getId(), (string)$jwt['jti']);
     }
 
@@ -245,13 +251,28 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertNotSame('', $accessToken);
         $this->assertStringNotContainsString('.', $accessToken, 'Opaque access token unexpectedly looks like a JWT.');
 
+        $resourceServer = $this->createClient(
+            self::RESOURCE_SERVER_CLIENT_ID,
+            'opaque',
+            false,
+            null,
+            $resource
+        );
+        $wrongResourceServer = $this->createClient(
+            self::WRONG_RESOURCE_SERVER_CLIENT_ID,
+            'opaque',
+            false,
+            null,
+            'https://wrong-resource.example.test/'
+        );
+
         $introspection = $this->postForm(
             self::INTROSPECTION_PATH,
             $this->buildFormBody([
                 ['token', $accessToken],
                 ['token_type_hint', 'access_token'],
             ]),
-            $requestingClient
+            $resourceServer
         );
 
         $this->assertSame(200, $introspection['status'], $introspection['body']);
@@ -262,13 +283,126 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertSame('profile', $introspectionData['scope'] ?? null);
         $this->assertSame($resource, $introspectionData['aud'] ?? null);
         $this->assertArrayHasKey('exp', $introspectionData);
+
+        $wrongIntrospection = $this->postForm(
+            self::INTROSPECTION_PATH,
+            $this->buildFormBody([
+                ['token', $accessToken],
+                ['token_type_hint', 'access_token'],
+            ]),
+            $wrongResourceServer
+        );
+        $this->assertSame(200, $wrongIntrospection['status'], $wrongIntrospection['body']);
+        $this->assertFalse($this->requireJsonObject($wrongIntrospection)['active'] ?? true);
+    }
+
+    public function testHttpMixedDuplicateGrantTypeCannotBypassTokenExchangeValidation(): void {
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+
+        // Put authorization_code last so PHP/Nextcloud may expose that value to
+        // controller argument binding. The raw body still contains Token Exchange
+        // and must therefore be rejected for duplicate grant_type before dispatch.
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['grant_type', 'authorization_code'],
+                ['code', 'not-a-real-code'],
+            ]),
+            $requestingClient
+        );
+
+        $this->assertSame(400, $response['status'], $response['body']);
+        $data = $this->requireJsonObject($response);
+        $this->assertSame('invalid_request', $data['error'] ?? null);
+        $this->assertStringContainsString('grant_type', $data['error_description'] ?? '');
+    }
+
+    public function testHttpDuplicateSingletonParameterIsRejected(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $this->createTestUser();
+        $resource = 'https://api.example.test/duplicate-scope';
+        $this->createTexTarget($requestingClient, $resource);
+        $subjectToken = $this->createSubjectToken($subjectClient, 'profile', $resource, $this->shortSubjectLifetime());
+
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resource],
+                ['scope', 'profile'],
+                ['scope', 'profile'],
+            ]),
+            $requestingClient
+        );
+
+        $this->assertSame(400, $response['status'], $response['body']);
+        $this->assertSame('invalid_request', $this->requireJsonObject($response)['error'] ?? null);
+    }
+
+    public function testHttpWrongContentTypeIsRejected(): void {
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $body = json_encode([
+            'grant_type' => 'urn:ietf:params:oauth:grant-type:token-exchange',
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+        ], JSON_THROW_ON_ERROR);
+
+        $response = $this->postRaw(self::TOKEN_PATH, $body, $requestingClient, 'application/json');
+        $this->assertSame(400, $response['status'], $response['body']);
+        $data = $this->requireJsonObject($response);
+        $this->assertSame('invalid_request', $data['error'] ?? null);
+    }
+
+    public function testHttpInvalidBasicCredentialsReturnChallenge(): void {
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $response = $this->postRaw(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', 'token'],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', 'https://api.example.test/'],
+            ]),
+            $requestingClient,
+            'application/x-www-form-urlencoded',
+            'wrong-secret'
+        );
+
+        $this->assertSame(401, $response['status'], $response['body']);
+        $this->assertSame('invalid_client', $this->requireJsonObject($response)['error'] ?? null);
+        $this->assertSame('Basic realm="token"', $response['headers']['www-authenticate'] ?? null);
+    }
+
+    public function testHttpExchangeWithoutEffectiveResourceIsRejected(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $this->createTestUser();
+        $subjectToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
+
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['scope', 'profile'],
+            ]),
+            $requestingClient
+        );
+        $this->assertSame(400, $response['status'], $response['body']);
+        $this->assertSame('invalid_target', $this->requireJsonObject($response)['error'] ?? null);
     }
 
     private function createClient(
         string $clientIdentifier,
         string $tokenType,
         bool $texEnabled,
-        ?string $texAllowedScopes
+        ?string $texAllowedScopes,
+        ?string $resourceUrl = null
     ): Client {
         $client = new Client(
             'HTTP Token Exchange Test Client',
@@ -285,6 +419,9 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         );
         $client->setClientIdentifier($clientIdentifier);
         $client->setSecret(self::CLIENT_SECRET);
+        if ($resourceUrl !== null) {
+            $client->setResourceUrl($resourceUrl);
+        }
 
         return $this->clientMapper->insert($client);
     }
@@ -312,7 +449,6 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         string $resource,
         int $remainingLifetime
     ): AccessToken {
-        $configuredLifetime = $this->configuredAccessTokenLifetime();
         $now = time();
         $rawToken = 'subject-' . bin2hex(random_bytes(24));
 
@@ -323,7 +459,8 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $token->setHashedCode(hash('sha512', 'code-' . $rawToken));
         $token->setAccessToken($rawToken);
         $token->setCreated($now - 30);
-        $token->setRefreshed($now + $remainingLifetime - $configuredLifetime);
+        $token->setRefreshed($now);
+        $token->setExpiresAt($now + $remainingLifetime);
         $token->setNonce('');
         $token->setResource($resource);
         $token->setCodeChallenge('');
@@ -365,13 +502,26 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
      * @return array{status:int,body:string,headers:array<string,string>,json:mixed}
      */
     private function postForm(string $path, string $body, Client $client): array {
+        return $this->postRaw($path, $body, $client, 'application/x-www-form-urlencoded');
+    }
+
+    /**
+     * @return array{status:int,body:string,headers:array<string,string>,json:mixed}
+     */
+    private function postRaw(
+        string $path,
+        string $body,
+        Client $client,
+        string $contentType,
+        ?string $secretOverride = null
+    ): array {
         $headers = [];
         $curl = curl_init($this->baseUrl . $path);
         $this->assertNotFalse($curl);
 
         $basicCredentials = rawurlencode($client->getClientIdentifier())
             . ':'
-            . rawurlencode($client->getSecret());
+            . rawurlencode($secretOverride ?? $client->getSecret());
 
         curl_setopt_array($curl, [
             CURLOPT_POST => true,
@@ -382,7 +532,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
             CURLOPT_TIMEOUT => 15,
             CURLOPT_HTTPHEADER => [
                 'Accept: application/json',
-                'Content-Type: application/x-www-form-urlencoded',
+                'Content-Type: ' . $contentType,
                 'Authorization: Basic ' . base64_encode($basicCredentials),
             ],
             CURLOPT_HEADERFUNCTION => static function ($handle, string $headerLine) use (&$headers): int {
@@ -417,6 +567,106 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         ];
     }
 
+    /** @return array<string,mixed> */
+    private function getJsonUrl(string $url): array {
+        $curl = curl_init($url);
+        $this->assertNotFalse($curl);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_HTTPHEADER => ['Accept: application/json'],
+        ]);
+        $body = curl_exec($curl);
+        $error = curl_error($curl);
+        $status = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        curl_close($curl);
+        $this->assertNotFalse($body, 'HTTP GET failed: ' . $error);
+        $this->assertSame(200, $status, (string)$body);
+        $json = json_decode((string)$body, true);
+        $this->assertIsArray($json, 'Expected JSON object from ' . $url);
+        return $json;
+    }
+
+    /** @return array<string,mixed> */
+    private function assertJwtSignatureValidViaDiscovery(string $jwt): array {
+        $discovery = $this->getJsonUrl($this->baseUrl . '/index.php/apps/oidc/openid-configuration');
+        $jwksUri = $discovery['jwks_uri'] ?? null;
+        $this->assertIsString($jwksUri);
+        $jwks = $this->getJsonUrl($jwksUri);
+
+        $parts = explode('.', $jwt);
+        $this->assertCount(3, $parts);
+        $header = json_decode($this->base64UrlDecode($parts[0]), true);
+        $this->assertIsArray($header);
+        $kid = $header['kid'] ?? null;
+
+        $selected = null;
+        foreach (($jwks['keys'] ?? []) as $key) {
+            if (!is_array($key) || ($key['kty'] ?? null) !== 'RSA') {
+                continue;
+            }
+            if ($kid === null || ($key['kid'] ?? null) === $kid) {
+                $selected = $key;
+                break;
+            }
+        }
+        $this->assertIsArray($selected, 'No matching RSA JWK found.');
+        $publicKey = openssl_pkey_get_public($this->rsaJwkToPem($selected));
+        $this->assertNotFalse($publicKey, 'Unable to parse RSA JWK as a public key.');
+        $signature = $this->base64UrlDecode($parts[2]);
+        $verified = openssl_verify($parts[0] . '.' . $parts[1], $signature, $publicKey, OPENSSL_ALGO_SHA256);
+        $this->assertSame(1, $verified, 'JWT signature did not verify against the advertised JWKS.');
+        return $discovery;
+    }
+
+    private function rsaJwkToPem(array $jwk): string {
+        $modulus = $this->base64UrlDecode((string)$jwk['n']);
+        $exponent = $this->base64UrlDecode((string)$jwk['e']);
+        $rsaPublicKey = $this->derSequence($this->derInteger($modulus) . $this->derInteger($exponent));
+        $algorithm = hex2bin('300d06092a864886f70d0101010500');
+        $subjectPublicKeyInfo = $this->derSequence($algorithm . "\x03" . $this->derLength(strlen($rsaPublicKey) + 1) . "\x00" . $rsaPublicKey);
+        return "-----BEGIN PUBLIC KEY-----\n"
+            . chunk_split(base64_encode($subjectPublicKeyInfo), 64, "\n")
+            . "-----END PUBLIC KEY-----\n";
+    }
+
+    private function derInteger(string $value): string {
+        $value = ltrim($value, "\x00");
+        if ($value === '' || (ord($value[0]) & 0x80) !== 0) {
+            $value = "\x00" . $value;
+        }
+        return "\x02" . $this->derLength(strlen($value)) . $value;
+    }
+
+    private function derSequence(string $value): string {
+        return "\x30" . $this->derLength(strlen($value)) . $value;
+    }
+
+    private function derLength(int $length): string {
+        if ($length < 128) {
+            return chr($length);
+        }
+        $encoded = '';
+        while ($length > 0) {
+            $encoded = chr($length & 0xff) . $encoded;
+            $length >>= 8;
+        }
+        return chr(0x80 | strlen($encoded)) . $encoded;
+    }
+
+    private function base64UrlDecode(string $value): string {
+        $value = strtr($value, '-_', '+/');
+        $padding = strlen($value) % 4;
+        if ($padding !== 0) {
+            $value .= str_repeat('=', 4 - $padding);
+        }
+        $decoded = base64_decode($value, true);
+        $this->assertNotFalse($decoded);
+        return $decoded;
+    }
+
     /**
      * @param array{status:int,body:string,headers:array<string,string>,json:mixed} $response
      * @return array<string,mixed>
@@ -448,7 +698,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
     }
 
     private function cleanupTestData(): void {
-        foreach ([self::JWT_CLIENT_ID, self::OPAQUE_CLIENT_ID, self::SUBJECT_CLIENT_ID] as $clientIdentifier) {
+        foreach ([self::JWT_CLIENT_ID, self::OPAQUE_CLIENT_ID, self::SUBJECT_CLIENT_ID, self::RESOURCE_SERVER_CLIENT_ID, self::WRONG_RESOURCE_SERVER_CLIENT_ID] as $clientIdentifier) {
             try {
                 $client = $this->clientMapper->getByIdentifier($clientIdentifier);
                 if ($client !== null) {

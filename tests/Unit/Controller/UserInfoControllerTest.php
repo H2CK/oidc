@@ -278,7 +278,8 @@ class UserInfoControllerTest extends TestCase {
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
         $accessToken->setUserId('user1');
-        $accessToken->setRefreshed($now - 10000); // Refreshed long time ago
+        $accessToken->setRefreshed($now); // A recent refresh must not override explicit expiry
+        $accessToken->setExpiresAt($now - 1);
         $accessToken->setScope('openid profile email');
         
         // Set up $_SERVER for getBearerToken to find the token
@@ -326,6 +327,7 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setClientId(1);
         $accessToken->setUserId('user1');
         $accessToken->setRefreshed($now);
+        $accessToken->setExpiresAt($now + 900);
         $accessToken->setScope('openid profile email');
         
         $user = $this->createMock(IUser::class);

@@ -533,12 +533,29 @@ class JwtGenerator
         );
 
         $now = $this->time->getTime();
+        $issuedAt = (int)$accessToken->getRefreshed();
+        if ($issuedAt <= 0) {
+            $issuedAt = $now;
+        }
+
+        // expires_at is the authoritative expiry for newly issued access tokens.
+        // Legacy/in-memory tokens without it retain the configured/override lifetime.
+        $absoluteExpiresAt = (int)$accessToken->getExpiresAt();
+        if ($absoluteExpiresAt > 0) {
+            if ($absoluteExpiresAt <= $issuedAt) {
+                throw new JwtCreationErrorException('Access token expiry must be after its issuance time.', 0, null);
+            }
+            $jwtExpiresAt = $absoluteExpiresAt;
+        } else {
+            $jwtExpiresAt = $issuedAt + $expireTime;
+        }
+
         $jwt_payload_base = [
             'iss' => $issuer,
             'sub' => $uid,
             'aud' => $aud,
-            'exp' => $now + $expireTime,
-            'iat' => $now,
+            'exp' => $jwtExpiresAt,
+            'iat' => $issuedAt,
             'acr' => '0',
             'client_id' => $client->getClientIdentifier(),
             'azp' => $client->getClientIdentifier(),

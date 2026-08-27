@@ -23,6 +23,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreated(int $timestamp)
  * @method int getRefreshed()
  * @method void setRefreshed(int $timestamp)
+ * @method int getExpiresAt()
+ * @method void setExpiresAt(int $timestamp)
  * @method string getNonce()
  * @method void setNonce(string $nonce)
  * @method string getResource()
@@ -54,6 +56,8 @@ class AccessToken extends Entity
     protected $created;
     /** @var int */
     protected $refreshed;
+    /** @var int Absolute access-token expiry. 0 keeps compatibility with pre-migration rows. */
+    protected $expiresAt;
     /** @var string */
     protected $nonce;
     /** @var string */
@@ -76,11 +80,27 @@ class AccessToken extends Entity
         $this->addType('accessToken', 'string');
         $this->addType('created', 'int');
         $this->addType('refreshed', 'int');
+        $this->addType('expiresAt', 'int');
         $this->addType('nonce', 'string');
         $this->addType('resource', 'string');
         $this->addType('codeChallenge', 'string');
         $this->addType('codeChallengeMethod', 'string');
         $this->addType('idTokenClaims', 'string');
         $this->addType('userinfoClaims', 'string');
+    }
+
+    /**
+     * Return the absolute access-token expiry timestamp.
+     *
+     * Rows created before the expires_at migration keep 0 and fall back to
+     * the historical refreshed + configured lifetime calculation.
+     */
+    public function getEffectiveExpiresAt(int $defaultLifetime): int {
+        $expiresAt = (int)$this->getExpiresAt();
+        if ($expiresAt > 0) {
+            return $expiresAt;
+        }
+
+        return (int)$this->getRefreshed() + $defaultLifetime;
     }
 }

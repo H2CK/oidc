@@ -202,6 +202,13 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $storedToken = $this->accessTokenMapper->getByAccessToken($event->getAccessToken());
             $this->assertNotNull($storedToken, 'Access token should be stored in database');
             $this->assertEquals($this->testUserId, $storedToken->getUserId(), 'Stored token should have correct user ID');
+            $this->assertGreaterThan(0, $storedToken->getRefreshed(), 'Refreshed must be an issuance timestamp');
+            $this->assertEquals(
+                (int)Application::DEFAULT_EXPIRE_TIME,
+                $storedToken->getExpiresAt() - $storedToken->getRefreshed(),
+                'Absolute access-token expiry must match the configured lifetime'
+            );
+            $this->assertLessThanOrEqual($this->time->getTime(), $storedToken->getRefreshed());
         } catch (\Exception $e) {
             $this->fail('Failed to retrieve stored access token: ' . $e->getMessage());
         }

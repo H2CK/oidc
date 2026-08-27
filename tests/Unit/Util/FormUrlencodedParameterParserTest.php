@@ -66,6 +66,20 @@ class FormUrlencodedParameterParserTest extends TestCase {
         $this->assertSame(['backend service'], $result['audience']);
     }
 
+    public function testPreservesRepeatedSingletonTokenExchangeParametersForValidation(): void {
+        $result = $this->parser->parseSelectedParameters(
+            'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&subject_token=a&subject_token=b&scope=profile&scope=openid&client_secret=one&client_secret=two',
+            ['grant_type', 'subject_token', 'subject_token_type', 'scope', 'client_id', 'client_secret']
+        );
+
+        $this->assertSame(['urn:ietf:params:oauth:grant-type:token-exchange'], $result['grant_type']);
+        $this->assertSame(['a', 'b'], $result['subject_token']);
+        $this->assertSame([], $result['subject_token_type']);
+        $this->assertSame(['profile', 'openid'], $result['scope']);
+        $this->assertSame([], $result['client_id']);
+        $this->assertSame(['one', 'two'], $result['client_secret']);
+    }
+
     public function testIgnoresUnselectedParametersAndPreservesEmptyValue(): void {
         $result = $this->parser->parseSelectedParameters(
             'scope=openid&resource=&subject_token=abc',
@@ -74,5 +88,16 @@ class FormUrlencodedParameterParserTest extends TestCase {
 
         $this->assertSame([''], $result['resource']);
         $this->assertSame([], $result['audience']);
+    }
+
+    public function testPreservesMixedRepeatedGrantTypes(): void {
+        $body = 'grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&grant_type=authorization_code';
+
+        $result = $this->parser->parseSelectedParameters($body, ['grant_type']);
+
+        $this->assertSame([
+            'urn:ietf:params:oauth:grant-type:token-exchange',
+            'authorization_code',
+        ], $result['grant_type']);
     }
 }

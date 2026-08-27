@@ -85,6 +85,9 @@ class OIDCApiControllerTest extends TestCase {
     protected $jwtGenerator;
     /** @var \PHPUnit\Framework\MockObject\MockObject|FormUrlencodedParameterParser */
     protected $formUrlencodedParameterParser;
+    protected string $tokenExchangeContentType = 'application/x-www-form-urlencoded';
+    protected string $authorizationHeader = '';
+    protected ?array $tokenExchangeRawParameters = [];
 
     public function setUp(): void {
         parent::setUp();
@@ -104,6 +107,24 @@ class OIDCApiControllerTest extends TestCase {
         $this->config = $this->createMock(IConfig::class);
         $this->jwtGenerator = $this->createMock(JwtGenerator::class);
         $this->formUrlencodedParameterParser = $this->createMock(FormUrlencodedParameterParser::class);
+        $this->request->method('getHeader')->willReturnCallback(function(string $name): string {
+            return match ($name) {
+                'Content-Type' => $this->tokenExchangeContentType,
+                'Authorization' => $this->authorizationHeader,
+                default => '',
+            };
+        });
+        $this->formUrlencodedParameterParser->method('readSelectedParameters')
+            ->willReturnCallback(function(array $names): ?array {
+                if ($this->tokenExchangeRawParameters === null) {
+                    return null;
+                }
+                $result = [];
+                foreach ($names as $name) {
+                    $result[$name] = $this->tokenExchangeRawParameters[$name] ?? [];
+                }
+                return $result;
+            });
 
         // Create accessTokenMapper with constructor arguments
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
@@ -168,704 +189,327 @@ class OIDCApiControllerTest extends TestCase {
             ->method('getByCode');
     }
 
+    private function setTokenExchangeForm(array $parameters): void {
+        $raw = [
+            'grant_type' => ['urn:ietf:params:oauth:grant-type:token-exchange'],
+        ];
+        foreach ($parameters as $name => $value) {
+            if ($value === null) {
+                continue;
+            }
+            $raw[$name] = is_array($value) ? array_values($value) : [(string)$value];
+        }
+        $this->tokenExchangeRawParameters = $raw;
+    }
+
+    private function useBasicClient(string $clientId, string $clientSecret): void {
+        $this->authorizationHeader = 'Basic ' . base64_encode(rawurlencode($clientId) . ':' . rawurlencode($clientSecret));
+    }
+
+    private function createTexClient(string $identifier = 'test-client', bool $enabled = true, string $type = 'confidential'): Client {
+        $client = new Client($identifier, ['https://test.org'], 'RS256');
+        $client->setClientIdentifier($identifier);
+        $client->setSecret('test-secret');
+        $client->setId(1);
+        $client->setType($type);
+        $client->setTexEnabled($enabled);
+        return $client;
+    }
+
+    private function createSubjectToken(int $clientId = 2, string $resource = 'https://resource.example/api'): AccessToken {
+        $subjectToken = new AccessToken();
+        $subjectToken->setClientId($clientId);
+        $subjectToken->setUserId('user1');
+        $subjectToken->setScope('openid profile');
+        $subjectToken->setCreated(900);
+        $subjectToken->setRefreshed(999);
+        $subjectToken->setExpiresAt(1899);
+        $subjectToken->setAccessToken('old_access_token');
+        $subjectToken->setResource($resource);
+        return $subjectToken;
+    }
+
+    private function createTexTarget(string $resource = 'https://resource.example/api'): TexTargets {
+        $target = new TexTargets();
+        $target->setClientId(1);
+        $target->setResourceUrl($resource);
+        return $target;
+    }
+
+    private function configureValidExchange(Client $client, AccessToken $subjectToken, string $resource = 'https://resource.example/api'): void {
+        $this->useBasicClient($client->getClientIdentifier(), 'test-secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        $this->texTargetMapper->method('getByClientId')->willReturn([$this->createTexTarget($resource)]);
+        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userManager->method('get')->willReturn($user);
+        $this->groupManager->method('getUserGroups')->willReturn([]);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('example.com');
+    }
+
     // ==================== Token Exchange Tests ====================
 
-    public function testTokenExchangeMissingSubjectTokenType() {
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return $key === 'subject_token' ? 'some_token' : null;
-        });
+    public function testTokenExchangeRequiresFormUrlencodedContentType(): void {
+        $this->tokenExchangeContentType = 'application/json';
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+        ]);
 
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
 
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertStringContainsString('subject_token_type', $result->getData()['error_description']);
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('application/x-www-form-urlencoded', $result->getData()['error_description']);
     }
 
-    public function testTokenExchangeRejectsShortSubjectTokenType() {
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'access_token',
-                default => null,
-            };
-        });
-
+    public function testTokenExchangeRejectsUnreadableRawFormBody(): void {
+        $this->tokenExchangeRawParameters = null;
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
     }
 
-    public function testTokenExchangeRejectsUnsupportedRequestedTokenType() {
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'requested_token_type' => 'urn:ietf:params:oauth:token-type:refresh_token',
-                default => null,
-            };
-        });
+    public function testMixedDuplicateGrantTypeCannotBypassTokenExchangeValidation(): void {
+        // Simulate PHP/Nextcloud exposing the last grant_type value while the raw
+        // body still contains a Token Exchange grant as well.
+        $this->tokenExchangeRawParameters = [
+            'grant_type' => [
+                'urn:ietf:params:oauth:grant-type:token-exchange',
+                'authorization_code',
+            ],
+        ];
 
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->accessTokenMapper->expects($this->never())->method('getByCode');
+        $result = $this->controller->getToken('authorization_code', 'some-code');
 
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('grant_type', $result->getData()['error_description']);
     }
 
-    public function testTokenExchangeRejectsActorToken() {
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'actor_token' => 'actor-token',
-                'actor_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                default => null,
-            };
-        });
-
+    public function testTokenExchangeRequiresSubjectTokenExactlyOnce(): void {
+        $this->setTokenExchangeForm([
+            'subject_token' => ['a', 'b'],
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+        ]);
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeRejectsUnsupportedAudience() {
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'audience' => 'backend-service',
-                default => null,
-            };
-        });
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeRejectsRepeatedResourceParametersFromRawFormBody() {
-        $this->request->method('getHeader')->willReturnCallback(function($key) {
-            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
-        });
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                // Simulate the value PHP/Nextcloud might expose after collapsing
-                // repeated form fields. The raw body parser must remain authoritative.
-                'resource' => 'https://api-b.example/',
-                default => null,
-            };
-        });
-        $this->formUrlencodedParameterParser->expects($this->once())
-            ->method('readSelectedParameters')
-            ->with(['resource', 'audience'])
-            ->willReturn([
-                'resource' => ['https://api-a.example/', 'https://api-b.example/'],
-                'audience' => [],
-            ]);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-        $this->assertStringContainsString('Multiple resource', $result->getData()['error_description']);
-    }
-
-    public function testTokenExchangeRejectsRepeatedIdenticalResourceParameters() {
-        $this->request->method('getHeader')->willReturnCallback(function($key) {
-            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded; charset=UTF-8' : '';
-        });
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'resource' => 'https://api.example/',
-                default => null,
-            };
-        });
-        $this->formUrlencodedParameterParser->method('readSelectedParameters')
-            ->willReturn([
-                'resource' => ['https://api.example/', 'https://api.example/'],
-                'audience' => [],
-            ]);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeRejectsRepeatedAudienceParametersFromRawFormBody() {
-        $this->request->method('getHeader')->willReturnCallback(function($key) {
-            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
-        });
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'audience' => 'backend-b',
-                default => null,
-            };
-        });
-        $this->formUrlencodedParameterParser->method('readSelectedParameters')
-            ->willReturn([
-                'resource' => [],
-                'audience' => ['backend-a', 'backend-b'],
-            ]);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeRawResourceIsAuthoritativeOverCollapsedRequestParameter() {
-        $this->request->method('getHeader')->willReturnCallback(function($key) {
-            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
-        });
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'resource' => 'https://collapsed.example/',
-                default => null,
-            };
-        });
-        $this->formUrlencodedParameterParser->method('readSelectedParameters')
-            ->willReturn([
-                'resource' => ['https://raw.example/api#fragment'],
-                'audience' => [],
-            ]);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-        $this->assertStringContainsString('absolute URI without a fragment', $result->getData()['error_description']);
-    }
-
-    public function testTokenExchangeFormBodyDoesNotFallBackToMergedTargetParameter() {
-        $this->request->method('getHeader')->willReturnCallback(function($key) {
-            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
-        });
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                // A target exposed only by IRequest's merged parameter map (for
-                // example from the query string) must not become a Token Exchange
-                // target when it was not present in the form entity body.
-                'resource' => 'https://merged-only.example/api#fragment',
-                default => null,
-            };
-        });
-        $this->formUrlencodedParameterParser->method('readSelectedParameters')
-            ->willReturn([
-                'resource' => [],
-                'audience' => [],
-            ]);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_client', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeRejectsUnreadableRawFormBody() {
-        $this->request->method('getHeader')->willReturnCallback(function($key) {
-            return $key === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
-        });
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                default => null,
-            };
-        });
-        $this->formUrlencodedParameterParser->method('readSelectedParameters')
-            ->willReturn(null);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeRejectsResourceWithFragment() {
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'some_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'resource' => 'https://resource.example/api#fragment',
-                default => null,
-            };
-        });
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeMissingSubjectToken() {
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return null;
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertSame('invalid_request', $result->getData()['error']);
         $this->assertStringContainsString('subject_token', $result->getData()['error_description']);
     }
 
-    public function testTokenExchangeMissingClientId() {
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'some_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
+    public function testTokenExchangeRequiresSubjectTokenTypeExactlyOnce(): void {
+        $this->setTokenExchangeForm(['subject_token' => 'token']);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('subject_token_type', $result->getData()['error_description']);
+    }
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('');
+    public function testTokenExchangeRejectsDuplicateSingletonParameter(): void {
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'scope' => ['profile', 'openid'],
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('scope', $result->getData()['error_description']);
+    }
+
+    public function testTokenExchangeRejectsRepeatedResource(): void {
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => ['https://a.example/', 'https://b.example/'],
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsAudience(): void {
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'audience' => ['a', 'b'],
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsUnsupportedTokenTypesAndActors(): void {
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'access_token',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'requested_token_type' => 'urn:ietf:params:oauth:token-type:refresh_token',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'actor_token' => 'actor',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsResourceFragment(): void {
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api#fragment',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeRejectsMultipleClientAuthenticationMethods(): void {
+        $this->useBasicClient('test-client', 'test-secret');
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'client_id' => 'test-client',
+            'client_secret' => 'test-secret',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeInvalidBasicCredentialsReturn401AndChallenge(): void {
+        $client = $this->createTexClient();
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->useBasicClient('test-client', 'wrong-secret');
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+        ]);
 
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_client', $result->getData()['error']);
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertSame('invalid_client', $result->getData()['error']);
+        $this->assertSame('Basic realm="token"', $result->getHeaders()['WWW-Authenticate'] ?? null);
     }
 
-    public function testTokenExchangeClientNotFound() {
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'some_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
-
-        $this->request
-            ->method('getHeader')
-            ->willReturn('');
-
-        $this->clientMapper
-            ->method('getByIdentifier')
-            ->willThrowException(new ClientNotFoundException('Client not found'));
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'invalid-client-id');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_client', $result->getData()['error']);
+    public function testTokenExchangePublicAndDisabledClientsAreUnauthorized(): void {
+        $publicClient = $this->createTexClient('public-client', true, 'public');
+        $this->clientMapper->method('getByIdentifier')->willReturn($publicClient);
+        $this->useBasicClient('public-client', 'test-secret');
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('unauthorized_client', $result->getData()['error']);
     }
 
-    public function testTokenExchangeClientAuthenticationFailed() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setTexEnabled(true);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'some_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
-
-        $this->clientMapper
-            ->method('getByIdentifier')
-            ->willReturn($client);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'wrong-secret');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_client', $result->getData()['error']);
+    public function testTokenExchangeDisabledClientIsUnauthorized(): void {
+        $client = $this->createTexClient('test-client', false);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->useBasicClient('test-client', 'test-secret');
+        $this->setTokenExchangeForm([
+            'subject_token' => 'token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('unauthorized_client', $result->getData()['error']);
     }
 
-    public function testTokenExchangeNotEnabled() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setTexEnabled(false); // TEX not enabled
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'some_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
-
-        $this->clientMapper
-            ->method('getByIdentifier')
-            ->willReturn($client);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertStringContainsString('not enabled', $result->getData()['error_description']);
-    }
-
-    public function testTokenExchangeIsNotAllowedForPublicClient() {
-        $client = new Client('public-client', ['https://test.org'], 'RS256', 'public');
-        $client->setClientIdentifier('public-client');
-        $client->setTexEnabled(true);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnMap([
-                ['subject_token', null, 'some-token'],
-                ['subject_token_type', null, 'urn:ietf:params:oauth:token-type:access_token'],
-            ]);
-
-        $this->clientMapper
-            ->method('getByIdentifier')
-            ->willReturn($client);
-
-        $result = $this->controller->getToken(
-            'urn:ietf:params:oauth:grant-type:token-exchange',
-            null,
-            null,
-            'public-client'
-        );
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertStringContainsString('not allowed for public', $result->getData()['error_description']);
-    }
-
-    public function testTokenExchangeInvalidSubjectToken() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'invalid_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
-
-        $this->clientMapper
-            ->method('getByIdentifier')
-            ->willReturn($client);
-
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-
-        $this->accessTokenMapper
-            ->method('getByAccessToken')
-            ->willThrowException(new AccessTokenNotFoundException('Token not found'));
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeCrossClientSubjectTokenAllowed() {
-        $client = new Client('requesting-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('requesting-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-        $client->setTexAllowedScopes('profile');
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(2); // Issued to a different client
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setAccessToken('subject_token');
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-        $this->groupManager->method('getUserGroups')->willReturn([]);
-
-        $target = new TexTargets();
-        $target->setResourceUrl('https://resource-server.example/');
-        $target->setId(1);
-        $target->setUsedAt(0);
-
+    public function testTokenExchangeInvalidSubjectTokenUsesAccessTokenLookupOnly(): void {
+        $client = $this->createTexClient();
+        $this->useBasicClient('test-client', 'test-secret');
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
-        $this->texTargetMapper
-            ->expects($this->once())
-            ->method('getByClientId')
-            ->with(1)
-            ->willReturn([$target]);
+        $this->accessTokenMapper->method('getByAccessToken')->willThrowException(new AccessTokenNotFoundException());
+        $this->setTokenExchangeForm([
+            'subject_token' => 'invalid',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_request', $result->getData()['error']);
+    }
 
+    public function testTokenExchangeRequiresEffectiveAllowListedResource(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2, '');
+        $this->configureValidExchange($client, $subject);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'scope' => 'profile',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_target', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeInheritedResourceIsRevalidated(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2, 'https://not-allowed.example/api');
+        $this->useBasicClient('test-client', 'test-secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subject);
+        $this->texTargetMapper->method('getByClientId')->willReturn([$this->createTexTarget('https://allowed.example/api')]);
         $this->time->method('getTime')->willReturn(1000);
-        $this->secureRandom->method('generate')->willReturn('new_refresh_token');
-        $this->jwtGenerator->method('generateAccessToken')->willReturn('new_access_token');
-        $this->request->method('getServerProtocol')->willReturn('https');
-        $this->request->method('getServerHost')->willReturn('example.com');
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'subject_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return 'https://resource-server.example/';
-                    case 'scope':
-                        return 'profile';
-                    default:
-                        return null;
-                }
-            });
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'scope' => 'profile',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_target', $result->getData()['error']);
+    }
 
-        $insertedToken = null;
-        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) use (&$insertedToken) {
+    public function testTokenExchangeCannotEscalateScope(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken();
+        $this->configureValidExchange($client, $subject);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'openid profile admin',
+        ]);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+        $this->assertSame('invalid_scope', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeCrossClientSuccessUsesAbsoluteExpiryAndNoIdToken(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2);
+        $this->configureValidExchange($client, $subject);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'profile',
+        ]);
+
+        $this->secureRandom->method('generate')->willReturn('new-code');
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function(AccessToken $token) {
+            $this->assertSame(1, $token->getClientId());
+            $this->assertSame(1000, $token->getRefreshed());
+            $this->assertSame(1899, $token->getExpiresAt());
+            $this->assertSame('https://resource.example/api', $token->getResource());
             $token->setId(42);
-            $insertedToken = $token;
             return $token;
         });
-
-        $result = $this->controller->getToken(
-            'urn:ietf:params:oauth:grant-type:token-exchange',
-            null,
-            null,
-            'requesting-client',
-            'test-secret'
-        );
-
-        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
-        $this->assertEquals('new_access_token', $result->getData()['access_token']);
-        $this->assertEquals('profile', $result->getData()['scope']);
-        $this->assertNotNull($insertedToken);
-        $this->assertEquals(1, $insertedToken->getClientId(), 'Output token must belong to requesting client');
-        $this->assertEquals('user1', $insertedToken->getUserId());
-        $this->assertEquals('https://resource-server.example/', $insertedToken->getResource());
-    }
-
-    public function testTokenExchangeCrossClientInheritedResourceMustBeAllowedForRequestingClient() {
-        $client = new Client('requesting-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('requesting-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(2); // Issued to a different client
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setResource('https://subject-resource.example/');
-        $subjectToken->setAccessToken('subject_token');
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->texTargetMapper
-            ->expects($this->once())
-            ->method('getByClientId')
-            ->with(1)
-            ->willReturn([]); // Requesting client is not allowed to target inherited resource
-        $this->time->method('getTime')->willReturn(1000);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'subject_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                    case 'scope':
-                        return null;
-                    default:
-                        return null;
-                }
-            });
-
-        $result = $this->controller->getToken(
-            'urn:ietf:params:oauth:grant-type:token-exchange',
-            null,
-            null,
-            'requesting-client',
-            'test-secret'
-        );
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeInheritedResourceIsRevalidatedAndAcceptedWhenWhitelisted() {
-        $client = new Client('requesting-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('requesting-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(2);
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setResource('https://allowed-resource.example/');
-        $subjectToken->setAccessToken('subject_token');
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-        $this->groupManager->method('getUserGroups')->willReturn([]);
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
-
-        $target = new TexTargets();
-        $target->setResourceUrl('https://allowed-resource.example/');
-        $target->setId(1);
-        $target->setUsedAt(0);
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->texTargetMapper->expects($this->once())
-            ->method('getByClientId')
-            ->with(1)
-            ->willReturn([$target]);
-        $this->texTargetMapper->expects($this->once())
-            ->method('markUsed')
-            ->with($target, 1000)
-            ->willReturn(true);
-
-        $this->time->method('getTime')->willReturn(1000);
-        $this->secureRandom->method('generate')->willReturn('new_code');
-        $this->jwtGenerator->method('generateAccessToken')->willReturn('new_access_token');
-        $this->request->method('getServerProtocol')->willReturn('https');
-        $this->request->method('getServerHost')->willReturn('example.com');
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'subject_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'resource' => null,
-                'scope' => null,
-                default => null,
-            };
-        });
-
-        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
-            $this->assertSame('https://allowed-resource.example/', $token->getResource());
-            $token->setId(44);
-            return $token;
-        });
-
-        $result = $this->controller->getToken(
-            'urn:ietf:params:oauth:grant-type:token-exchange',
-            null,
-            null,
-            'requesting-client',
-            'test-secret'
-        );
-
-        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
-        $this->assertEquals('new_access_token', $result->getData()['access_token']);
-        $this->assertEquals(899, $result->getData()['expires_in']);
-    }
-
-    public function testTokenExchangeSuccess() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(1);
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(999); // Set to just before current time
-        $subjectToken->setAccessToken('old_jwt_token');
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-
-        $group1 = $this->createMock(IGroup::class);
-        $group1->method('getGID')->willReturn('group1');
-        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
-        $this->texTargetMapper->method('getByClientId')->willReturn([]);
-
-        $this->secureRandom->method('generate')->willReturn('new_refresh_token');
         $this->jwtGenerator->expects($this->once())
             ->method('generateAccessToken')
             ->with(
@@ -876,286 +520,16 @@ class OIDCApiControllerTest extends TestCase {
                 899,
                 false
             )
-            ->willReturn('new_jwt_token');
-        $this->jwtGenerator->expects($this->never())
-            ->method('generateIdToken');
-
-        // Mock time
-        $this->time->method('getTime')->willReturn(1000);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'old_jwt_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return 'openid profile';
-                    default:
-                        return null;
-                }
-            });
-
-        // Mock server protocol and host
-        $this->request->method('getServerProtocol')->willReturn('https');
-        $this->request->method('getServerHost')->willReturn('example.com');
-
-        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
-            $this->assertSame(1000, $token->getCreated());
-            // With 899 seconds remaining on the subject token and a configured
-            // lifetime of 900 seconds, the expiry anchor is shifted to 999 so
-            // existing refreshed + lifetime validation expires both at 1899.
-            $this->assertSame(999, $token->getRefreshed());
-            $token->setId(42);
-            return $token;
-        });
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
-
-        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
-        $this->assertArrayHasKey('access_token', $result->getData());
-        $this->assertArrayHasKey('issued_token_type', $result->getData());
-        $this->assertArrayHasKey('token_type', $result->getData());
-        $this->assertArrayHasKey('scope', $result->getData());
-        $this->assertEquals('urn:ietf:params:oauth:token-type:access_token', $result->getData()['issued_token_type']);
-        $this->assertEquals('Bearer', $result->getData()['token_type']);
-        $this->assertEquals(899, $result->getData()['expires_in']);
-        $this->assertEquals('openid profile', $result->getData()['scope']);
-        $this->assertArrayNotHasKey('id_token', $result->getData());
-    }
-
-    public function testTokenExchangeWithResource() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(1);
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setAccessToken('old_jwt_token');
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-
-        $group1 = $this->createMock(IGroup::class);
-        $group1->method('getGID')->willReturn('group1');
-        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]); // No group restrictions
-
-        // Create actual TEX target
-        $texTarget = new TexTargets();
-        $texTarget->setResourceUrl('https://resource-server.example/');
-        $texTarget->setId(1);
-        $texTarget->setUsedAt(0);
-
-        $this->texTargetMapper->method('getByClientId')->willReturn([$texTarget]);
-
-        // Mock new token generation. Token Exchange never issues an ID token.
-        $this->secureRandom->method('generate')->willReturn('new_refresh_token');
-        $this->jwtGenerator->method('generateAccessToken')->willReturn('new_jwt_token');
+            ->willReturn('new_access_token');
         $this->jwtGenerator->expects($this->never())->method('generateIdToken');
 
-        // Mock time
-        $this->time->method('getTime')->willReturn(1000);
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
 
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'old_jwt_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return 'https://resource-server.example/';
-                    case 'scope':
-                        return 'profile'; // No openid, so no id_token
-                    default:
-                        return null;
-                }
-            });
-
-        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $token) {
-            $this->assertSame('https://resource-server.example/', $token->getResource());
-            $token->setId(43);
-            return $token;
-        });
-        $this->texTargetMapper->method('markUsed')->willReturn(true);
-
-        // Mock server protocol and host
-        $this->request->method('getServerProtocol')->willReturn('https');
-        $this->request->method('getServerHost')->willReturn('example.com');
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
-
-        $this->assertEquals(Http::STATUS_OK, $result->getStatus());
-        $this->assertArrayHasKey('access_token', $result->getData());
-    }
-
-    public function testTokenExchangeWithInvalidResource() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(1);
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setAccessToken('old_jwt_token');
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-
-        $group1 = $this->createMock(IGroup::class);
-        $group1->method('getGID')->willReturn('group1');
-        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
-
-        // Mock TEX targets - empty list
-        $this->texTargetMapper->method('getByClientId')->willReturn([]);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'old_jwt_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return 'https://invalid-resource.example/';
-                    case 'scope':
-                        return 'openid profile';
-                    default:
-                        return null;
-                }
-            });
-
-        // Mock time
-        $this->time->method('getTime')->willReturn(1000);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_target', $result->getData()['error']);
-    }
-
-    public function testTokenExchangeCannotEscalateScopeWithoutTexScopeLimit() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-        $client->setTexAllowedScopes(null);
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(1);
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setAccessToken('old_token');
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->time->method('getTime')->willReturn(1000);
-
-        $this->request->method('getParam')->willReturnCallback(function($key) {
-            return match ($key) {
-                'subject_token' => 'old_token',
-                'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
-                'scope' => 'openid profile admin',
-                default => null,
-            };
-        });
-
-        $result = $this->controller->getToken(
-            'urn:ietf:params:oauth:grant-type:token-exchange',
-            null,
-            null,
-            'test-client',
-            'test-secret'
-        );
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_scope', $result->getData()['error']);
-        $this->assertStringContainsString('subject token scope', $result->getData()['error_description']);
-    }
-
-    public function testTokenExchangeWithInvalidScope() {
-        $client = new Client('test-client', ['https://test.org'], 'RS256');
-        $client->setClientIdentifier('test-client');
-        $client->setSecret('test-secret');
-        $client->setId(1);
-        $client->setTexEnabled(true);
-        $client->setTexAllowedScopes('openid profile'); // Only openid and profile allowed
-
-        $subjectToken = new AccessToken();
-        $subjectToken->setClientId(1);
-        $subjectToken->setUserId('user1');
-        $subjectToken->setScope('openid profile');
-        $subjectToken->setRefreshed(999);
-        $subjectToken->setAccessToken('old_jwt_token');
-
-        $user = $this->createMock(IUser::class);
-        $user->method('getUID')->willReturn('user1');
-        $this->userManager->method('get')->willReturn($user);
-
-        $group1 = $this->createMock(IGroup::class);
-        $group1->method('getGID')->willReturn('group1');
-        $this->groupManager->method('getUserGroups')->willReturn([$group1]);
-
-        $this->clientMapper->method('getByIdentifier')->willReturn($client);
-        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
-        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
-        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
-        $this->texTargetMapper->method('getByClientId')->willReturn([]);
-
-        $this->request
-            ->method('getParam')
-            ->willReturnCallback(function($key) {
-                switch ($key) {
-                    case 'subject_token':
-                        return 'old_jwt_token';
-                    case 'subject_token_type':
-                        return 'urn:ietf:params:oauth:token-type:access_token';
-                    case 'resource':
-                        return null;
-                    case 'scope':
-                        return 'openid profile email'; // email is not allowed
-                    default:
-                        return null;
-                }
-            });
-
-        // Mock time
-        $this->time->method('getTime')->willReturn(1000);
-
-        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange', null, null, 'test-client', 'test-secret');
-
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_scope', $result->getData()['error']);
+        $this->assertSame(Http::STATUS_OK, $result->getStatus());
+        $this->assertSame('new_access_token', $result->getData()['access_token']);
+        $this->assertSame(899, $result->getData()['expires_in']);
+        $this->assertSame('profile', $result->getData()['scope']);
+        $this->assertArrayNotHasKey('id_token', $result->getData());
     }
 
     // ==================== Authorization Code Flow Tests ====================
@@ -1174,6 +548,30 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_request', $result->getData()['error']);
         $this->assertStringContainsString('refresh_token', $result->getData()['error_description']);
+    }
+
+    public function testAuthorizationCodeInvalidBasicCredentialsReturn401AndChallenge(): void {
+        $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setClientIdentifier('test-client');
+        $client->setSecret('correct-secret');
+        $client->setId(1);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId(1);
+        $accessToken->setUserId('user1');
+        $accessToken->setCreated(1000);
+        $accessToken->setRefreshed(1000);
+
+        $this->authorizationHeader = 'Basic ' . base64_encode(rawurlencode('test-client') . ':' . rawurlencode('wrong-secret'));
+        $this->authorizationCodeMapper->method('findByCode')->willReturn(null);
+        $this->accessTokenMapper->method('getByCode')->willReturn($accessToken);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+
+        $result = $this->controller->getToken('authorization_code', 'authorization-code');
+
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertSame('invalid_client', $result->getData()['error']);
+        $this->assertSame('Basic realm="token"', $result->getHeaders()['WWW-Authenticate'] ?? null);
     }
 
     public function testGetTokenWithInvalidGrantType() {

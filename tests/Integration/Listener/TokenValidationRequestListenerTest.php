@@ -178,8 +178,10 @@ class TokenValidationRequestListenerTest extends \Test\TestCase
         $accessToken->setUserId($this->testUserId);
         $accessToken->setHashedCode(hash('sha512', 'refresh-token-' . uniqid()));
         $accessToken->setScope('openid profile email');
-        $accessToken->setCreated($this->time->getTime());
-        $accessToken->setRefreshed($this->time->getTime() + 900); // Not expired
+        $now = $this->time->getTime();
+        $accessToken->setCreated($now);
+        $accessToken->setRefreshed($now);
+        $accessToken->setExpiresAt($now + 900); // Not expired
         $accessToken->setNonce('');
         $accessToken->setAccessToken($uniqueToken);
         $accessToken->setResource(null);
@@ -212,8 +214,10 @@ class TokenValidationRequestListenerTest extends \Test\TestCase
         $accessToken->setUserId($this->testUserId);
         $accessToken->setHashedCode(hash('sha512', 'expired-refresh-token-' . uniqid()));
         $accessToken->setScope('openid profile email');
-        $accessToken->setCreated($this->time->getTime() - 1800); // Created 30 minutes ago
-        $accessToken->setRefreshed($this->time->getTime() - 1800); // Expired (900 seconds = 15 minutes max)
+        $now = $this->time->getTime();
+        $accessToken->setCreated($now - 1800); // Created 30 minutes ago
+        $accessToken->setRefreshed($now); // Recent refresh does not extend an explicit expiry
+        $accessToken->setExpiresAt($now - 1);
         $accessToken->setNonce('');
         $accessToken->setAccessToken('expired-access-token-' . uniqid());
         $accessToken->setResource(null);
