@@ -1,0 +1,105 @@
+name: Push translations to Transifex
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  push-translations:
+    name: Push local translations
+    # workflow_dispatch can technically be started for another ref in the UI,
+    # but the job is deliberately executable only for master.
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Verify Transifex configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f .tx/config || {
+            echo '::error::.tx/config is missing.'
+            exit 1
+          }
+
+          test -d translationfiles || {
+            echo '::error::translationfiles directory is missing.'
+            exit 1
+          }
+
+      - name: Show locally available translation languages
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t languages < <(
+            find translationfiles \
+              -mindepth 2 \
+              -maxdepth 2 \
+              -type f \
+              -name 'oidc.po' \
+              -printf '%h\n' \
+            | xargs -r -n1 basename \
+            | sort -u
+          )
+
+          if (( ${#languages[@]} == 0 )); then
+            echo '::notice::No local translationfiles/<lang>/oidc.po files found.'
+          else
+            echo "Local translation languages (${#languages[@]}):"
+            printf '  - %s\n' "${languages[@]}"
+          fi
+
+      - name: Install Transifex CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Pin the CLI version for reproducible CI runs.
+          TX_CLI_VERSION='1.6.17'
+          curl -fsSL \
+            https://raw.githubusercontent.com/transifex/cli/master/install.sh \
+            -o /tmp/install-transifex-cli.sh
+          (
+            cd /tmp
+            bash /tmp/install-transifex-cli.sh "$TX_CLI_VERSION"
+          )
+          sudo install -m 0755 /tmp/tx /usr/local/bin/tx
+          tx --version
+
+      - name: Push local translations
+        env:
+          TX_TOKEN: ${{ secrets.TX_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${TX_TOKEN:-}" ]]; then
+            echo '::error::GitHub secret TX_TOKEN is not configured.'
+            exit 1
+          fi
+
+          # Do NOT use --all or --languages here.
+          # With -t only, the Transifex CLI automatically selects the
+          # intersection of locally available languages and languages already
+          # configured in the remote Transifex project.
+          #
+          # --skip prevents one failed translation upload (for example because
+          # the TX_TOKEN user is not allowed to upload that language) from
+          # aborting uploads for the remaining languages.
+          #
+          # --use-git-timestamps avoids treating every freshly checked-out file
+          # as newly modified and helps protect newer translations on Transifex.
+          tx push \
+            -t \
+            --skip \
+            --use-git-timestamps
