@@ -340,6 +340,12 @@ class SettingsController extends Controller
         // subject-token client. Existing selections may be retained when the
         // caller changes unrelated settings or re-enables TEX.
         if ($client->getTexEnabled()) {
+            if (trim((string)($client->getTexAllowedScopes() ?? '')) === '') {
+                return new JSONResponse([
+                    'error' => 'At least one allowed Token Exchange scope must be configured before Token Exchange can be enabled.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
             if ($this->texSubjectClientMapper === null) {
                 return new JSONResponse(['error' => 'Token Exchange subject-client policy is unavailable.'], Http::STATUS_INTERNAL_SERVER_ERROR);
             }

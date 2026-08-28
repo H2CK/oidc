@@ -235,6 +235,9 @@ class OIDCCreate extends Command
 
             $client->setTexEnabled((bool)$input->getOption('tex_enabled'));
             $client->setTexAllowedScopes(trim((string)$input->getOption('tex_allowed_scopes')) ?: null);
+            if ($client->getTexEnabled() && $client->getTexAllowedScopes() === null) {
+                throw new CliException('At least one --tex_allowed_scopes scope must be specified when Token Exchange is enabled.');
+            }
 
             $allowedSubjectClientIdentifiers = array_values(array_unique(array_filter(
                 array_map(static fn ($value): string => trim((string)$value), (array)$input->getOption('tex_allowed_subject_client')),

@@ -11,6 +11,8 @@ use OCP\AppFramework\Db\Entity;
  * @method int getId()
  * @method int getClientId()
  * @method void setClientId(int $clientId)
+ * @method int|null getParentTokenId()
+ * @method void setParentTokenId(int|null $parentTokenId)
  * @method string getUserId()
  * @method void setUserId(string $userId)
  * @method string getScope()
@@ -44,6 +46,8 @@ class AccessToken extends Entity
     public $id;
     /** @var int */
     protected $clientId;
+    /** @var int|null Parent access-token row for RFC 8693 token lineage. */
+    protected $parentTokenId = null;
     /** @var string */
     protected $userId;
     /** @var string */
@@ -74,6 +78,7 @@ class AccessToken extends Entity
     public function __construct() {
         $this->addType('id', 'int');
         $this->addType('clientId', 'int');
+        $this->addType('parentTokenId', 'int');
         $this->addType('userId', 'string');
         $this->addType('scope', 'string');
         $this->addType('hashedCode', 'string');

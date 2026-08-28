@@ -158,6 +158,7 @@ class OIDCCreateTest extends TestCase
             'name' => 'TEX Client',
             'redirect_uris' => ['https://local.lo/callback'],
             '--tex_enabled' => true,
+            '--tex_allowed_scopes' => 'openid profile',
         ]);
 
         $this->assertSame(Command::FAILURE, $statusCode);

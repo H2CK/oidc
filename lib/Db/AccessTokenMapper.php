@@ -10,6 +10,7 @@ namespace OCA\OIDCIdentityProvider\Db;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
+use OCP\AppFramework\Db\Entity;
 use OCP\AppFramework\Db\IMapperException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -101,6 +102,62 @@ class AccessTokenMapper extends QBMapper {
     }
 
 
+    /** @return list<AccessToken> */
+    public function getByParentTokenId(int $parentTokenId): array {
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('parent_token_id', $qb->createNamedParameter($parentTokenId, IQueryBuilder::PARAM_INT)));
+        return $this->findEntities($qb);
+    }
+
+    /**
+     * Delete an access token and every RFC 8693 token descended from it.
+     * The visited set protects against manually corrupted lineage data.
+     */
+    public function delete(Entity $entity): Entity {
+        if ($entity instanceof AccessToken && (int)$entity->getId() > 0) {
+            $visited = [];
+            $this->deleteDescendants((int)$entity->getId(), $visited);
+        }
+        return parent::delete($entity);
+    }
+
+    /** @param array<int,bool> $visited */
+    private function deleteDescendants(int $parentTokenId, array &$visited): void {
+        if (isset($visited[$parentTokenId])) {
+            return;
+        }
+        $visited[$parentTokenId] = true;
+        foreach ($this->getByParentTokenId($parentTokenId) as $child) {
+            $childId = (int)$child->getId();
+            if ($childId > 0) {
+                $this->deleteDescendants($childId, $visited);
+            }
+            parent::delete($child);
+        }
+    }
+
+    private function deleteEntitiesWithDescendants(IQueryBuilder $qb): void {
+        $tokens = $this->findEntities($qb);
+        $selectedIds = [];
+        foreach ($tokens as $token) {
+            $selectedIds[(int)$token->getId()] = true;
+        }
+
+        // Delete only roots of the selected subset. A selected descendant is
+        // already removed by the recursive cascade of its selected ancestor.
+        foreach ($tokens as $token) {
+            $parentTokenId = (int)($token->getParentTokenId() ?? 0);
+            if ($parentTokenId > 0 && isset($selectedIds[$parentTokenId])) {
+                continue;
+            }
+            $this->delete($token);
+        }
+    }
+
+
     /**
      * delete all access token from a given client
      *
@@ -109,9 +166,10 @@ class AccessTokenMapper extends QBMapper {
     public function deleteByClientId(int $id) {
         $qb = $this->db->getQueryBuilder();
         $qb
-            ->delete($this->tableName)
+            ->select('*')
+            ->from($this->tableName)
             ->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-        $qb->executeStatement();
+        $this->deleteEntitiesWithDescendants($qb);
     }
 
     /**
@@ -123,10 +181,11 @@ class AccessTokenMapper extends QBMapper {
     public function deleteByUserAndClient(string $userId, int $clientId): void {
         $qb = $this->db->getQueryBuilder();
         $qb
-            ->delete($this->tableName)
+            ->select('*')
+            ->from($this->tableName)
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
             ->andWhere($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
-        $qb->executeStatement();
+        $this->deleteEntitiesWithDescendants($qb);
     }
 
     /**
@@ -137,9 +196,10 @@ class AccessTokenMapper extends QBMapper {
     public function deleteByUserId(string $id) {
         $qb = $this->db->getQueryBuilder();
         $qb
-            ->delete($this->tableName)
+            ->select('*')
+            ->from($this->tableName)
             ->where($qb->expr()->eq('user_id', $qb->createNamedParameter($id)));
-        $qb->executeStatement();
+        $this->deleteEntitiesWithDescendants($qb);
     }
 
     /**

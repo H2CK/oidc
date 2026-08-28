@@ -18,6 +18,7 @@ use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
+use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IUserManager;
 use OCP\Server;
@@ -154,6 +155,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         // requesting client (not the subject-token client) and target policy.
         $persisted = $this->accessTokenMapper->getByAccessToken($accessToken);
         $this->assertSame($requestingClient->getId(), $persisted->getClientId());
+        $this->assertSame($subjectToken->getId(), $persisted->getParentTokenId());
         $this->assertSame(self::TEST_USER_ID, $persisted->getUserId());
         $this->assertSame($resource, $persisted->getResource());
         $this->assertSame('profile', $persisted->getScope());
@@ -448,6 +450,177 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertSame('Basic realm="token"', $response['headers']['www-authenticate'] ?? null);
     }
 
+    public function testHttpEmptyParameterValuesAreTreatedAsOmitted(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $this->createTestUser();
+
+        $resource = 'https://api.example.test/empty-values';
+        $this->createTexTarget($requestingClient, $resource);
+        $this->allowSubjectClient($requestingClient, $subjectClient);
+        $subjectToken = $this->createSubjectToken($subjectClient, 'openid profile email', '', $this->shortSubjectLifetime());
+
+        // RFC 6749 section 3.2 requires parameters sent without a value to be
+        // treated as omitted. Empty occurrences must therefore not affect
+        // cardinality, client authentication, or unsupported-option checks.
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['grant_type', ''],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', ''],
+                ['resource', $resource],
+                ['scope', ''],
+                ['requested_token_type', ''],
+                ['audience', ''],
+                ['actor_token', ''],
+                ['actor_token_type', ''],
+                ['client_id', ''],
+                ['client_secret', ''],
+            ]),
+            $requestingClient
+        );
+
+        $this->assertSame(200, $response['status'], $response['body']);
+        $data = $this->requireJsonObject($response);
+        $this->assertSame('profile', $data['scope'] ?? null, 'Omitted scope must be subject scope intersected with the configured TEX allow-list.');
+        $persisted = $this->accessTokenMapper->getByAccessToken((string)($data['access_token'] ?? ''));
+        $this->assertSame($subjectToken->getId(), $persisted->getParentTokenId());
+        $this->assertSame($resource, $persisted->getResource());
+    }
+
+    public function testHttpNormalResourceBoundTokenStillWorksAtUserInfo(): void {
+        $normalClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $this->createTestUser();
+        $normalToken = $this->createSubjectToken(
+            $normalClient,
+            'openid profile',
+            'https://ordinary-api.example.test/',
+            $this->shortSubjectLifetime()
+        );
+        $this->assertNull($normalToken->getParentTokenId());
+
+        $discovery = $this->getJsonUrl($this->baseUrl . '/index.php/apps/oidc/openid-configuration');
+        $userInfoEndpoint = $discovery['userinfo_endpoint'] ?? null;
+        $this->assertIsString($userInfoEndpoint);
+
+        $userInfo = $this->getWithBearer($userInfoEndpoint, $normalToken->getAccessToken());
+        $this->assertSame(200, $userInfo['status'], $userInfo['body']);
+        $this->assertSame(self::TEST_USER_ID, $this->requireJsonObject($userInfo)['sub'] ?? null);
+    }
+
+    public function testHttpTokenExchangeFailsClosedWithoutAllowedScopes(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, null);
+        $this->createTestUser();
+        $resource = 'https://api.example.test/no-scope-policy';
+        $this->createTexTarget($requestingClient, $resource);
+        $this->allowSubjectClient($requestingClient, $subjectClient);
+        $subjectToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
+
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resource],
+                ['scope', 'profile'],
+            ]),
+            $requestingClient
+        );
+
+        $this->assertSame(400, $response['status'], $response['body']);
+        $data = $this->requireJsonObject($response);
+        $this->assertSame('invalid_scope', $data['error'] ?? null);
+        $this->assertStringContainsString('no token exchange scopes', strtolower($data['error_description'] ?? ''));
+    }
+
+    public function testHttpBasicCredentialsUseFormUrlencodedDecoding(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $specialSecret = 'secret with space+plus%value-0123456789';
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile', null, $specialSecret);
+        $this->createTestUser();
+        $resource = 'https://api.example.test/basic-form-encoding';
+        $this->createTexTarget($requestingClient, $resource);
+        $this->allowSubjectClient($requestingClient, $subjectClient);
+        $subjectToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
+
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resource],
+                ['scope', 'profile'],
+            ]),
+            $requestingClient
+        );
+
+        $this->assertSame(200, $response['status'], $response['body']);
+    }
+
+    public function testHttpSubjectRevocationCascadesThroughMultiHopExchange(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $firstClient = $this->createClient(self::OPAQUE_CLIENT_ID, 'opaque', true, 'profile');
+        $secondClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $this->createTestUser();
+
+        $resourceOne = 'https://api-one.example.test/';
+        $resourceTwo = 'https://api-two.example.test/';
+        $this->createTexTarget($firstClient, $resourceOne);
+        $this->createTexTarget($secondClient, $resourceTwo);
+        $this->allowSubjectClient($firstClient, $subjectClient);
+        $this->allowSubjectClient($secondClient, $firstClient);
+        $rootToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
+
+        $firstExchange = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $rootToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resourceOne],
+                ['scope', 'profile'],
+            ]),
+            $firstClient
+        );
+        $this->assertSame(200, $firstExchange['status'], $firstExchange['body']);
+        $firstTokenValue = (string)($this->requireJsonObject($firstExchange)['access_token'] ?? '');
+        $firstToken = $this->accessTokenMapper->getByAccessToken($firstTokenValue);
+        $this->assertSame($rootToken->getId(), $firstToken->getParentTokenId());
+
+        $secondExchange = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $firstTokenValue],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resourceTwo],
+                ['scope', 'profile'],
+            ]),
+            $secondClient
+        );
+        $this->assertSame(200, $secondExchange['status'], $secondExchange['body']);
+        $secondTokenValue = (string)($this->requireJsonObject($secondExchange)['access_token'] ?? '');
+        $secondToken = $this->accessTokenMapper->getByAccessToken($secondTokenValue);
+        $this->assertSame($firstToken->getId(), $secondToken->getParentTokenId());
+
+        $this->accessTokenMapper->delete($rootToken);
+
+        foreach ([$firstTokenValue, $secondTokenValue] as $revokedTokenValue) {
+            try {
+                $this->accessTokenMapper->getByAccessToken($revokedTokenValue);
+                $this->fail('Descendant exchanged token remained stored after subject-token revocation.');
+            } catch (AccessTokenNotFoundException $e) {
+                $this->assertTrue(true);
+            }
+        }
+    }
+
     public function testHttpExchangeWithoutEffectiveResourceIsRejected(): void {
         $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
         $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
@@ -474,7 +647,8 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         string $tokenType,
         bool $texEnabled,
         ?string $texAllowedScopes,
-        ?string $resourceUrl = null
+        ?string $resourceUrl = null,
+        ?string $secret = null
     ): Client {
         $client = new Client(
             'HTTP Token Exchange Test Client',
@@ -490,7 +664,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
             $texAllowedScopes
         );
         $client->setClientIdentifier($clientIdentifier);
-        $client->setSecret(self::CLIENT_SECRET);
+        $client->setSecret($secret ?? self::CLIENT_SECRET);
         if ($resourceUrl !== null) {
             $client->setResourceUrl($resourceUrl);
         }
@@ -598,9 +772,9 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $curl = curl_init($this->baseUrl . $path);
         $this->assertNotFalse($curl);
 
-        $basicCredentials = rawurlencode($client->getClientIdentifier())
+        $basicCredentials = urlencode($client->getClientIdentifier())
             . ':'
-            . rawurlencode($secretOverride ?? $client->getSecret());
+            . urlencode($secretOverride ?? $client->getSecret());
 
         curl_setopt_array($curl, [
             CURLOPT_POST => true,

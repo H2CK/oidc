@@ -313,7 +313,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertEquals('Access token already expired.', $result->getData()['error_description']);
     }
 
-    public function testGetInfoSuccess() {
+    public function testGetInfoSuccessForRegularResourceBoundToken() {
         $token = 'test-token';
         $now = time();
         
@@ -332,7 +332,7 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setRefreshed($now);
         $accessToken->setExpiresAt($now + 900);
         $accessToken->setScope('openid profile email');
-        $accessToken->setResource('https://localhost/index.php/apps/oidc/userinfo');
+        $accessToken->setResource('https://backend.example/api');
         
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
@@ -400,7 +400,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertArrayNotHasKey('middle_name', $data);
     }
 
-    public function testGetInfoRejectsResourceBoundTokenForDifferentResource(): void {
+    public function testGetInfoRejectsTokenExchangeResourceBoundTokenForDifferentResource(): void {
         $token = 'resource-bound-token';
         $now = time();
 
@@ -417,6 +417,7 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setExpiresAt($now + 900);
         $accessToken->setScope('openid profile');
         $accessToken->setResource('https://backend.example/api');
+        $accessToken->setParentTokenId(99);
 
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;

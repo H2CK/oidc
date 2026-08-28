@@ -236,9 +236,29 @@ class OIDCApiController extends ApiController {
         * encoding before being put into Basic auth.
         */
         return [
-            rawurldecode($clientId),
-            rawurldecode($clientSecret),
+            urldecode($clientId),
+            urldecode($clientSecret),
         ];
+    }
+
+    /**
+     * OAuth 2.0 token-endpoint parameters sent without a value are treated as
+     * omitted (RFC 6749 section 3.2). Only an exact decoded empty string is
+     * omitted; whitespace and every other non-empty value remain present.
+     *
+     * @param array<string,list<string>> $parameters
+     * @return array<string,list<string>>
+     */
+    private function omitEmptyFormParameterValues(array $parameters): array
+    {
+        foreach ($parameters as $name => $values) {
+            $parameters[$name] = array_values(array_filter(
+                $values,
+                static fn (string $value): bool => $value !== ''
+            ));
+        }
+
+        return $parameters;
     }
 
     private function invalidGrantResponse(string $description): JSONResponse {
@@ -297,6 +317,9 @@ class OIDCApiController extends ApiController {
         // duplicate-parameter validation.
         if ($grant_type !== self::TOKEN_EXCHANGE_GRANT_TYPE && $this->isFormUrlencodedRequest()) {
             $rawGrantTypes = $this->formUrlencodedParameterParser->readSelectedParameters(['grant_type']);
+            if ($rawGrantTypes !== null) {
+                $rawGrantTypes = $this->omitEmptyFormParameterValues($rawGrantTypes);
+            }
             if ($rawGrantTypes !== null && in_array(self::TOKEN_EXCHANGE_GRANT_TYPE, $rawGrantTypes['grant_type'], true)) {
                 if (count($rawGrantTypes['grant_type']) !== 1) {
                     return new JSONResponse([
@@ -592,6 +615,8 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        $parameters = $this->omitEmptyFormParameterValues($parameters);
+
         $requiredSingletons = ['grant_type', 'subject_token', 'subject_token_type'];
         foreach ($requiredSingletons as $parameterName) {
             if (count($parameters[$parameterName]) !== 1) {
@@ -692,13 +717,6 @@ class OIDCApiController extends ApiController {
                 'error_description' => 'The resource must be a single absolute URI without a fragment.',
             ], Http::STATUS_BAD_REQUEST);
         }
-        if ($scope !== null && trim($scope) === '') {
-            return new JSONResponse([
-                'error' => 'invalid_scope',
-                'error_description' => 'The requested scope must not be empty.',
-            ], Http::STATUS_BAD_REQUEST);
-        }
-
         $basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
         if ($basicAuthenticationAttempted && ($bodyClientId !== null || $bodyClientSecret !== null)) {
             return new JSONResponse([
@@ -876,6 +894,13 @@ class OIDCApiController extends ApiController {
             $texAllowedScopes = preg_split('/ +/', trim($texAllowedScopesValue), -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $texAllowedScopes = array_values(array_unique($texAllowedScopes));
         }
+        if ($texAllowedScopes === []) {
+            $this->logger->warning('Token Exchange denied because no allowed scopes are configured for client ' . $client_id . '.');
+            return new JSONResponse([
+                'error' => 'invalid_scope',
+                'error_description' => 'No Token Exchange scopes are configured for this client.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
 
         if ($scope !== null) {
             $scope = trim($scope);
@@ -896,7 +921,7 @@ class OIDCApiController extends ApiController {
                         'error_description' => 'The requested scope exceeds the subject token scope.',
                     ], Http::STATUS_BAD_REQUEST);
                 }
-                if ($texAllowedScopes !== [] && !in_array($requestedScope, $texAllowedScopes, true)) {
+                if (!in_array($requestedScope, $texAllowedScopes, true)) {
                     $this->logger->info('Requested scope not allowed for TEX. Client id: ' . $client_id . ', Scope: ' . $requestedScope);
                     return new JSONResponse([
                         'error' => 'invalid_scope',
@@ -905,13 +930,16 @@ class OIDCApiController extends ApiController {
                 }
             }
         } else {
-            $effectiveScopes = $subjectScopes;
-            if ($texAllowedScopes !== []) {
-                $effectiveScopes = array_values(array_filter(
-                    $effectiveScopes,
-                    static fn (string $subjectScope): bool => in_array($subjectScope, $texAllowedScopes, true)
-                ));
-            }
+            $effectiveScopes = array_values(array_filter(
+                $subjectScopes,
+                static fn (string $subjectScope): bool => in_array($subjectScope, $texAllowedScopes, true)
+            ));
+        }
+        if ($effectiveScopes === []) {
+            return new JSONResponse([
+                'error' => 'invalid_scope',
+                'error_description' => 'No permitted Token Exchange scopes remain for this subject token.',
+            ], Http::STATUS_BAD_REQUEST);
         }
         $effectiveScope = implode(' ', $effectiveScopes);
 
@@ -950,6 +978,7 @@ class OIDCApiController extends ApiController {
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
 
         $newAccessToken->setClientId($client->getId());
+        $newAccessToken->setParentTokenId($subjectTokenAccessToken->getId());
         $newAccessToken->setUserId($uid);
         $newAccessToken->setScope($effectiveScope);
         $newAccessToken->setHashedCode(hash('sha512', $newCode));

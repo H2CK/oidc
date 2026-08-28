@@ -218,6 +218,7 @@ class OIDCApiControllerTest extends TestCase {
         $client->setId(1);
         $client->setType($type);
         $client->setTexEnabled($enabled);
+        $client->setTexAllowedScopes('openid profile');
         return $client;
     }
 
@@ -544,6 +545,25 @@ class OIDCApiControllerTest extends TestCase {
         ]);
         $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
         $this->assertSame('invalid_scope', $result->getData()['error']);
+    }
+
+    public function testTokenExchangeFailsClosedWithoutAllowedScopes(): void {
+        $client = $this->createTexClient();
+        $client->setTexAllowedScopes(null);
+        $subject = $this->createSubjectToken();
+        $this->configureValidExchange($client, $subject);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'profile',
+        ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_scope', $result->getData()['error']);
+        $this->assertStringContainsString('No Token Exchange scopes', $result->getData()['error_description']);
     }
 
     public function testTokenExchangeCrossClientSuccessUsesAbsoluteExpiryAndNoIdToken(): void {

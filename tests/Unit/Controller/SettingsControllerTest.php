@@ -668,6 +668,7 @@ class SettingsControllerTest extends TestCase {
         $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
         $this->request->method('getParams')->willReturn([
             'texEnabled' => true,
+            'texAllowedScopes' => 'openid profile',
             'texAllowedSubjectClients' => [],
         ]);
         $this->clientMapper->expects($this->never())->method('update');
@@ -700,6 +701,7 @@ class SettingsControllerTest extends TestCase {
         );
         $this->request->method('getParams')->willReturn([
             'texEnabled' => true,
+            'texAllowedScopes' => 'openid profile',
             'texAllowedSubjectClients' => ['source-client-a', 'source-client-b', 'source-client-a'],
         ]);
         $this->clientMapper->expects($this->once())->method('update')->with($client);
@@ -717,6 +719,7 @@ class SettingsControllerTest extends TestCase {
 
         $this->assertSame(Http::STATUS_OK, $result->getStatus());
         $this->assertTrue($client->getTexEnabled());
+        $this->assertSame('openid profile', $client->getTexAllowedScopes());
         $this->assertSame([[1, 2], [1, 3]], $inserted);
     }
 

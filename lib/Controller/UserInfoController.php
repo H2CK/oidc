@@ -298,26 +298,28 @@ class UserInfoController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Resource-bound access tokens are valid only at the resource for which
-        // they were issued. In particular, a Token Exchange token targeting a
-        // backend API must not become a general-purpose UserInfo credential.
-        // Unbound access tokens retain the historic UserInfo behavior.
-        $resource = trim((string)($accessToken->getResource() ?? ''));
-        if ($resource !== '') {
-            $userInfoResource = $this->request->getServerProtocol()
-                . '://' . $this->request->getServerHost()
-                . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []);
+        // Only RFC 8693 exchanged tokens are target-bound at UserInfo. Normal
+        // authorization-flow access tokens keep the historical UserInfo behavior
+        // even when they carry a resource_url. parent_token_id is the explicit
+        // persisted marker that this token was created by Token Exchange.
+        if ($accessToken->getParentTokenId() !== null && (int)$accessToken->getParentTokenId() > 0) {
+            $resource = trim((string)($accessToken->getResource() ?? ''));
+            if ($resource !== '') {
+                $userInfoResource = $this->request->getServerProtocol()
+                    . '://' . $this->request->getServerHost()
+                    . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []);
 
-            if ($resource !== $userInfoResource) {
-                $this->logger->notice('Resource-bound access token rejected at UserInfo.', [
-                    'client_id' => $client->getClientIdentifier(),
-                ]);
-                $response = new JSONResponse([
-                    'error' => 'invalid_token',
-                    'error_description' => 'The access token is not valid for the UserInfo resource.',
-                ], Http::STATUS_UNAUTHORIZED);
-                $response->addHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
-                return $response;
+                if ($resource !== $userInfoResource) {
+                    $this->logger->notice('Token Exchange access token rejected at UserInfo because it targets another resource.', [
+                        'client_id' => $client->getClientIdentifier(),
+                    ]);
+                    $response = new JSONResponse([
+                        'error' => 'invalid_token',
+                        'error_description' => 'The access token is not valid for the UserInfo resource.',
+                    ], Http::STATUS_UNAUTHORIZED);
+                    $response->addHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
+                    return $response;
+                }
             }
         }
 
