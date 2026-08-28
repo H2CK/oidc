@@ -16,6 +16,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\Security\ICrypto;
 use OCP\Security\ISecureRandom;
 use OCP\IDBConnection;
+use OCP\DB\Exception as DatabaseException;
 use OCP\IURLGenerator;
 use OCP\IConfig;
 use Psr\Log\LoggerInterface;
@@ -564,6 +565,36 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertSame('invalid_scope', $result->getData()['error']);
         $this->assertStringContainsString('No Token Exchange scopes', $result->getData()['error_description']);
+    }
+
+    public function testTokenExchangeRejectsConcurrentSubjectRevocationDuringChildInsert(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2);
+        $subject->setId(99);
+        $this->configureValidExchange($client, $subject);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'profile',
+        ]);
+
+        $this->secureRandom->method('generate')->willReturn('new-code');
+        $foreignKeyViolation = new class('Concurrent subject-token revocation') extends DatabaseException {
+            public function getReason(): ?int {
+                return DatabaseException::REASON_FOREIGN_KEY_VIOLATION;
+            }
+        };
+        $this->accessTokenMapper->expects($this->once())
+            ->method('insert')
+            ->willThrowException($foreignKeyViolation);
+        $this->jwtGenerator->expects($this->never())->method('generateAccessToken');
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('revoked', strtolower($result->getData()['error_description']));
     }
 
     public function testTokenExchangeCrossClientSuccessUsesAbsoluteExpiryAndNoIdToken(): void {

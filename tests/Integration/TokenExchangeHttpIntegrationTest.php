@@ -20,6 +20,7 @@ use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\DB\Exception as DatabaseException;
 use OCP\IUserManager;
 use OCP\Server;
 use PHPUnit\Framework\TestCase;
@@ -561,6 +562,34 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         );
 
         $this->assertSame(200, $response['status'], $response['body']);
+    }
+
+    public function testTokenLineageForeignKeyRejectsOrphanedExchangeToken(): void {
+        $requestingClient = $this->createClient(self::OPAQUE_CLIENT_ID, 'opaque', true, 'profile');
+        $this->createTestUser();
+
+        $now = time();
+        $orphan = new AccessToken();
+        $orphan->setClientId($requestingClient->getId());
+        $orphan->setParentTokenId(2147483647);
+        $orphan->setUserId(self::TEST_USER_ID);
+        $orphan->setScope('profile');
+        $orphan->setHashedCode(hash('sha512', 'orphan-' . bin2hex(random_bytes(16))));
+        $orphan->setAccessToken('orphan-' . bin2hex(random_bytes(24)));
+        $orphan->setCreated($now);
+        $orphan->setRefreshed($now);
+        $orphan->setExpiresAt($now + 60);
+        $orphan->setNonce('');
+        $orphan->setResource('https://api.example.test/orphan');
+        $orphan->setCodeChallenge('');
+        $orphan->setCodeChallengeMethod('');
+
+        try {
+            $this->accessTokenMapper->insert($orphan);
+            $this->fail('Database accepted an exchanged token whose parent token does not exist.');
+        } catch (DatabaseException $e) {
+            $this->assertSame(DatabaseException::REASON_FOREIGN_KEY_VIOLATION, $e->getReason());
+        }
     }
 
     public function testHttpSubjectRevocationCascadesThroughMultiHopExchange(): void {

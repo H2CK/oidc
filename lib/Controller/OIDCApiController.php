@@ -33,6 +33,7 @@ use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\Response;
+use OCP\DB\Exception as DatabaseException;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
 use OCP\Security\ICrypto;
@@ -787,7 +788,7 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // Token Exchange is an administrative delegation privilege. RFC 8693
+        // Token Exchange is an administrative authorization for impersonation-style exchange. RFC 8693
         // permits cross-client exchange, but this implementation requires an
         // explicit allow-list relationship for every subject-token client,
         // including same-client exchange. This keeps TEX fail-closed and avoids
@@ -993,6 +994,10 @@ class OIDCApiController extends ApiController {
 
         $inserted = false;
         try {
+            // parent_token_id is protected by a self-referencing foreign key with
+            // ON DELETE CASCADE. If the subject token is revoked concurrently
+            // after validation but before this insert, the database rejects the
+            // child instead of allowing an orphaned exchanged token to survive.
             $newAccessToken = $this->accessTokenMapper->insert($newAccessToken);
             $inserted = true;
             $newAccessToken->setAccessToken($this->jwtGenerator->generateAccessToken(
@@ -1004,6 +1009,18 @@ class OIDCApiController extends ApiController {
                 false
             ));
             $this->accessTokenMapper->update($newAccessToken);
+        } catch (DatabaseException $e) {
+            if (!$inserted && $e->getReason() === DatabaseException::REASON_FOREIGN_KEY_VIOLATION) {
+                $this->logger->info('Subject token was revoked concurrently during Token Exchange.', [
+                    'client_id' => $client_id,
+                    'subject_token_id' => $subjectTokenAccessToken->getId(),
+                ]);
+                return new JSONResponse([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Subject token is invalid or has been revoked.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            throw $e;
         } catch (JwtCreationErrorException $e) {
             if ($inserted) {
                 $this->accessTokenMapper->delete($newAccessToken);
