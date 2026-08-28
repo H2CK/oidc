@@ -289,13 +289,38 @@ class UserInfoController extends ApiController
         }
 
         // The accessToken must not be expired
-        if ($this->time->getTime() > $accessToken->getRefreshed() + $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME) ) {
+        if ($this->time->getTime() >= $accessToken->getEffectiveExpiresAt((int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME)) ) {
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired.');
             return new JSONResponse([
                 'error' => 'invalid_grant',
                 'error_description' => 'Access token already expired.',
             ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // Only RFC 8693 exchanged tokens are target-bound at UserInfo. Normal
+        // authorization-flow access tokens keep the historical UserInfo behavior
+        // even when they carry a resource_url. parent_token_id is the explicit
+        // persisted marker that this token was created by Token Exchange.
+        if ($accessToken->getParentTokenId() !== null && (int)$accessToken->getParentTokenId() > 0) {
+            $resource = trim((string)($accessToken->getResource() ?? ''));
+            if ($resource !== '') {
+                $userInfoResource = $this->request->getServerProtocol()
+                    . '://' . $this->request->getServerHost()
+                    . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []);
+
+                if ($resource !== $userInfoResource) {
+                    $this->logger->notice('Token Exchange access token rejected at UserInfo because it targets another resource.', [
+                        'client_id' => $client->getClientIdentifier(),
+                    ]);
+                    $response = new JSONResponse([
+                        'error' => 'invalid_token',
+                        'error_description' => 'The access token is not valid for the UserInfo resource.',
+                    ], Http::STATUS_UNAUTHORIZED);
+                    $response->addHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
+                    return $response;
+                }
+            }
         }
 
         $issuer =  $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();

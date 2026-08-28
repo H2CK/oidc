@@ -100,6 +100,7 @@ jobs:
         with:
           php-version: ${{ env.PHP_VERSION }}
           coverage: none
+          extensions: curl
 
       - name: Check composer.json
         id: check_composer
@@ -141,8 +142,21 @@ jobs:
           cd nextcloud
           php occ maintenance:install --admin-user admin --admin-pass admin
           php occ app:enable ${{ env.APP_NAME }}
+
+          # Run the HTTP integration tests through a real Nextcloud request
+          # boundary. The test class skips locally when this URL is not set.
+          php -S 127.0.0.1:8080 -t . > /tmp/nextcloud-http.log 2>&1 &
+          NEXTCLOUD_HTTP_PID=$!
+          trap 'kill "$NEXTCLOUD_HTTP_PID" 2>/dev/null || true' EXIT
+          curl -fsS --retry 30 --retry-connrefused --retry-delay 1 http://localhost:8080/status.php > /dev/null
+          export OIDC_INTEGRATION_BASE_URL=http://localhost:8080
+
           cd apps/${{ env.APP_NAME }}
-          make build-test
+          if ! make build-test; then
+            echo '--- Nextcloud HTTP server log ---'
+            cat /tmp/nextcloud-http.log
+            exit 1
+          fi
 
       - name: Sign app
         if: github.actor == 'H2CK'

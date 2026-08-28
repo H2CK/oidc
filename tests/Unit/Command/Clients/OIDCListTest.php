@@ -7,6 +7,8 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Command\Clients;
 use OCA\OIDCIdentityProvider\Command\Clients\OIDCList;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCP\AppFramework\Services\IAppConfig;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -17,16 +19,18 @@ class OIDCListTest extends TestCase
     private IAppConfig $appConfig;
     private ClientMapper $clientMapper;
     private OIDCList $command;
+    private TexTargetMapper $texTargetMapper;
 
     protected function setUp(): void
     {
         $this->appConfig = $this->createMock(IAppConfig::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
-
-        $this->command = new OIDCList(
-            $this->appConfig,
-            $this->clientMapper
-        );
+        $this->texTargetMapper = $this->createMock(TexTargetMapper::class);
+        $this->command = $this->getMockBuilder(OIDCList::class)
+            ->onlyMethods(['getTexTargetMapper'])
+            ->setConstructorArgs([$this->appConfig, $this->clientMapper])
+            ->getMock();
+        $this->command->method('getTexTargetMapper')->willReturn($this->texTargetMapper);
     }
 
     public function testExecuteWithClients(): void
@@ -60,18 +64,26 @@ class OIDCListTest extends TestCase
         $this->clientMapper
             ->method('getClients')
             ->willReturn([$client1, $client2]);
+        $target = new TexTargets();
+        $target->setResourceUrl('https://resource.example/target');
+        $target->setCreated(100);
+        $target->setUsedAt(0);
+        $this->texTargetMapper
+            ->method('getByClientId')
+            ->willReturnCallback(static fn (int $clientId): array => $clientId === 1 ? [$target] : []);
 
         $tester = new CommandTester($this->command);
         $statusCode = $tester->execute([]);
 
         $this->assertSame(Command::SUCCESS, $statusCode);
         $display = $tester->getDisplay();
-        
+
         // Verify the output contains the clients as JSON
         $this->assertStringContainsString('Test Client 1', $display);
         $this->assertStringContainsString('Test Client 2', $display);
         $this->assertStringContainsString('client-1', $display);
         $this->assertStringContainsString('client-2', $display);
+        $this->assertStringContainsString('https://resource.example/target', $display);
     }
 
     public function testExecuteWithEmptyList(): void
@@ -85,7 +97,7 @@ class OIDCListTest extends TestCase
 
         $this->assertSame(Command::SUCCESS, $statusCode);
         $display = $tester->getDisplay();
-        
+
         // Should output an empty JSON array
         $this->assertStringContainsString('[]', $display);
     }
@@ -101,7 +113,7 @@ class OIDCListTest extends TestCase
 
         $this->assertSame(Command::FAILURE, $statusCode);
         $display = $tester->getDisplay();
-        
+
         // Verify error message is displayed
         $this->assertStringContainsString('Error: Database error', $display);
     }
@@ -130,7 +142,7 @@ class OIDCListTest extends TestCase
 
         $this->assertSame(Command::SUCCESS, $statusCode);
         $display = $tester->getDisplay();
-        
+
         // Should still output valid JSON even with minimal client data
         $this->assertStringContainsString('Test Client', $display);
     }

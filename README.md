@@ -18,6 +18,7 @@ Provided features:
 - Group memberships can be passed as roles or groups claims
 - Clients can be assigned to dedicated user groups - Only users in the configured group are allowed to retrieve an access token to fetch the ID token
 - Support for RFC9068 JWT Access Tokens (must be activated per client)
+- Support for OAuth 2.0 Token Exchange (RFC 8693) using a constrained access-token-to-access-token profile
 - Discovery & WebFinger endpoint provided
 - Logout endpoint
 - Dynamic Client Registration
@@ -185,6 +186,118 @@ It is possible to use the dynamic client registration according to [OpenID Conne
 
 Due to security reasons there is a BruteForce throttleing as well as a limitation of dynamically registered clients to 100. Additionally a dynamically registered client is only valid for 3600 seconds. Both parameters can currently not be changed via the settings.
 The registration endpoint is accessible for everybody without any authentication and authorization. So please enable this feature with the possible thread in mind.
+
+Dynamically registered clients are **not automatically authorized for Token Exchange**. RFC 8693 defines Token Exchange as a token-endpoint extension grant but does not define client-registration metadata for the administrative trust relationship between a requesting client and the clients from which it may accept subject tokens. RFC 7591 permits extension grant-type values and additional registration metadata, but it does not require an authorization server to let a dynamically registering client grant itself Token Exchange trust privileges. In this implementation a DCR-created client therefore starts with Token Exchange disabled and cannot enable it or configure allowed subject-token clients through DCR/RFC 7592. An administrator must explicitly enable Token Exchange, select at least one allowed subject client, and configure at least one allowed Token Exchange scope in the Admin UI. This is an intentional security policy, not a limitation imposed by RFC 8693.
+
+## Token Exchange (RFC 8693)
+
+The OIDC app supports [OAuth 2.0 Token Exchange (RFC 8693)](https://www.rfc-editor.org/rfc/rfc8693.html) at the normal token endpoint. The implementation intentionally provides a constrained profile focused on exchanging an access token issued by this OIDC provider for another access token that is suitable for a configured backend resource.
+
+### Typical use cases
+
+Token Exchange is useful when a confidential application or backend receives a user access token but should not forward that token unchanged to another service. Typical scenarios are:
+
+- **Backend-for-Frontend (BFF):** A backend receives a user's access token and exchanges it for a token intended for a downstream API.
+- **Backend or microservice calls:** A confidential service exchanges an incoming user token for a token whose resource and scopes are restricted to another internal service.
+- **Cross-client exchange:** The subject token may have been issued to a different OIDC client, but only when that source client is explicitly selected in the requesting client's administrative Token Exchange policy. The client performing the exchange becomes the client of the newly issued token. The Token Exchange target, scope, group, and subject-client policies of the authenticated requesting client are authoritative.
+- **Privilege reduction / downscoping:** A client can request a subset of the subject token's scopes for a specific configured resource.
+
+Token Exchange must be enabled for the **requesting client**. The requesting client must be a confidential client and must authenticate at the token endpoint using exactly one supported client-authentication method (`client_secret_basic` or `client_secret_post`). Enabling Token Exchange requires an administrator to select at least one **allowed subject client** and configure at least one **allowed Token Exchange scope**. Both allow-lists are checked for every exchange, including same-client exchange. The scope policy is fail-closed: a TEX-enabled client with no configured `tex_allowed_scopes` cannot issue an exchanged token. Administrators must also configure resource targets for that client. Every exchange requires exactly one effective resource target (explicitly requested or inherited from the subject token), and that value is issued only if it exactly matches one of the configured Token Exchange target URIs.
+
+### Supported request profile
+
+The request uses the token endpoint with `POST` and **must** use `Content-Type: application/x-www-form-urlencoded` as defined by RFC 8693. Other content types are rejected with `invalid_request`. The original form body is the authoritative source for Token Exchange parameters so repeated fields cannot be hidden by PHP/Nextcloud parameter collapsing. The following profile is supported:
+
+| Parameter | Support |
+| --- | --- |
+| `grant_type` | Required. Must be `urn:ietf:params:oauth:grant-type:token-exchange`. |
+| `subject_token` | Required. Must be a valid, non-expired access token issued by this OIDC provider. |
+| `subject_token_type` | Required. Only `urn:ietf:params:oauth:token-type:access_token` is supported. |
+| `resource` | Optional in the request only when the subject token already contains a resource. Zero or one absolute URI is supported. Query components are allowed; fragments are not. Exactly one effective resource is required and must be configured as a Token Exchange target for the requesting client. |
+| `scope` | Optional. May only reduce privileges. Every requested scope must already be present in the subject token and in the mandatory Token Exchange scope allow-list. If omitted (or sent with an empty value), the issued scope is the intersection of the subject-token scopes and `tex_allowed_scopes`. If that intersection is empty, the exchange is rejected with `invalid_scope`. |
+| `requested_token_type` | Optional. If supplied, only `urn:ietf:params:oauth:token-type:access_token` is supported. |
+| `audience` | Not supported. Any `audience` parameter is rejected with `invalid_target`. |
+| `actor_token` / `actor_token_type` | Not supported. Delegation/actor semantics are rejected. |
+
+RFC 8693 permits multiple `resource` and `audience` parameters. This implementation deliberately does not issue tokens for multiple target services. More than one `resource` parameter, including duplicate values, is rejected with `invalid_target`; any `audience` parameter is rejected as unsupported. All other Token Exchange parameters are singletons: required fields (`grant_type`, `subject_token`, and `subject_token_type`) must occur exactly once, while optional singleton fields such as `scope`, `requested_token_type`, actor fields, and body client credentials may occur at most once. Invalid repetitions are rejected with `invalid_request`. A mixed/repeated `grant_type` cannot be used to bypass this validation. Per OAuth 2.0 token-endpoint semantics (RFC 6749 section 3.2), form parameters whose decoded value is exactly empty are treated as omitted **before** presence, cardinality, unsupported-parameter, and client-authentication-method checks. Non-empty values, including whitespace-only values, remain present and are validated normally.
+
+If `resource` is omitted, the resource of the subject token is inherited when present. The inherited value is **revalidated against the Token Exchange target allow-list of the requesting client** before it is copied to the new token. An unapproved inherited resource is rejected with `invalid_target`. If neither the request nor the subject token contains a resource, the exchange is rejected with `invalid_target`; this constrained profile does not fall back to the requesting client as an implicit Token Exchange audience.
+
+Example request:
+
+```http
+POST /index.php/apps/oidc/token HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+Authorization: Basic <client-credentials>
+
+grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange
+&subject_token=<access-token>
+&subject_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token
+&resource=https%3A%2F%2Fbackend.example.com%2Fapi
+&scope=api.read
+```
+
+A successful response contains a bearer access token and identifies the issued token type:
+
+```json
+{
+  "access_token": "<exchanged-access-token>",
+  "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+  "token_type": "Bearer",
+  "expires_in": 300,
+  "scope": "api.read"
+}
+```
+
+### Token properties and security policy
+
+- The exchanged token represents the same user as the subject token.
+- The exchanged token is associated with the authenticated **requesting client**, not necessarily the client to which the subject token was originally issued.
+- The client to which the subject token was issued must be present in the requesting client's administrative **allowed subject clients** list. There is no implicit same-client or cross-client permission.
+- This constrained profile uses RFC 8693 **impersonation semantics**, not delegation semantics: the exchanged token keeps the end user as `sub` and does not contain an `actor_token`/`act` chain. The administrative allow-list authorizes the requesting client to perform this impersonation-style exchange and intentionally overrides the normal per-user consent requirement for that requesting client. Token Exchange does not create or require a separate user-consent record for that client, so administrators must grant these trust relationships only to clients that are explicitly trusted for this purpose.
+- The effective scope can never exceed the subject token scope. The Token Exchange scope allow-list is mandatory and provides a second, fail-closed upper bound. No configured TEX scopes means no Token Exchange token can be issued.
+- The exchanged token never outlives the subject token. Its lifetime is the smaller of the configured access-token lifetime and the remaining lifetime of the subject token.
+- Depending on the requesting client's access-token configuration, the exchanged token can be a JWT or an opaque access token.
+- For exchanged JWT access tokens, `auth_time` is omitted. The exchange time is not an authentication time, and the implementation does not invent a new authentication event during Token Exchange.
+- Every exchange has exactly one effective resource. It is used as the token audience/resource and is also returned as the audience by token introspection. Only allow-listed resource URIs can be set.
+- The UserInfo resource check is applied specifically to **Token Exchange access tokens**, identified by their persisted parent-token lineage. A TEX token targeted at another backend resource is rejected by UserInfo with HTTP 401 / `invalid_token`. Access tokens issued by the normal authorization/refresh flows retain the historical UserInfo behavior, including existing deployments that store a `resource_url` on such tokens. To intentionally issue a TEX token for UserInfo, configure the exact discovered `userinfo_endpoint` as a Token Exchange target and request that URI as `resource`.
+- The requesting client's configured user-group restrictions are applied before a token is issued.
+- Public clients and clients for which Token Exchange is disabled receive `unauthorized_client`. Invalid `client_secret_basic` credentials receive HTTP 401 with a `WWW-Authenticate: Basic` challenge.
+- Exchanged tokens persist the database ID of their immediate subject token as `parent_token_id`. The database enforces this lineage with a self-referencing foreign key and `ON DELETE CASCADE`. The migration removes any already-orphaned Token Exchange lineage before enabling the constraint. Token issuance is additionally serialized with subject-token revocation: before creating the child token, the token endpoint starts a short database transaction, acquires a write lock on the persisted subject-token row, re-reads it, and verifies that the access-token value plus the client, user, scope, resource, and expiry state used for authorization are still current. The lock is held until the child has been inserted, its final opaque/JWT value has been persisted, and the transaction commits. If revocation wins the race, the subject row can no longer be locked/re-read and the exchange fails with `invalid_request`; if the exchange wins, the complete child token is committed before revocation can proceed, after which `ON DELETE CASCADE` removes it. The foreign key remains a second fail-closed guard against orphan creation. The access-token mapper additionally performs recursive descendant deletion for normal application-level revocation, including multi-hop Token Exchange chains. This makes DB-backed checks such as introspection and UserInfo fail immediately after revocation. Refreshing/renewing an existing subject-token row does not by itself revoke descendants. Self-contained JWT access tokens that are validated **only offline** by a resource server can still remain cryptographically valid until their `exp` after a later, correctly ordered revocation; immediate revocation of such JWTs requires an online revocation/introspection mechanism at the resource server. The existing lifetime rule still ensures an exchanged token never outlives its subject token.
+
+### Administration and OCC configuration
+
+In the Admin UI, **Allowed Token Exchange Subject Clients** is a multi-select list of client IDs. At least one client and at least one **Allowed Token Exchange Scope** must be configured before Token Exchange can be enabled. Select the requesting client itself if same-client exchange is required; select additional client IDs only for explicitly trusted cross-client Token Exchange / impersonation paths. Scope configuration is deliberately fail-closed rather than interpreting an empty allow-list as "all subject-token scopes".
+
+When creating a client with `occ oidc:create`, repeat `--tex_allowed_subject_client` for every accepted subject-token client, in the same way that `--tex_target_resource` can be repeated for target resources. For example:
+
+```bash
+occ oidc:create "Backend B" https://backend-b.example/callback \
+  --client_id backend-b-client-id-0123456789012345 \
+  --client_secret backend-b-secret-012345678901234 \
+  --tex_enabled \
+  --tex_allowed_subject_client frontend-a-client-id-012345678901 \
+  --tex_allowed_subject_client backend-b-client-id-0123456789012345 \
+  --tex_target_resource https://api.example/resource \
+  --tex_allowed_scopes "openid profile"
+```
+
+When a newly created client should accept its own tokens, an explicit `--client_id` is required so the same identifier can also be supplied via `--tex_allowed_subject_client`. `occ oidc:create --tex_enabled` also requires a non-empty `--tex_allowed_scopes`. Existing clients that had Token Exchange enabled before the subject-client or mandatory scope allow-lists were introduced receive **no implicit trust or scope entries during migration** and therefore fail closed until an administrator configures both at least one allowed subject client and at least one allowed Token Exchange scope.
+
+### Current limitations
+
+The current implementation is not intended to cover every RFC 8693 deployment model. In particular:
+
+- Only access-token-to-access-token exchange is supported.
+- Only access tokens issued by this OIDC provider can be used as `subject_token`; external issuers and federation are not supported.
+- Public clients cannot perform Token Exchange.
+- Exactly one effective allow-listed resource URI is required per exchange; it can be supplied explicitly or inherited from the subject token.
+- Logical `audience` parameters and combinations of `resource` plus `audience` are not supported.
+- `actor_token` delegation and JWT `act` claim chains are not supported.
+- No ID token or refresh token is issued by Token Exchange.
+- Multiple resource targets are rejected instead of producing a token with a multi-valued audience.
+
+These restrictions are intentional authorization-server policy choices. RFC 8693 allows an authorization server to reject target combinations it is unwilling or unable to fulfill with `invalid_target`.
 
 ## Scopes
 

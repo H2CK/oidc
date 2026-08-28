@@ -149,6 +149,12 @@ return [
             'verb' => 'PATCH'
         ],
         [
+            'name' => 'Settings#updateClientConfiguration',
+            'url' => '/api/v2/client/{client_id}',
+            'verb' => 'PATCH',
+            'postfix' => 'v2',
+        ],
+        [
             'name' => 'Settings#updateClientFlow',
             'url' => '/clients/flows/{id}',
             'verb' => 'PATCH'

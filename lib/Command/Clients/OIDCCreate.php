@@ -11,11 +11,16 @@ namespace OCA\OIDCIdentityProvider\Command\Clients;
 
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargets;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Exceptions\CliException;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 
 use OCP\AppFramework\Services\IAppConfig;
+use OCP\Server;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -121,7 +126,44 @@ class OIDCCreate extends Command
                 InputOption::VALUE_OPTIONAL,
                 'The resource URL for this client (RFC 9728). Must be a valid URL with max length 512 characters.',
                 ''
+            )
+            ->addOption(
+                'tex_enabled',
+                null,
+                InputOption::VALUE_NONE,
+                'Enable Token Exchange for this client according to RFC 8693.'
+            )
+            ->addOption(
+                'tex_allowed_scopes',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Scopes that may be requested during Token Exchange (RFC 8693), separated by spaces.',
+                ''
+            )
+            ->addOption(
+                'tex_target_resource',
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Allowed target resource URL for Token Exchange (RFC 8693). Repeat this option for multiple targets.',
+                []
+            )
+            ->addOption(
+                'tex_allowed_subject_client',
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Client ID whose access tokens may be used as subject_token. Repeat this option for multiple clients. Required when Token Exchange is enabled.',
+                []
             );
+    }
+
+    protected function getTexTargetMapper(): TexTargetMapper
+    {
+        return Server::get(TexTargetMapper::class);
+    }
+
+    protected function getTexSubjectClientMapper(): TexSubjectClientMapper
+    {
+        return Server::get(TexSubjectClientMapper::class);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -141,6 +183,10 @@ class OIDCCreate extends Command
                 if (!$this->redirectUriService->isValidRedirectUri($uri, $this->appconf->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true')) {
                     throw new CliException("The redirect uri '$uri' is not valid according to the configured redirect uri rules.");
                 }
+            }
+
+            if ($input->getOption('type') === 'public' && $input->getOption('tex_enabled')) {
+                throw new CliException('Token Exchange cannot be enabled for public clients.');
             }
 
             // create new client
@@ -186,8 +232,76 @@ class OIDCCreate extends Command
 
                 $client->setResourceUrl($resourceUrl);
             }
+
+            $client->setTexEnabled((bool)$input->getOption('tex_enabled'));
+            $client->setTexAllowedScopes(trim((string)$input->getOption('tex_allowed_scopes')) ?: null);
+            if ($client->getTexEnabled() && $client->getTexAllowedScopes() === null) {
+                throw new CliException('At least one --tex_allowed_scopes scope must be specified when Token Exchange is enabled.');
+            }
+
+            $allowedSubjectClientIdentifiers = array_values(array_unique(array_filter(
+                array_map(static fn ($value): string => trim((string)$value), (array)$input->getOption('tex_allowed_subject_client')),
+                static fn (string $value): bool => $value !== ''
+            )));
+            if ($client->getTexEnabled() && $allowedSubjectClientIdentifiers === []) {
+                throw new CliException('At least one --tex_allowed_subject_client must be specified when Token Exchange is enabled.');
+            }
+
+            // Resolve all existing source clients before inserting the new client so
+            // a typo cannot leave a partially configured client behind. The newly
+            // created client itself can be selected when an explicit --client_id is
+            // supplied and repeated as --tex_allowed_subject_client.
+            $resolvedSubjectClientIds = [];
+            $deferredSelfIdentifier = null;
+            foreach ($allowedSubjectClientIdentifiers as $subjectClientIdentifier) {
+                if (isset($clientId) && trim((string)$clientId) !== '' && $subjectClientIdentifier === $clientId) {
+                    $deferredSelfIdentifier = $subjectClientIdentifier;
+                    continue;
+                }
+                try {
+                    $subjectClient = $this->mapper->getByIdentifier($subjectClientIdentifier);
+                } catch (\Exception $e) {
+                    throw new CliException("Unknown Token Exchange subject client '$subjectClientIdentifier'.");
+                }
+                if ($subjectClient === null) {
+                    throw new CliException("Unknown Token Exchange subject client '$subjectClientIdentifier'.");
+                }
+                $resolvedSubjectClientIds[] = $subjectClient->getId();
+            }
+
+            $texTargetUrls = [];
+            foreach ($input->getOption('tex_target_resource') as $resourceUrl) {
+                $resourceUrl = trim($resourceUrl);
+                if (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
+                    throw new CliException("The Token Exchange target '$resourceUrl' is not a valid URL or exceeds the maximum length of 512 characters.");
+                }
+                $texTargetUrls[] = $resourceUrl;
+            }
+
             // insert new client into database
             $client = $this->mapper->insert($client);
+
+            $texTargetMapper = $this->getTexTargetMapper();
+            foreach ($texTargetUrls as $resourceUrl) {
+                $texTarget = new TexTargets();
+                $texTarget->setClientId($client->getId());
+                $texTarget->setResourceUrl($resourceUrl);
+                $texTarget->setCreated(time());
+                $texTarget->setUsedAt(0);
+                $texTargetMapper->insert($texTarget);
+            }
+
+            $texSubjectClientMapper = $this->getTexSubjectClientMapper();
+            if ($deferredSelfIdentifier !== null) {
+                $resolvedSubjectClientIds[] = $client->getId();
+            }
+            foreach (array_values(array_unique($resolvedSubjectClientIds)) as $subjectClientId) {
+                $entry = new TexSubjectClient();
+                $entry->setClientId($client->getId());
+                $entry->setSubjectClientId($subjectClientId);
+                $texSubjectClientMapper->insert($entry);
+            }
+
             // print client as pretty json
             $output->writeln(json_encode($client, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
             return Command::SUCCESS;

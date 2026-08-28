@@ -164,20 +164,15 @@ class IntrospectionController extends ApiController
 
         // Check if token is expired.
         //
-        // Expiry is computed from `refreshed`, NOT `created`. The refresh_token
-        // grant (OIDCApiController::getToken) mints a fresh access token on the
-        // existing row and advances `refreshed`, but leaves `created` at the
-        // original issuance time. Using `created` here would report every
-        // refreshed token inactive once the *original* token's lifetime elapsed,
-        // even though the token is still valid — breaking token renewal for
-        // resource servers that introspect. This matches the expiry basis used
-        // by UserInfoController, TokenValidationRequestListener and
-        // OIDCApiController.
+        // New access tokens carry an absolute expires_at timestamp so JWT expiry,
+        // opaque-token validation and shortened Token Exchange lifetimes use the
+        // same source of truth. Rows created before the expires_at migration keep
+        // expires_at=0 and fall back to refreshed + configured lifetime.
         $expireTime = (int)$this->appConfig->getAppValueString('expire_time', Application::DEFAULT_EXPIRE_TIME);
-        $tokenExpiryTime = $accessToken->getRefreshed() + $expireTime;
+        $tokenExpiryTime = $accessToken->getEffectiveExpiresAt($expireTime);
         $currentTime = $this->time->getTime();
 
-        if ($currentTime > $tokenExpiryTime) {
+        if ($currentTime >= $tokenExpiryTime) {
             $this->logger->info('Token expired during introspection', [
                 'client_id' => $client->getClientIdentifier(),
                 'token_created' => $accessToken->getCreated(),
@@ -280,7 +275,7 @@ class IntrospectionController extends ApiController
             'exp' => $tokenExpiryTime,
             'iat' => $accessToken->getCreated(),
             'sub' => $accessToken->getUserId(),
-            'aud' => $tokenClient->getClientIdentifier()
+            'aud' => !empty($tokenResource) ? $tokenResource : $tokenClient->getClientIdentifier()
         ];
 
         $this->logger->info('Token introspection successful', [

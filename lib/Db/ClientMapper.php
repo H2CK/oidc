@@ -39,7 +39,6 @@ class ClientMapper extends QBMapper {
     private $secureRandom;
     /** @var LoggerInterface */
     private $logger;
-
     public const ALNUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     /**
@@ -95,6 +94,8 @@ class ClientMapper extends QBMapper {
         }
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
+        Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
+        Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
 
         // remove user consents referencing this client to avoid orphaned rows
         try {
@@ -197,6 +198,8 @@ class ClientMapper extends QBMapper {
         }
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
+        Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
+        Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
 
         // remove user consents referencing this client to avoid orphaned rows
         try {
@@ -239,6 +242,8 @@ class ClientMapper extends QBMapper {
             $this->redirectUriMapper->deleteByClientId($entity->getId());
             // remove custom claims
             $this->customClaimMapper->deleteByClientId($entity->getId());
+            Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
+            Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
             // remove user consents referencing this client
             try {
                 $userConsentMapper = Server::get(UserConsentMapper::class);

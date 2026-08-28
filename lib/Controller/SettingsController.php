@@ -14,6 +14,10 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexTargets;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
@@ -65,6 +69,8 @@ class SettingsController extends Controller
     private $logger;
     /** @var CredentialService */
     private $credentialService;
+    /** @var TexSubjectClientMapper|null */
+    private $texSubjectClientMapper;
 
     public const CODE_AUTHORIZATION_FLOW= 'Code Authorization Flow';
     public const CODE_IMPLICIT_AUTHORIZATION_FLOW = 'Code & Implicit Authorization Flow';
@@ -85,7 +91,8 @@ class SettingsController extends Controller
                     IUserConfig $userConfig,
                     IConfig $config,
                     CredentialService $credentialService,
-                    LoggerInterface $logger
+                    LoggerInterface $logger,
+                    ?TexSubjectClientMapper $texSubjectClientMapper = null
                     )
     {
         parent::__construct($appName, $request);
@@ -103,6 +110,7 @@ class SettingsController extends Controller
         $this->config =$config;
         $this->credentialService = $credentialService;
         $this->logger = $logger;
+        $this->texSubjectClientMapper = $texSubjectClientMapper;
     }
 
     public function addClient(
@@ -213,6 +221,203 @@ class SettingsController extends Controller
             }
         }
         return new JSONResponse([]);
+    }
+
+    public function updateClientConfiguration(int $client_id): JSONResponse
+    {
+        $params = $this->request->getParams();
+        $client = $this->clientMapper->getByUid($client_id);
+
+        if (array_key_exists('name', $params)) {
+            $client->setName(trim((string)$params['name']));
+        }
+        if (array_key_exists('signingAlg', $params)) {
+            $client->setSigningAlg($params['signingAlg'] === 'RS256' ? 'RS256' : 'HS256');
+        }
+        if (array_key_exists('type', $params)) {
+            $client->setType($params['type'] === 'public' ? 'public' : 'confidential');
+        }
+        if ($client->getType() === 'public') {
+            $client->setTexEnabled(false);
+        }
+        if (array_key_exists('flowType', $params)) {
+            $client->setFlowType(str_contains((string)$params['flowType'], 'id_token') ? 'code id_token' : 'code');
+        }
+        if (array_key_exists('tokenType', $params)) {
+            $client->setTokenType($params['tokenType'] === 'jwt' ? 'jwt' : 'opaque');
+        }
+        if (array_key_exists('allowedScopes', $params)) {
+            $allowedScopes = trim((string)$params['allowedScopes']);
+            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]{0,512}$/u', $allowedScopes)) {
+                return new JSONResponse(['error' => 'Scope contains invalid characters.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setAllowedScopes($allowedScopes);
+        }
+        if (array_key_exists('emailRegex', $params)) {
+            $client->setEmailRegex(mb_substr(trim((string)$params['emailRegex']), 0, 255));
+        }
+        if (array_key_exists('resourceUrl', $params)) {
+            $resourceUrl = trim((string)$params['resourceUrl']);
+            if ($resourceUrl !== '' && (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL))) {
+                return new JSONResponse(['error' => 'Invalid resource URL format.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setResourceUrl($resourceUrl === '' ? null : $resourceUrl);
+        }
+        if (array_key_exists('redirectUris', $params)) {
+            $redirectUris = array_map('trim', (array)$params['redirectUris']);
+            foreach ($redirectUris as $redirectUri) {
+                try {
+                    if (!$this->redirectUriService->isValidRedirectUri(
+                        $redirectUri,
+                        $this->appConfig->getAppValueString(
+                            Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS,
+                            Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS
+                        ) === 'true'
+                    )) {
+                        return new JSONResponse(['error' => 'Invalid redirect URI.'], Http::STATUS_BAD_REQUEST);
+                    }
+                } catch (RedirectUriValidationException $e) {
+                    return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+                }
+            }
+        }
+        $texTargetUrls = null;
+        if (array_key_exists('texTargets', $params)) {
+            $texTargetUrls = [];
+            foreach ((array)$params['texTargets'] as $resourceUrl) {
+                $resourceUrl = trim((string)$resourceUrl);
+                if (mb_strlen($resourceUrl) > 512 || !$this->isValidTokenExchangeResourceUri($resourceUrl)) {
+                    return new JSONResponse(['error' => 'Invalid Token Exchange target URI. The value must be an absolute URI without a fragment.'], Http::STATUS_BAD_REQUEST);
+                }
+                $texTargetUrls[] = $resourceUrl;
+            }
+        }
+        $texAllowedSubjectClientIds = null;
+        if (array_key_exists('texAllowedSubjectClients', $params)) {
+            $texAllowedSubjectClientIds = [];
+            $seenSubjectClientIds = [];
+            foreach ((array)$params['texAllowedSubjectClients'] as $subjectClientIdentifier) {
+                $subjectClientIdentifier = trim((string)$subjectClientIdentifier);
+                if ($subjectClientIdentifier === '') {
+                    continue;
+                }
+
+                try {
+                    $subjectClient = $this->clientMapper->getByIdentifier($subjectClientIdentifier);
+                } catch (\Exception $e) {
+                    return new JSONResponse([
+                        'error' => 'Unknown Token Exchange subject client: ' . $subjectClientIdentifier,
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+
+                if ($subjectClient === null) {
+                    return new JSONResponse([
+                        'error' => 'Unknown Token Exchange subject client: ' . $subjectClientIdentifier,
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+
+                $subjectClientId = $subjectClient->getId();
+                if (!isset($seenSubjectClientIds[$subjectClientId])) {
+                    $seenSubjectClientIds[$subjectClientId] = true;
+                    $texAllowedSubjectClientIds[] = $subjectClientId;
+                }
+            }
+        }
+        if (array_key_exists('texEnabled', $params)) {
+            if ($client->getType() === 'confidential') {
+                $client->setTexEnabled((bool)$params['texEnabled']);
+            }
+        }
+        if (array_key_exists('texAllowedScopes', $params)) {
+            $texAllowedScopes = trim((string)$params['texAllowedScopes']);
+            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]{0,512}$/u', $texAllowedScopes)) {
+                return new JSONResponse(['error' => 'Token Exchange scope contains invalid characters.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setTexAllowedScopes($texAllowedScopes === '' ? null : $texAllowedScopes);
+        }
+
+        // Enabling Token Exchange is only valid with at least one explicit
+        // subject-token client. Existing selections may be retained when the
+        // caller changes unrelated settings or re-enables TEX.
+        if ($client->getTexEnabled()) {
+            if (trim((string)($client->getTexAllowedScopes() ?? '')) === '') {
+                return new JSONResponse([
+                    'error' => 'At least one allowed Token Exchange scope must be configured before Token Exchange can be enabled.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            if ($this->texSubjectClientMapper === null) {
+                return new JSONResponse(['error' => 'Token Exchange subject-client policy is unavailable.'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+
+            $effectiveSubjectClientIds = $texAllowedSubjectClientIds;
+            if ($effectiveSubjectClientIds === null) {
+                $effectiveSubjectClientIds = array_map(
+                    static fn (TexSubjectClient $entry): int => $entry->getSubjectClientId(),
+                    $this->texSubjectClientMapper->getByClientId($client_id)
+                );
+            }
+
+            if ($effectiveSubjectClientIds === []) {
+                return new JSONResponse([
+                    'error' => 'At least one allowed subject client must be selected before Token Exchange can be enabled.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+        }
+
+        $this->clientMapper->update($client);
+
+        if (array_key_exists('redirectUris', $params)) {
+            $this->redirectUriMapper->deleteByClientId($client_id);
+            foreach ($redirectUris as $redirectUri) {
+                $redirectUriEntity = new RedirectUri();
+                $redirectUriEntity->setClientId($client_id);
+                $redirectUriEntity->setRedirectUri($redirectUri);
+                $this->redirectUriMapper->insert($redirectUriEntity);
+            }
+        }
+
+        if (array_key_exists('groups', $params)) {
+            $this->groupMapper->deleteByClientId($client_id);
+            foreach ((array)$params['groups'] as $group) {
+                if ($this->groupManager->groupExists($group)) {
+                    $groupEntity = new Group();
+                    $groupEntity->setClientId($client_id);
+                    $groupEntity->setGroupId($group);
+                    $this->groupMapper->insert($groupEntity);
+                }
+            }
+        }
+
+        if (array_key_exists('texTargets', $params)) {
+            $texTargetMapper = \OCP\Server::get(TexTargetMapper::class);
+            $texTargetMapper->deleteByClientId($client_id);
+            foreach ($texTargetUrls as $resourceUrl) {
+                $target = new TexTargets();
+                $target->setClientId($client_id);
+                $target->setResourceUrl($resourceUrl);
+                $target->setCreated(time());
+                $target->setUsedAt(0);
+                $texTargetMapper->insert($target);
+            }
+        }
+
+        if ($texAllowedSubjectClientIds !== null || $client->getType() === 'public') {
+            if ($this->texSubjectClientMapper === null) {
+                return new JSONResponse(['error' => 'Token Exchange subject-client policy is unavailable.'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+            $this->texSubjectClientMapper->deleteByClientId($client_id);
+            if ($client->getType() !== 'public') {
+                foreach ($texAllowedSubjectClientIds ?? [] as $subjectClientId) {
+                    $entry = new TexSubjectClient();
+                    $entry->setClientId($client_id);
+                    $entry->setSubjectClientId($subjectClientId);
+                    $this->texSubjectClientMapper->insert($entry);
+                }
+            }
+        }
+
+        return new JSONResponse(['client' => $client->jsonSerialize()]);
     }
 
     public function updateClientFlow(
@@ -701,4 +906,22 @@ class SettingsController extends Controller
         ];
         return new JSONResponse($result);
     }
+    /**
+     * RFC 8693 resource values are absolute RFC 3986 URIs and MUST NOT contain
+     * a fragment. Query components are allowed.
+     */
+    private function isValidTokenExchangeResourceUri(string $resource): bool
+    {
+        if ($resource === '' || preg_match('/[\x00-\x20]/', $resource) === 1) {
+            return false;
+        }
+
+        $parts = parse_url($resource);
+        if ($parts === false || !isset($parts['scheme']) || isset($parts['fragment'])) {
+            return false;
+        }
+
+        return preg_match('/^[A-Za-z][A-Za-z0-9+.-]*$/', (string)$parts['scheme']) === 1;
+    }
+
 }

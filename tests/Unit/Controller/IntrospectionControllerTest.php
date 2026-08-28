@@ -223,6 +223,7 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertEquals('client123', $data['client_id']);
         $this->assertEquals('user1', $data['username']);
         $this->assertEquals('Bearer', $data['token_type']);
+        $this->assertEquals('https://resource.example.com', $data['aud']);
         $this->assertEquals('user1', $data['sub']);
     }
 
@@ -343,11 +344,9 @@ class IntrospectionControllerTest extends TestCase {
     }
 
     public function testRefreshedTokenIsActiveAfterOriginalLifetime() {
-        // Regression: a token refreshed via the refresh_token grant keeps its
-        // original `created` timestamp but advances `refreshed`. Introspection
-        // must judge expiry from `refreshed`, otherwise every refreshed token
-        // is reported inactive once the original token's lifetime has elapsed,
-        // breaking token renewal for resource servers that introspect.
+        // Regression: a refreshed token keeps its original `created` authentication
+        // time but receives a new issuance timestamp and absolute access-token expiry.
+        // Introspection must use expires_at, not the original created timestamp.
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
@@ -360,11 +359,12 @@ class IntrospectionControllerTest extends TestCase {
             ->method('getByIdentifier')
             ->willReturn($client);
 
-        // created is far in the past (well beyond expireTime ago), but the
-        // token was refreshed recently.
+        // created is far in the past, but this bearer token was issued recently
+        // and has an explicit expiry.
         $accessToken = new AccessToken();
         $accessToken->setCreated(1000000);     // original issuance, long ago
         $accessToken->setRefreshed(1005000);   // recently refreshed
+        $accessToken->setExpiresAt(1005900);   // authoritative absolute expiry
         $accessToken->setUserId('user1');
         $accessToken->setClientId(1);
         $accessToken->setScope('openid profile email');
@@ -378,8 +378,7 @@ class IntrospectionControllerTest extends TestCase {
             ->method('getAppValueString')
             ->willReturn('900'); // 900 seconds expire time
 
-        // now is past created+900 (would be "expired" under the old logic) but
-        // within refreshed+900, so the token is genuinely still valid.
+        // now is past created+900 but still before the explicit expires_at.
         $this->time
             ->method('getTime')
             ->willReturn(1005500);
@@ -404,8 +403,41 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $data = $result->getData();
         $this->assertTrue($data['active']);
-        // exp must reflect the refreshed-based expiry, not created-based.
-        $this->assertEquals(1005000 + 900, $data['exp']);
+        // exp must reflect the stored absolute expiry.
+        $this->assertEquals(1005900, $data['exp']);
+    }
+
+    public function testLegacyTokenWithoutExpiresAtUsesRefreshedFallback(): void {
+        $client = new Client('test-client', ['https://test.org'], 'RS256');
+        $client->setSecret('test-secret');
+        $client->setClientIdentifier('client123');
+
+        $this->request->method('getHeader')->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+
+        $accessToken = new AccessToken();
+        $accessToken->setCreated(1000000);
+        $accessToken->setRefreshed(1005000);
+        // expires_at intentionally remains 0 to emulate a pre-migration row.
+        $accessToken->setUserId('user1');
+        $accessToken->setClientId(1);
+        $accessToken->setScope('openid');
+        $accessToken->setResource('');
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($accessToken);
+        $this->appConfig->method('getAppValueString')->willReturn('900');
+        $this->time->method('getTime')->willReturn(1005500);
+
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('user1');
+        $this->userManager->method('get')->willReturn($user);
+        $tokenClient = new Client('token-client', ['https://app.org'], 'RS256');
+        $tokenClient->setClientIdentifier('client123');
+        $this->clientMapper->method('getByUid')->willReturn($tokenClient);
+
+        $result = $this->controller->introspectToken('legacy_token');
+
+        $this->assertTrue($result->getData()['active']);
+        $this->assertSame(1005900, $result->getData()['exp']);
     }
 
     public function testClientAuthenticationWithPostBody() {

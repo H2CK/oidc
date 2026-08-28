@@ -440,6 +440,15 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertNotEmpty($responseData['access_token'], 'Access token is empty');
         $this->assertNotEmpty($responseData['id_token'], 'ID token is empty');
 
+        // The persisted bearer token uses a real refresh/issuance timestamp plus
+        // an absolute expiry; refreshed must no longer contain an expiry timestamp.
+        $storedAccessToken = $this->accessTokenMapper->getByAccessToken($responseData['access_token']);
+        $this->assertGreaterThan(0, $storedAccessToken->getRefreshed());
+        $this->assertEquals(
+            (int)$responseData['expires_in'],
+            $storedAccessToken->getExpiresAt() - $storedAccessToken->getRefreshed()
+        );
+
         // Step 5: Use the access token to get user info
         $accessTokenString = $responseData['access_token'];
 
