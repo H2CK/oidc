@@ -225,6 +225,7 @@ class OIDCApiControllerTest extends TestCase {
 
     private function createSubjectToken(int $clientId = 2, string $resource = 'https://resource.example/api'): AccessToken {
         $subjectToken = new AccessToken();
+        $subjectToken->setId(99);
         $subjectToken->setClientId($clientId);
         $subjectToken->setUserId('user1');
         $subjectToken->setScope('openid profile');
@@ -243,11 +244,20 @@ class OIDCApiControllerTest extends TestCase {
         return $target;
     }
 
-    private function configureValidExchange(Client $client, AccessToken $subjectToken, string $resource = 'https://resource.example/api'): void {
+    private function configureValidExchange(
+        Client $client,
+        AccessToken $subjectToken,
+        string $resource = 'https://resource.example/api',
+        ?AccessToken $lockedSubjectToken = null,
+        bool $configureSubjectLock = true
+    ): void {
         $this->useBasicClient($client->getClientIdentifier(), 'test-secret');
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        if ($configureSubjectLock) {
+            $this->accessTokenMapper->method('lockTokenExchangeSubject')->willReturn($lockedSubjectToken ?? $subjectToken);
+        }
         $this->texSubjectClientMapper->method('isAllowed')->willReturn(true);
         $this->texTargetMapper->method('getByClientId')->willReturn([$this->createTexTarget($resource)]);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
@@ -597,10 +607,67 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertStringContainsString('revoked', strtolower($result->getData()['error_description']));
     }
 
+    public function testTokenExchangeFailsClosedWhenSubjectWasRevokedBeforeLock(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2);
+        $this->configureValidExchange($client, $subject, 'https://resource.example/api', null, false);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'profile',
+        ]);
+
+        $this->accessTokenMapper->expects($this->once())->method('beginTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->once())
+            ->method('lockTokenExchangeSubject')
+            ->with(99)
+            ->willThrowException(new AccessTokenNotFoundException());
+        $this->accessTokenMapper->expects($this->once())->method('rollBackTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->never())->method('insert');
+        $this->accessTokenMapper->expects($this->never())->method('commitTokenExchangeTransaction');
+        $this->jwtGenerator->expects($this->never())->method('generateAccessToken');
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('revoked', strtolower($result->getData()['error_description']));
+    }
+
+    public function testTokenExchangeFailsClosedWhenLockedSubjectChangedAfterInitialValidation(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2);
+        $lockedSubject = $this->createSubjectToken(2);
+        $lockedSubject->setScope('openid');
+        $this->configureValidExchange($client, $subject, 'https://resource.example/api', $lockedSubject);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'profile',
+        ]);
+
+        $this->accessTokenMapper->expects($this->once())->method('beginTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->once())->method('rollBackTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->never())->method('insert');
+        $this->accessTokenMapper->expects($this->never())->method('commitTokenExchangeTransaction');
+        $this->jwtGenerator->expects($this->never())->method('generateAccessToken');
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('changed', strtolower($result->getData()['error_description']));
+    }
+
     public function testTokenExchangeCrossClientSuccessUsesAbsoluteExpiryAndNoIdToken(): void {
         $client = $this->createTexClient();
         $subject = $this->createSubjectToken(2);
         $this->configureValidExchange($client, $subject);
+        $this->accessTokenMapper->expects($this->once())->method('beginTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->once())->method('commitTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->never())->method('rollBackTokenExchangeTransaction');
         $this->setTokenExchangeForm([
             'subject_token' => 'old_access_token',
             'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',

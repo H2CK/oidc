@@ -102,6 +102,58 @@ class AccessTokenMapper extends QBMapper {
     }
 
 
+    /**
+     * Start the short transaction used to serialize RFC 8693 issuance with
+     * revocation of the subject-token row.
+     */
+    public function beginTokenExchangeTransaction(): void {
+        $this->db->beginTransaction();
+    }
+
+    public function commitTokenExchangeTransaction(): void {
+        $this->db->commit();
+    }
+
+    public function rollBackTokenExchangeTransaction(): void {
+        $this->db->rollBack();
+    }
+
+    /**
+     * Acquire a revocation-blocking lock on a subject-token row for the current
+     * transaction.
+     *
+     * MySQL/MariaDB, PostgreSQL and Oracle use SELECT ... FOR UPDATE so the
+     * primary-key row remains exclusively locked until commit/rollback. SQLite
+     * has no SELECT FOR UPDATE, so a no-op UPDATE is used there to enter its
+     * serialized writer transaction before the row is re-read.
+     *
+     * @throws AccessTokenNotFoundException
+     */
+    public function lockTokenExchangeSubject(int $id): AccessToken {
+        if ($this->db->getDatabaseProvider() === IDBConnection::PLATFORM_SQLITE) {
+            $qb = $this->db->getQueryBuilder();
+            $qb->update($this->tableName)
+                ->set('id', 'id')
+                ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+            $qb->executeStatement();
+        } else {
+            $result = $this->db->executeQuery(
+                'SELECT id FROM *PREFIX*oidc_access_tokens WHERE id = ? FOR UPDATE',
+                [$id],
+                [IQueryBuilder::PARAM_INT]
+            );
+            try {
+                if ($result->fetchAssociative() === false) {
+                    throw new AccessTokenNotFoundException('Could not lock access token');
+                }
+            } finally {
+                $result->closeCursor();
+            }
+        }
+
+        return $this->getById($id);
+    }
+
     /** @return list<AccessToken> */
     public function getByParentTokenId(int $parentTokenId): array {
         $qb = $this->db->getQueryBuilder();

@@ -262,6 +262,16 @@ class OIDCApiController extends ApiController {
         return $parameters;
     }
 
+    private function rollBackTokenExchangeTransactionSafely(): void {
+        try {
+            $this->accessTokenMapper->rollBackTokenExchangeTransaction();
+        } catch (\Throwable $rollbackError) {
+            $this->logger->error('Failed to roll back Token Exchange transaction.', [
+                'exception' => $rollbackError,
+            ]);
+        }
+    }
+
     private function invalidGrantResponse(string $description): JSONResponse {
         return new JSONResponse([
             'error' => 'invalid_grant',
@@ -973,31 +983,87 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // A token exchange creates a new, independently stored token. Insert first so
-        // JWT generation sees a stable database ID (jti) and correct creation time.
-        $newAccessToken = new AccessToken();
+        $subjectTokenId = (int)$subjectTokenAccessToken->getId();
+        if ($subjectTokenId <= 0) {
+            $this->logger->error('Subject token has no persistent database id during Token Exchange.');
+            return new JSONResponse([
+                'error' => 'server_error',
+                'error_description' => 'Subject token cannot be locked for Token Exchange.',
+            ], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        // Keep a snapshot of every subject-token property used to authorize this
+        // exchange. After acquiring the database write lock below, the row is
+        // re-read and compared with this snapshot so a concurrent refresh/update
+        // cannot make the already-computed scope/resource policy stale.
+        $subjectClientId = $subjectTokenAccessToken->getClientId();
+        $subjectUserId = $subjectTokenAccessToken->getUserId();
+        $subjectScopeSnapshot = (string)$subjectTokenAccessToken->getScope();
+        $subjectResourceSnapshot = trim((string)($subjectTokenAccessToken->getResource() ?? ''));
+
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-
-        $newAccessToken->setClientId($client->getId());
-        $newAccessToken->setParentTokenId($subjectTokenAccessToken->getId());
-        $newAccessToken->setUserId($uid);
-        $newAccessToken->setScope($effectiveScope);
-        $newAccessToken->setHashedCode(hash('sha512', $newCode));
-        $newAccessToken->setAccessToken('');
-        $newAccessToken->setCreated($now);
-        $newAccessToken->setRefreshed($now);
-        $newAccessToken->setExpiresAt($now + $exchangeExpireTime);
-        $newAccessToken->setNonce('');
-        $newAccessToken->setResource($effectiveResource);
-        $newAccessToken->setCodeChallenge('');
-        $newAccessToken->setCodeChallengeMethod('');
-
+        $transactionActive = false;
         $inserted = false;
         try {
-            // parent_token_id is protected by a self-referencing foreign key with
-            // ON DELETE CASCADE. If the subject token is revoked concurrently
-            // after validation but before this insert, the database rejects the
-            // child instead of allowing an orphaned exchanged token to survive.
+            // Serialize issuance with every DELETE of the subject row. The mapper
+            // acquires a database-appropriate write lock and keeps it until commit.
+            // A revocation that wins first makes the lock/re-read fail; an
+            // exchange that wins first commits the complete child token before the
+            // revocation can proceed and ON DELETE CASCADE then removes the child.
+            $this->accessTokenMapper->beginTokenExchangeTransaction();
+            $transactionActive = true;
+            $lockedSubjectToken = $this->accessTokenMapper->lockTokenExchangeSubject($subjectTokenId);
+
+            if (!hash_equals($subjectToken, (string)$lockedSubjectToken->getAccessToken())
+                || $lockedSubjectToken->getClientId() !== $subjectClientId
+                || $lockedSubjectToken->getUserId() !== $subjectUserId
+                || (string)$lockedSubjectToken->getScope() !== $subjectScopeSnapshot
+                || trim((string)($lockedSubjectToken->getResource() ?? '')) !== $subjectResourceSnapshot) {
+                $this->rollBackTokenExchangeTransactionSafely();
+                $transactionActive = false;
+                $this->logger->info('Subject token changed concurrently during Token Exchange.', [
+                    'client_id' => $client_id,
+                    'subject_token_id' => $subjectTokenId,
+                ]);
+                return new JSONResponse([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Subject token changed or was revoked during Token Exchange.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            // Re-evaluate time while holding the lock. This is authoritative for the
+            // issued child's timestamps and guarantees that even a request delayed
+            // while waiting for a concurrent writer cannot outlive its subject.
+            $now = $this->time->getTime();
+            $subjectExpiresAt = $lockedSubjectToken->getEffectiveExpiresAt($expireTime);
+            if ($now >= $subjectExpiresAt) {
+                $this->rollBackTokenExchangeTransactionSafely();
+                $transactionActive = false;
+                $this->logger->info('Subject token expired while waiting for Token Exchange lock. Client id: ' . $client_id);
+                return new JSONResponse([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Subject token has expired.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $exchangeExpireTime = min($expireTime, $subjectExpiresAt - $now);
+
+            // A token exchange creates a new, independently stored token. Insert first
+            // so JWT generation sees a stable database ID (jti) and creation time.
+            $newAccessToken = new AccessToken();
+            $newAccessToken->setClientId($client->getId());
+            $newAccessToken->setParentTokenId($subjectTokenId);
+            $newAccessToken->setUserId($uid);
+            $newAccessToken->setScope($effectiveScope);
+            $newAccessToken->setHashedCode(hash('sha512', $newCode));
+            $newAccessToken->setAccessToken('');
+            $newAccessToken->setCreated($now);
+            $newAccessToken->setRefreshed($now);
+            $newAccessToken->setExpiresAt($now + $exchangeExpireTime);
+            $newAccessToken->setNonce('');
+            $newAccessToken->setResource($effectiveResource);
+            $newAccessToken->setCodeChallenge('');
+            $newAccessToken->setCodeChallengeMethod('');
+
             $newAccessToken = $this->accessTokenMapper->insert($newAccessToken);
             $inserted = true;
             $newAccessToken->setAccessToken($this->jwtGenerator->generateAccessToken(
@@ -1009,11 +1075,34 @@ class OIDCApiController extends ApiController {
                 false
             ));
             $this->accessTokenMapper->update($newAccessToken);
+
+            // Commit before constructing the successful response. Once this commit
+            // returns, a waiting revocation may proceed; that ordering is a normal
+            // post-issuance revocation rather than an issuance race.
+            $this->accessTokenMapper->commitTokenExchangeTransaction();
+            $transactionActive = false;
+        } catch (AccessTokenNotFoundException $e) {
+            if ($transactionActive) {
+                $this->rollBackTokenExchangeTransactionSafely();
+                $transactionActive = false;
+            }
+            $this->logger->info('Subject token was revoked before Token Exchange acquired its lock.', [
+                'client_id' => $client_id,
+                'subject_token_id' => $subjectTokenId,
+            ]);
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Subject token is invalid or has been revoked.',
+            ], Http::STATUS_BAD_REQUEST);
         } catch (DatabaseException $e) {
+            if ($transactionActive) {
+                $this->rollBackTokenExchangeTransactionSafely();
+                $transactionActive = false;
+            }
             if (!$inserted && $e->getReason() === DatabaseException::REASON_FOREIGN_KEY_VIOLATION) {
                 $this->logger->info('Subject token was revoked concurrently during Token Exchange.', [
                     'client_id' => $client_id,
-                    'subject_token_id' => $subjectTokenAccessToken->getId(),
+                    'subject_token_id' => $subjectTokenId,
                 ]);
                 return new JSONResponse([
                     'error' => 'invalid_request',
@@ -1022,14 +1111,20 @@ class OIDCApiController extends ApiController {
             }
             throw $e;
         } catch (JwtCreationErrorException $e) {
-            if ($inserted) {
-                $this->accessTokenMapper->delete($newAccessToken);
+            if ($transactionActive) {
+                $this->rollBackTokenExchangeTransactionSafely();
+                $transactionActive = false;
             }
             $this->logger->error('Failed to generate access token during Token Exchange.');
             return new JSONResponse([
                 'error' => 'server_error',
                 'error_description' => 'Failed to generate access token.',
             ], Http::STATUS_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            if ($transactionActive) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+            throw $e;
         }
 
         $this->logger->info('Token Exchange successful. User: ' . $uid . ', Client: ' . $client_id);
