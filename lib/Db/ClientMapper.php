@@ -95,6 +95,7 @@ class ClientMapper extends QBMapper {
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
         Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
+        Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
 
         // remove user consents referencing this client to avoid orphaned rows
         try {
@@ -198,6 +199,7 @@ class ClientMapper extends QBMapper {
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
         Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
+        Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
 
         // remove user consents referencing this client to avoid orphaned rows
         try {
@@ -241,6 +243,7 @@ class ClientMapper extends QBMapper {
             // remove custom claims
             $this->customClaimMapper->deleteByClientId($entity->getId());
             Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
+            Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
             // remove user consents referencing this client
             try {
                 $userConsentMapper = Server::get(UserConsentMapper::class);

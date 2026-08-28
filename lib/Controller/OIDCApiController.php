@@ -22,6 +22,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -65,6 +66,8 @@ class OIDCApiController extends ApiController {
     private $userConsentMapper;
     /** @var TexTargetMapper */
     private $texTargetMapper;
+    /** @var TexSubjectClientMapper */
+    private $texSubjectClientMapper;
     /** @var ICrypto */
     private $crypto;
     /** @var TokenProvider */
@@ -114,6 +117,7 @@ class OIDCApiController extends ApiController {
      * @param LoggerInterface $logger
      * @param TexTargetMapper $texTargetMapper
      * @param FormUrlencodedParameterParser|null $formUrlencodedParameterParser
+     * @param TexSubjectClientMapper|null $texSubjectClientMapper
      */
     public function __construct(
                     string $appName,
@@ -136,7 +140,8 @@ class OIDCApiController extends ApiController {
                     JwtGenerator $jwtGenerator,
                     LoggerInterface $logger,
                     ?TexTargetMapper $texTargetMapper = null,
-                    ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null
+                    ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null,
+                    ?TexSubjectClientMapper $texSubjectClientMapper = null
                     )
     {
         parent::__construct($appName, $request);
@@ -159,6 +164,7 @@ class OIDCApiController extends ApiController {
         $this->logger = $logger;
         $this->texTargetMapper = $texTargetMapper;
         $this->formUrlencodedParameterParser = $formUrlencodedParameterParser ?? new FormUrlencodedParameterParser();
+        $this->texSubjectClientMapper = $texSubjectClientMapper;
     }
 
     /**
@@ -763,12 +769,32 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // RFC 8693 does not require the requesting client to be the client to which
-        // the subject token was originally issued. Cross-client exchanges are therefore
-        // allowed, while the authenticated requesting client's TEX target, scope and
-        // group policies remain authoritative for the issued token.
+        // Token Exchange is an administrative delegation privilege. RFC 8693
+        // permits cross-client exchange, but this implementation requires an
+        // explicit allow-list relationship for every subject-token client,
+        // including same-client exchange. This keeps TEX fail-closed and avoids
+        // interpreting tex_enabled as permission to exchange arbitrary tokens.
+        if ($this->texSubjectClientMapper === null) {
+            $this->logger->error('TEX subject-client policy mapper is unavailable.');
+            return new JSONResponse([
+                'error' => 'server_error',
+                'error_description' => 'Token Exchange subject-client policy is unavailable.',
+            ], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        if (!$this->texSubjectClientMapper->isAllowed($client->getId(), $subjectTokenAccessToken->getClientId())) {
+            $this->logger->info('Subject-token client is not authorized for Token Exchange.', [
+                'requesting_client' => $client_id,
+                'subject_token_client_id' => $subjectTokenAccessToken->getClientId(),
+            ]);
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'The subject token is not authorized for Token Exchange by this client.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
         if ($subjectTokenAccessToken->getClientId() !== $client->getId()) {
-            $this->logger->info('Processing cross-client Token Exchange.', [
+            $this->logger->info('Processing administratively authorized cross-client Token Exchange.', [
                 'requesting_client' => $client_id,
                 'subject_token_client_id' => $subjectTokenAccessToken->getClientId(),
             ]);

@@ -112,6 +112,9 @@ class UserInfoControllerTest extends TestCase {
         $this->customClaimService = $this->createMock(CustomClaimService::class);
         $this->urlGenerator = $this->createMock(IURLGenerator::class);
         $this->urlGenerator->method('getWebroot')->willReturn('/');
+        $this->urlGenerator->method('linkToRoute')
+            ->with('oidc.UserInfo.getInfo', [])
+            ->willReturn('/index.php/apps/oidc/userinfo');
         $this->converter = $this->createMock(Converter::class);
         
         $this->appConfig->method('getAppValueString')
@@ -329,6 +332,7 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setRefreshed($now);
         $accessToken->setExpiresAt($now + 900);
         $accessToken->setScope('openid profile email');
+        $accessToken->setResource('https://localhost/index.php/apps/oidc/userinfo');
         
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
@@ -394,6 +398,47 @@ class UserInfoControllerTest extends TestCase {
         $this->assertEquals('openid profile email', $data['scope']);
         $this->assertEquals('Test User', $data['name']);
         $this->assertArrayNotHasKey('middle_name', $data);
+    }
+
+    public function testGetInfoRejectsResourceBoundTokenForDifferentResource(): void {
+        $token = 'resource-bound-token';
+        $now = time();
+
+        $client = new Client();
+        $client->setId(1);
+        $client->setDcr(false);
+        $client->setClientIdentifier('client1');
+        $client->setEmailRegex('');
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId(1);
+        $accessToken->setUserId('user1');
+        $accessToken->setRefreshed($now);
+        $accessToken->setExpiresAt($now + 900);
+        $accessToken->setScope('openid profile');
+        $accessToken->setResource('https://backend.example/api');
+
+        $originalServer = $_SERVER ?? [];
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
+
+        $this->accessTokenMapper->method('getByAccessToken')
+            ->with($token)
+            ->willReturn($accessToken);
+        $this->clientMapper->method('getByUid')
+            ->with(1)
+            ->willReturn($client);
+        $this->time->method('getTime')->willReturn($now);
+        $this->userManager->expects($this->never())->method('get');
+
+        $result = $this->controller->getInfo();
+
+        $_SERVER = $originalServer;
+
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertSame('invalid_token', $result->getData()['error']);
+        $headers = $result->getHeaders();
+        $this->assertArrayHasKey('WWW-Authenticate', $headers);
+        $this->assertStringContainsString('invalid_token', $headers['WWW-Authenticate']);
     }
 
     public function testGetInfoPostSuccess() {

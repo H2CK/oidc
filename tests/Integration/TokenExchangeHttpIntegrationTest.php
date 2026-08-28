@@ -16,6 +16,8 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargets;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\IUserManager;
 use OCP\Server;
@@ -50,6 +52,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
     private ClientMapper $clientMapper;
     private AccessTokenMapper $accessTokenMapper;
     private TexTargetMapper $texTargetMapper;
+    private TexSubjectClientMapper $texSubjectClientMapper;
     private IUserManager $userManager;
     private IAppConfig $appConfig;
     private string $baseUrl;
@@ -74,6 +77,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->clientMapper = Server::get(ClientMapper::class);
         $this->accessTokenMapper = Server::get(AccessTokenMapper::class);
         $this->texTargetMapper = Server::get(TexTargetMapper::class);
+        $this->texSubjectClientMapper = Server::get(TexSubjectClientMapper::class);
         $this->userManager = Server::get(IUserManager::class);
         $this->appConfig = $appContainer->get(IAppConfig::class);
 
@@ -94,6 +98,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
 
         $resource = 'https://api.example.test/orders';
         $this->createTexTarget($requestingClient, $resource);
+        $this->allowSubjectClient($requestingClient, $subjectClient);
 
         $remainingLifetime = $this->shortSubjectLifetime();
         $subjectToken = $this->createSubjectToken(
@@ -197,6 +202,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->createTestUser();
 
         $this->createTexTarget($requestingClient, 'https://allowed.example.test/');
+        $this->allowSubjectClient($requestingClient, $subjectClient);
         $subjectToken = $this->createSubjectToken(
             $subjectClient,
             'profile',
@@ -230,6 +236,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
 
         $resource = 'https://opaque-api.example.test/';
         $this->createTexTarget($requestingClient, $resource);
+        $this->allowSubjectClient($requestingClient, $subjectClient);
         $subjectToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
 
         $exchange = $this->postForm(
@@ -294,6 +301,70 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         );
         $this->assertSame(200, $wrongIntrospection['status'], $wrongIntrospection['body']);
         $this->assertFalse($this->requireJsonObject($wrongIntrospection)['active'] ?? true);
+    }
+
+    public function testHttpSubjectClientMustBeExplicitlyAllowed(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
+        $this->createTestUser();
+
+        $resource = 'https://api.example.test/not-authorized';
+        $this->createTexTarget($requestingClient, $resource);
+        $subjectToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
+
+        $response = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resource],
+                ['scope', 'profile'],
+            ]),
+            $requestingClient
+        );
+
+        $this->assertSame(400, $response['status'], $response['body']);
+        $data = $this->requireJsonObject($response);
+        $this->assertSame('invalid_request', $data['error'] ?? null);
+        $this->assertStringContainsString('not authorized for Token Exchange', $data['error_description'] ?? '');
+    }
+
+    public function testHttpUserInfoRejectsTokenExchangedForDifferentResource(): void {
+        $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
+        $requestingClient = $this->createClient(self::OPAQUE_CLIENT_ID, 'opaque', true, 'profile');
+        $this->createTestUser();
+
+        $resource = 'https://backend.example.test/orders';
+        $this->createTexTarget($requestingClient, $resource);
+        $this->allowSubjectClient($requestingClient, $subjectClient);
+        $subjectToken = $this->createSubjectToken($subjectClient, 'openid profile', '', $this->shortSubjectLifetime());
+
+        $exchange = $this->postForm(
+            self::TOKEN_PATH,
+            $this->buildFormBody([
+                ['grant_type', 'urn:ietf:params:oauth:grant-type:token-exchange'],
+                ['subject_token', $subjectToken->getAccessToken()],
+                ['subject_token_type', 'urn:ietf:params:oauth:token-type:access_token'],
+                ['resource', $resource],
+                ['scope', 'profile'],
+            ]),
+            $requestingClient
+        );
+        $this->assertSame(200, $exchange['status'], $exchange['body']);
+        $accessToken = $this->requireJsonObject($exchange)['access_token'] ?? '';
+        $this->assertIsString($accessToken);
+        $this->assertNotSame('', $accessToken);
+
+        $discovery = $this->getJsonUrl($this->baseUrl . '/index.php/apps/oidc/openid-configuration');
+        $userInfoEndpoint = $discovery['userinfo_endpoint'] ?? null;
+        $this->assertIsString($userInfoEndpoint);
+
+        $userInfo = $this->getWithBearer($userInfoEndpoint, $accessToken);
+        $this->assertSame(401, $userInfo['status'], $userInfo['body']);
+        $data = $this->requireJsonObject($userInfo);
+        $this->assertSame('invalid_token', $data['error'] ?? null);
+        $this->assertStringContainsString('invalid_token', $userInfo['headers']['www-authenticate'] ?? '');
     }
 
     public function testHttpMixedDuplicateGrantTypeCannotBypassTokenExchangeValidation(): void {
@@ -381,6 +452,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $subjectClient = $this->createClient(self::SUBJECT_CLIENT_ID, 'opaque', false, null);
         $requestingClient = $this->createClient(self::JWT_CLIENT_ID, 'jwt', true, 'profile');
         $this->createTestUser();
+        $this->allowSubjectClient($requestingClient, $subjectClient);
         $subjectToken = $this->createSubjectToken($subjectClient, 'profile', '', $this->shortSubjectLifetime());
 
         $response = $this->postForm(
@@ -441,6 +513,13 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $target->setUsedAt(0);
 
         return $this->texTargetMapper->insert($target);
+    }
+
+    private function allowSubjectClient(Client $requestingClient, Client $subjectClient): TexSubjectClient {
+        $entry = new TexSubjectClient();
+        $entry->setClientId($requestingClient->getId());
+        $entry->setSubjectClientId($subjectClient->getId());
+        return $this->texSubjectClientMapper->insert($entry);
     }
 
     private function createSubjectToken(
@@ -564,6 +643,51 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
             'body' => (string)$responseBody,
             'headers' => $headers,
             'json' => $json,
+        ];
+    }
+
+    /**
+     * @return array{status:int,body:string,headers:array<string,string>,json:mixed}
+     */
+    private function getWithBearer(string $url, string $accessToken): array {
+        $headers = [];
+        $curl = curl_init($url);
+        $this->assertNotFalse($curl);
+        curl_setopt_array($curl, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_HTTPHEADER => [
+                'Accept: application/json',
+                'Authorization: Bearer ' . $accessToken,
+            ],
+            CURLOPT_HEADERFUNCTION => static function ($handle, string $headerLine) use (&$headers): int {
+                $length = strlen($headerLine);
+                $separator = strpos($headerLine, ':');
+                if ($separator !== false) {
+                    $name = strtolower(trim(substr($headerLine, 0, $separator)));
+                    $value = trim(substr($headerLine, $separator + 1));
+                    if ($name !== '') {
+                        $headers[$name] = isset($headers[$name])
+                            ? $headers[$name] . ', ' . $value
+                            : $value;
+                    }
+                }
+                return $length;
+            },
+        ]);
+        $body = curl_exec($curl);
+        $error = curl_error($curl);
+        $status = (int)curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        curl_close($curl);
+        $this->assertNotFalse($body, 'HTTP GET failed: ' . $error);
+
+        return [
+            'status' => $status,
+            'body' => (string)$body,
+            'headers' => $headers,
+            'json' => json_decode((string)$body, true),
         ];
     }
 
@@ -703,6 +827,7 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
                 $client = $this->clientMapper->getByIdentifier($clientIdentifier);
                 if ($client !== null) {
                     $this->texTargetMapper->deleteByClientId($client->getId());
+                    $this->texSubjectClientMapper->deleteAllForClientId($client->getId());
                     $this->accessTokenMapper->deleteByClientId($client->getId());
                     $this->clientMapper->delete($client);
                 }

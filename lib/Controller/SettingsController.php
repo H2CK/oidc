@@ -16,6 +16,8 @@ use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargets;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
@@ -67,6 +69,8 @@ class SettingsController extends Controller
     private $logger;
     /** @var CredentialService */
     private $credentialService;
+    /** @var TexSubjectClientMapper|null */
+    private $texSubjectClientMapper;
 
     public const CODE_AUTHORIZATION_FLOW= 'Code Authorization Flow';
     public const CODE_IMPLICIT_AUTHORIZATION_FLOW = 'Code & Implicit Authorization Flow';
@@ -87,7 +91,8 @@ class SettingsController extends Controller
                     IUserConfig $userConfig,
                     IConfig $config,
                     CredentialService $credentialService,
-                    LoggerInterface $logger
+                    LoggerInterface $logger,
+                    ?TexSubjectClientMapper $texSubjectClientMapper = null
                     )
     {
         parent::__construct($appName, $request);
@@ -105,6 +110,7 @@ class SettingsController extends Controller
         $this->config =$config;
         $this->credentialService = $credentialService;
         $this->logger = $logger;
+        $this->texSubjectClientMapper = $texSubjectClientMapper;
     }
 
     public function addClient(
@@ -286,6 +292,37 @@ class SettingsController extends Controller
                 $texTargetUrls[] = $resourceUrl;
             }
         }
+        $texAllowedSubjectClientIds = null;
+        if (array_key_exists('texAllowedSubjectClients', $params)) {
+            $texAllowedSubjectClientIds = [];
+            $seenSubjectClientIds = [];
+            foreach ((array)$params['texAllowedSubjectClients'] as $subjectClientIdentifier) {
+                $subjectClientIdentifier = trim((string)$subjectClientIdentifier);
+                if ($subjectClientIdentifier === '') {
+                    continue;
+                }
+
+                try {
+                    $subjectClient = $this->clientMapper->getByIdentifier($subjectClientIdentifier);
+                } catch (\Exception $e) {
+                    return new JSONResponse([
+                        'error' => 'Unknown Token Exchange subject client: ' . $subjectClientIdentifier,
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+
+                if ($subjectClient === null) {
+                    return new JSONResponse([
+                        'error' => 'Unknown Token Exchange subject client: ' . $subjectClientIdentifier,
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+
+                $subjectClientId = $subjectClient->getId();
+                if (!isset($seenSubjectClientIds[$subjectClientId])) {
+                    $seenSubjectClientIds[$subjectClientId] = true;
+                    $texAllowedSubjectClientIds[] = $subjectClientId;
+                }
+            }
+        }
         if (array_key_exists('texEnabled', $params)) {
             if ($client->getType() === 'confidential') {
                 $client->setTexEnabled((bool)$params['texEnabled']);
@@ -297,6 +334,29 @@ class SettingsController extends Controller
                 return new JSONResponse(['error' => 'Token Exchange scope contains invalid characters.'], Http::STATUS_BAD_REQUEST);
             }
             $client->setTexAllowedScopes($texAllowedScopes === '' ? null : $texAllowedScopes);
+        }
+
+        // Enabling Token Exchange is only valid with at least one explicit
+        // subject-token client. Existing selections may be retained when the
+        // caller changes unrelated settings or re-enables TEX.
+        if ($client->getTexEnabled()) {
+            if ($this->texSubjectClientMapper === null) {
+                return new JSONResponse(['error' => 'Token Exchange subject-client policy is unavailable.'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+
+            $effectiveSubjectClientIds = $texAllowedSubjectClientIds;
+            if ($effectiveSubjectClientIds === null) {
+                $effectiveSubjectClientIds = array_map(
+                    static fn (TexSubjectClient $entry): int => $entry->getSubjectClientId(),
+                    $this->texSubjectClientMapper->getByClientId($client_id)
+                );
+            }
+
+            if ($effectiveSubjectClientIds === []) {
+                return new JSONResponse([
+                    'error' => 'At least one allowed subject client must be selected before Token Exchange can be enabled.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
         }
 
         $this->clientMapper->update($client);
@@ -333,6 +393,21 @@ class SettingsController extends Controller
                 $target->setCreated(time());
                 $target->setUsedAt(0);
                 $texTargetMapper->insert($target);
+            }
+        }
+
+        if ($texAllowedSubjectClientIds !== null || $client->getType() === 'public') {
+            if ($this->texSubjectClientMapper === null) {
+                return new JSONResponse(['error' => 'Token Exchange subject-client policy is unavailable.'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+            $this->texSubjectClientMapper->deleteByClientId($client_id);
+            if ($client->getType() !== 'public') {
+                foreach ($texAllowedSubjectClientIds ?? [] as $subjectClientId) {
+                    $entry = new TexSubjectClient();
+                    $entry->setClientId($client_id);
+                    $entry->setSubjectClientId($subjectClientId);
+                    $this->texSubjectClientMapper->insert($entry);
+                }
             }
         }
 

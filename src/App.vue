@@ -187,11 +187,19 @@
 							type="checkbox">
 							{{ t('oidc', 'Enable Token Exchange according to RFC 8693') }}
 						</NcCheckboxRadioSwitch>
-						<NcTextField v-if="!isPublic" v-model="editClient.texAllowedScopes"
+						<NcSelect v-if="!isPublic && editClient.texEnabled"
+							v-model="editClient.texAllowedSubjectClients"
+							:options="texSubjectClientOptions"
+							:multiple="true"
+							:close-on-select="false"
+							:input-label="t('oidc', 'Clients whose access tokens may be used as Token Exchange subject tokens.')"
+							:placeholder="t('oidc', 'Allowed Token Exchange subject clients')"
+							:no-wrap="false" />
+						<NcTextField v-if="!isPublic && editClient.texEnabled" v-model="editClient.texAllowedScopes"
 							:label="t('oidc', 'Token Exchange Allowed Scopes according to RFC 8693')"
 							placeholder="openid profile"
 							:helper-text="t('oidc', 'Scopes allowed during Token Exchange. Separate scopes with spaces.')" />
-						<NcTextField v-if="!isPublic" v-model="editClient.texTargetsText"
+						<NcTextField v-if="!isPublic && editClient.texEnabled" v-model="editClient.texTargetsText"
 							:label="t('oidc', 'Token Exchange Targets according to RFC 8693')"
 							placeholder="https://resource-server.example/"
 							:helper-text="t('oidc', 'Allowed target URLs for Token Exchange, separated by commas.')" />
@@ -683,6 +691,7 @@ export default {
 				resourceUrl: '',
 				texEnabled: false,
 				texAllowedScopes: '',
+				texAllowedSubjectClients: [],
 				texTargetsText: '',
 				customClaims: [],
 				flowData: {
@@ -908,6 +917,14 @@ export default {
 		isPublic() {
 			return this.editClient.type === 'public'
 		},
+		texSubjectClientOptions() {
+			return this.localClients
+				.filter(client => typeof client.clientId === 'string' && client.clientId.length > 0)
+				.map(client => ({
+					label: client.name ? `${client.name} (${client.clientId})` : client.clientId,
+					value: client.clientId,
+				}))
+		},
 	},
 	methods: {
 		t,
@@ -1111,6 +1128,13 @@ export default {
 				this.editClient.resourceUrl = tmpClient.resourceUrl || ''
 				this.editClient.texEnabled = tmpClient.texEnabled === true || tmpClient.texEnabled === 1 || tmpClient.texEnabled === '1' || tmpClient.texEnabled === 'true'
 				this.editClient.texAllowedScopes = tmpClient.texAllowedScopes || ''
+				const texAllowedSubjectClientIds = Array.isArray(tmpClient.texAllowedSubjectClients) ? tmpClient.texAllowedSubjectClients : []
+				this.editClient.texAllowedSubjectClients = texAllowedSubjectClientIds.map(clientId => {
+					return this.texSubjectClientOptions.find(option => option.value === clientId) || {
+						label: clientId,
+						value: clientId,
+					}
+				})
 				this.editClient.texTargetsText = (tmpClient.texTargets || []).map(target => target.resourceUrl).join(', ')
 				this.editClient.customClaims = []
 				this.editClient.flowData = {
@@ -1366,6 +1390,16 @@ export default {
 		},
 		async saveEditClient() {
 			this.clearError()
+			if (this.editClient.type === 'confidential'
+				&& this.editClient.texEnabled
+				&& this.editClient.texAllowedSubjectClients.length === 0) {
+				this.error = true
+				this.errorMsg = t('oidc', 'Select at least one allowed subject client before enabling Token Exchange.')
+				return
+			}
+			const texAllowedSubjectClientIds = this.editClient.texAllowedSubjectClients
+				.map(option => typeof option === 'string' ? option : option.value)
+				.filter(clientId => typeof clientId === 'string' && clientId.length > 0)
 			try {
 				await axios.patch(
 					generateUrl('apps/oidc/api/v2/client/{client_id}', { client_id: this.editClient.id }),
@@ -1382,6 +1416,7 @@ export default {
 						groups: this.editClient.groupData.props.value,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
+						texAllowedSubjectClients: texAllowedSubjectClientIds,
 						texTargets: this.editClient.texTargetsText.split(',').map(target => target.trim()).filter(Boolean),
 					},
 				)
@@ -1398,6 +1433,7 @@ export default {
 						resourceUrl: this.editClient.resourceUrl,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
+						texAllowedSubjectClients: texAllowedSubjectClientIds,
 						texTargets: this.editClient.texTargetsText.split(',').map(target => ({ resourceUrl: target.trim() })).filter(target => target.resourceUrl),
 						groups: this.editClient.groupData.props.value,
 					}

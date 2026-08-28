@@ -33,6 +33,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargets;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -57,6 +58,8 @@ class OIDCApiControllerTest extends TestCase {
     protected $userConsentMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|TexTargetMapper */
     protected $texTargetMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|TexSubjectClientMapper */
+    protected $texSubjectClientMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
@@ -137,6 +140,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->groupMapper = $this->createMock(GroupMapper::class);
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
         $this->texTargetMapper = $this->createMock(TexTargetMapper::class);
+        $this->texSubjectClientMapper = $this->createMock(TexSubjectClientMapper::class);
 
         $throttler = $this->createMock(Throttler::class);
 
@@ -161,7 +165,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->jwtGenerator,
             $this->logger,
             $this->texTargetMapper,
-            $this->formUrlencodedParameterParser
+            $this->formUrlencodedParameterParser,
+            $this->texSubjectClientMapper
         );
 
         // Default configuration
@@ -241,6 +246,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subjectToken);
+        $this->texSubjectClientMapper->method('isAllowed')->willReturn(true);
         $this->texTargetMapper->method('getByClientId')->willReturn([$this->createTexTarget($resource)]);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
         $user = $this->createMock(IUser::class);
@@ -458,6 +464,55 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame('invalid_target', $result->getData()['error']);
     }
 
+    public function testTokenExchangeRejectsSubjectClientThatIsNotExplicitlyAllowed(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(2);
+        $this->useBasicClient('test-client', 'test-secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subject);
+        $this->texSubjectClientMapper->expects($this->once())
+            ->method('isAllowed')
+            ->with(1, 2)
+            ->willReturn(false);
+        $this->texTargetMapper->expects($this->never())->method('getByClientId');
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+            'scope' => 'profile',
+        ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+        $this->assertStringContainsString('not authorized for Token Exchange', $result->getData()['error_description']);
+    }
+
+    public function testTokenExchangeSameClientAlsoRequiresExplicitPolicy(): void {
+        $client = $this->createTexClient();
+        $subject = $this->createSubjectToken(1);
+        $this->useBasicClient('test-client', 'test-secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($subject);
+        $this->texSubjectClientMapper->expects($this->once())
+            ->method('isAllowed')
+            ->with(1, 1)
+            ->willReturn(false);
+        $this->setTokenExchangeForm([
+            'subject_token' => 'old_access_token',
+            'subject_token_type' => 'urn:ietf:params:oauth:token-type:access_token',
+            'resource' => 'https://resource.example/api',
+        ]);
+
+        $result = $this->controller->getToken('urn:ietf:params:oauth:grant-type:token-exchange');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_request', $result->getData()['error']);
+    }
+
     public function testTokenExchangeInheritedResourceIsRevalidated(): void {
         $client = $this->createTexClient();
         $subject = $this->createSubjectToken(2, 'https://not-allowed.example/api');
@@ -465,6 +520,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->expectTokenExchangeNeverUsesAuthorizationCodeLookup();
         $this->accessTokenMapper->method('getByAccessToken')->willReturn($subject);
+        $this->texSubjectClientMapper->method('isAllowed')->willReturn(true);
         $this->texTargetMapper->method('getByClientId')->willReturn([$this->createTexTarget('https://allowed.example/api')]);
         $this->time->method('getTime')->willReturn(1000);
         $this->setTokenExchangeForm([

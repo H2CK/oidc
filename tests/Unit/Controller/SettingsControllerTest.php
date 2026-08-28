@@ -27,6 +27,8 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
 
@@ -74,6 +76,8 @@ class SettingsControllerTest extends TestCase {
     private $redirectUriService;
     /** @var CredentialService */
     private $credentialService;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|TexSubjectClientMapper */
+    private $texSubjectClientMapper;
 
     private $client;
 
@@ -132,6 +136,7 @@ class SettingsControllerTest extends TestCase {
             $this->appConfig,
             $this->logger
         );
+        $this->texSubjectClientMapper = $this->createMock(TexSubjectClientMapper::class);
 
         $this->controller = new SettingsController(
             'oidc',
@@ -149,7 +154,8 @@ class SettingsControllerTest extends TestCase {
             $this->userConfig,
             $this->config,
             $this->credentialService,
-            $this->logger
+            $this->logger,
+            $this->texSubjectClientMapper
         );
     }
 
@@ -654,6 +660,64 @@ class SettingsControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertStringContainsString('absolute URI without a fragment', $result->getData()['error']);
+    }
+
+    public function testCannotEnableTokenExchangeWithoutAllowedSubjectClient(): void {
+        $client = new Client('TEST', ['https://local.lo'], 'RS256', 'confidential');
+        $client->setId(1);
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->request->method('getParams')->willReturn([
+            'texEnabled' => true,
+            'texAllowedSubjectClients' => [],
+        ]);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertStringContainsString('At least one allowed subject client', $result->getData()['error']);
+    }
+
+    public function testCanEnableTokenExchangeWithMultipleAllowedSubjectClients(): void {
+        $client = new Client('TEST', ['https://local.lo'], 'RS256', 'confidential');
+        $client->setId(1);
+        $client->setClientIdentifier('requesting-client');
+
+        $sourceA = new Client('Source A', ['https://source-a.example/callback'], 'RS256', 'confidential');
+        $sourceA->setId(2);
+        $sourceA->setClientIdentifier('source-client-a');
+        $sourceB = new Client('Source B', ['https://source-b.example/callback'], 'RS256', 'confidential');
+        $sourceB->setId(3);
+        $sourceB->setClientIdentifier('source-client-b');
+
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->clientMapper->method('getByIdentifier')->willReturnCallback(
+            static fn (string $identifier): ?Client => match ($identifier) {
+                'source-client-a' => $sourceA,
+                'source-client-b' => $sourceB,
+                default => null,
+            }
+        );
+        $this->request->method('getParams')->willReturn([
+            'texEnabled' => true,
+            'texAllowedSubjectClients' => ['source-client-a', 'source-client-b', 'source-client-a'],
+        ]);
+        $this->clientMapper->expects($this->once())->method('update')->with($client);
+        $this->texSubjectClientMapper->expects($this->once())->method('deleteByClientId')->with(1);
+
+        $inserted = [];
+        $this->texSubjectClientMapper->expects($this->exactly(2))
+            ->method('insert')
+            ->willReturnCallback(function (TexSubjectClient $entry) use (&$inserted): TexSubjectClient {
+                $inserted[] = [$entry->getClientId(), $entry->getSubjectClientId()];
+                return $entry;
+            });
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertSame(Http::STATUS_OK, $result->getStatus());
+        $this->assertTrue($client->getTexEnabled());
+        $this->assertSame([[1, 2], [1, 3]], $inserted);
     }
 
     public function testChangingClientToPublicDisablesTokenExchange(): void {

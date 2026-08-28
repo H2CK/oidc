@@ -18,6 +18,8 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
+use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
+use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCP\Server;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Settings\ISettings;
@@ -123,6 +125,7 @@ class Admin implements ISettings {
                 'resourceUrl' => $client->getResourceUrl(),
                 'texEnabled' => $client->getTexEnabled(),
                 'texAllowedScopes' => $client->getTexAllowedScopes(),
+                'texAllowedSubjectClients' => $this->getTexAllowedSubjectClientIdentifiers($client->getId()),
                 'texTargets' => array_map(
                     static fn ($target): array => [
                         'resourceUrl' => $target->getResourceUrl(),
@@ -180,6 +183,29 @@ class Admin implements ISettings {
                         [],
                         ''
                         );
+    }
+
+    /**
+     * Return public client identifiers for the administrative TEX subject-client
+     * allow-list. Stale relations are ignored defensively.
+     *
+     * @return string[]
+     */
+    private function getTexAllowedSubjectClientIdentifiers(int $clientId): array
+    {
+        $identifiers = [];
+        foreach (Server::get(TexSubjectClientMapper::class)->getByClientId($clientId) as $entry) {
+            try {
+                $subjectClient = $this->clientMapper->getByUid($entry->getSubjectClientId());
+                $identifiers[] = $subjectClient->getClientIdentifier();
+            } catch (ClientNotFoundException $e) {
+                $this->logger->warning('Ignoring stale Token Exchange subject-client policy entry.', [
+                    'client_id' => $clientId,
+                    'subject_client_id' => $entry->getSubjectClientId(),
+                ]);
+            }
+        }
+        return $identifiers;
     }
 
     public function getSection(): string
