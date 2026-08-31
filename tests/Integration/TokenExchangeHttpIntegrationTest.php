@@ -21,6 +21,7 @@ use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\DB\Exception as DatabaseException;
+use OCP\IDBConnection;
 use OCP\IUserManager;
 use OCP\Server;
 use PHPUnit\Framework\TestCase;
@@ -564,7 +565,42 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertSame(200, $response['status'], $response['body']);
     }
 
+    /**
+     * Nextcloud only enables SQLite's foreign key enforcement from server 33
+     * (`PRAGMA foreign_keys = true`, added to lib/private/DB/SQLiteSessionInit.php);
+     * on 32, which appinfo/info.xml still declares support for, the constraint
+     * is created but never enforced, so the insert below succeeds.
+     *
+     * Skipping there rather than asserting is deliberate: the FK is
+     * defense-in-depth, not the mechanism the app relies on. Revocation
+     * cascades through AccessTokenMapper::deleteDescendants() in PHP, which is
+     * exercised by testHttpSubjectRevocationCascadesThroughMultiHopExchange on
+     * every supported server, and the app never inserts an orphan itself.
+     */
+    private function skipWithoutForeignKeyEnforcement(): void {
+        $db = Server::get(IDBConnection::class);
+        if ($db->getDatabaseProvider() !== IDBConnection::PLATFORM_SQLITE) {
+            return;
+        }
+
+        $result = $db->executeQuery('PRAGMA foreign_keys');
+        try {
+            $enforced = (int)$result->fetchOne() === 1;
+        } finally {
+            $result->closeCursor();
+        }
+
+        if (!$enforced) {
+            $this->markTestSkipped(
+                'SQLite foreign key enforcement is off on this server (Nextcloud < 33), '
+                . 'so the database cannot reject an orphaned token.'
+            );
+        }
+    }
+
     public function testTokenLineageForeignKeyRejectsOrphanedExchangeToken(): void {
+        $this->skipWithoutForeignKeyEnforcement();
+
         $requestingClient = $this->createClient(self::OPAQUE_CLIENT_ID, 'opaque', true, 'profile');
         $this->createTestUser();
 
