@@ -30,8 +30,11 @@ class Version0022Date20260825100100 extends SimpleMigrationStep {
             $table = $schema->getTable('oidc_clients');
 
             if (!$table->hasColumn('tex_enabled')) {
+                // Nullable on purpose: Nextcloud 32 rejects any BOOLEAN column
+                // declared NOT NULL (a bool is an integer of length 1 that Oracle
+                // cannot constrain that way), matching `dcr` in Version0011.
                 $table->addColumn('tex_enabled', Types::BOOLEAN, [
-                    'notnull' => true,
+                    'notnull' => false,
                     'default' => false,
                 ]);
             }
