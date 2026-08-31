@@ -150,6 +150,46 @@ class OIDCCreateTest extends TestCase
         $this->assertSame([11, 12], $insertedSubjectIds);
     }
 
+    public function testExecuteSetsBackChannelLogoutOptions(): void
+    {
+        $client = null;
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallback(static function (Client $value) use (&$client): Client {
+                $client = $value;
+                return $value;
+            });
+
+        $tester = new CommandTester($this->command);
+        $statusCode = $tester->execute([
+            'name' => 'Back-Channel Client',
+            'redirect_uris' => ['https://local.lo/callback'],
+            '--backchannel_logout_uri' => 'https://rp.example.test/backchannel-logout',
+            '--backchannel_logout_session_required' => true,
+        ]);
+
+        $this->assertSame(Command::SUCCESS, $statusCode);
+        $this->assertSame('https://rp.example.test/backchannel-logout', $client->getBackchannelLogoutUri());
+        $this->assertTrue($client->getBackchannelLogoutSessionRequired());
+    }
+
+    public function testExecuteRejectsBackChannelSessionRequiredWithoutUri(): void
+    {
+        $tester = new CommandTester($this->command);
+
+        $statusCode = $tester->execute([
+            'name' => 'Back-Channel Client',
+            'redirect_uris' => ['https://local.lo/callback'],
+            '--backchannel_logout_session_required' => true,
+        ]);
+
+        $this->assertSame(Command::FAILURE, $statusCode);
+        $this->assertStringContainsString(
+            '--backchannel_logout_session_required requires --backchannel_logout_uri.',
+            $tester->getDisplay()
+        );
+    }
+
     public function testExecuteRejectsTokenExchangeWithoutAllowedSubjectClient(): void
     {
         $tester = new CommandTester($this->command);

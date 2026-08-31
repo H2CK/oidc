@@ -15,6 +15,7 @@ use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -83,6 +84,8 @@ class LoginRedirectorController extends ApiController
     private $jwtGenerator;
     /** @var RedirectUriService */
     private $redirectUriService;
+    /** @var BackChannelLogoutService */
+    private $backChannelLogoutService;
     /** @var LoggerInterface */
     private $logger;
 
@@ -105,6 +108,7 @@ class LoginRedirectorController extends ApiController
      * @param IAppConfig $appConfig
      * @param JwtGenerator $jwtGenerator
      * @param RedirectUriService $redirectUriService
+     * @param BackChannelLogoutService $backChannelLogoutService
      * @param LoggerInterface $loggerInterface
      */
     public function __construct(
@@ -126,6 +130,7 @@ class LoginRedirectorController extends ApiController
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
                     RedirectUriService $redirectUriService,
+                    BackChannelLogoutService $backChannelLogoutService,
                     LoggerInterface $logger
                     )
         {
@@ -148,6 +153,7 @@ class LoginRedirectorController extends ApiController
         $this->appConfig = $appConfig;
         $this->jwtGenerator = $jwtGenerator;
         $this->redirectUriService = $redirectUriService;
+        $this->backChannelLogoutService = $backChannelLogoutService;
         $this->logger = $logger;
     }
 
@@ -706,6 +712,7 @@ class LoginRedirectorController extends ApiController
 
         try {
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+            $accessToken->setSid($this->backChannelLogoutService->registerClientSession($client));
             $accessToken = $this->accessTokenMapper->insert($accessToken);
             if (in_array('code', $responseTypeEntries)) {
                 $this->authorizationCodeMapper->createForAccessToken(

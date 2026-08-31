@@ -242,6 +242,17 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertFalse($data['request_uri_parameter_supported']);
     }
 
+    public function testGenerateDiscoveryAdvertisesBackChannelLogoutSupport() {
+        $result = $this->generator->generateDiscovery($this->request);
+        $data = $result->getData();
+
+        $this->assertArrayHasKey('backchannel_logout_supported', $data);
+        $this->assertTrue($data['backchannel_logout_supported']);
+        $this->assertArrayHasKey('backchannel_logout_session_supported', $data);
+        $this->assertTrue($data['backchannel_logout_session_supported']);
+        $this->assertContains('sid', $data['claims_supported']);
+    }
+
     public function testGenerateDiscoveryHasIntrospectionEndpoint() {
         $result = $this->generator->generateDiscovery($this->request);
         $data = $result->getData();

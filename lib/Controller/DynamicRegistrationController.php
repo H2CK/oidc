@@ -24,6 +24,7 @@ use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
+use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -110,6 +111,8 @@ class DynamicRegistrationController extends ApiController
         string|null $scope = null,
         string $token_type = 'opaque',
         string|null $resource_url = null,
+        string|null $backchannel_logout_uri = null,
+        bool $backchannel_logout_session_required = false,
         ): JSONResponse
     {
         if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
@@ -188,6 +191,24 @@ class DynamicRegistrationController extends ApiController
 
         $client->setDcr(true);
 
+        if ($backchannel_logout_uri !== null) {
+            $backchannel_logout_uri = trim($backchannel_logout_uri);
+            if (!BackChannelLogoutService::isValidBackChannelLogoutUri($backchannel_logout_uri, $client->getType())) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'backchannel_logout_uri must be an absolute HTTP(S) URI without a fragment. HTTP is only allowed for confidential clients.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setBackchannelLogoutUri($backchannel_logout_uri);
+        }
+        if ($backchannel_logout_session_required && $client->getBackchannelLogoutUri() === null) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'backchannel_logout_session_required requires backchannel_logout_uri.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        $client->setBackchannelLogoutSessionRequired($backchannel_logout_session_required);
+
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
@@ -265,7 +286,9 @@ class DynamicRegistrationController extends ApiController
             'client_id_issued_at' => $client->getIssuedAt(),
             'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
-            'token_type' => $client->getTokenType()
+            'token_type' => $client->getTokenType(),
+            'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
+            'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
         ];
 
         // Include resource_url in response if it was provided
@@ -437,7 +460,9 @@ class DynamicRegistrationController extends ApiController
             'application_type' => 'web',
             'client_id_issued_at' => $client->getIssuedAt(),
             'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME),
-            'scope' => $client->getAllowedScopes()
+            'scope' => $client->getAllowedScopes(),
+            'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
+            'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
         ];
 
         $response = new JSONResponse($jsonResponse);
@@ -469,7 +494,9 @@ class DynamicRegistrationController extends ApiController
         string|null $client_name = null,
         string|null $id_token_signed_response_alg = null,
         array|null $response_types = null,
-        string|null $scope = null
+        string|null $scope = null,
+        string|null $backchannel_logout_uri = null,
+        bool|null $backchannel_logout_session_required = null
     ): JSONResponse {
         $client = $this->authenticateAndAuthorizeClientManagement($clientId);
         if ($client instanceof JSONResponse) {
@@ -492,6 +519,30 @@ class DynamicRegistrationController extends ApiController
             } elseif (in_array('id_token', $response_types)) {
                 $client->setFlowType('code id_token');
             }
+        }
+
+        if ($backchannel_logout_uri !== null) {
+            $backchannel_logout_uri = trim($backchannel_logout_uri);
+            if ($backchannel_logout_uri === '') {
+                $client->setBackchannelLogoutUri(null);
+                $client->setBackchannelLogoutSessionRequired(false);
+            } elseif (!BackChannelLogoutService::isValidBackChannelLogoutUri($backchannel_logout_uri, $client->getType())) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'backchannel_logout_uri must be an absolute HTTP(S) URI without a fragment. HTTP is only allowed for confidential clients.',
+                ], Http::STATUS_BAD_REQUEST);
+            } else {
+                $client->setBackchannelLogoutUri($backchannel_logout_uri);
+            }
+        }
+        if ($backchannel_logout_session_required !== null) {
+            $client->setBackchannelLogoutSessionRequired($backchannel_logout_session_required);
+        }
+        if ($client->getBackchannelLogoutSessionRequired() && $client->getBackchannelLogoutUri() === null) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'backchannel_logout_session_required requires backchannel_logout_uri.',
+            ], Http::STATUS_BAD_REQUEST);
         }
 
         // Validate and set scope if provided
@@ -561,7 +612,9 @@ class DynamicRegistrationController extends ApiController
             'application_type' => 'web',
             'client_id_issued_at' => $client->getIssuedAt(),
             'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME),
-            'scope' => $client->getAllowedScopes()
+            'scope' => $client->getAllowedScopes(),
+            'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
+            'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
         ];
 
         $response = new JSONResponse($jsonResponse);

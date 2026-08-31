@@ -15,6 +15,7 @@ use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
+use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Exceptions\CliException;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
@@ -128,6 +129,19 @@ class OIDCCreate extends Command
                 ''
             )
             ->addOption(
+                'backchannel_logout_uri',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'OpenID Connect Back-Channel Logout URI for this client.',
+                ''
+            )
+            ->addOption(
+                'backchannel_logout_session_required',
+                null,
+                InputOption::VALUE_NONE,
+                'Require the sid claim in Back-Channel Logout Tokens for this client.'
+            )
+            ->addOption(
                 'tex_enabled',
                 null,
                 InputOption::VALUE_NONE,
@@ -232,6 +246,20 @@ class OIDCCreate extends Command
 
                 $client->setResourceUrl($resourceUrl);
             }
+
+            $backchannelLogoutUri = trim((string)$input->getOption('backchannel_logout_uri'));
+            if ($backchannelLogoutUri !== '') {
+                if (!BackChannelLogoutService::isValidBackChannelLogoutUri($backchannelLogoutUri, $client->getType())) {
+                    throw new CliException("The Back-Channel Logout URI '$backchannelLogoutUri' is not valid.");
+                }
+                $client->setBackchannelLogoutUri($backchannelLogoutUri);
+            }
+
+            $backchannelLogoutSessionRequired = (bool)$input->getOption('backchannel_logout_session_required');
+            if ($backchannelLogoutSessionRequired && $client->getBackchannelLogoutUri() === null) {
+                throw new CliException('--backchannel_logout_session_required requires --backchannel_logout_uri.');
+            }
+            $client->setBackchannelLogoutSessionRequired($backchannelLogoutSessionRequired);
 
             $client->setTexEnabled((bool)$input->getOption('tex_enabled'));
             $client->setTexAllowedScopes(trim((string)$input->getOption('tex_allowed_scopes')) ?: null);

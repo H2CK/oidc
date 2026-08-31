@@ -269,6 +269,11 @@ class JwtGenerator
             'jti' => strval($accessToken->getId()),
         ];
 
+        $sid = $accessToken->getSid();
+        if ($sid !== null && trim($sid) !== '') {
+            $jwt_payload_base['sid'] = $sid;
+        }
+
         if ($this->shouldIncludeRequestedClaim('scope', $accessToken->getScope(), $requestedIdTokenClaims)) {
             $jwt_payload_base['scope'] = $accessToken->getScope();
         }
@@ -460,6 +465,66 @@ class JwtGenerator
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
         $this->logger->debug('Generated JWT with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . ' aud/azp => ' . $client->getClientIdentifier());
         return $jwt;
+    }
+
+    /**
+     * Generate an OpenID Connect Back-Channel Logout Token.
+     *
+     * @throws JwtCreationErrorException
+     */
+    public function generateLogoutToken(Client $client, ?string $userId, string $sid, string $issuerProtocol, string $issuerHost): string
+    {
+        $issuer = $issuerProtocol . '://' . $issuerHost . $this->urlGenerator->getWebroot();
+        $now = $this->time->getTime();
+        $payload = [
+            'iss' => $issuer,
+            'aud' => $client->getClientIdentifier(),
+            'iat' => $now,
+            'exp' => $now + 120,
+            'jti' => $this->secureRandom->generate(64, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
+            'sid' => $sid,
+            'events' => [
+                'http://schemas.openid.net/event/backchannel-logout' => (object)[],
+            ],
+        ];
+        if ($userId !== null) {
+            $payload['sub'] = $userId;
+        }
+
+        $encodedPayload = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        if ($encodedPayload === false) {
+            throw new JwtCreationErrorException('Could not encode Back-Channel Logout Token payload.');
+        }
+
+        $base64UrlPayload = $this->base64UrlEncode($encodedPayload);
+        $signingAlg = $client->getSigningAlg();
+
+        if ($signingAlg === 'HS256') {
+            $header = json_encode(['typ' => 'logout+jwt', 'alg' => 'HS256']);
+            if ($header === false) {
+                throw new JwtCreationErrorException('Could not encode Back-Channel Logout Token header.');
+            }
+            $base64UrlHeader = $this->base64UrlEncode($header);
+            $signature = hash_hmac('sha256', $base64UrlHeader . '.' . $base64UrlPayload, $client->getSecret(), true);
+        } else {
+            $kid = $this->appConfig->getAppValueString('kid');
+            $header = json_encode(['typ' => 'logout+jwt', 'alg' => 'RS256', 'kid' => $kid]);
+            if ($header === false) {
+                throw new JwtCreationErrorException('Could not encode Back-Channel Logout Token header.');
+            }
+            $base64UrlHeader = $this->base64UrlEncode($header);
+            $signature = '';
+            if (!openssl_sign(
+                $base64UrlHeader . '.' . $base64UrlPayload,
+                $signature,
+                $this->credentialService->getPrivateKey(),
+                'sha256WithRSAEncryption'
+            )) {
+                throw new JwtCreationErrorException('Could not sign Back-Channel Logout Token.');
+            }
+        }
+
+        return $base64UrlHeader . '.' . $base64UrlPayload . '.' . $this->base64UrlEncode($signature);
     }
 
     private function generateIdTokenHash(string $value, string $signingAlg): string

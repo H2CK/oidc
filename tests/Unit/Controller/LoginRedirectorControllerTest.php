@@ -44,6 +44,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
@@ -102,6 +103,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $jwtGenerator;
     /** @var \PHPUnit\Framework\MockObject\MockObject|RedirectUriService */
     private $redirectUriService;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|BackChannelLogoutService */
+    private $backChannelLogoutService;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     private $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ISubAdmin */
@@ -201,6 +204,10 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->redirectUriService = new RedirectUriService(
             $this->logger
         );
+        $this->backChannelLogoutService = $this->createMock(BackChannelLogoutService::class);
+        $this->backChannelLogoutService
+            ->method('registerClientSession')
+            ->willReturn('test-session-id');
 
         $this->controller = new LoginRedirectorController(
             'oidc',
@@ -221,6 +228,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $this->jwtGenerator,
             $this->redirectUriService,
+            $this->backChannelLogoutService,
             $this->logger
         );
     }
@@ -461,6 +469,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $jwtGenerator,
             $this->redirectUriService,
+            $this->backChannelLogoutService,
             $this->logger
         );
 
@@ -601,6 +610,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $jwtGenerator,
             $this->redirectUriService,
+            $this->backChannelLogoutService,
             $this->logger
         );
 
@@ -902,6 +912,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $jwtGenerator,
             $this->redirectUriService,
+            $this->backChannelLogoutService,
             $this->logger
         );
 
@@ -1051,6 +1062,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $jwtGenerator,
             $this->redirectUriService,
+            $this->backChannelLogoutService,
             $this->logger
         );
 
@@ -1206,6 +1218,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->appConfig,
             $this->jwtGenerator,
             $this->redirectUriService,
+            $this->backChannelLogoutService,
             $this->logger
         );
 

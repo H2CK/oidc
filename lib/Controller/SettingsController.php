@@ -24,6 +24,7 @@ use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
+use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -202,6 +203,8 @@ class SettingsController extends Controller
             'allowedScopes' => $client->getAllowedScopes(),
             'emailRegex' => $client->getEmailRegex(),
             'resourceUrl' => $client->getResourceUrl(),
+            'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
+            'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
         ]);
     }
 
@@ -262,6 +265,27 @@ class SettingsController extends Controller
                 return new JSONResponse(['error' => 'Invalid resource URL format.'], Http::STATUS_BAD_REQUEST);
             }
             $client->setResourceUrl($resourceUrl === '' ? null : $resourceUrl);
+        }
+        if (array_key_exists('backchannelLogoutUri', $params)) {
+            $backchannelLogoutUri = trim((string)$params['backchannelLogoutUri']);
+            if ($backchannelLogoutUri === '') {
+                $client->setBackchannelLogoutUri(null);
+                $client->setBackchannelLogoutSessionRequired(false);
+            } elseif (!BackChannelLogoutService::isValidBackChannelLogoutUri($backchannelLogoutUri, $client->getType())) {
+                return new JSONResponse(['error' => 'Invalid Back-Channel Logout URI. Use an absolute HTTP(S) URI without a fragment; HTTP is only allowed for confidential clients.'], Http::STATUS_BAD_REQUEST);
+            } else {
+                $client->setBackchannelLogoutUri($backchannelLogoutUri);
+            }
+        }
+        if (array_key_exists('backchannelLogoutSessionRequired', $params)) {
+            $client->setBackchannelLogoutSessionRequired((bool)$params['backchannelLogoutSessionRequired']);
+        }
+        if ($client->getBackchannelLogoutUri() !== null
+            && !BackChannelLogoutService::isValidBackChannelLogoutUri($client->getBackchannelLogoutUri(), $client->getType())) {
+            return new JSONResponse(['error' => 'The configured Back-Channel Logout URI is not valid for this client type.'], Http::STATUS_BAD_REQUEST);
+        }
+        if ($client->getBackchannelLogoutSessionRequired() && $client->getBackchannelLogoutUri() === null) {
+            return new JSONResponse(['error' => 'Back-Channel Logout session support requires a Back-Channel Logout URI.'], Http::STATUS_BAD_REQUEST);
         }
         if (array_key_exists('redirectUris', $params)) {
             $redirectUris = array_map('trim', (array)$params['redirectUris']);
@@ -508,6 +532,8 @@ class SettingsController extends Controller
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
                 'resourceUrl' => $client->getResourceUrl(),
+                'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
+                'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
             ];
         }
         return new JSONResponse($result);
@@ -625,6 +651,8 @@ class SettingsController extends Controller
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
                 'resourceUrl' => $client->getResourceUrl(),
+                'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
+                'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
             ];
         }
         return new JSONResponse($result);
@@ -678,6 +706,8 @@ class SettingsController extends Controller
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
                 'resourceUrl' => $client->getResourceUrl(),
+                'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
+                'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
             ];
         }
         return new JSONResponse($result);

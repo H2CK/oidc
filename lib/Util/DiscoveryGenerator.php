@@ -181,6 +181,7 @@ class DiscoveryGenerator
             'scope',
             'nbf',
             'jti',
+            'sid',
             'roles',
             'groups',
             'name',
@@ -234,6 +235,8 @@ class DiscoveryGenerator
             // 'op_policy_uri' => ,
             // 'op_tos_uri' => ,
             'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
+            'backchannel_logout_supported' => true,
+            'backchannel_logout_session_supported' => true,
         ];
 
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION) == 'true') {

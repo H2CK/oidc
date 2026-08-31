@@ -20,7 +20,7 @@ Provided features:
 - Support for RFC9068 JWT Access Tokens (must be activated per client)
 - Support for OAuth 2.0 Token Exchange (RFC 8693) using a constrained access-token-to-access-token profile
 - Discovery & WebFinger endpoint provided
-- Logout endpoint
+- RP-Initiated Logout and OpenID Connect Back-Channel Logout 1.0
 - Dynamic Client Registration
 - Client Configuration Management (RFC 7592)
 - Token Introspection (RFC 7662)
@@ -45,6 +45,7 @@ The OIDC conformance workflow is executed daily and on demand against the OpenID
 - `oidcc-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-hybrid-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `code id_token` response type, testing modules: server, userinfo (GET/POST), nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, code reuse, PKCE, refresh tokens, claims essential, redirect URI validation, request object support/rejection, and form post
 - `oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `id_token` response type, testing modules: server, nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, redirect URI validation, request object support/rejection, claims essential, and form post
 - `oidcc-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]` for RP-Initiated Logout, including valid logout flows, state handling, ID token hint validation, and post-logout redirect URI validation
+- `oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]` for OpenID Connect Back-Channel Logout, including `sid`-based RP session correlation and signed Logout Token delivery
 
 More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
@@ -174,15 +175,70 @@ For security, a `post_logout_redirect_uri` is used only when all of the followin
 
 When accepted, `state` is appended to the redirect URI. Without an accepted post-logout redirect URI, the user is redirected to the Nextcloud login page. Accepted logout redirect URIs can be managed in the admin settings or with the `oidc:create-logout-redirect-uri`, `oidc:list-logout-redirect-uri`, and `oidc:remove-logout-redirect-uri` OCC commands.
 
-Up to now there is NO support for:
+### Back-Channel Logout
+
+The provider supports [OpenID Connect Back-Channel Logout 1.0](https://openid.net/specs/openid-connect-backchannel-1_0.html). Discovery advertises both `backchannel_logout_supported` and `backchannel_logout_session_supported` as `true`.
+
+For OIDC authorizations performed after this feature is installed, the provider creates a stable `sid` for each relying party (RP) participating in the current Nextcloud browser session. The same `sid` is included in ID tokens issued for that RP. When the Nextcloud session is logged out, including logout initiated through the RP-Initiated Logout endpoint, the provider sends a signed Logout Token to every participating RP that has a `backchannel_logout_uri` configured.
+
+The Logout Token:
+
+- is sent with HTTP `POST` as `application/x-www-form-urlencoded` in the `logout_token` parameter;
+- is signed with the client's configured ID-token signing algorithm (`RS256` or `HS256`);
+- uses the JOSE header `typ=logout+jwt`;
+- contains `iss`, `sub`, `aud`, `iat`, `exp`, `jti`, `sid`, and the Back-Channel Logout `events` claim and does not contain `nonce`;
+- expires 120 seconds after issuance.
+
+The RP endpoint should validate the signature and the Logout Token claims, especially `iss`, `aud`, `iat`/`exp`, `jti`, `events`, and `sid`, terminate the corresponding RP session, and return HTTP `200` or `204`. A failing or unavailable RP is logged but does not prevent the local Nextcloud logout or notifications to other RPs. Logout requests are not queued for later retry.
+
+#### Configure Back-Channel Logout in the Admin UI
+
+1. Open **Administration settings > OIDC** and edit the client.
+2. Expand **Further Settings**.
+3. Set **Back-Channel Logout URI** to the RP endpoint that accepts Back-Channel Logout Tokens.
+4. Enable **Require sid in Back-Channel Logout Tokens** if the RP registers `backchannel_logout_session_required=true`.
+
+Use an absolute HTTPS URI. HTTP is accepted only for confidential clients; fragments and embedded user credentials are rejected. Nextcloud's HTTP client is used for delivery, so Nextcloud's remote-host validation also applies to outbound logout requests.
+
+The `backchannel_logout_session_required` option represents the standard client metadata value. This provider has session support and includes `sid` in Logout Tokens whenever an RP session has been registered, irrespective of whether the RP marks the claim as required.
+
+The same settings can be configured when creating a static client with `occ oidc:create`:
+
+```bash
+occ oidc:create "Example RP" https://rp.example.com/oidc/callback \
+  --backchannel_logout_uri https://rp.example.com/oidc/backchannel-logout \
+  --backchannel_logout_session_required
+```
+
+Omit `--backchannel_logout_session_required` when the RP supports Back-Channel Logout but does not require session-specific `sid` correlation. Back-Channel Logout itself is enabled by configuring `backchannel_logout_uri`; the session-required flag is not an enable/disable switch.
+
+#### Dynamic Client Registration and Client Configuration
+
+The standard metadata can also be supplied through Dynamic Client Registration and changed through RFC 7592 Client Configuration Management:
+
+```json
+{
+  "client_name": "Example RP",
+  "redirect_uris": ["https://rp.example.com/oidc/callback"],
+  "backchannel_logout_uri": "https://rp.example.com/oidc/backchannel-logout",
+  "backchannel_logout_session_required": true
+}
+```
+
+`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply.
+
+> **Upgrade note:** RP sessions created before the upgrade cannot be reconstructed from an existing Nextcloud session. Back-Channel Logout tracking starts with OIDC authorizations performed after the upgrade. Such pre-existing RP sessions therefore need a new sign-in/authorization before they can participate in Back-Channel Logout.
+
+There is currently NO support for:
 
 - [OpenID Connect Session Management](https://openid.net/specs/openid-connect-session-1_0.html)
 - [OpenID Connect Front-Channel Logout](https://openid.net/specs/openid-connect-frontchannel-1_0.html)
-- [OpenID Connect Back-Channel Logout](https://openid.net/specs/openid-connect-backchannel-1_0.html)
 
 ### Dynamic Client Registration Details
 
 It is possible to use the dynamic client registration according to [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html). To use this feature you have to enable it in the settings of this application (see above).
+
+Back-Channel Logout client metadata (`backchannel_logout_uri` and `backchannel_logout_session_required`) is accepted during registration and is returned/updated by RFC 7592 Client Configuration Management. See the Back-Channel Logout section above for URI restrictions and an example.
 
 Due to security reasons there is a BruteForce throttleing as well as a limitation of dynamically registered clients to 100. Additionally a dynamically registered client is only valid for 3600 seconds. Both parameters can currently not be changed via the settings.
 The registration endpoint is accessible for everybody without any authentication and authorization. So please enable this feature with the possible thread in mind.

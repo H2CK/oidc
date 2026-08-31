@@ -123,6 +123,8 @@ class Admin implements ISettings {
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
                 'resourceUrl' => $client->getResourceUrl(),
+                'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
+                'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
                 'texEnabled' => $client->getTexEnabled(),
                 'texAllowedScopes' => $client->getTexAllowedScopes(),
                 'texAllowedSubjectClients' => $this->getTexAllowedSubjectClientIdentifiers($client->getId()),

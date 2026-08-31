@@ -23,6 +23,7 @@ use OCA\OIDCIdentityProvider\Controller\LoginRedirectorController;
 use OCA\OIDCIdentityProvider\Controller\OIDCApiController;
 use OCA\OIDCIdentityProvider\Controller\UserInfoController;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
+use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\IRequest;
@@ -544,6 +545,11 @@ class OIDCCodeFlowTest extends \Test\TestCase
                 return $default;
             });
 
+        $backChannelLogoutService = $this->createMock(BackChannelLogoutService::class);
+        $backChannelLogoutService
+            ->method('registerClientSession')
+            ->willReturn('integration-session-id');
+
         $controller = new LoginRedirectorController(
             'oidc',
             $request,
@@ -563,6 +569,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $appConfig,
             $this->jwtGenerator,
             new RedirectUriService($this->logger),
+            $backChannelLogoutService,
             $this->logger
         );
 

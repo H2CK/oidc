@@ -182,6 +182,18 @@
 							placeholder="https://resource-server.com/"
 							:helper-text="t('oidc', 'Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource.')"
 							type="url" />
+						<NcTextField id="backchannelLogoutUri"
+							v-model="editClient.backchannelLogoutUri"
+							:label="t('oidc', 'Back-Channel Logout URI')"
+							placeholder="https://client.example/backchannel-logout"
+							:helper-text="t('oidc', 'Endpoint that receives signed OpenID Connect Back-Channel Logout Tokens when the Nextcloud session ends.')"
+							type="url" />
+						<NcCheckboxRadioSwitch v-if="editClient.backchannelLogoutUri"
+							v-model="editClient.backchannelLogoutSessionRequired"
+							name="backchannel_logout_session_required"
+							type="checkbox">
+							{{ t('oidc', 'Require sid in Back-Channel Logout Tokens') }}
+						</NcCheckboxRadioSwitch>
 						<NcCheckboxRadioSwitch v-if="!isPublic" v-model="editClient.texEnabled"
 							name="tex_enabled"
 							type="checkbox">
@@ -689,6 +701,8 @@ export default {
 				allowedScopes: '',
 				emailRegex: '',
 				resourceUrl: '',
+				backchannelLogoutUri: '',
+				backchannelLogoutSessionRequired: false,
 				texEnabled: false,
 				texAllowedScopes: '',
 				texAllowedSubjectClients: [],
@@ -1126,6 +1140,8 @@ export default {
 				this.editClient.allowedScopes = tmpClient.allowedScopes
 				this.editClient.emailRegex = tmpClient.emailRegex
 				this.editClient.resourceUrl = tmpClient.resourceUrl || ''
+				this.editClient.backchannelLogoutUri = tmpClient.backchannelLogoutUri || ''
+				this.editClient.backchannelLogoutSessionRequired = tmpClient.backchannelLogoutSessionRequired === true || tmpClient.backchannelLogoutSessionRequired === 1 || tmpClient.backchannelLogoutSessionRequired === '1' || tmpClient.backchannelLogoutSessionRequired === 'true'
 				this.editClient.texEnabled = tmpClient.texEnabled === true || tmpClient.texEnabled === 1 || tmpClient.texEnabled === '1' || tmpClient.texEnabled === 'true'
 				this.editClient.texAllowedScopes = tmpClient.texAllowedScopes || ''
 				const texAllowedSubjectClientIds = Array.isArray(tmpClient.texAllowedSubjectClients) ? tmpClient.texAllowedSubjectClients : []
@@ -1413,6 +1429,8 @@ export default {
 						allowedScopes: this.editClient.allowedScopes,
 						emailRegex: this.editClient.emailRegex,
 						resourceUrl: this.editClient.resourceUrl,
+						backchannelLogoutUri: this.editClient.backchannelLogoutUri,
+						backchannelLogoutSessionRequired: Boolean(this.editClient.backchannelLogoutUri) && this.editClient.backchannelLogoutSessionRequired,
 						groups: this.editClient.groupData.props.value,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
@@ -1431,6 +1449,8 @@ export default {
 						allowedScopes: this.editClient.allowedScopes,
 						emailRegex: this.editClient.emailRegex,
 						resourceUrl: this.editClient.resourceUrl,
+						backchannelLogoutUri: this.editClient.backchannelLogoutUri,
+						backchannelLogoutSessionRequired: Boolean(this.editClient.backchannelLogoutUri) && this.editClient.backchannelLogoutSessionRequired,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
 						texAllowedSubjectClients: texAllowedSubjectClientIds,
