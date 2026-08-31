@@ -141,6 +141,8 @@ jobs:
           php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
           php occ config:system:set overwritehost --value=nextcloud-proxy:8443
           php occ config:system:set overwriteprotocol --value=https
+          # The local conformance suite is intentionally addressed via a loopback hostname.
+          php occ config:system:set allow_local_remote_servers --type=boolean --value=true
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
           php occ config:app:set ${{ env.APP_NAME }} dynamic_client_registration --value true
           OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
@@ -159,12 +161,15 @@ jobs:
             --flow code \
             --allowed_scopes "openid profile email offline_access"
           logout_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/callback"
+          backchannel_logout_uri="https://localhost.emobix.co.uk:8443/test/a/${CONFORMANCE_ALIAS}-logout/backchannel_logout"
           php occ oidc:create "OIDC Conformance Logout" "${logout_callback}" \
             --client_id "${OIDC_LOGOUT_CLIENT_ID}" \
             --client_secret "${OIDC_LOGOUT_CLIENT_SECRET}" \
             --type confidential \
             --flow "code id_token" \
-            --allowed_scopes "openid profile email offline_access"
+            --allowed_scopes "openid profile email offline_access" \
+            --backchannel_logout_uri "${backchannel_logout_uri}" \
+            --backchannel_logout_session_required
           php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/post_logout_redirect"
           hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
           php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
@@ -213,6 +218,7 @@ jobs:
       - name: Build and start OpenID conformance suite
         run: |
           sudo sh -c 'echo "127.0.0.1 nginx" >> /etc/hosts'
+          sudo sh -c 'echo "127.0.0.1 localhost.emobix.co.uk" >> /etc/hosts'
           sudo sh -c 'echo "127.0.0.1 oidcc-provider" >> /etc/hosts'
           sudo sh -c 'echo "127.0.0.1 chrome" >> /etc/hosts'
           cd conformance-suite
@@ -243,6 +249,35 @@ jobs:
             -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
             logs server nginx chrome
           exit 1
+
+      - name: Trust OpenID conformance suite TLS certificate in Nextcloud
+        run: |
+          rm -f /tmp/openid-conformance-*.crt
+          openssl s_client \
+            -connect localhost.emobix.co.uk:8443 \
+            -servername localhost.emobix.co.uk \
+            -showcerts </dev/null 2>/dev/null | \
+            awk '
+              /-----BEGIN CERTIFICATE-----/ {
+                cert++;
+                file=sprintf("/tmp/openid-conformance-%02d.crt", cert);
+                in_cert=1
+              }
+              in_cert { print > file }
+              /-----END CERTIFICATE-----/ {
+                in_cert=0;
+                close(file)
+              }
+            '
+          test -s /tmp/openid-conformance-01.crt
+          cd nextcloud
+          for certificate in /tmp/openid-conformance-*.crt; do
+            php occ security:certificates:import "${certificate}"
+          done
+          php occ security:certificates:export > /tmp/nextcloud-ca-bundle.crt
+          curl --fail --silent --show-error \
+            --cacert /tmp/nextcloud-ca-bundle.crt \
+            https://localhost.emobix.co.uk:8443/api/runner/available > /dev/null
 
       - name: Install conformance runner dependencies
         run: python3 -m pip install --user httpx pyparsing selenium
@@ -444,6 +479,11 @@ jobs:
             "oidcc-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
             ../conformance-config/oidc-logout-config.json \
             "../conformance-results/oidcc-rp-initiated-logout-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
+            ../conformance-config/oidc-logout-config.json \
+            "../conformance-results/oidcc-backchannel-rp-initiated-logout-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT
