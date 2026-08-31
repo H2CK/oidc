@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.0] - 2026-08-31
+
+### Added
+
+- Support for RFC 8693 Token Exchange ([#689](https://github.com/H2CK/oidc/pull/689))
+
+### Changed
+
+- Updated dependencies
+- Updated translations
+
 ## [2.0.9] - 2026-08-20
 
 ### Changed
