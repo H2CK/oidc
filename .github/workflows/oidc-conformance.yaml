@@ -252,32 +252,71 @@ jobs:
 
       - name: Trust OpenID conformance suite TLS certificate in Nextcloud
         run: |
-          rm -f /tmp/openid-conformance-*.crt
-          openssl s_client \
-            -connect localhost.emobix.co.uk:8443 \
-            -servername localhost.emobix.co.uk \
-            -showcerts </dev/null 2>/dev/null | \
-            awk '
-              /-----BEGIN CERTIFICATE-----/ {
-                cert++;
-                file=sprintf("/tmp/openid-conformance-%02d.crt", cert);
-                in_cert=1
-              }
-              in_cert { print > file }
-              /-----END CERTIFICATE-----/ {
-                in_cert=0;
-                close(file)
-              }
-            '
-          test -s /tmp/openid-conformance-01.crt
-          cd nextcloud
-          for certificate in /tmp/openid-conformance-*.crt; do
-            php occ security:certificates:import "${certificate}"
+          set -euo pipefail
+          : > conformance-tls.log
+          rm -f /tmp/openid-conformance-*.crt /tmp/openid-conformance-chain.pem
+
+          # Connect to the published nginx port directly. The SNI name is still
+          # localhost.emobix.co.uk so the certificate returned is the one used by
+          # the conformance-suite endpoint, but certificate collection no longer
+          # depends on host/DNS resolution on the GitHub runner.
+          for attempt in $(seq 1 30); do
+            openssl s_client \
+              -connect 127.0.0.1:8443 \
+              -servername localhost.emobix.co.uk \
+              -showcerts </dev/null \
+              > /tmp/openid-conformance-chain.pem \
+              2>> conformance-tls.log || true
+            if grep -q -- '-----BEGIN CERTIFICATE-----' /tmp/openid-conformance-chain.pem; then
+              break
+            fi
+            echo "Waiting for conformance-suite TLS endpoint (${attempt}/30)" | tee -a conformance-tls.log
+            sleep 2
           done
-          php occ security:certificates:export > /tmp/nextcloud-ca-bundle.crt
-          curl --fail --silent --show-error \
+
+          if ! grep -q -- '-----BEGIN CERTIFICATE-----' /tmp/openid-conformance-chain.pem; then
+            echo "Unable to retrieve the conformance-suite TLS certificate chain" | tee -a conformance-tls.log >&2
+            exit 1
+          fi
+
+          awk '
+            /-----BEGIN CERTIFICATE-----/ {
+              cert++;
+              file=sprintf("/tmp/openid-conformance-%02d.crt", cert);
+              in_cert=1
+            }
+            in_cert { print > file }
+            /-----END CERTIFICATE-----/ {
+              in_cert=0;
+              close(file)
+            }
+          ' /tmp/openid-conformance-chain.pem
+          test -s /tmp/openid-conformance-01.crt
+
+          for certificate in /tmp/openid-conformance-*.crt; do
+            echo "Importing ${certificate} into the Nextcloud trust store" | tee -a conformance-tls.log
+            openssl x509 -in "${certificate}" -noout -subject -issuer -dates \
+              2>&1 | tee -a conformance-tls.log
+            (cd nextcloud && php occ security:certificates:import "${certificate}") \
+              2>&1 | tee -a conformance-tls.log
+          done
+
+          (cd nextcloud && php occ security:certificates:export) > /tmp/nextcloud-ca-bundle.crt
+
+          # This is a diagnostic check only. The real Back-Channel Logout call is
+          # made by Nextcloud's HTTP client, which uses Nextcloud's certificate
+          # store. A curl/OpenSSL trust-chain difference must therefore not stop
+          # the conformance plans before they even start.
+          if curl --fail --silent --show-error \
+            --resolve localhost.emobix.co.uk:8443:127.0.0.1 \
             --cacert /tmp/nextcloud-ca-bundle.crt \
-            https://localhost.emobix.co.uk:8443/api/runner/available > /dev/null
+            https://localhost.emobix.co.uk:8443/api/runner/available \
+            > /dev/null 2>> conformance-tls.log; then
+            echo "Conformance-suite TLS preflight succeeded" | tee -a conformance-tls.log
+          else
+            echo "WARNING: curl TLS preflight failed; continuing with the actual Nextcloud Back-Channel Logout test" \
+              | tee -a conformance-tls.log
+          fi
 
       - name: Install conformance runner dependencies
         run: python3 -m pip install --user httpx pyparsing selenium
@@ -508,6 +547,20 @@ jobs:
             echo "Conformance suite exited with ${test_plan_status}, but exported results contain only non-blocking WARNING/REVIEW outcomes."
           fi
 
+      - name: Collect conformance diagnostics
+        if: always()
+        run: |
+          if [ -d conformance-suite ]; then
+            (
+              cd conformance-suite
+              docker compose \
+                -f docker-compose-localtest.yml \
+                -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
+                -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
+                logs --no-color server nginx chrome nextcloud-proxy
+            ) > conformance-suite.log 2>&1 || true
+          fi
+
       - name: Generate conformance report
         if: always()
         run: |
@@ -526,4 +579,6 @@ jobs:
             conformance-results
             conformance-runner.log
             conformance-browser.log
+            conformance-tls.log
+            conformance-suite.log
             nextcloud-server.log
