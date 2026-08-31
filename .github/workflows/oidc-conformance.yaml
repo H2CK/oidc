@@ -161,7 +161,7 @@ jobs:
             --flow code \
             --allowed_scopes "openid profile email offline_access"
           logout_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/callback"
-          backchannel_logout_uri="https://localhost.emobix.co.uk:8443/test/a/${CONFORMANCE_ALIAS}-logout/backchannel_logout"
+          backchannel_logout_uri="https://localhost:8443/test/a/${CONFORMANCE_ALIAS}-logout/backchannel_logout"
           php occ oidc:create "OIDC Conformance Logout" "${logout_callback}" \
             --client_id "${OIDC_LOGOUT_CLIENT_ID}" \
             --client_secret "${OIDC_LOGOUT_CLIENT_SECRET}" \
@@ -218,7 +218,6 @@ jobs:
       - name: Build and start OpenID conformance suite
         run: |
           sudo sh -c 'echo "127.0.0.1 nginx" >> /etc/hosts'
-          sudo sh -c 'echo "127.0.0.1 localhost.emobix.co.uk" >> /etc/hosts'
           sudo sh -c 'echo "127.0.0.1 oidcc-provider" >> /etc/hosts'
           sudo sh -c 'echo "127.0.0.1 chrome" >> /etc/hosts'
           cd conformance-suite
@@ -256,14 +255,13 @@ jobs:
           : > conformance-tls.log
           rm -f /tmp/openid-conformance-*.crt /tmp/openid-conformance-chain.pem
 
-          # Connect to the published nginx port directly. The SNI name is still
-          # localhost.emobix.co.uk so the certificate returned is the one used by
-          # the conformance-suite endpoint, but certificate collection no longer
-          # depends on host/DNS resolution on the GitHub runner.
+          # Connect to the published nginx port using the hostname covered by
+          # the conformance-suite TLS certificate. The Back-Channel Logout URI
+          # uses the same localhost hostname, avoiding a TLS hostname mismatch.
           for attempt in $(seq 1 30); do
             openssl s_client \
               -connect 127.0.0.1:8443 \
-              -servername localhost.emobix.co.uk \
+              -servername localhost \
               -showcerts </dev/null \
               > /tmp/openid-conformance-chain.pem \
               2>> conformance-tls.log || true
@@ -308,9 +306,8 @@ jobs:
           # store. A curl/OpenSSL trust-chain difference must therefore not stop
           # the conformance plans before they even start.
           if curl --fail --silent --show-error \
-            --resolve localhost.emobix.co.uk:8443:127.0.0.1 \
             --cacert /tmp/nextcloud-ca-bundle.crt \
-            https://localhost.emobix.co.uk:8443/api/runner/available \
+            https://localhost:8443/api/runner/available \
             > /dev/null 2>> conformance-tls.log; then
             echo "Conformance-suite TLS preflight succeeded" | tee -a conformance-tls.log
           else
