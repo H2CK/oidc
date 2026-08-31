@@ -111,9 +111,9 @@ $ php occ
   oidc:create                            Create oidc client
   oidc:list                              List oidc clients
   oidc:remove                            Remove an oidc client
-  oidc:create-logout-redirect-uri         Create an accepted OIDC logout redirect URI
-  oidc:list-logout-redirect-uri           List accepted OIDC logout redirect URIs
-  oidc:remove-logout-redirect-uri         Remove an accepted OIDC logout redirect URI
+  oidc:create-logout-redirect-uri        Create an accepted OIDC logout redirect URI
+  oidc:list-logout-redirect-uri          List accepted OIDC logout redirect URIs
+  oidc:remove-logout-redirect-uri        Remove an accepted OIDC logout redirect URI
   oidc:create-claim                      Create a custom claim for a client
   oidc:list-claim                        List custom claims
   oidc:remove-claim                      Remove a custom claim
