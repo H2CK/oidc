@@ -93,7 +93,7 @@
     "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "URL de recurso (RFC 9728) para autorização de introspecção de token. Clientes com este URL podem introspectar tokens emitidos para este recurso.",
     "Enable Token Exchange according to RFC 8693" : "Ativar a troca de tokens de acordo com a RFC 8693",
     "Clients whose access tokens may be used as Token Exchange subject tokens." : "Clientes cujos tokens de acesso podem ser utilizados como tokens-sujeito da troca de tokens.",
-    "Allowed Token Exchange subject clients" : "Clientes-sujeitos para a troca de tokens permitidos",
+    "Allowed Token Exchange subject clients" : "Clientes-sujeito para a troca de tokens permitidos",
     "Token Exchange Allowed Scopes according to RFC 8693" : "Escopos permitidos para a troca de tokens de acordo com a RFC 8693",
     "Scopes allowed during Token Exchange. Separate scopes with spaces." : "Escopos permitidos durante a troca de tokens. Separe os escopos com espaços.",
     "Token Exchange Targets according to RFC 8693" : "Destinos de troca de tokens de acordo com a RFC 8693",
