@@ -980,6 +980,45 @@ class JwtGeneratorTest extends TestCase {
         $this->assertArrayHasKey('http://schemas.openid.net/event/backchannel-logout', $payload['events']);
     }
 
+    public function testBackChannelLogoutTokenFailsClosedForUnsupportedSigningAlgorithm(): void
+    {
+        $client = new Client('Back-channel RP', [], 'RS256', 'confidential');
+        $client->setClientIdentifier('backchannel-client');
+        // Client::__construct() historically normalizes non-RS256 values to HS256.
+        // Simulate an invalid value loaded from persisted state explicitly.
+        $client->setSigningAlg('ES256');
+        $this->urlGenerator->method('getWebroot')->willReturn('/nextcloud');
+
+        $this->expectException(JwtCreationErrorException::class);
+        $this->expectExceptionMessage('Only RS256 and HS256 are supported');
+
+        $this->generator->generateLogoutToken(
+            $client,
+            'test-user',
+            'session-id-123',
+            'https',
+            'cloud.example.com'
+        );
+    }
+
+    public function testBackChannelLogoutTokenWithMissingHs256SecretFailsWithJwtCreationError(): void
+    {
+        $client = new Client('Back-channel RP', [], 'HS256', 'confidential');
+        $client->setClientIdentifier('backchannel-client');
+        $this->urlGenerator->method('getWebroot')->willReturn('/nextcloud');
+
+        $this->expectException(JwtCreationErrorException::class);
+        $this->expectExceptionMessage('HS256 signing requires a non-empty client secret');
+
+        $this->generator->generateLogoutToken(
+            $client,
+            'test-user',
+            'session-id-123',
+            'https',
+            'cloud.example.com'
+        );
+    }
+
     private function decodeJwtPart(string $part): array
     {
         $value = strtr($part, '-_', '+/');

@@ -647,6 +647,19 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals('opaque', $this->client->getTokenType(), 'TokenType does not match!');
     }
 
+    public function testUpdateClientConfigurationRejectsUnsupportedSigningAlgorithm(): void {
+        $client = new Client('TEST', ['https://local.lo'], 'RS256', 'confidential');
+        $client->setId(1);
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->request->method('getParams')->willReturn(['signingAlg' => 'ES256']);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('RS256', $client->getSigningAlg());
+    }
+
     public function testRejectsTokenExchangeTargetWithFragment(): void {
         $client = new Client('TEST', ['https://local.lo'], 'RS256', 'confidential');
         $client->setId(1);

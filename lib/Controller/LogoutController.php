@@ -426,7 +426,7 @@ class LogoutController extends ApiController {
         if (!empty($post_logout_redirect_uri)) {
             // The hint has been cryptographically validated and bound to a
             // registered RP above. Redirect URI matching remains exact.
-            foreach ($this->logoutRedirectUriMapper->getAll() as $logoutRedirectUri) {
+            foreach ($this->logoutRedirectUriMapper->getEffectiveByClientId($client->getId()) as $logoutRedirectUri) {
                 if ($post_logout_redirect_uri === $logoutRedirectUri->getRedirectUri()) {
                     return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
                 }

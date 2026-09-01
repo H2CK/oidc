@@ -218,6 +218,43 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertSame('invalid_client_metadata', $result->getData()['error']);
     }
 
+    public function testDynamicRegistrationRejectsUnsupportedIdTokenSigningAlgorithm(): void {
+        $this->appConfig->method('getAppValueString')->willReturn('true');
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->registerClient(
+            redirect_uris: ['https://rp.example/callback'],
+            id_token_signed_response_alg: 'ES256',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsUnsupportedIdTokenSigningAlgorithm(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            id_token_signed_response_alg: 'none',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+        $this->assertSame('RS256', $client->getSigningAlg());
+    }
+
     public function testMaxNumClientsExceeded() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig

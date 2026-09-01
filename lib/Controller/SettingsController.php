@@ -127,6 +127,10 @@ class SettingsController extends Controller
     {
         $this->logger->debug("Adding client " . $name. " with Redirect URI " .$redirectUri);
 
+        if (!in_array($signingAlg, ['RS256', 'HS256'], true)) {
+            return new JSONResponse(['error' => 'Only RS256 and HS256 are supported signing algorithms.'], Http::STATUS_BAD_REQUEST);
+        }
+
         try {
             if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
                 return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
@@ -192,6 +196,13 @@ class SettingsController extends Controller
             'id' => $client->getId(),
             'name' => $client->getName(),
             'redirectUris' => $resultRedirectUris,
+            'postLogoutRedirectUris' => array_map(
+                static fn (LogoutRedirectUri $entry): array => [
+                    'id' => $entry->getId(),
+                    'redirectUri' => $entry->getRedirectUri(),
+                ],
+                $this->logoutRedirectUriMapper->getByClientId($client->getId())
+            ),
             'clientId' => $client->getClientIdentifier(),
             'clientSecret' => $client->getSecret(),
             'signingAlg' => $client->getSigningAlg(),
@@ -235,7 +246,11 @@ class SettingsController extends Controller
             $client->setName(trim((string)$params['name']));
         }
         if (array_key_exists('signingAlg', $params)) {
-            $client->setSigningAlg($params['signingAlg'] === 'RS256' ? 'RS256' : 'HS256');
+            $signingAlg = (string)$params['signingAlg'];
+            if (!in_array($signingAlg, ['RS256', 'HS256'], true)) {
+                return new JSONResponse(['error' => 'Only RS256 and HS256 are supported signing algorithms.'], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setSigningAlg($signingAlg);
         }
         if (array_key_exists('type', $params)) {
             $client->setType($params['type'] === 'public' ? 'public' : 'confidential');
@@ -521,6 +536,13 @@ class SettingsController extends Controller
                 'id' => $client->getId(),
                 'name' => $client->getName(),
                 'redirectUris' => $resultRedirectUris,
+                'postLogoutRedirectUris' => array_map(
+                    static fn (LogoutRedirectUri $entry): array => [
+                        'id' => $entry->getId(),
+                        'redirectUri' => $entry->getRedirectUri(),
+                    ],
+                    $this->logoutRedirectUriMapper->getByClientId($client->getId())
+                ),
                 'clientId' => $client->getClientIdentifier(),
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
@@ -588,6 +610,7 @@ class SettingsController extends Controller
         $this->accessTokenMapper->deleteByClientId($id);
         $this->redirectUriMapper->deleteByClientId($id);
         $this->groupMapper->deleteByClientId($id);
+        $this->logoutRedirectUriMapper->deleteByClientId($id);
         $this->clientMapper->delete($client);
         return new JSONResponse([]);
     }
@@ -640,6 +663,13 @@ class SettingsController extends Controller
                 'id' => $client->getId(),
                 'name' => $client->getName(),
                 'redirectUris' => $resultRedirectUris,
+                'postLogoutRedirectUris' => array_map(
+                    static fn (LogoutRedirectUri $entry): array => [
+                        'id' => $entry->getId(),
+                        'redirectUri' => $entry->getRedirectUri(),
+                    ],
+                    $this->logoutRedirectUriMapper->getByClientId($client->getId())
+                ),
                 'clientId' => $client->getClientIdentifier(),
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
@@ -695,6 +725,13 @@ class SettingsController extends Controller
                 'id' => $client->getId(),
                 'name' => $client->getName(),
                 'redirectUris' => $resultRedirectUris,
+                'postLogoutRedirectUris' => array_map(
+                    static fn (LogoutRedirectUri $entry): array => [
+                        'id' => $entry->getId(),
+                        'redirectUri' => $entry->getRedirectUri(),
+                    ],
+                    $this->logoutRedirectUriMapper->getByClientId($client->getId())
+                ),
                 'clientId' => $client->getClientIdentifier(),
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
@@ -713,44 +750,64 @@ class SettingsController extends Controller
         return new JSONResponse($result);
     }
 
-    public function addLogoutRedirectUri(
-                    string $redirectUri
-                    ): JSONResponse
+    public function addLogoutRedirectUri(string $redirectUri, ?int $clientId = null): JSONResponse
     {
-        $this->logger->debug("Adding Logout Redirect URI " . $redirectUri);
+        $redirectUri = trim($redirectUri);
+        $this->logger->debug('Adding Logout Redirect URI ' . $redirectUri . ($clientId === null ? ' globally' : ' for client ' . $clientId));
 
-        $logoutRedirectUriObj = new LogoutRedirectUri();
-        $logoutRedirectUriObj->setRedirectUri(trim($redirectUri));
-        $logoutRedirectUriObj = $this->logoutRedirectUriMapper->insert($logoutRedirectUriObj);
-
-        $logoutRedirectUrisResult = [];
-        $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
-        foreach ($logoutRedirectUris as $logoutRedirectUri) {
-            $logoutRedirectUrisResult[] = [
-                'id' => $logoutRedirectUri->getId(),
-                'redirectUri' => $logoutRedirectUri->getRedirectUri(),
-            ];
+        try {
+            if (!$this->redirectUriService->isValidRedirectUri(
+                $redirectUri,
+                $this->appConfig->getAppValueString(
+                    Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS,
+                    Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS
+                ) === 'true'
+            )) {
+                return new JSONResponse(['error' => 'Invalid post logout redirect URI.'], Http::STATUS_BAD_REQUEST);
+            }
+        } catch (RedirectUriValidationException $e) {
+            return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
         }
-        return new JSONResponse($logoutRedirectUrisResult);
+
+        if ($clientId !== null) {
+            try {
+                $this->clientMapper->getByUid($clientId);
+            } catch (\Exception $e) {
+                return new JSONResponse(['error' => 'Unknown client.'], Http::STATUS_BAD_REQUEST);
+            }
+        }
+
+        $entry = new LogoutRedirectUri();
+        $entry->setRedirectUri($redirectUri);
+        if ($clientId !== null) {
+            $entry->setClientId($clientId);
+        }
+        $this->logoutRedirectUriMapper->insert($entry);
+        return new JSONResponse($this->serializeLogoutRedirectUris($clientId));
     }
 
-    public function deleteLogoutRedirectUri(
-                    int $id
-                    ): JSONResponse
+    public function deleteLogoutRedirectUri(int $id): JSONResponse
     {
-        $this->logger->debug("Deleting Logout Redirect URI with id " . $id);
-
-        $this->logoutRedirectUriMapper->deleteOneById($id);
-
-        $result = [];
-        $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
-        foreach ($logoutRedirectUris as $logoutRedirectUri) {
-            $result[] = [
-                'id' => $logoutRedirectUri->getId(),
-                'redirectUri' => $logoutRedirectUri->getRedirectUri(),
-            ];
+        $this->logger->debug('Deleting Logout Redirect URI with id ' . $id);
+        try {
+            $entry = $this->logoutRedirectUriMapper->getById($id);
+        } catch (\Exception $e) {
+            return new JSONResponse(['error' => 'Logout redirect URI not found.'], Http::STATUS_NOT_FOUND);
         }
-        return new JSONResponse($result);
+        $clientId = $entry->getClientId();
+        $this->logoutRedirectUriMapper->deleteOneById($id);
+        return new JSONResponse($this->serializeLogoutRedirectUris($clientId));
+    }
+
+    /** @return array<int, array{id:int, redirectUri:string}> */
+    private function serializeLogoutRedirectUris(?int $clientId): array {
+        $entries = $clientId === null
+            ? $this->logoutRedirectUriMapper->getGlobal()
+            : $this->logoutRedirectUriMapper->getByClientId($clientId);
+        return array_map(static fn (LogoutRedirectUri $entry): array => [
+            'id' => $entry->getId(),
+            'redirectUri' => $entry->getRedirectUri(),
+        ], $entries);
     }
 
     public function setTokenExpireTime(

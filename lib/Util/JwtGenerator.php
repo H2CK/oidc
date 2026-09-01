@@ -448,17 +448,20 @@ class JwtGenerator
         $base64UrlHeader = '';
         $base64UrlSignature = '';
 
-        $signing_alg = $client->getSigningAlg(); // HS256 or RS256
+        $signing_alg = $this->getSupportedSigningAlgorithm($client); // HS256 or RS256
         if ($signing_alg === 'HS256') {
             $header = json_encode(['typ' => 'JWT', 'alg' => $signing_alg]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-            $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $client->getSecret(), true);
+            $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $this->getHmacSigningSecret($client), true);
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         } else {
             $kid = $this->appConfig->getAppValueString('kid');
             $header = json_encode(['typ' => 'JWT', 'alg' => 'RS256', 'kid' => $kid]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption');
+            $signature = '';
+            if (!openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption')) {
+                throw new JwtCreationErrorException('Could not sign JWT with RS256.');
+            }
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         }
 
@@ -497,7 +500,7 @@ class JwtGenerator
         }
 
         $base64UrlPayload = $this->base64UrlEncode($encodedPayload);
-        $signingAlg = $client->getSigningAlg();
+        $signingAlg = $this->getSupportedSigningAlgorithm($client);
 
         if ($signingAlg === 'HS256') {
             $header = json_encode(['typ' => 'logout+jwt', 'alg' => 'HS256']);
@@ -505,7 +508,7 @@ class JwtGenerator
                 throw new JwtCreationErrorException('Could not encode Back-Channel Logout Token header.');
             }
             $base64UrlHeader = $this->base64UrlEncode($header);
-            $signature = hash_hmac('sha256', $base64UrlHeader . '.' . $base64UrlPayload, $client->getSecret(), true);
+            $signature = hash_hmac('sha256', $base64UrlHeader . '.' . $base64UrlPayload, $this->getHmacSigningSecret($client), true);
         } else {
             $kid = $this->appConfig->getAppValueString('kid');
             $header = json_encode(['typ' => 'logout+jwt', 'alg' => 'RS256', 'kid' => $kid]);
@@ -527,15 +530,40 @@ class JwtGenerator
         return $base64UrlHeader . '.' . $base64UrlPayload . '.' . $this->base64UrlEncode($signature);
     }
 
+    private function getSupportedSigningAlgorithm(Client $client): string
+    {
+        $signingAlg = $client->getSigningAlg();
+        if (!in_array($signingAlg, ['RS256', 'HS256'], true)) {
+            $this->logger->error('Unsupported signing algorithm configured for OIDC client.', [
+                'client_id' => $client->getClientIdentifier(),
+                'signing_alg' => $signingAlg,
+            ]);
+            throw new JwtCreationErrorException('Unsupported signing algorithm configured for client. Only RS256 and HS256 are supported.');
+        }
+        return $signingAlg;
+    }
+
+    /**
+     * Return the configured HS256 key or fail with the app-specific JWT error.
+     * This avoids leaking a PHP TypeError when persisted client state is incomplete.
+     *
+     * @throws JwtCreationErrorException
+     */
+    private function getHmacSigningSecret(Client $client): string
+    {
+        $secret = $client->getSecret();
+        if (!is_string($secret) || $secret === '') {
+            throw new JwtCreationErrorException('HS256 signing requires a non-empty client secret.');
+        }
+        return $secret;
+    }
+
     private function generateIdTokenHash(string $value, string $signingAlg): string
     {
-        $hashAlgorithm = match (substr(strtoupper($signingAlg), -3)) {
-            '384' => 'sha384',
-            '512' => 'sha512',
-            default => 'sha256',
-        };
-
-        $hash = hash($hashAlgorithm, $value, true);
+        if (!in_array($signingAlg, ['RS256', 'HS256'], true)) {
+            throw new JwtCreationErrorException('Unsupported signing algorithm configured for token hash generation.');
+        }
+        $hash = hash('sha256', $value, true);
         return $this->base64UrlEncode(substr($hash, 0, intdiv(strlen($hash), 2)));
     }
 
@@ -768,17 +796,20 @@ class JwtGenerator
         $base64UrlHeader = '';
         $base64UrlSignature = '';
 
-        $signing_alg = $client->getSigningAlg(); // HS256 or RS256
+        $signing_alg = $this->getSupportedSigningAlgorithm($client); // HS256 or RS256
         if ($signing_alg === 'HS256') {
             $header = json_encode(['typ' => 'at+JWT', 'alg' => $signing_alg]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-            $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $client->getSecret(), true);
+            $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $this->getHmacSigningSecret($client), true);
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         } else {
             $kid = $this->appConfig->getAppValueString('kid');
             $header = json_encode(['typ' => 'at+JWT', 'alg' => 'RS256', 'kid' => $kid]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-            openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption');
+            $signature = '';
+            if (!openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption')) {
+                throw new JwtCreationErrorException('Could not sign JWT with RS256.');
+            }
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         }
 

@@ -147,6 +147,13 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        if (!in_array($id_token_signed_response_alg, ['RS256', 'HS256'], true)) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'Only RS256 and HS256 are supported for id_token_signed_response_alg.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
         if ($application_type == 'native') {
             $application_type = 'native';
         } else {
@@ -510,6 +517,12 @@ class DynamicRegistrationController extends ApiController
         }
 
         if ($id_token_signed_response_alg !== null) {
+            if (!in_array($id_token_signed_response_alg, ['RS256', 'HS256'], true)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'Only RS256 and HS256 are supported for id_token_signed_response_alg.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
             $client->setSigningAlg($id_token_signed_response_alg);
         }
 

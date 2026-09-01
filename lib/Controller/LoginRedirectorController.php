@@ -157,6 +157,58 @@ class LoginRedirectorController extends ApiController
         $this->logger = $logger;
     }
 
+
+    private function forceOidcReauthentication(
+        string $clientId,
+        ?string $state,
+        string $responseType,
+        ?string $redirectUri,
+        ?string $scope,
+        ?string $nonce,
+        ?string $resource,
+        ?string $codeChallenge,
+        ?string $codeChallengeMethod,
+        ?string $prompt,
+        ?string $maxAge,
+        ?string $responseMode,
+        ?string $claims,
+        string $logMessage,
+    ): RedirectResponse {
+        $currentUser = $this->userSession->getUser();
+        if ($currentUser === null) {
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $clientId, $state, $responseType, $redirectUri, $scope, $nonce, $resource,
+                $codeChallenge, $codeChallengeMethod, $prompt, $maxAge, $responseMode, $claims, $logMessage
+            );
+        }
+
+        $reauthenticationState = $this->backChannelLogoutService->prepareReauthentication($currentUser->getUID());
+        try {
+            $this->userSession->logout();
+        } catch (\Throwable $e) {
+            $this->backChannelLogoutService->cancelReauthentication();
+            throw $e;
+        }
+        $this->backChannelLogoutService->storePendingReauthentication($reauthenticationState);
+
+        return $this->redirectToLoginAfterOidcAuthentication(
+            $clientId,
+            $state,
+            $responseType,
+            $redirectUri,
+            $scope,
+            $nonce,
+            $resource,
+            $codeChallenge,
+            $codeChallengeMethod,
+            $prompt,
+            $maxAge,
+            $responseMode,
+            $claims,
+            $logMessage,
+        );
+    }
+
     /**
      * @PublicPage
      * @NoCSRFRequired
@@ -480,9 +532,8 @@ class LoginRedirectorController extends ApiController
         }
 
         if ($this->promptContains($prompt, 'login') && !$oidcLoginPending) {
-            $this->logger->debug('prompt=login requested for client ' . $client_id . '. Forcing reauthentication.');
-            $this->userSession->logout();
-            return $this->redirectToLoginAfterOidcAuthentication(
+            $this->logger->debug('prompt=login requested for client ' . $client_id . '. Forcing reauthentication without RP logout.');
+            return $this->forceOidcReauthentication(
                 $client_id,
                 $state,
                 $response_type,
@@ -513,9 +564,8 @@ class LoginRedirectorController extends ApiController
                 );
             }
 
-            $this->logger->debug('max_age is exceeded for client ' . $client_id . '. Forcing reauthentication.');
-            $this->userSession->logout();
-            return $this->redirectToLoginAfterOidcAuthentication(
+            $this->logger->debug('max_age is exceeded for client ' . $client_id . '. Forcing reauthentication without RP logout.');
+            return $this->forceOidcReauthentication(
                 $client_id,
                 $state,
                 $response_type,
@@ -531,6 +581,11 @@ class LoginRedirectorController extends ApiController
                 $claims,
                 'Redirect to login for max_age reauthentication for client ' . $client_id . '.'
             );
+        }
+
+        $reauthenticatedUser = $this->userSession->getUser();
+        if ($reauthenticatedUser !== null) {
+            $this->backChannelLogoutService->resumeAfterReauthentication($reauthenticatedUser->getUID());
         }
 
         // Check if user is in allowed groups for client

@@ -468,6 +468,50 @@ class BackChannelLogoutServiceTest extends TestCase {
         ];
     }
 
+    public function testReauthenticationPreservesRpSidStateAndSuppressesFanout(): void {
+        $state = ['oidc_backchannel_sessions_v2' => ['7' => 'sid-7']];
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(static function (string $key) use (&$state) { return $state[$key] ?? null; });
+        $session->method('set')->willReturnCallback(static function (string $key, mixed $value) use (&$state): void {
+            $state[$key] = $value;
+        });
+        $session->method('remove')->willReturnCallback(static function (string $key) use (&$state): void {
+            unset($state[$key]);
+        });
+
+        $service = $this->newService($session);
+        $snapshot = $service->prepareReauthentication('user-1');
+        $this->assertSame(['user_id' => 'user-1', 'sessions' => ['7' => 'sid-7']], $snapshot);
+
+        // Listener invocation during IUserSession::logout() must not fan out.
+        $service->logout('user-1');
+        $this->assertSame(['7' => 'sid-7'], $state['oidc_backchannel_sessions_v2']);
+
+        // Simulate Nextcloud clearing the PHP session. Keep only pending state;
+        // the active sid map is restored only after the same user authenticates.
+        $state = [];
+        $service->storePendingReauthentication($snapshot);
+        $this->assertArrayNotHasKey('oidc_backchannel_sessions_v2', $state);
+        $service->resumeAfterReauthentication('user-1');
+        $this->assertSame(['7' => 'sid-7'], $state['oidc_backchannel_sessions_v2']);
+        $this->assertArrayNotHasKey('oidc_backchannel_reauthentication_pending', $state);
+    }
+
+    public function testReauthenticationStateIsDiscardedWhenUserChanges(): void {
+        $state = [];
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(static function (string $key) use (&$state) { return $state[$key] ?? null; });
+        $session->method('set')->willReturnCallback(static function (string $key, mixed $value) use (&$state): void { $state[$key] = $value; });
+        $session->method('remove')->willReturnCallback(static function (string $key) use (&$state): void { unset($state[$key]); });
+        $service = $this->newService($session);
+
+        $service->storePendingReauthentication(['user_id' => 'user-1', 'sessions' => ['7' => 'sid-7']]);
+        $service->resumeAfterReauthentication('user-2');
+
+        $this->assertArrayNotHasKey('oidc_backchannel_sessions_v2', $state);
+        $this->assertArrayNotHasKey('oidc_backchannel_reauthentication_pending', $state);
+    }
+
     public static function dynamicUriPolicyProvider(): array {
         return [
             'public IPv4 accepted' => ['https://8.8.8.8/logout', true],

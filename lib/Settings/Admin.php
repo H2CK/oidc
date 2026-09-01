@@ -97,6 +97,13 @@ class Admin implements ISettings {
                     'redirect_uri' => $redirectUri->getRedirectUri(),
                 ];
             }
+            $postLogoutRedirectUris = array_map(
+                static fn ($entry): array => [
+                    'id' => $entry->getId(),
+                    'redirectUri' => $entry->getRedirectUri(),
+                ],
+                $this->logoutRedirectUriMapper->getByClientId($client->getId())
+            );
             $groups = $this->groupMapper->getGroupsByClientId($client->getId());
             $resultGroups = [];
             foreach ($groups as $group) {
@@ -112,6 +119,7 @@ class Admin implements ISettings {
                 'id' => $client->getId(),
                 'name' => $client->getName(),
                 'redirectUris' => $resultRedirectUris,
+                'postLogoutRedirectUris' => $postLogoutRedirectUris,
                 'clientId' => $client->getClientIdentifier(),
                 'clientSecret' => $client->getSecret(),
                 'signingAlg' => $client->getSigningAlg(),
@@ -146,7 +154,7 @@ class Admin implements ISettings {
         }
 
         $logoutRedirectUrisResult = [];
-        $logoutRedirectUris = $this->logoutRedirectUriMapper->getAll();
+        $logoutRedirectUris = $this->logoutRedirectUriMapper->getGlobal();
         foreach ($logoutRedirectUris as $logoutRedirectUri) {
             $logoutRedirectUrisResult[] = [
                 'id' => $logoutRedirectUri->getId(),

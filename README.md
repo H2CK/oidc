@@ -51,6 +51,12 @@ More information on the compliance can be found in the [latest test run](https:/
 
 ## Attention - Potential Breaking Change
 
+### Version 2.2.0
+
+Version 2.2.0 hardens RP-Initiated Logout and Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
+
+The same migration extends accepted post-logout redirect URIs with an optional RP binding. Existing logout redirect URI rows remain global (`client_id = NULL`) and keep their historical behavior. An RP-specific list takes precedence when at least one URI is configured for that RP; the global list is used only when that RP has no RP-specific post-logout redirect URI configured.
+
 Version 2.0.0 tightens several behaviours to better match the OpenID Connect conformance suite. OIDC-compliant clients should continue to work, but clients that depend on legacy 1.x behaviour should be reviewed before upgrading.
 
 - **ID token claims in authorization code flow**: Profile, email, roles, groups, and custom claims are no longer added to the ID token only because their scopes were requested. In authorization code flow, these claims are returned by the UserInfo endpoint. If a relying party needs them directly in the ID token, it must request them explicitly with the OpenID Connect `claims` parameter, for example through `claims.id_token`. The `claims` parameter is part of the authorization request to `/index.php/apps/oidc/authorize`. It can be sent either in the authorization request URL for `GET` requests or in the form body for `POST` authorization requests. The value is a JSON object and must be URL-encoded when sent in the request URL or as form data.
@@ -170,10 +176,28 @@ An active Nextcloud session is terminated without additional interaction only wh
 
 For security, a `post_logout_redirect_uri` is used only when all of the following are true:
 
-- A valid `id_token_hint` is supplied.
-- The URI is an exact match for an accepted logout redirect URI configured in the app.
+- A valid `id_token_hint` is supplied and identifies the initiating RP.
+- The URI is an exact match for that RP's effective post-logout redirect URI allow-list.
 
-When accepted, `state` is appended to the redirect URI. Without an accepted post-logout redirect URI, the user is redirected to the Nextcloud login page. Accepted logout redirect URIs can be managed in the admin settings or with the `oidc:create-logout-redirect-uri`, `oidc:list-logout-redirect-uri`, and `oidc:remove-logout-redirect-uri` OCC commands.
+RP-specific post-logout redirect URIs can be configured in **Administration settings > OIDC > Edit client > Post Logout Redirect URIs**. If at least one RP-specific URI exists, only those URIs are accepted for that RP. If the RP has no RP-specific entries, the legacy **Global Accepted Logout Redirect URIs** list is used as a backward-compatible fallback. Existing global entries therefore continue to work after upgrading to 2.2.0.
+
+The same distinction is available through OCC. Omitting `--client-id` continues to operate on the global list:
+
+```bash
+# RP-specific
+occ oidc:create-logout-redirect-uri https://rp.example.com/logout/callback --client-id rp-client-id
+occ oidc:list-logout-redirect-uri --client-id rp-client-id
+occ oidc:remove-logout-redirect-uri https://rp.example.com/logout/callback --client-id rp-client-id
+
+# Legacy global fallback
+occ oidc:create-logout-redirect-uri https://legacy.example.com/logout/callback
+occ oidc:list-logout-redirect-uri
+occ oidc:remove-logout-redirect-uri https://legacy.example.com/logout/callback
+```
+
+When accepted, `state` is appended to the redirect URI. Without an accepted post-logout redirect URI, the user is redirected to the Nextcloud login page.
+
+OIDC reauthentication requests are intentionally different from logout. `prompt=login` and an exceeded `max_age` force the user through a fresh Nextcloud authentication flow, but they do not send Back-Channel Logout notifications, revoke other RP grants, or discard the existing RP-to-`sid` correlations. A real Nextcloud/RP-Initiated Logout continues to notify all participating RPs normally.
 
 ### Back-Channel Logout
 
@@ -225,9 +249,9 @@ The standard metadata can also be supplied through Dynamic Client Registration a
 }
 ```
 
-`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply.
+`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply. Dynamic registration and RFC 7592 updates accept only `RS256` and `HS256` for `id_token_signed_response_alg`; unsupported algorithms are rejected with `invalid_client_metadata`. Token generation also fails closed if an unsupported algorithm is nevertheless found in persisted client state.
 
-> **Upgrade note:** The migration introducing strict Back-Channel Logout session correlation deliberately invalidates all existing persisted OIDC authorization-code and access/refresh grant state. The in-browser Back-Channel Logout session key is versioned as well, so an existing `sid` is not silently reused. Existing RPs must perform a new OIDC authorization after the upgrade before refresh-token use or silent RP-Initiated Logout can continue. This is intentional: pre-upgrade RP sessions cannot be reconstructed reliably and must not be allowed to mint new ID Tokens without a `sid` bound to the current OP browser session. Already issued self-contained ID Tokens may remain cryptographically valid until their `exp`, but they cannot silently terminate an active OP session unless their `sid` matches newly registered session state; otherwise explicit user confirmation is required.
+> **Version 2.2.0 upgrade note:** Upgrading to 2.2.0 deliberately invalidates all existing persisted OIDC authorization-code and access/refresh grant state. Existing RPs must start a new OIDC authorization/login flow; pre-upgrade refresh tokens can no longer be used. This one-time reauthentication is required to establish fresh security state after the Back-Channel/RP-Initiated Logout hardening. Existing accepted logout redirect URIs are preserved as global fallback entries, while new RP-specific `post_logout_redirect_uri` entries can be configured per client. The in-browser Back-Channel Logout session key remains versioned so a pre-upgrade `sid` is not silently reused. Already issued self-contained ID Tokens may remain cryptographically valid until their `exp`, but they cannot silently terminate an active OP session unless their `sid` matches current session state; otherwise explicit user confirmation is required.
 
 There is currently NO support for:
 

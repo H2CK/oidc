@@ -266,6 +266,28 @@ class LogoutControllerTest extends TestCase {
         $this->assertSame('https://rp.example/logout?state=state+value', $result->getRedirectURL());
     }
 
+    public function testLogoutDoesNotUseGlobalUriWhenRpSpecificListExists(): void {
+        $userId = 'user1';
+        $clientId = 'client1';
+        $client = $this->newClient($clientId);
+        $idTokenHint = $this->createIdTokenHint(['sub' => $userId, 'aud' => $clientId]);
+
+        $specific = new LogoutRedirectUri();
+        $specific->setRedirectUri('https://rp.example/own-logout');
+        $this->logoutRedirectUriMapper->expects($this->once())
+            ->method('getEffectiveByClientId')
+            ->with(7)
+            ->willReturn([$specific]);
+        $this->userSession->method('isLoggedIn')->willReturn(false);
+        $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
+        $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+
+        $result = $this->controller->logout($clientId, $idTokenHint, 'https://global.example/logout');
+
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertSame('/login', $result->getRedirectURL());
+    }
+
     public function testHs256IdTokenHintUsesClientSecretAndCanLogoutCurrentSid(): void {
         $userId = 'user1';
         $clientId = 'client-hs';
@@ -366,7 +388,7 @@ class LogoutControllerTest extends TestCase {
     private function addRegisteredLogoutRedirectUri(string $uri): void {
         $logoutRedirectUri = new LogoutRedirectUri();
         $logoutRedirectUri->setRedirectUri($uri);
-        $this->logoutRedirectUriMapper->method('getAll')->willReturn([$logoutRedirectUri]);
+        $this->logoutRedirectUriMapper->method('getEffectiveByClientId')->with(7)->willReturn([$logoutRedirectUri]);
     }
 
     /** @param array<string, mixed> $claims */

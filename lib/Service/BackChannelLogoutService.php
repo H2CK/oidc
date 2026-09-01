@@ -29,6 +29,8 @@ class BackChannelLogoutService {
      */
     private const SESSION_KEY = 'oidc_backchannel_sessions_v2';
     private const LEGACY_SESSION_KEY = 'oidc_backchannel_sessions';
+    private const REAUTHENTICATION_SUPPRESS_KEY = 'oidc_backchannel_reauthentication_suppress';
+    private const REAUTHENTICATION_PENDING_KEY = 'oidc_backchannel_reauthentication_pending';
 
     /** Two retries after the initial request. */
     private const MAX_RETRY_ATTEMPTS = 2;
@@ -114,6 +116,58 @@ class BackChannelLogoutService {
             && hash_equals($currentSid, $sid);
     }
 
+
+    /**
+     * Prepare a local OP reauthentication without terminating RP sessions.
+     * The returned state is stored only after IUserSession::logout() has
+     * cleared the old Nextcloud session and is bound to the current user.
+     *
+     * @return array{user_id:string,sessions:array<string,string>}
+     */
+    public function prepareReauthentication(string $userId): array {
+        $sessions = $this->session->get(self::SESSION_KEY);
+        $this->session->set(self::REAUTHENTICATION_SUPPRESS_KEY, true);
+        return [
+            'user_id' => $userId,
+            'sessions' => is_array($sessions) ? $sessions : [],
+        ];
+    }
+
+    public function cancelReauthentication(): void {
+        $this->session->remove(self::REAUTHENTICATION_SUPPRESS_KEY);
+    }
+
+    /** @param array{user_id:string,sessions:array<string,string>} $state */
+    public function storePendingReauthentication(array $state): void {
+        $this->session->remove(self::REAUTHENTICATION_SUPPRESS_KEY);
+        $this->session->remove(self::LEGACY_SESSION_KEY);
+        $this->session->remove(self::SESSION_KEY);
+        $this->session->set(self::REAUTHENTICATION_PENDING_KEY, $state);
+    }
+
+    /**
+     * Restore RP/sid correlation only when the same user completed the fresh
+     * authentication. A different user must never inherit RP session state.
+     */
+    public function resumeAfterReauthentication(string $userId): void {
+        $pending = $this->session->get(self::REAUTHENTICATION_PENDING_KEY);
+        if (!is_array($pending)) {
+            return;
+        }
+        $this->session->remove(self::REAUTHENTICATION_PENDING_KEY);
+
+        $expectedUserId = $pending['user_id'] ?? null;
+        $sessions = $pending['sessions'] ?? null;
+        if (!is_string($expectedUserId) || !hash_equals($expectedUserId, $userId) || !is_array($sessions)) {
+            $this->logger->warning('Discarding OIDC reauthentication state because the authenticated user changed.');
+            return;
+        }
+
+        if ($sessions !== []) {
+            $this->session->set(self::SESSION_KEY, $sessions);
+        }
+    }
+
     /**
      * Send one Back-Channel Logout request to every participating RP that
      * currently has a backchannel_logout_uri configured.
@@ -123,6 +177,11 @@ class BackChannelLogoutService {
      * Token. A retry never runs inside the interactive logout request.
      */
     public function logout(?string $userId): void {
+        if ($this->session->get(self::REAUTHENTICATION_SUPPRESS_KEY) === true) {
+            $this->logger->debug('Skipping Back-Channel Logout for OIDC reauthentication.');
+            return;
+        }
+
         $this->session->remove(self::LEGACY_SESSION_KEY);
 
         $sessions = $this->session->get(self::SESSION_KEY);

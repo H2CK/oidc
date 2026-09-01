@@ -132,6 +132,30 @@
 								@click="addRedirectUri(editClient.id, editClient.addRedirectUri)" />
 						</div>
 					</NcFormGroup>
+					<NcFormGroup :label="t('oidc', 'Post Logout Redirect URIs')"
+						style="max-width: 100%; width: 740px;">
+						<p class="hint" style="margin-bottom: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+							{{ t('oidc', 'If no RP-specific URI is configured, the global accepted logout redirect URIs are used as a backward-compatible fallback.') }}
+						</p>
+						<div v-if="editClient.postLogoutRedirectUris.length > 0" :key="version">
+							<RedirectItem v-for="redirectUri in editClient.postLogoutRedirectUris"
+								:id="redirectUri.id"
+								:key="redirectUri.id"
+								:redirect-uri="redirectUri.redirectUri"
+								style="width: 100%;"
+								@delete="deleteClientLogoutRedirectUri" />
+						</div>
+						<div class="grid-inner-2">
+							<NcTextField v-model="editClient.addPostLogoutRedirectUri"
+								type="url"
+								:label="t('oidc', 'Post Logout Redirect URI')"
+								:placeholder="t('oidc', 'https://example.com/logout/callback')" />
+							<NcButton :aria-label="t('oidc', 'Add Post Logout Redirect URI')"
+								:text="t('oidc', 'Add')"
+								variant="secondary"
+								@click="addClientLogoutRedirectUri" />
+						</div>
+					</NcFormGroup>
 					<NcFormGroup :label="t('oidc', 'Flows')"
 						style="max-width: 100%; width: 740px;">
 						<NcSelect v-bind="editClient.flowData.props"
@@ -489,7 +513,7 @@
 					</div>
 					<div class="container-inner">
 						<p style="margin-top: 1em;">
-							{{ t('oidc', 'Accepted Logout Redirect URIs') }}
+							{{ t('oidc', 'Global Accepted Logout Redirect URIs') }}
 						</p>
 						<div v-if="localLogoutRedirectUris.length > 0"
 							:key="version"
@@ -691,6 +715,8 @@ export default {
 				id: '',
 				name: '',
 				redirectUris: [],
+				postLogoutRedirectUris: [],
+				addPostLogoutRedirectUri: '',
 				clientId: '',
 				clientSecret: '',
 				signingAlg: '',
@@ -1130,6 +1156,8 @@ export default {
 				this.editClient.id = tmpClient.id
 				this.editClient.name = tmpClient.name
 				this.editClient.redirectUris = tmpClient.redirectUris
+				this.editClient.postLogoutRedirectUris = Array.isArray(tmpClient.postLogoutRedirectUris) ? tmpClient.postLogoutRedirectUris : []
+				this.editClient.addPostLogoutRedirectUri = ''
 				this.editClient.clientId = tmpClient.clientId
 				this.editClient.clientSecret = tmpClient.clientSecret
 				this.editClient.signingAlg = tmpClient.signingAlg
@@ -1319,6 +1347,35 @@ export default {
 					this.localClients.push(entry)
 				}
 				this.openOIDCTabEditClient(id)
+				this.version += 1
+			}).catch(error_ => {
+				this.error = true
+				this.errorMsg = this.extractErrorMessage(error_)
+			})
+		},
+		deleteClientLogoutRedirectUri(id) {
+			this.error = false
+			axios.delete(generateUrl('apps/oidc/api/v2/logoutRedirect/{id}', { id }))
+				.then((response) => {
+					this.editClient.postLogoutRedirectUris = response.data
+					const clientIndex = this.localClients.findIndex(client => client.id === this.editClient.id)
+					if (clientIndex >= 0) this.localClients[clientIndex].postLogoutRedirectUris = response.data
+					this.version += 1
+				}).catch(error_ => {
+					this.error = true
+					this.errorMsg = this.extractErrorMessage(error_)
+				})
+		},
+		addClientLogoutRedirectUri() {
+			this.error = false
+			axios.post(generateUrl('apps/oidc/api/v2/logoutRedirect'), {
+				redirectUri: this.editClient.addPostLogoutRedirectUri,
+				clientId: this.editClient.id,
+			}).then(response => {
+				this.editClient.postLogoutRedirectUris = response.data
+				const clientIndex = this.localClients.findIndex(client => client.id === this.editClient.id)
+				if (clientIndex >= 0) this.localClients[clientIndex].postLogoutRedirectUris = response.data
+				this.editClient.addPostLogoutRedirectUri = ''
 				this.version += 1
 			}).catch(error_ => {
 				this.error = true
