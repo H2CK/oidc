@@ -121,6 +121,7 @@ class BackChannelLogoutServiceTest extends TestCase {
                 $requestedUris[] = $uri;
                 $this->assertSame('application/x-www-form-urlencoded', $options['headers']['Content-Type']);
                 $this->assertFalse($options['allow_redirects']);
+                $this->assertFalse($options['http_errors']);
                 $this->assertSame(5, $options['timeout']);
                 $this->assertArrayHasKey('logout_token', $options['body']);
                 return count($requestedUris) === 1 ? $promiseOne : $promiseTwo;
@@ -328,6 +329,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $this->callback(function (array $options): bool {
                 $this->assertFalse($options['nextcloud']['allow_local_address']);
                 $this->assertFalse($options['allow_redirects']);
+                $this->assertFalse($options['http_errors']);
                 return true;
             })
         )->willReturn($promise);
@@ -465,6 +467,67 @@ class BackChannelLogoutServiceTest extends TestCase {
         $service->logout('user1');
     }
 
+    /** @dataProvider nonRetryableInitialStatusProvider */
+    public function testInitialNonRetryableClientErrorDoesNotQueueRetry(int $status): void {
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(
+            static fn (string $key) => $key === 'oidc_backchannel_sessions_v2' ? ['1' => 'sid-1'] : null
+        );
+        $client = $this->newClient(1, 'client-1', 'https://rp.example/logout');
+        $clientMapper = $this->createMock(ClientMapper::class);
+        $clientMapper->method('getByUid')->willReturn($client);
+        $jwtGenerator = $this->createMock(JwtGenerator::class);
+        $jwtGenerator->method('generateLogoutToken')->willReturn('token');
+
+        $response = $this->createMock(IResponse::class);
+        $response->method('getStatusCode')->willReturn($status);
+        $promise = $this->createMock(IPromise::class);
+        $promise->method('then')->willReturnCallback(static function (callable $success) use ($response, $promise): IPromise {
+            $success($response);
+            return $promise;
+        });
+        $promise->method('wait')->with(false);
+        $httpClient = $this->createMock(IClient::class);
+        $httpClient->expects($this->once())->method('postAsync')->with(
+            'https://rp.example/logout',
+            $this->callback(function (array $options): bool {
+                $this->assertFalse($options['http_errors']);
+                return true;
+            })
+        )->willReturn($promise);
+        $clientService = $this->createMock(IClientService::class);
+        $clientService->method('newClient')->willReturn($httpClient);
+        $request = $this->createMock(IRequest::class);
+        $request->method('getServerProtocol')->willReturn('https');
+        $request->method('getServerHost')->willReturn('nextcloud.example');
+        $jobList = $this->createMock(IJobList::class);
+        $jobList->expects($this->never())->method('scheduleAfter');
+
+        $service = new BackChannelLogoutService(
+            $session,
+            $this->createMock(ISecureRandom::class),
+            $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
+            $jwtGenerator,
+            $clientService,
+            $request,
+            $this->createMock(LoggerInterface::class),
+            $jobList,
+            $this->createMock(ITimeFactory::class),
+        );
+
+        $service->logout('user1');
+    }
+
+    public static function nonRetryableInitialStatusProvider(): array {
+        return [
+            'HTTP 400' => [400],
+            'HTTP 401' => [401],
+            'HTTP 403' => [403],
+            'HTTP 404' => [404],
+        ];
+    }
+
     /** @dataProvider successfulRetryStatusProvider */
     public function testSuccessfulRetryStatusDoesNotQueueRetry(int $status): void {
         $client = $this->newClient(1, 'client-1', 'https://8.8.8.8/logout');
@@ -475,7 +538,10 @@ class BackChannelLogoutServiceTest extends TestCase {
         $response = $this->createMock(IResponse::class);
         $response->method('getStatusCode')->willReturn($status);
         $httpClient = $this->createMock(IClient::class);
-        $httpClient->method('post')->willReturn($response);
+        $httpClient->method('post')->willReturnCallback(function (string $uri, array $options) use ($response): IResponse {
+            $this->assertFalse($options['http_errors']);
+            return $response;
+        });
         $clientService = $this->createMock(IClientService::class);
         $clientService->method('newClient')->willReturn($httpClient);
         $jobList = $this->createMock(IJobList::class);
@@ -514,7 +580,10 @@ class BackChannelLogoutServiceTest extends TestCase {
         $response = $this->createMock(IResponse::class);
         $response->method('getStatusCode')->willReturn(503);
         $httpClient = $this->createMock(IClient::class);
-        $httpClient->expects($this->exactly(2))->method('post')->willReturn($response);
+        $httpClient->expects($this->exactly(2))->method('post')->willReturnCallback(function (string $uri, array $options) use ($response): IResponse {
+            $this->assertFalse($options['http_errors']);
+            return $response;
+        });
         $clientService = $this->createMock(IClientService::class);
         $clientService->method('newClient')->willReturn($httpClient);
 
@@ -559,7 +628,10 @@ class BackChannelLogoutServiceTest extends TestCase {
         $response = $this->createMock(IResponse::class);
         $response->method('getStatusCode')->willReturn(400);
         $httpClient = $this->createMock(IClient::class);
-        $httpClient->method('post')->willReturn($response);
+        $httpClient->method('post')->willReturnCallback(function (string $uri, array $options) use ($response): IResponse {
+            $this->assertFalse($options['http_errors']);
+            return $response;
+        });
         $clientService = $this->createMock(IClientService::class);
         $clientService->method('newClient')->willReturn($httpClient);
         $jobList = $this->createMock(IJobList::class);

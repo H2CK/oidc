@@ -400,6 +400,11 @@ class BackChannelLogoutService {
             'body' => ['logout_token' => $logoutToken],
             'timeout' => 5,
             'allow_redirects' => false,
+            // Treat HTTP error status codes as normal responses so the
+            // retry policy below can distinguish permanent 4xx errors from
+            // transient 408/429/5xx failures. Transport errors still reject
+            // the promise / throw and remain retryable.
+            'http_errors' => false,
         ];
 
         if ($forcePublicAddressPolicy) {

@@ -599,6 +599,8 @@ class DynamicRegistrationController extends ApiController
      * @param string|null $id_token_signed_response_alg Updated signing algorithm
      * @param array|null $response_types Updated response types
      * @param string|null $scope Updated scope
+     * @param string|null $client_id RFC 7592 body client identifier; required and must match the current client
+     * @param string|null $client_secret Optional current client secret; when supplied it must match and is never overwritten
      * @return JSONResponse
      */
     #[BruteForceProtection(action: 'oidc_client_config')]
@@ -613,12 +615,36 @@ class DynamicRegistrationController extends ApiController
         string|null $scope = null,
         string|null $backchannel_logout_uri = null,
         bool|null $backchannel_logout_session_required = null,
-        array|null $post_logout_redirect_uris = null
+        array|null $post_logout_redirect_uris = null,
+        string|null $client_id = null,
+        string|null $client_secret = null
     ): JSONResponse {
         $client = $this->authenticateAndAuthorizeClientManagement($clientId);
         if ($client instanceof JSONResponse) {
             $client->throttle(['clientId' => $clientId]);
             return $client;
+        }
+
+        // RFC 7592 section 2.2 requires the update payload to contain the
+        // currently issued client_id. If client_secret is included, it must
+        // match the currently issued secret and must never be used to replace
+        // the persisted credential. Validate these fields before changing any
+        // client metadata.
+        if ($client_id === null || !hash_equals($client->getClientIdentifier(), $client_id)) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'client_id is required and must match the currently issued client identifier.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        if ($client_secret !== null) {
+            $currentSecret = $client->getSecret();
+            if (!is_string($currentSecret) || $currentSecret === '' || !hash_equals($currentSecret, $client_secret)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'client_secret, when supplied, must match the currently issued client secret.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
         }
 
         // Update client properties if provided

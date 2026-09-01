@@ -212,6 +212,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $result = $this->controller->updateClientConfiguration(
             clientId: 'client-1',
+            client_id: 'client-1',
             backchannel_logout_uri: 'https://192.168.10.20/backchannel-logout',
         );
 
@@ -242,6 +243,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $result = $this->controller->updateClientConfiguration(
             clientId: 'client-1',
+            client_id: 'client-1',
             backchannel_logout_uri: 'http://8.8.8.8/backchannel-logout',
         );
 
@@ -278,6 +280,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $result = $this->controller->updateClientConfiguration(
             clientId: 'client-1',
+            client_id: 'client-1',
             id_token_signed_response_alg: 'none',
         );
 
@@ -362,6 +365,83 @@ class DynamicRegistrationControllerTest extends TestCase {
         }
     }
 
+    public function testDynamicClientConfigurationUpdateRequiresBodyClientId(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+        $this->registrationTokenService->expects($this->never())->method('rotateToken');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            client_name: 'Changed RP',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+        $this->assertSame('RP', $client->getName());
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsMismatchingBodyClientId(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+        $this->registrationTokenService->expects($this->never())->method('rotateToken');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            client_id: 'different-client',
+            client_name: 'Changed RP',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+        $this->assertSame('RP', $client->getName());
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsMismatchingClientSecret(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setSecret('current-secret');
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+        $this->registrationTokenService->expects($this->never())->method('rotateToken');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            client_id: 'client-1',
+            client_secret: 'attacker-chosen-secret',
+            client_name: 'Changed RP',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+        $this->assertSame('current-secret', $client->getSecret());
+        $this->assertSame('RP', $client->getName());
+    }
+
     public function testDynamicClientConfigurationUpdateReplacesPostLogoutRedirectUris(): void {
         $this->request->method('getHeader')->willReturnCallback(
             static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
@@ -371,6 +451,7 @@ class DynamicRegistrationControllerTest extends TestCase {
         $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
         $client->setId(7);
         $client->setClientIdentifier('client-1');
+        $client->setSecret('current-secret');
         $client->setDcr(true);
         $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
         $this->clientMapper->method('update')->willReturn($client);
@@ -388,6 +469,8 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $result = $this->controller->updateClientConfiguration(
             clientId: 'client-1',
+            client_id: 'client-1',
+            client_secret: 'current-secret',
             post_logout_redirect_uris: ['https://rp.example/logout/new'],
         );
 
@@ -412,6 +495,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $result = $this->controller->updateClientConfiguration(
             clientId: 'client-1',
+            client_id: 'client-1',
             post_logout_redirect_uris: ['javascript:alert(1)'],
         );
 
