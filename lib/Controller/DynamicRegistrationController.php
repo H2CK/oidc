@@ -370,6 +370,13 @@ class DynamicRegistrationController extends ApiController
             }
 
             $schemeLower = strtolower($scheme);
+            if (in_array($schemeLower, ['javascript', 'data', 'file', 'vbscript'], true)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'The URI scheme used by post_logout_redirect_uris is not allowed.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
             if (in_array($schemeLower, ['http', 'https'], true)) {
                 if (!isset($parts['host']) || !is_string($parts['host']) || $parts['host'] === '') {
                     return new JSONResponse([

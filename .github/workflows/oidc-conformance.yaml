@@ -7,6 +7,7 @@ on:
 
 env:
   PHP_VERSION: 8.5
+  CONFORMANCE_SUITE_REF: release-v5.1.43
 
 jobs:
   oidc_conformance:
@@ -224,7 +225,10 @@ jobs:
           exit 1
 
       - name: Checkout OpenID conformance suite
-        run: git clone --depth 1 https://gitlab.com/openid/conformance-suite.git conformance-suite
+        run: |
+          git clone --depth 1 --branch "${CONFORMANCE_SUITE_REF}" --single-branch \
+            https://gitlab.com/openid/conformance-suite.git conformance-suite
+          echo "Using OpenID conformance suite ${CONFORMANCE_SUITE_REF} at $(git -C conformance-suite rev-parse HEAD)"
 
       - name: Build and start OpenID conformance suite
         run: |

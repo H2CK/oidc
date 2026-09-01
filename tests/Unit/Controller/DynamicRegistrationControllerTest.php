@@ -341,6 +341,27 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertSame('invalid_client_metadata', $result->getData()['error']);
     }
 
+    public function testDynamicRegistrationRejectsForbiddenPostLogoutRedirectUriSchemes(): void {
+        $this->appConfig->method('getAppValueString')->willReturn('true');
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->expects($this->never())->method('insert');
+
+        foreach ([
+            'javascript:alert(1)',
+            'DATA:text/html,<h1>logout</h1>',
+            'file:///tmp/logout',
+            'VbScRiPt:msgbox(1)',
+        ] as $uri) {
+            $result = $this->controller->registerClient(
+                redirect_uris: ['https://rp.example/callback'],
+                post_logout_redirect_uris: [$uri],
+            );
+
+            $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus(), $uri);
+            $this->assertSame('invalid_client_metadata', $result->getData()['error'], $uri);
+        }
+    }
+
     public function testDynamicClientConfigurationUpdateReplacesPostLogoutRedirectUris(): void {
         $this->request->method('getHeader')->willReturnCallback(
             static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
@@ -372,6 +393,30 @@ class DynamicRegistrationControllerTest extends TestCase {
 
         $this->assertSame(Http::STATUS_OK, $result->getStatus());
         $this->assertSame(['https://rp.example/logout/new'], $result->getData()['post_logout_redirect_uris']);
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsForbiddenPostLogoutRedirectUriScheme(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+        $this->logoutRedirectUriMapper->expects($this->never())->method('deleteByClientId');
+        $this->logoutRedirectUriMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            post_logout_redirect_uris: ['javascript:alert(1)'],
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
     }
 
     public function testMaxNumClientsExceeded() {

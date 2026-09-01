@@ -38,7 +38,7 @@ Full documentation can be found at:
 
 ## Note - OIDC compliance
 
-The OIDC conformance workflow is executed daily and on demand against the OpenID Foundation conformance suite. It currently runs the following test plans:
+The OIDC conformance workflow is executed daily and on demand against the OpenID Foundation conformance suite. For reproducible CI results, the workflow pins the suite to the fixed upstream release `release-v5.1.43` instead of building the moving `master` branch. It currently runs the following test plans:
 
 - `oidcc-config-certification-test-plan` for OpenID Provider discovery and metadata validation
 - `oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` for authorization code flow
@@ -256,7 +256,7 @@ The standard metadata can also be supplied through Dynamic Client Registration a
 }
 ```
 
-`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply. Dynamic registration and RFC 7592 also support the RP-Initiated Logout `post_logout_redirect_uris` metadata member. These values are stored as RP-specific entries and are returned by the registration/configuration endpoints. Matching at logout time is exact; wildcards, fragments, embedded credentials, and malformed/non-absolute values are rejected. HTTPS is recommended; HTTP is accepted only for confidential clients, and custom URI schemes remain possible for native-style callbacks. On RFC 7592 update, omitting `post_logout_redirect_uris` leaves the current RP-specific list unchanged, while an explicit empty array removes the RP-specific list and therefore re-enables the documented legacy global fallback for that RP.
+`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply. Dynamic registration and RFC 7592 also support the RP-Initiated Logout `post_logout_redirect_uris` metadata member. These values are stored as RP-specific entries and are returned by the registration/configuration endpoints. Matching at logout time is exact; wildcards, fragments, embedded credentials, and malformed/non-absolute values are rejected. HTTPS is recommended; HTTP is accepted only for confidential clients, and custom URI schemes remain possible for native-style callbacks. The active or local schemes `javascript:`, `data:`, `file:`, and `vbscript:` are explicitly rejected (case-insensitively) and cannot be registered through DCR or RFC 7592. On RFC 7592 update, omitting `post_logout_redirect_uris` leaves the current RP-specific list unchanged, while an explicit empty array removes the RP-specific list and therefore re-enables the documented legacy global fallback for that RP.
 
 Dynamic registration and RFC 7592 updates accept only `RS256` and `HS256` for `id_token_signed_response_alg`; unsupported algorithms are rejected with `invalid_client_metadata`. Token generation also fails closed if an unsupported algorithm is nevertheless found in persisted client state.
 
