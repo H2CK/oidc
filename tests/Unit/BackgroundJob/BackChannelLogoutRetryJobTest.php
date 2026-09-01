@@ -20,12 +20,12 @@ class BackChannelLogoutRetryJobTest extends TestCase {
         $service->expects($this->once())->method('retry')->with($argument);
 
         $job = new class($this->createMock(ITimeFactory::class), $service) extends BackChannelLogoutRetryJob {
-            public function execute(mixed $argument): void {
+            public function runForTest(mixed $argument): void {
                 $this->run($argument);
             }
         };
 
-        $job->execute($argument);
+        $job->runForTest($argument);
     }
 
     public function testQueuedJobIgnoresNonArrayArgument(): void {
@@ -33,11 +33,11 @@ class BackChannelLogoutRetryJobTest extends TestCase {
         $service->expects($this->never())->method('retry');
 
         $job = new class($this->createMock(ITimeFactory::class), $service) extends BackChannelLogoutRetryJob {
-            public function execute(mixed $argument): void {
+            public function runForTest(mixed $argument): void {
                 $this->run($argument);
             }
         };
 
-        $job->execute('invalid');
+        $job->runForTest('invalid');
     }
 }
