@@ -1,0 +1,16 @@
+{
+  "alias": "${CONFORMANCE_ALIAS}-backchannel",
+  "description": "Nextcloud OIDC GitHub Actions back-channel logout conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
+  },
+  "client": {
+    "client_id": "${OIDC_BACKCHANNEL_CLIENT_ID}",
+    "client_secret": "${OIDC_BACKCHANNEL_CLIENT_SECRET}"
+  },
+  "client_secret_post": {
+    "client_id": "${OIDC_BACKCHANNEL_CLIENT_ID}",
+    "client_secret": "${OIDC_BACKCHANNEL_CLIENT_SECRET}"
+  }
+}
