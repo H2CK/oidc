@@ -14,10 +14,12 @@ use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
 use OCA\OIDCIdentityProvider\Http\BasicAuthRequestSanitizer;
 use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
+use OCA\OIDCIdentityProvider\Listener\BackChannelLogoutListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\User\Events\BeforeUserLoggedOutEvent;
 
 class Application extends App implements IBootstrap
 {
@@ -74,6 +76,7 @@ class Application extends App implements IBootstrap
 
         $context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
         $context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
+        $context->registerEventListener(BeforeUserLoggedOutEvent::class, BackChannelLogoutListener::class);
     }
 
     public function boot(IBootContext $context): void

@@ -7,6 +7,7 @@ on:
 
 env:
   PHP_VERSION: 8.5
+  CONFORMANCE_SUITE_REF: release-v5.1.43
 
 jobs:
   oidc_conformance:
@@ -25,6 +26,8 @@ jobs:
       OIDC_CLIENT_SECRET_2: nextcloud-conformance-secret-00002
       OIDC_LOGOUT_CLIENT_ID: nextcloud-conformance-logout-client-00001
       OIDC_LOGOUT_CLIENT_SECRET: nextcloud-conformance-logout-secret-00001
+      OIDC_BACKCHANNEL_CLIENT_ID: nextcloud-conformance-backchannel-client-00001
+      OIDC_BACKCHANNEL_CLIENT_SECRET: nextcloud-conformance-backchannel-secret-00001
       OIDC_HYBRID_CLIENT_ID_1: nextcloud-conformance-hybrid-client-00001
       OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
       OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
@@ -141,6 +144,8 @@ jobs:
           php occ config:system:set overwrite.cli.url --value="${NEXTCLOUD_BASE_URL}"
           php occ config:system:set overwritehost --value=nextcloud-proxy:8443
           php occ config:system:set overwriteprotocol --value=https
+          # The local conformance suite is intentionally addressed via a loopback hostname.
+          php occ config:system:set allow_local_remote_servers --type=boolean --value=true
           php occ config:app:set ${{ env.APP_NAME }} allow_user_settings --value no
           php occ config:app:set ${{ env.APP_NAME }} dynamic_client_registration --value true
           OC_PASS="${OIDC_TEST_PASSWORD}" php occ user:add --password-from-env "${OIDC_TEST_USER}"
@@ -159,13 +164,25 @@ jobs:
             --flow code \
             --allowed_scopes "openid profile email offline_access"
           logout_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/callback"
-          php occ oidc:create "OIDC Conformance Logout" "${logout_callback}" \
+          php occ oidc:create "OIDC Conformance RP-Initiated Logout" "${logout_callback}" \
             --client_id "${OIDC_LOGOUT_CLIENT_ID}" \
             --client_secret "${OIDC_LOGOUT_CLIENT_SECRET}" \
             --type confidential \
             --flow "code id_token" \
             --allowed_scopes "openid profile email offline_access"
           php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-logout/post_logout_redirect"
+
+          backchannel_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-backchannel/callback"
+          backchannel_logout_uri="https://localhost:8443/test/a/${CONFORMANCE_ALIAS}-backchannel/backchannel_logout"
+          php occ oidc:create "OIDC Conformance Back-Channel Logout" "${backchannel_callback}" \
+            --client_id "${OIDC_BACKCHANNEL_CLIENT_ID}" \
+            --client_secret "${OIDC_BACKCHANNEL_CLIENT_SECRET}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access" \
+            --backchannel_logout_uri "${backchannel_logout_uri}" \
+            --backchannel_logout_session_required
+          php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-backchannel/post_logout_redirect"
           hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
           php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
             --client_id "${OIDC_HYBRID_CLIENT_ID_1}" \
@@ -208,7 +225,10 @@ jobs:
           exit 1
 
       - name: Checkout OpenID conformance suite
-        run: git clone --depth 1 https://gitlab.com/openid/conformance-suite.git conformance-suite
+        run: |
+          git clone --depth 1 --branch "${CONFORMANCE_SUITE_REF}" --single-branch \
+            https://gitlab.com/openid/conformance-suite.git conformance-suite
+          echo "Using OpenID conformance suite ${CONFORMANCE_SUITE_REF} at $(git -C conformance-suite rev-parse HEAD)"
 
       - name: Build and start OpenID conformance suite
         run: |
@@ -244,6 +264,72 @@ jobs:
             logs server nginx chrome
           exit 1
 
+      - name: Trust OpenID conformance suite TLS certificate in Nextcloud
+        run: |
+          set -euo pipefail
+          : > conformance-tls.log
+          rm -f /tmp/openid-conformance-*.crt /tmp/openid-conformance-chain.pem
+
+          # Connect to the published nginx port using the hostname covered by
+          # the conformance-suite TLS certificate. The Back-Channel Logout URI
+          # uses the same localhost hostname, avoiding a TLS hostname mismatch.
+          for attempt in $(seq 1 30); do
+            openssl s_client \
+              -connect 127.0.0.1:8443 \
+              -servername localhost \
+              -showcerts </dev/null \
+              > /tmp/openid-conformance-chain.pem \
+              2>> conformance-tls.log || true
+            if grep -q -- '-----BEGIN CERTIFICATE-----' /tmp/openid-conformance-chain.pem; then
+              break
+            fi
+            echo "Waiting for conformance-suite TLS endpoint (${attempt}/30)" | tee -a conformance-tls.log
+            sleep 2
+          done
+
+          if ! grep -q -- '-----BEGIN CERTIFICATE-----' /tmp/openid-conformance-chain.pem; then
+            echo "Unable to retrieve the conformance-suite TLS certificate chain" | tee -a conformance-tls.log >&2
+            exit 1
+          fi
+
+          awk '
+            /-----BEGIN CERTIFICATE-----/ {
+              cert++;
+              file=sprintf("/tmp/openid-conformance-%02d.crt", cert);
+              in_cert=1
+            }
+            in_cert { print > file }
+            /-----END CERTIFICATE-----/ {
+              in_cert=0;
+              close(file)
+            }
+          ' /tmp/openid-conformance-chain.pem
+          test -s /tmp/openid-conformance-01.crt
+
+          for certificate in /tmp/openid-conformance-*.crt; do
+            echo "Importing ${certificate} into the Nextcloud trust store" | tee -a conformance-tls.log
+            openssl x509 -in "${certificate}" -noout -subject -issuer -dates \
+              2>&1 | tee -a conformance-tls.log
+            (cd nextcloud && php occ security:certificates:import "${certificate}") \
+              2>&1 | tee -a conformance-tls.log
+          done
+
+          (cd nextcloud && php occ security:certificates:export) > /tmp/nextcloud-ca-bundle.crt
+
+          # This is a diagnostic check only. The real Back-Channel Logout call is
+          # made by Nextcloud's HTTP client, which uses Nextcloud's certificate
+          # store. A curl/OpenSSL trust-chain difference must therefore not stop
+          # the conformance plans before they even start.
+          if curl --fail --silent --show-error \
+            --cacert /tmp/nextcloud-ca-bundle.crt \
+            https://localhost:8443/api/runner/available \
+            > /dev/null 2>> conformance-tls.log; then
+            echo "Conformance-suite TLS preflight succeeded" | tee -a conformance-tls.log
+          else
+            echo "WARNING: curl TLS preflight failed; continuing with the actual Nextcloud Back-Channel Logout test" \
+              | tee -a conformance-tls.log
+          fi
+
       - name: Install conformance runner dependencies
         run: python3 -m pip install --user httpx pyparsing selenium
 
@@ -268,12 +354,16 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-logout-config.json \
             conformance-config/oidc-logout-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-backchannel-config.json \
+            conformance-config/oidc-backchannel-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-implicit-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-dynamic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-logout-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-backchannel-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -445,6 +535,11 @@ jobs:
             ../conformance-config/oidc-logout-config.json \
             "../conformance-results/oidcc-rp-initiated-logout-certification-test-plan-*.zip"
 
+          run_conformance_plan \
+            "oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
+            ../conformance-config/oidc-backchannel-config.json \
+            "../conformance-results/oidcc-backchannel-rp-initiated-logout-certification-test-plan-*.zip"
+
           cleanup_browser_runner
           trap - EXIT
           echo "::group::conformance-browser.log"
@@ -468,6 +563,20 @@ jobs:
             echo "Conformance suite exited with ${test_plan_status}, but exported results contain only non-blocking WARNING/REVIEW outcomes."
           fi
 
+      - name: Collect conformance diagnostics
+        if: always()
+        run: |
+          if [ -d conformance-suite ]; then
+            (
+              cd conformance-suite
+              docker compose \
+                -f docker-compose-localtest.yml \
+                -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.github-actions.yml \
+                -f ../nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/docker-compose.chrome.yml \
+                logs --no-color server nginx chrome nextcloud-proxy
+            ) > conformance-suite.log 2>&1 || true
+          fi
+
       - name: Generate conformance report
         if: always()
         run: |
@@ -486,4 +595,6 @@ jobs:
             conformance-results
             conformance-runner.log
             conformance-browser.log
+            conformance-tls.log
+            conformance-suite.log
             nextcloud-server.log

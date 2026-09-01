@@ -165,6 +165,7 @@ class DiscoveryControllerTest extends TestCase {
             'scope',
             'nbf',
             'jti',
+            'sid',
             'roles',
             'groups',
             'name',
@@ -198,6 +199,8 @@ class DiscoveryControllerTest extends TestCase {
         $this->assertEquals($displayValuesSupported, $result->getData()['display_values_supported']);
         $this->assertEquals($claimTypesSupported, $result->getData()['claim_types_supported']);
         $this->assertEquals($claimsSupported, $result->getData()['claims_supported']);
+        $this->assertTrue($result->getData()['backchannel_logout_supported']);
+        $this->assertTrue($result->getData()['backchannel_logout_session_supported']);
         $this->assertTrue($result->getData()['claims_parameter_supported']);
         $this->assertFalse($result->getData()['request_parameter_supported']);
         $this->assertFalse($result->getData()['request_uri_parameter_supported']);

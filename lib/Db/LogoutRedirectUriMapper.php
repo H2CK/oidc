@@ -17,7 +17,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Services\IAppConfig;
 
 /**
- * @template-extends QBMapper<AccessToken>
+ * @template-extends QBMapper<LogoutRedirectUri>
  */
 class LogoutRedirectUriMapper extends QBMapper {
     /** @var ITimeFactory */
@@ -25,108 +25,102 @@ class LogoutRedirectUriMapper extends QBMapper {
     /** @var IAppConfig */
     private $appConfig;
 
-    /**
-     * @param IDBConnection $db
-     */
-    public function __construct(IDBConnection $db,
-                                ITimeFactory $time,
-                                IAppConfig $appConfig) {
+    public function __construct(IDBConnection $db, ITimeFactory $time, IAppConfig $appConfig) {
         parent::__construct($db, 'oidc_loredirect_uris');
         $this->time = $time;
         $this->appConfig = $appConfig;
     }
 
-
-    /**
-     * @param string $id
-     * @return LogoutRedirectUri[]
-     * @throws RedirectUriNotFoundException
-     */
+    /** @return LogoutRedirectUri[] */
     public function getAll(): array {
         $qb = $this->db->getQueryBuilder();
-        $qb
-            ->select('*')
-            ->from($this->tableName);
+        $qb->select('*')->from($this->tableName);
+        return $this->findEntities($qb);
+    }
 
+    /** @return LogoutRedirectUri[] */
+    public function getGlobal(): array {
+        $qb = $this->db->getQueryBuilder();
+        $qb->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->isNull('client_id'));
+        return $this->findEntities($qb);
+    }
+
+    /** @return LogoutRedirectUri[] */
+    public function getByClientId(int $clientId): array {
+        $qb = $this->db->getQueryBuilder();
+        $qb->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
         return $this->findEntities($qb);
     }
 
     /**
-     * @param int $id id of the redirect URI
-     * @return LogoutRedirectUri
-     * @throws RedirectUriNotFoundException
+     * Return the RP-specific allow-list when present. Only if the RP has no
+     * dedicated entries at all, fall back to the legacy global allow-list.
+     *
+     * @return LogoutRedirectUri[]
      */
+    public function getEffectiveByClientId(int $clientId): array {
+        $clientUris = $this->getByClientId($clientId);
+        return $clientUris !== [] ? $clientUris : $this->getGlobal();
+    }
+
     public function getById(int $id): LogoutRedirectUri {
         $qb = $this->db->getQueryBuilder();
-        $qb
-            ->select('*')
+        $qb->select('*')
             ->from($this->tableName)
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-
         try {
-            $redirectUri = $this->findEntity($qb);
+            return $this->findEntity($qb);
         } catch (IMapperException $e) {
-            throw new RedirectUriNotFoundException('could not find redirect URI with id '.$id, 0, $e);
+            throw new RedirectUriNotFoundException('could not find redirect URI with id ' . $id, 0, $e);
         }
-        return $redirectUri;
     }
 
     /**
-     * @param string $redirectUri
-     * @return LogoutRedirectUri
-     * @throws RedirectUriNotFoundException
+     * Legacy lookup. Prefer scoped methods for authorization decisions.
      */
     public function getByRedirectUri(string $redirectUri): LogoutRedirectUri {
         $qb = $this->db->getQueryBuilder();
-        $qb
-            ->select('*')
+        $qb->select('*')
             ->from($this->tableName)
             ->where($qb->expr()->eq('redirect_uri', $qb->createNamedParameter($redirectUri)));
-
         try {
-            $redirectUriEntry = $this->findEntity($qb);
+            return $this->findEntity($qb);
         } catch (IMapperException $e) {
             throw new RedirectUriNotFoundException('Could not find redirect URI', 0, $e);
         }
-
-        return $redirectUriEntry;
     }
 
-    /**
-     * delete all logout redirect URIs from a given client
-     *
-     * @param int $id
-     */
-    public function deleteByClientId(int $id) {
+    public function deleteByClientId(int $id): void {
         $qb = $this->db->getQueryBuilder();
-        $qb
-            ->delete($this->tableName)
+        $qb->delete($this->tableName)
             ->where($qb->expr()->eq('client_id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
         $qb->executeStatement();
     }
 
-    /**
-     * delete one redirect URI by id
-     *
-     * @param int $id
-     */
-    public function deleteOneById(int $id) {
+    public function deleteOneById(int $id): void {
         $qb = $this->db->getQueryBuilder();
-        $qb
-            ->delete($this->tableName)
+        $qb->delete($this->tableName)
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
         $qb->executeStatement();
     }
 
     /**
-     * Delete logout redirect URIs by their exact URI.
+     * Delete an exact URI in one scope. Null preserves the historical CLI/API
+     * behaviour by addressing only the global allow-list.
      */
-    public function deleteByRedirectUri(string $redirectUri): bool {
+    public function deleteByRedirectUri(string $redirectUri, ?int $clientId = null): bool {
         $qb = $this->db->getQueryBuilder();
-        $qb
-            ->delete($this->tableName)
+        $qb->delete($this->tableName)
             ->where($qb->expr()->eq('redirect_uri', $qb->createNamedParameter($redirectUri)));
-
+        if ($clientId === null) {
+            $qb->andWhere($qb->expr()->isNull('client_id'));
+        } else {
+            $qb->andWhere($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)));
+        }
         return $qb->executeStatement() > 0;
     }
 }

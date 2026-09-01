@@ -94,6 +94,9 @@ class ClientMapper extends QBMapper {
         }
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
+        // remove RP-specific post-logout redirect URIs; global entries use
+        // client_id = NULL and are intentionally not affected.
+        Server::get(LogoutRedirectUriMapper::class)->deleteByClientId($entity->getId());
         Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
         Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
 
@@ -198,6 +201,9 @@ class ClientMapper extends QBMapper {
         }
         // remove custom claims
         $this->customClaimMapper->deleteByClientId($entity->getId());
+        // remove RP-specific post-logout redirect URIs; global entries use
+        // client_id = NULL and are intentionally not affected.
+        Server::get(LogoutRedirectUriMapper::class)->deleteByClientId($entity->getId());
         Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
         Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
 
@@ -242,6 +248,9 @@ class ClientMapper extends QBMapper {
             $this->redirectUriMapper->deleteByClientId($entity->getId());
             // remove custom claims
             $this->customClaimMapper->deleteByClientId($entity->getId());
+            // remove RP-specific post-logout redirect URIs for expired DCR
+            // clients; legacy global entries have no client_id and survive.
+            Server::get(LogoutRedirectUriMapper::class)->deleteByClientId($entity->getId());
             Server::get(TexTargetMapper::class)->deleteByClientId($entity->getId());
             Server::get(TexSubjectClientMapper::class)->deleteAllForClientId($entity->getId());
             // remove user consents referencing this client

@@ -39,6 +39,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setIdTokenClaims(string|null $idTokenClaims)
  * @method string|null getUserinfoClaims()
  * @method void setUserinfoClaims(string|null $userinfoClaims)
+ * @method string|null getSid()
+ * @method void setSid(string|null $sid)
  */
 class AccessToken extends Entity
 {
@@ -74,6 +76,8 @@ class AccessToken extends Entity
     protected $idTokenClaims;
     /** @var string|null */
     protected $userinfoClaims;
+    /** @var string|null OIDC session identifier exposed to the RP. */
+    protected $sid;
 
     public function __construct() {
         $this->addType('id', 'int');
@@ -92,6 +96,7 @@ class AccessToken extends Entity
         $this->addType('codeChallengeMethod', 'string');
         $this->addType('idTokenClaims', 'string');
         $this->addType('userinfoClaims', 'string');
+        $this->addType('sid', 'string');
     }
 
     /**

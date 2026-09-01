@@ -132,6 +132,30 @@
 								@click="addRedirectUri(editClient.id, editClient.addRedirectUri)" />
 						</div>
 					</NcFormGroup>
+					<NcFormGroup :label="t('oidc', 'Post Logout Redirect URIs')"
+						style="max-width: 100%; width: 740px;">
+						<p class="hint" style="margin-bottom: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+							{{ t('oidc', 'If no RP-specific URI is configured, the global accepted logout redirect URIs are used as a backward-compatible fallback.') }}
+						</p>
+						<div v-if="editClient.postLogoutRedirectUris.length > 0" :key="version">
+							<RedirectItem v-for="redirectUri in editClient.postLogoutRedirectUris"
+								:id="redirectUri.id"
+								:key="redirectUri.id"
+								:redirect-uri="redirectUri.redirectUri"
+								style="width: 100%;"
+								@delete="deleteClientLogoutRedirectUri" />
+						</div>
+						<div class="grid-inner-2">
+							<NcTextField v-model="editClient.addPostLogoutRedirectUri"
+								type="url"
+								:label="t('oidc', 'Post Logout Redirect URI')"
+								:placeholder="t('oidc', 'https://example.com/logout/callback')" />
+							<NcButton :aria-label="t('oidc', 'Add Post Logout Redirect URI')"
+								:text="t('oidc', 'Add')"
+								variant="secondary"
+								@click="addClientLogoutRedirectUri" />
+						</div>
+					</NcFormGroup>
 					<NcFormGroup :label="t('oidc', 'Flows')"
 						style="max-width: 100%; width: 740px;">
 						<NcSelect v-bind="editClient.flowData.props"
@@ -182,6 +206,18 @@
 							placeholder="https://resource-server.com/"
 							:helper-text="t('oidc', 'Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource.')"
 							type="url" />
+						<NcTextField id="backchannelLogoutUri"
+							v-model="editClient.backchannelLogoutUri"
+							:label="t('oidc', 'Back-Channel Logout URI')"
+							placeholder="https://client.example/backchannel-logout"
+							:helper-text="t('oidc', 'Endpoint that receives signed OpenID Connect Back-Channel Logout Tokens when the Nextcloud session ends.')"
+							type="url" />
+						<NcCheckboxRadioSwitch v-if="editClient.backchannelLogoutUri"
+							v-model="editClient.backchannelLogoutSessionRequired"
+							name="backchannel_logout_session_required"
+							type="checkbox">
+							{{ t('oidc', 'Require sid in Back-Channel Logout Tokens') }}
+						</NcCheckboxRadioSwitch>
 						<NcCheckboxRadioSwitch v-if="!isPublic" v-model="editClient.texEnabled"
 							name="tex_enabled"
 							type="checkbox">
@@ -477,7 +513,7 @@
 					</div>
 					<div class="container-inner">
 						<p style="margin-top: 1em;">
-							{{ t('oidc', 'Accepted Logout Redirect URIs') }}
+							{{ t('oidc', 'Global Accepted Logout Redirect URIs') }}
 						</p>
 						<div v-if="localLogoutRedirectUris.length > 0"
 							:key="version"
@@ -679,6 +715,8 @@ export default {
 				id: '',
 				name: '',
 				redirectUris: [],
+				postLogoutRedirectUris: [],
+				addPostLogoutRedirectUri: '',
 				clientId: '',
 				clientSecret: '',
 				signingAlg: '',
@@ -689,6 +727,8 @@ export default {
 				allowedScopes: '',
 				emailRegex: '',
 				resourceUrl: '',
+				backchannelLogoutUri: '',
+				backchannelLogoutSessionRequired: false,
 				texEnabled: false,
 				texAllowedScopes: '',
 				texAllowedSubjectClients: [],
@@ -1116,6 +1156,8 @@ export default {
 				this.editClient.id = tmpClient.id
 				this.editClient.name = tmpClient.name
 				this.editClient.redirectUris = tmpClient.redirectUris
+				this.editClient.postLogoutRedirectUris = Array.isArray(tmpClient.postLogoutRedirectUris) ? tmpClient.postLogoutRedirectUris : []
+				this.editClient.addPostLogoutRedirectUri = ''
 				this.editClient.clientId = tmpClient.clientId
 				this.editClient.clientSecret = tmpClient.clientSecret
 				this.editClient.signingAlg = tmpClient.signingAlg
@@ -1126,6 +1168,8 @@ export default {
 				this.editClient.allowedScopes = tmpClient.allowedScopes
 				this.editClient.emailRegex = tmpClient.emailRegex
 				this.editClient.resourceUrl = tmpClient.resourceUrl || ''
+				this.editClient.backchannelLogoutUri = tmpClient.backchannelLogoutUri || ''
+				this.editClient.backchannelLogoutSessionRequired = tmpClient.backchannelLogoutSessionRequired === true || tmpClient.backchannelLogoutSessionRequired === 1 || tmpClient.backchannelLogoutSessionRequired === '1' || tmpClient.backchannelLogoutSessionRequired === 'true'
 				this.editClient.texEnabled = tmpClient.texEnabled === true || tmpClient.texEnabled === 1 || tmpClient.texEnabled === '1' || tmpClient.texEnabled === 'true'
 				this.editClient.texAllowedScopes = tmpClient.texAllowedScopes || ''
 				const texAllowedSubjectClientIds = Array.isArray(tmpClient.texAllowedSubjectClients) ? tmpClient.texAllowedSubjectClients : []
@@ -1309,6 +1353,35 @@ export default {
 				this.errorMsg = this.extractErrorMessage(error_)
 			})
 		},
+		deleteClientLogoutRedirectUri(id) {
+			this.error = false
+			axios.delete(generateUrl('apps/oidc/api/v2/logoutRedirect/{id}', { id }))
+				.then((response) => {
+					this.editClient.postLogoutRedirectUris = response.data
+					const clientIndex = this.localClients.findIndex(client => client.id === this.editClient.id)
+					if (clientIndex >= 0) this.localClients[clientIndex].postLogoutRedirectUris = response.data
+					this.version += 1
+				}).catch(error_ => {
+					this.error = true
+					this.errorMsg = this.extractErrorMessage(error_)
+				})
+		},
+		addClientLogoutRedirectUri() {
+			this.error = false
+			axios.post(generateUrl('apps/oidc/api/v2/logoutRedirect'), {
+				redirectUri: this.editClient.addPostLogoutRedirectUri,
+				clientId: this.editClient.id,
+			}).then(response => {
+				this.editClient.postLogoutRedirectUris = response.data
+				const clientIndex = this.localClients.findIndex(client => client.id === this.editClient.id)
+				if (clientIndex >= 0) this.localClients[clientIndex].postLogoutRedirectUris = response.data
+				this.editClient.addPostLogoutRedirectUri = ''
+				this.version += 1
+			}).catch(error_ => {
+				this.error = true
+				this.errorMsg = this.extractErrorMessage(error_)
+			})
+		},
 		deleteLogoutRedirectUri(id) {
 			this.error = false
 
@@ -1413,6 +1486,8 @@ export default {
 						allowedScopes: this.editClient.allowedScopes,
 						emailRegex: this.editClient.emailRegex,
 						resourceUrl: this.editClient.resourceUrl,
+						backchannelLogoutUri: this.editClient.backchannelLogoutUri,
+						backchannelLogoutSessionRequired: Boolean(this.editClient.backchannelLogoutUri) && this.editClient.backchannelLogoutSessionRequired,
 						groups: this.editClient.groupData.props.value,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
@@ -1431,6 +1506,8 @@ export default {
 						allowedScopes: this.editClient.allowedScopes,
 						emailRegex: this.editClient.emailRegex,
 						resourceUrl: this.editClient.resourceUrl,
+						backchannelLogoutUri: this.editClient.backchannelLogoutUri,
+						backchannelLogoutSessionRequired: Boolean(this.editClient.backchannelLogoutUri) && this.editClient.backchannelLogoutSessionRequired,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
 						texAllowedSubjectClients: texAllowedSubjectClientIds,
