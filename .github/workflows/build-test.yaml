@@ -15,11 +15,89 @@ on:
   workflow_dispatch:
 
 env:
-  PHP_VERSION: 8.5
+  # Newest PHP accepted by *every* server branch this app supports: stable32
+  # refuses PHP >= 8.5 outright (lib/versioncheck.php), while 33+ allow up to
+  # 8.5. Raise this when min-version in appinfo/info.xml moves past 32.
+  PHP_VERSION: 8.4
 
 jobs:
-  build_test:
+  # The app declares a range of supported server versions in appinfo/info.xml,
+  # so derive the branch list from that rather than testing a single one. A
+  # migration or API call can be valid on the newest branch and rejected by the
+  # oldest -- see #695, where a BOOLEAN NOT NULL column broke installation on
+  # Nextcloud 32 while 33+ accepted it.
+  server_matrix:
+    name: Derive supported server branches
     runs-on: ubuntu-latest
+    outputs:
+      refs: ${{ steps.refs.outputs.refs }}
+      newest: ${{ steps.refs.outputs.newest }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Get minimum supported Nextcloud version
+        id: minver
+        uses: mavrosxristoforos/get-xml-info@2.2.1
+        with:
+          xml-file: appinfo/info.xml
+          xpath: "//info//dependencies//nextcloud/@min-version"
+
+      - name: Get maximum supported Nextcloud version
+        id: maxver
+        uses: mavrosxristoforos/get-xml-info@2.2.1
+        with:
+          xml-file: appinfo/info.xml
+          xpath: "//info//dependencies//nextcloud/@max-version"
+
+      - name: Build the server branch matrix
+        id: refs
+        shell: bash
+        run: |
+          min="${{ steps.minver.outputs.info }}"
+          if [ -z "$min" ]; then min="${{ steps.minver.outputs.value }}"; fi
+          max="${{ steps.maxver.outputs.info }}"
+          if [ -z "$max" ]; then max="${{ steps.maxver.outputs.value }}"; fi
+          if [ -z "$min" ] || [ -z "$max" ]; then
+            echo "Error: could not read the nextcloud min/max-version from appinfo" >&2
+            exit 1
+          fi
+          min="${min%%.*}"
+          max="${max%%.*}"
+
+          # A declared max-version is routinely ahead of the branches that
+          # exist (max-version 35 while stable35 is unreleased), so skip the
+          # ones nextcloud/server has not cut yet instead of failing on them.
+          refs=()
+          for major in $(seq "$min" "$max"); do
+            if git ls-remote --heads --exit-code \
+                https://github.com/nextcloud/server.git "stable$major" > /dev/null 2>&1; then
+              refs+=("stable$major")
+            else
+              echo "::notice::stable$major is not branched yet -- skipping"
+            fi
+          done
+
+          if [ ${#refs[@]} -eq 0 ]; then
+            echo "Error: none of stable$min..stable$max exist on nextcloud/server" >&2
+            exit 1
+          fi
+
+          printf -v json '"%s",' "${refs[@]}"
+          echo "refs=[${json%,}]" >> "$GITHUB_OUTPUT"
+          echo "newest=${refs[-1]}" >> "$GITHUB_OUTPUT"
+          echo "Testing against: ${refs[*]}"
+
+  build_test:
+    name: build_test (${{ matrix.server-ref }})
+    runs-on: ubuntu-latest
+    needs: server_matrix
+    strategy:
+      # One old branch rejecting a migration should still report the result for
+      # every other branch, which is what makes the failure diagnosable.
+      fail-fast: false
+      matrix:
+        server-ref: ${{ fromJson(needs.server_matrix.outputs.refs) }}
 
     steps:
       - name: Check actor permission
@@ -38,40 +116,6 @@ jobs:
         uses: actions/checkout@v7
         with:
           path: ${{ env.APP_NAME }}
-
-      - name: Get appinfo data
-        id: appinfo
-        uses: mavrosxristoforos/get-xml-info@2.2.1
-        with:
-          xml-file: ${{ env.APP_NAME }}/appinfo/info.xml
-          xpath: "//info//dependencies//nextcloud/@max-version"
-
-      - name: Derive Nextcloud checkout ref
-        id: derive-nextcloud-ref
-        shell: bash
-        run: |
-            max_version="${{ steps.appinfo.outputs.info }}"
-            if [ -z "$max_version" ]; then
-              max_version="${{ steps.appinfo.outputs.value }}"
-            fi
-            if [ -z "$max_version" ]; then
-              echo "Error: could not read nextcloud max-version from appinfo" >&2
-              exit 1
-            fi
-            major="${max_version%%.*}"
-
-            # Try the current major version first
-            NEXTCLOUD_REF="stable$major"
-
-            # Check if the branch exists remotely
-            if ! git ls-remote --heads --exit-code https://github.com/nextcloud/server.git "$NEXTCLOUD_REF" > /dev/null 2>&1; then
-              # Fallback: use previous major version
-              fallback_major=$((major - 1))
-              NEXTCLOUD_REF="stable$fallback_major"
-              echo "Branch stable$major not found, falling back to $NEXTCLOUD_REF"
-            fi
-
-            echo "NEXTCLOUD_REF=$NEXTCLOUD_REF" >> $GITHUB_ENV
 
       - name: Read package.json node and npm engines version
         uses: skjnldsv/read-package-engines-version-actions@v3
@@ -122,14 +166,14 @@ jobs:
           npm ci
           npm run build
 
-      - name: Checkout Nextcloud server master
+      - name: Checkout Nextcloud server ${{ matrix.server-ref }}
         id: server-checkout
         uses: actions/checkout@v7
         with:
           repository: nextcloud/server
           path: nextcloud
           submodules: recursive
-          ref: ${{ env.NEXTCLOUD_REF }}
+          ref: ${{ matrix.server-ref }}
 
       - name: Install Nextcloud dependencies
         run: |
@@ -158,8 +202,11 @@ jobs:
             exit 1
           fi
 
+      # Package once, from the newest supported branch -- the artifact does not
+      # differ per server branch, and signing it in every matrix leg would just
+      # produce N identical copies.
       - name: Sign app
-        if: github.actor == 'H2CK'
+        if: github.actor == 'H2CK' && matrix.server-ref == needs.server_matrix.outputs.newest
         run: |
           # Setting up keys
           echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
