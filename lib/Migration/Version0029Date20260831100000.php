@@ -29,11 +29,10 @@ class Version0029Date20260831100000 extends SimpleMigrationStep {
                     'length' => 2000,
                 ]);
             }
-            // Keep schema identifiers at or below Nextcloud's portable 30-character limit.
-            // The public OIDC metadata name remains backchannel_logout_session_required.
+
             if (!$table->hasColumn('backchannel_logout_sess_req')) {
                 $table->addColumn('backchannel_logout_sess_req', 'boolean', [
-                    'notnull' => true,
+                    'notnull' => false,
                     'default' => false,
                 ]);
             }
