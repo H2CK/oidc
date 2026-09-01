@@ -286,6 +286,94 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertSame('RS256', $client->getSigningAlg());
     }
 
+    public function testDynamicRegistrationStoresAndReturnsPostLogoutRedirectUris(): void {
+        $this->appConfig->method('getAppValueString')->willReturnMap([
+            ['dynamic_client_registration', 'false', 'true'],
+            ['client_expire_time', '3600', '3600'],
+            ['default_token_type', 'opaque', 'opaque'],
+        ]);
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->method('insert')->willReturnCallback(static function ($client) {
+            $client->setId(7);
+            return $client;
+        });
+
+        $stored = new \OCA\OIDCIdentityProvider\Db\LogoutRedirectUri();
+        $stored->setClientId(7);
+        $stored->setRedirectUri('https://rp.example/logout/callback');
+        $this->logoutRedirectUriMapper->expects($this->once())
+            ->method('insert')
+            ->with($this->callback(static function ($entry): bool {
+                return $entry->getClientId() === 7
+                    && $entry->getRedirectUri() === 'https://rp.example/logout/callback';
+            }))
+            ->willReturn($stored);
+        $this->logoutRedirectUriMapper->method('getByClientId')->with(7)->willReturn([$stored]);
+
+        $registrationToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $registrationToken->setToken('registration-token');
+        $this->registrationTokenService->method('generateToken')->willReturn($registrationToken);
+
+        $result = $this->controller->registerClient(
+            redirect_uris: ['https://rp.example/callback'],
+            client_name: 'RP',
+            post_logout_redirect_uris: ['https://rp.example/logout/callback'],
+        );
+
+        $this->assertSame(Http::STATUS_CREATED, $result->getStatus());
+        $this->assertSame(
+            ['https://rp.example/logout/callback'],
+            $result->getData()['post_logout_redirect_uris']
+        );
+    }
+
+    public function testDynamicRegistrationRejectsInvalidPostLogoutRedirectUri(): void {
+        $this->appConfig->method('getAppValueString')->willReturn('true');
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->registerClient(
+            redirect_uris: ['https://rp.example/callback'],
+            post_logout_redirect_uris: ['https://user:password@rp.example/logout#fragment'],
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+    }
+
+    public function testDynamicClientConfigurationUpdateReplacesPostLogoutRedirectUris(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->method('update')->willReturn($client);
+
+        $newEntry = new \OCA\OIDCIdentityProvider\Db\LogoutRedirectUri();
+        $newEntry->setClientId(7);
+        $newEntry->setRedirectUri('https://rp.example/logout/new');
+        $this->logoutRedirectUriMapper->expects($this->once())->method('deleteByClientId')->with(7);
+        $this->logoutRedirectUriMapper->expects($this->once())->method('insert')->willReturn($newEntry);
+        $this->logoutRedirectUriMapper->method('getByClientId')->with(7)->willReturn([$newEntry]);
+
+        $newToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
+        $newToken->setToken('rotated-token');
+        $this->registrationTokenService->method('rotateToken')->with(7)->willReturn($newToken);
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            post_logout_redirect_uris: ['https://rp.example/logout/new'],
+        );
+
+        $this->assertSame(Http::STATUS_OK, $result->getStatus());
+        $this->assertSame(['https://rp.example/logout/new'], $result->getData()['post_logout_redirect_uris']);
+    }
+
     public function testMaxNumClientsExceeded() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig

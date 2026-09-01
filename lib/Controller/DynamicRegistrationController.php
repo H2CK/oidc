@@ -22,6 +22,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
@@ -113,6 +114,7 @@ class DynamicRegistrationController extends ApiController
         string|null $resource_url = null,
         string|null $backchannel_logout_uri = null,
         bool $backchannel_logout_session_required = false,
+        array|null $post_logout_redirect_uris = null,
         ): JSONResponse
     {
         if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
@@ -216,6 +218,14 @@ class DynamicRegistrationController extends ApiController
         }
         $client->setBackchannelLogoutSessionRequired($backchannel_logout_session_required);
 
+        $normalizedPostLogoutRedirectUris = null;
+        if ($post_logout_redirect_uris !== null) {
+            $normalizedPostLogoutRedirectUris = $this->normalizePostLogoutRedirectUris($post_logout_redirect_uris, $client->getType());
+            if ($normalizedPostLogoutRedirectUris instanceof JSONResponse) {
+                return $normalizedPostLogoutRedirectUris;
+            }
+        }
+
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
@@ -271,6 +281,9 @@ class DynamicRegistrationController extends ApiController
         }
 
         $client = $this->clientMapper->insert($client);
+        if ($normalizedPostLogoutRedirectUris !== null) {
+            $this->replacePostLogoutRedirectUris($client, $normalizedPostLogoutRedirectUris);
+        }
 
         // Generate registration access token (RFC 7592)
         $registrationToken = $this->registrationTokenService->generateToken($client->getId());
@@ -291,11 +304,12 @@ class DynamicRegistrationController extends ApiController
             'id_token_signed_response_alg' => $client->getSigningAlg(),
             'application_type' => $application_type,
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME),
+            'client_secret_expires_at' => $client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
             'token_type' => $client->getTokenType(),
             'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
+            'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
 
         // Include resource_url in response if it was provided
@@ -315,6 +329,93 @@ class DynamicRegistrationController extends ApiController
             ?? $_SERVER['REMOTE_ADDR']
             ?? $_SERVER['HTTP_CLIENT_IP']
             ?? $this->secureRandom->generate(64, self::VALID_CHARS);
+    }
+
+    /**
+     * Validate RP-Initiated Logout registration metadata. These are browser
+     * redirect targets, not server-side callbacks, so the Back-Channel SSRF
+     * policy does not apply. Matching at logout time is always exact.
+     *
+     * @return list<string>|JSONResponse
+     */
+    private function normalizePostLogoutRedirectUris(array $uris, string $clientType): array|JSONResponse {
+        $normalized = [];
+        foreach ($uris as $uri) {
+            if (!is_string($uri)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'post_logout_redirect_uris must contain only URI strings.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            $uri = trim($uri);
+            if ($uri === '' || strlen($uri) > 2000 || str_contains($uri, '*')) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'Each post_logout_redirect_uris value must be a concrete absolute URI of at most 2000 bytes.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            $parts = parse_url($uri);
+            $scheme = is_array($parts) ? ($parts['scheme'] ?? null) : null;
+            if (!is_string($scheme)
+                || !preg_match('/^[A-Za-z][A-Za-z0-9+.-]*$/', $scheme)
+                || isset($parts['fragment'])
+                || isset($parts['user'])
+                || isset($parts['pass'])) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'Each post_logout_redirect_uris value must be an absolute URI without fragment or embedded credentials.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            $schemeLower = strtolower($scheme);
+            if (in_array($schemeLower, ['http', 'https'], true)) {
+                if (!isset($parts['host']) || !is_string($parts['host']) || $parts['host'] === '') {
+                    return new JSONResponse([
+                        'error' => 'invalid_client_metadata',
+                        'error_description' => 'HTTP(S) post_logout_redirect_uris values require a host.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+                if ($schemeLower === 'http' && $clientType !== 'confidential') {
+                    return new JSONResponse([
+                        'error' => 'invalid_client_metadata',
+                        'error_description' => 'HTTP post_logout_redirect_uris are allowed only for confidential clients.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+            } elseif ((!isset($parts['host']) || $parts['host'] === '') && (!isset($parts['path']) || $parts['path'] === '')) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'Custom-scheme post_logout_redirect_uris values require a host or path.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            if (!in_array($uri, $normalized, true)) {
+                $normalized[] = $uri;
+            }
+        }
+
+        return $normalized;
+    }
+
+    /** @return list<string> */
+    private function getPostLogoutRedirectUris(Client $client): array {
+        $uris = [];
+        foreach ($this->logoutRedirectUriMapper->getByClientId($client->getId()) as $redirectUri) {
+            $uris[] = $redirectUri->getRedirectUri();
+        }
+        return $uris;
+    }
+
+    /** @param list<string> $uris */
+    private function replacePostLogoutRedirectUris(Client $client, array $uris): void {
+        $this->logoutRedirectUriMapper->deleteByClientId($client->getId());
+        foreach ($uris as $uri) {
+            $redirectUri = new LogoutRedirectUri();
+            $redirectUri->setClientId($client->getId());
+            $redirectUri->setRedirectUri($uri);
+            $this->logoutRedirectUriMapper->insert($redirectUri);
+        }
     }
 
     /**
@@ -466,10 +567,11 @@ class DynamicRegistrationController extends ApiController
             'id_token_signed_response_alg' => $client->getSigningAlg(),
             'application_type' => 'web',
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME),
+            'client_secret_expires_at' => $client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
             'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
+            'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
 
         $response = new JSONResponse($jsonResponse);
@@ -503,7 +605,8 @@ class DynamicRegistrationController extends ApiController
         array|null $response_types = null,
         string|null $scope = null,
         string|null $backchannel_logout_uri = null,
-        bool|null $backchannel_logout_session_required = null
+        bool|null $backchannel_logout_session_required = null,
+        array|null $post_logout_redirect_uris = null
     ): JSONResponse {
         $client = $this->authenticateAndAuthorizeClientManagement($clientId);
         if ($client instanceof JSONResponse) {
@@ -558,6 +661,14 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        $normalizedPostLogoutRedirectUris = null;
+        if ($post_logout_redirect_uris !== null) {
+            $normalizedPostLogoutRedirectUris = $this->normalizePostLogoutRedirectUris($post_logout_redirect_uris, $client->getType());
+            if ($normalizedPostLogoutRedirectUris instanceof JSONResponse) {
+                return $normalizedPostLogoutRedirectUris;
+            }
+        }
+
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
@@ -588,6 +699,12 @@ class DynamicRegistrationController extends ApiController
                 $redirectUri->setRedirectUri($uri);
                 $this->redirectUriMapper->insert($redirectUri);
             }
+        }
+
+        if ($normalizedPostLogoutRedirectUris !== null) {
+            // RFC 7592 update semantics for this metadata member: an empty
+            // array clears RP-specific entries; omission leaves them unchanged.
+            $this->replacePostLogoutRedirectUris($client, $normalizedPostLogoutRedirectUris);
         }
 
         $this->clientMapper->update($client);
@@ -624,10 +741,11 @@ class DynamicRegistrationController extends ApiController
             'id_token_signed_response_alg' => $client->getSigningAlg(),
             'application_type' => 'web',
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + $this->appConfig->getAppValueString('client_expire_time', Application::DEFAULT_CLIENT_EXPIRE_TIME),
+            'client_secret_expires_at' => $client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
             'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
+            'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
 
         $response = new JSONResponse($jsonResponse);
@@ -662,8 +780,9 @@ class DynamicRegistrationController extends ApiController
         // Delete associated redirect URIs
         $this->redirectUriMapper->deleteByClientId($client->getId());
 
-        // Note: Logout redirect URIs are not associated with specific clients in the schema
-        // so we don't delete them here
+        // Delete RP-specific post-logout redirect URIs. Legacy global entries
+        // have client_id = NULL and are intentionally preserved.
+        $this->logoutRedirectUriMapper->deleteByClientId($client->getId());
 
         // Delete the client
         $this->clientMapper->delete($client);

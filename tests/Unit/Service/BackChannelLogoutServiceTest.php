@@ -10,6 +10,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Service;
 
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\RecentSessionMapper;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\Http\Client\IClient;
@@ -52,6 +53,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $secureRandom,
             $this->createMock(ClientMapper::class),
+            $this->createMock(RecentSessionMapper::class),
             $this->createMock(JwtGenerator::class),
             $this->createMock(IClientService::class),
             $this->createMock(IRequest::class),
@@ -135,6 +137,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -149,6 +152,87 @@ class BackChannelLogoutServiceTest extends TestCase {
             'https://rp1.example/logout',
             'https://rp2.example/logout',
         ], $requestedUris);
+    }
+
+    public function testRealLogoutRecordsRecentSessionsBeforeDelivery(): void {
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(
+            static fn (string $key) => $key === 'oidc_backchannel_sessions_v2' ? ['1' => 'sid-1'] : null
+        );
+        $client = $this->newClient(1, 'client-1', '');
+        $clientMapper = $this->createMock(ClientMapper::class);
+        $clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $recentSessionMapper = $this->createMock(RecentSessionMapper::class);
+        $recentSessionMapper->expects($this->once())->method('cleanUp')->with(400);
+        $recentSessionMapper->expects($this->once())
+            ->method('remember')
+            ->with('user1', 'client-1', 'sid-1', 1000);
+        $time = $this->createMock(ITimeFactory::class);
+        $time->method('getTime')->willReturn(1000);
+
+        $service = new BackChannelLogoutService(
+            $session,
+            $this->createMock(ISecureRandom::class),
+            $clientMapper,
+            $recentSessionMapper,
+            $this->createMock(JwtGenerator::class),
+            $this->createMock(IClientService::class),
+            $this->createMock(IRequest::class),
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(IJobList::class),
+            $time,
+        );
+
+        $service->logout('user1');
+    }
+
+    public function testRecentClientSessionUsesTenMinuteWindow(): void {
+        $client = $this->newClient(7, 'client-7', 'https://rp.example/logout');
+        $recentSessionMapper = $this->createMock(RecentSessionMapper::class);
+        $recentSessionMapper->expects($this->once())
+            ->method('isRecent')
+            ->with('user1', 'client-7', 'sid-7', 400)
+            ->willReturn(true);
+        $time = $this->createMock(ITimeFactory::class);
+        $time->method('getTime')->willReturn(1000);
+
+        $service = new BackChannelLogoutService(
+            $this->createMock(ISession::class),
+            $this->createMock(ISecureRandom::class),
+            $this->createMock(ClientMapper::class),
+            $recentSessionMapper,
+            $this->createMock(JwtGenerator::class),
+            $this->createMock(IClientService::class),
+            $this->createMock(IRequest::class),
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(IJobList::class),
+            $time,
+        );
+
+        $this->assertTrue($service->isRecentClientSession($client, 'user1', 'sid-7'));
+    }
+
+    public function testRecentClientSessionFailsClosedWhenHistoryStoreIsUnavailable(): void {
+        $client = $this->newClient(7, 'client-7', 'https://rp.example/logout');
+        $recentSessionMapper = $this->createMock(RecentSessionMapper::class);
+        $recentSessionMapper->method('isRecent')->willThrowException(new \RuntimeException('db unavailable'));
+        $time = $this->createMock(ITimeFactory::class);
+        $time->method('getTime')->willReturn(1000);
+
+        $service = new BackChannelLogoutService(
+            $this->createMock(ISession::class),
+            $this->createMock(ISecureRandom::class),
+            $this->createMock(ClientMapper::class),
+            $recentSessionMapper,
+            $this->createMock(JwtGenerator::class),
+            $this->createMock(IClientService::class),
+            $this->createMock(IRequest::class),
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(IJobList::class),
+            $time,
+        );
+
+        $this->assertFalse($service->isRecentClientSession($client, 'user1', 'sid-7'));
     }
 
     /** @dataProvider dynamicUriPolicyProvider */
@@ -179,6 +263,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $this->createMock(JwtGenerator::class),
             $clientService,
             $this->createMock(IRequest::class),
@@ -210,6 +295,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $this->createMock(JwtGenerator::class),
             $clientService,
             $this->createMock(IRequest::class),
@@ -255,6 +341,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -316,6 +403,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -366,6 +454,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -399,6 +488,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $this->createMock(ISession::class),
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -447,6 +537,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -481,6 +572,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $this->createMock(ISession::class),
             $this->createMock(ISecureRandom::class),
             $clientMapper,
+            $this->createMock(RecentSessionMapper::class),
             $jwtGenerator,
             $clientService,
             $request,
@@ -590,6 +682,7 @@ class BackChannelLogoutServiceTest extends TestCase {
             $session,
             $this->createMock(ISecureRandom::class),
             $this->createMock(ClientMapper::class),
+            $this->createMock(RecentSessionMapper::class),
             $this->createMock(JwtGenerator::class),
             $this->createMock(IClientService::class),
             $this->createMock(IRequest::class),

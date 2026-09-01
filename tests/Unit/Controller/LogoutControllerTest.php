@@ -6,7 +6,6 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 
 use Firebase\JWT\JWT;
 use OCA\OIDCIdentityProvider\Controller\LogoutController;
-use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
@@ -33,7 +32,6 @@ class LogoutControllerTest extends TestCase {
     private LogoutController $controller;
     private IUserSession $userSession;
     private IUserManager $userManager;
-    private AccessTokenMapper $accessTokenMapper;
     private LogoutRedirectUriMapper $logoutRedirectUriMapper;
     private IAppConfig $appConfig;
     private ClientMapper $clientMapper;
@@ -52,7 +50,6 @@ class LogoutControllerTest extends TestCase {
         $time = $this->createMock(ITimeFactory::class);
         $this->userSession = $this->createMock(IUserSession::class);
         $this->userManager = $this->createMock(IUserManager::class);
-        $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $this->logoutRedirectUriMapper = $this->createMock(LogoutRedirectUriMapper::class);
         $this->appConfig = $this->createMock(IAppConfig::class);
         $logger = $this->createMock(LoggerInterface::class);
@@ -94,7 +91,6 @@ class LogoutControllerTest extends TestCase {
             $time,
             $this->userSession,
             $this->userManager,
-            $this->accessTokenMapper,
             $this->logoutRedirectUriMapper,
             $this->appConfig,
             $logger,
@@ -106,7 +102,6 @@ class LogoutControllerTest extends TestCase {
     public function testLogoutWithoutHintRequiresConfirmationAndDoesNotLogout(): void {
         $this->configureActiveUser('user1');
         $this->userSession->expects($this->never())->method('logout');
-        $this->accessTokenMapper->expects($this->never())->method('deleteByUserId');
 
         $result = $this->controller->logout();
 
@@ -129,7 +124,6 @@ class LogoutControllerTest extends TestCase {
     public function testConfirmedLogoutConsumesOneTimeTokenBeforeLoggingOut(): void {
         $this->configureActiveUser('user1');
         $this->userSession->expects($this->once())->method('logout');
-        $this->accessTokenMapper->expects($this->once())->method('deleteByUserId')->with('user1');
 
         $confirmation = $this->controller->logout();
         $this->assertInstanceOf(TemplateResponse::class, $confirmation);
@@ -147,7 +141,6 @@ class LogoutControllerTest extends TestCase {
     public function testInvalidIdTokenHintWithActiveSessionRequiresConfirmationWithoutLogout(): void {
         $this->configureActiveUser('user1');
         $this->userSession->expects($this->never())->method('logout');
-        $this->accessTokenMapper->expects($this->never())->method('deleteByUserId');
 
         $result = $this->controller->logout(null, 'not-a-jwt');
 
@@ -172,7 +165,6 @@ class LogoutControllerTest extends TestCase {
             ->with($client, 'sid-1')
             ->willReturn(true);
         $this->userSession->expects($this->once())->method('logout');
-        $this->accessTokenMapper->expects($this->once())->method('deleteByUserId')->with($userId);
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
@@ -195,27 +187,30 @@ class LogoutControllerTest extends TestCase {
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
         $this->backChannelLogoutService->method('isCurrentClientSession')->with($client, 'old-sid')->willReturn(false);
         $this->userSession->expects($this->never())->method('logout');
-        $this->accessTokenMapper->expects($this->never())->method('deleteByUserId');
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
         $this->assertInstanceOf(TemplateResponse::class, $result);
     }
 
-    public function testValidHintWithoutActiveOpSessionStillRevokesPersistedOidcState(): void {
+    public function testValidHintWithoutActiveOpSessionRequiresRecentSessionAndDoesNotRevokeGrants(): void {
         $userId = 'user1';
         $clientId = 'client1';
         $client = $this->newClient($clientId);
         $idTokenHint = $this->createIdTokenHint([
             'sub' => $userId,
             'aud' => $clientId,
+            'sid' => 'sid-recent',
         ]);
 
         $this->userSession->method('isLoggedIn')->willReturn(false);
         $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+        $this->backChannelLogoutService->expects($this->once())
+            ->method('isRecentClientSession')
+            ->with($client, $userId, 'sid-recent')
+            ->willReturn(true);
         $this->userSession->expects($this->never())->method('logout');
-        $this->accessTokenMapper->expects($this->once())->method('deleteByUserId')->with($userId);
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
@@ -228,7 +223,6 @@ class LogoutControllerTest extends TestCase {
         $idTokenHint = $this->createIdTokenHint(['aud' => 'client1']);
 
         $this->userManager->expects($this->never())->method('get');
-        $this->accessTokenMapper->expects($this->never())->method('deleteByUserId');
 
         $result = $this->controller->logout('client1', $idTokenHint);
 
@@ -253,11 +247,13 @@ class LogoutControllerTest extends TestCase {
         $idTokenHint = $this->createIdTokenHint([
             'sub' => $userId,
             'aud' => $clientId,
+            'sid' => 'sid-recent',
         ]);
 
         $this->userSession->method('isLoggedIn')->willReturn(false);
         $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+        $this->backChannelLogoutService->method('isRecentClientSession')->with($client, $userId, 'sid-recent')->willReturn(true);
         $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
 
         $result = $this->controller->logout($clientId, $idTokenHint, 'https://rp.example/logout', 'state value');
@@ -270,7 +266,7 @@ class LogoutControllerTest extends TestCase {
         $userId = 'user1';
         $clientId = 'client1';
         $client = $this->newClient($clientId);
-        $idTokenHint = $this->createIdTokenHint(['sub' => $userId, 'aud' => $clientId]);
+        $idTokenHint = $this->createIdTokenHint(['sub' => $userId, 'aud' => $clientId, 'sid' => 'sid-recent']);
 
         $specific = new LogoutRedirectUri();
         $specific->setRedirectUri('https://rp.example/own-logout');
@@ -281,6 +277,7 @@ class LogoutControllerTest extends TestCase {
         $this->userSession->method('isLoggedIn')->willReturn(false);
         $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+        $this->backChannelLogoutService->method('isRecentClientSession')->with($client, $userId, 'sid-recent')->willReturn(true);
 
         $result = $this->controller->logout($clientId, $idTokenHint, 'https://global.example/logout');
 
@@ -304,7 +301,6 @@ class LogoutControllerTest extends TestCase {
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
         $this->backChannelLogoutService->method('isCurrentClientSession')->with($client, 'sid-hs')->willReturn(true);
         $this->userSession->expects($this->once())->method('logout');
-        $this->accessTokenMapper->expects($this->once())->method('deleteByUserId')->with($userId);
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
@@ -348,14 +344,39 @@ class LogoutControllerTest extends TestCase {
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
         $this->backChannelLogoutService->method('isCurrentClientSession')->with($client, 'sid-current')->willReturn(true);
         $this->userSession->expects($this->once())->method('logout');
-        $this->accessTokenMapper->expects($this->once())->method('deleteByUserId')->with($userId);
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
         $this->assertInstanceOf(RedirectResponse::class, $result);
     }
 
-    public function testExpiredIdTokenHintWithoutActiveOpSessionIsRejected(): void {
+    public function testExpiredIdTokenHintWithoutActiveOpSessionIsAcceptedForRecentSession(): void {
+        $userId = 'user1';
+        $clientId = 'client1';
+        $client = $this->newClient($clientId);
+        $idTokenHint = $this->createIdTokenHint([
+            'sub' => $userId,
+            'aud' => $clientId,
+            'sid' => 'recent-sid',
+            'iat' => time() - 7200,
+            'exp' => time() - 60,
+        ]);
+
+        $this->userSession->method('isLoggedIn')->willReturn(false);
+        $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
+        $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+        $this->backChannelLogoutService->expects($this->once())
+            ->method('isRecentClientSession')
+            ->with($client, $userId, 'recent-sid')
+            ->willReturn(true);
+
+        $result = $this->controller->logout($clientId, $idTokenHint);
+
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertSame('/login', $result->getRedirectURL());
+    }
+
+    public function testExpiredIdTokenHintWithoutCurrentOrRecentSessionIsRejected(): void {
         $userId = 'user1';
         $clientId = 'client1';
         $client = $this->newClient($clientId);
@@ -370,7 +391,58 @@ class LogoutControllerTest extends TestCase {
         $this->userSession->method('isLoggedIn')->willReturn(false);
         $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
         $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
-        $this->accessTokenMapper->expects($this->never())->method('deleteByUserId');
+        $this->backChannelLogoutService->expects($this->once())
+            ->method('isRecentClientSession')
+            ->with($client, $userId, 'old-sid')
+            ->willReturn(false);
+
+        $result = $this->controller->logout($clientId, $idTokenHint);
+
+        $this->assertInstanceOf(JSONResponse::class, $result);
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+    }
+
+    public function testClientIdWithoutHintCanRedirectAfterExplicitConfirmation(): void {
+        $client = $this->newClient('client1');
+        $this->configureActiveUser('user1');
+        $this->clientMapper->method('getByIdentifier')->with('client1')->willReturn($client);
+        $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
+        $this->userSession->expects($this->once())->method('logout');
+
+        $confirmation = $this->controller->logout('client1', null, 'https://rp.example/logout', 'state value');
+        $this->assertInstanceOf(TemplateResponse::class, $confirmation);
+
+        $result = $this->controller->logout(null, null, null, null, '1', 'confirmation-token');
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertSame('https://rp.example/logout?state=state+value', $result->getRedirectURL());
+    }
+
+    public function testClientIdWithoutHintCanRedirectWhenAlreadyLoggedOut(): void {
+        $client = $this->newClient('client1');
+        $this->userSession->method('isLoggedIn')->willReturn(false);
+        $this->clientMapper->method('getByIdentifier')->with('client1')->willReturn($client);
+        $this->addRegisteredLogoutRedirectUri('https://rp.example/logout');
+        $this->userSession->expects($this->never())->method('logout');
+
+        $result = $this->controller->logout('client1', null, 'https://rp.example/logout', 'state value');
+
+        $this->assertInstanceOf(RedirectResponse::class, $result);
+        $this->assertSame('https://rp.example/logout?state=state+value', $result->getRedirectURL());
+    }
+
+    public function testHs256HintWithMissingClientSecretFailsSafely(): void {
+        $userId = 'user1';
+        $clientId = 'client-hs';
+        $signingSecret = '0123456789abcdef0123456789abcdef';
+        $client = $this->newClient($clientId, 'HS256', '');
+        $idTokenHint = $this->createIdTokenHint([
+            'sub' => $userId,
+            'aud' => $clientId,
+            'sid' => 'sid-hs',
+        ], 'HS256', $signingSecret);
+
+        $this->userSession->method('isLoggedIn')->willReturn(false);
+        $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 

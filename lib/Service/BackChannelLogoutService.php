@@ -11,6 +11,7 @@ namespace OCA\OIDCIdentityProvider\Service;
 use OCA\OIDCIdentityProvider\BackgroundJob\BackChannelLogoutRetryJob;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\RecentSessionMapper;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\IJobList;
@@ -31,6 +32,8 @@ class BackChannelLogoutService {
     private const LEGACY_SESSION_KEY = 'oidc_backchannel_sessions';
     private const REAUTHENTICATION_SUPPRESS_KEY = 'oidc_backchannel_reauthentication_suppress';
     private const REAUTHENTICATION_PENDING_KEY = 'oidc_backchannel_reauthentication_pending';
+    /** How long a genuinely logged-out OP/RP sid is considered recent. */
+    public const RECENT_SESSION_TTL = 600;
 
     /** Two retries after the initial request. */
     private const MAX_RETRY_ATTEMPTS = 2;
@@ -60,6 +63,7 @@ class BackChannelLogoutService {
         private ISession $session,
         private ISecureRandom $secureRandom,
         private ClientMapper $clientMapper,
+        private RecentSessionMapper $recentSessionMapper,
         private JwtGenerator $jwtGenerator,
         private IClientService $clientService,
         private IRequest $request,
@@ -114,6 +118,39 @@ class BackChannelLogoutService {
         return is_string($currentSid)
             && $currentSid !== ''
             && hash_equals($currentSid, $sid);
+    }
+
+
+    /**
+     * Check whether an RP/user/sid tuple was part of an OP browser session
+     * that was genuinely logged out within the recent-session window.
+     *
+     * A missing sid is supported for older ID Tokens by matching a recent
+     * session for the same RP and user. New 2.2.0 ID Tokens always carry sid.
+     */
+    public function isRecentClientSession(Client $client, string $userId, ?string $sid): bool {
+        if ($userId === '') {
+            return false;
+        }
+
+        $notBefore = $this->time->getTime() - self::RECENT_SESSION_TTL;
+        try {
+            return $this->recentSessionMapper->isRecent(
+                $userId,
+                $client->getClientIdentifier(),
+                $sid,
+                $notBefore,
+            );
+        } catch (\Throwable $e) {
+            // Recent-session correlation is a security check. If its persistence
+            // is unavailable, fail closed rather than accepting an expired or
+            // otherwise uncorrelated ID Token hint.
+            $this->logger->warning('Could not check recent OIDC logout session correlation.', [
+                'client_id' => $client->getClientIdentifier(),
+                'exception' => $e,
+            ]);
+            return false;
+        }
     }
 
 
@@ -190,6 +227,19 @@ class BackChannelLogoutService {
         }
 
         $this->session->remove(self::SESSION_KEY);
+        $logoutTime = null;
+        if ($userId !== null && $userId !== '') {
+            $logoutTime = $this->time->getTime();
+            try {
+                $this->recentSessionMapper->cleanUp($logoutTime - self::RECENT_SESSION_TTL);
+            } catch (\Throwable $e) {
+                // History persistence must never prevent the actual local logout
+                // or Back-Channel Logout fan-out.
+                $this->logger->warning('Could not clean up recent OIDC logout sessions.', [
+                    'exception' => $e,
+                ]);
+            }
+        }
         $httpClient = $this->clientService->newClient();
 
         /** @var list<IPromise> $promises */
@@ -202,6 +252,22 @@ class BackChannelLogoutService {
 
             try {
                 $client = $this->clientMapper->getByUid((int)$clientId);
+
+                // Record recent-session correlation before any outbound I/O.
+                // Reauthentication exits above and is deliberately not stored.
+                if ($logoutTime !== null && $userId !== null && $userId !== '') {
+                    try {
+                        $this->recentSessionMapper->remember($userId, $client->getClientIdentifier(), $sid, $logoutTime);
+                    } catch (\Throwable $e) {
+                        // Do not suppress the RP notification just because the
+                        // optional recent-session history could not be persisted.
+                        $this->logger->warning('Could not remember recent OIDC logout session.', [
+                            'client_id' => $client->getClientIdentifier(),
+                            'exception' => $e,
+                        ]);
+                    }
+                }
+
                 $logoutUri = trim((string)($client->getBackchannelLogoutUri() ?? ''));
                 if (!$this->isUsableLogoutUriForClient($client, $logoutUri)) {
                     continue;

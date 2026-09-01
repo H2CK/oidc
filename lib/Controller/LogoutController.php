@@ -19,7 +19,6 @@ use Firebase\JWT\Key;
 use Firebase\JWT\SignatureInvalidException;
 use InvalidArgumentException;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
-use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
@@ -60,7 +59,6 @@ class LogoutController extends ApiController {
         private ITimeFactory $time,
         private IUserSession $userSession,
         private IUserManager $userManager,
-        private AccessTokenMapper $accessTokenMapper,
         private LogoutRedirectUriMapper $logoutRedirectUriMapper,
         private IAppConfig $appConfig,
         private LoggerInterface $logger,
@@ -98,8 +96,10 @@ class LogoutController extends ApiController {
      * Generate a short-lived, one-time confirmation token bound to the current
      * Nextcloud browser session. The public logout endpoint cannot use the
      * normal CSRF middleware because RPs must be able to call it directly.
+     *
+     * @param array{client_id:?string,post_logout_redirect_uri:?string,state:?string} $redirectContext
      */
-    private function createLogoutConfirmationToken(string $userId): string {
+    private function createLogoutConfirmationToken(string $userId, array $redirectContext): string {
         $token = $this->secureRandom->generate(
             64,
             ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS
@@ -108,41 +108,145 @@ class LogoutController extends ApiController {
             'token_hash' => hash('sha256', $token),
             'created_at' => $this->time->getTime(),
             'user_id' => $userId,
+            'client_id' => $redirectContext['client_id'],
+            'post_logout_redirect_uri' => $redirectContext['post_logout_redirect_uri'],
+            'state' => $redirectContext['state'],
         ]);
 
         return $token;
     }
 
-    private function consumeLogoutConfirmationToken(?string $token, string $userId): bool {
+    /**
+     * Consume the confirmation token and return the server-side redirect
+     * context that was validated before the confirmation page was shown.
+     *
+     * @return array{client_id:?string,post_logout_redirect_uri:?string,state:?string}|null
+     */
+    private function consumeLogoutConfirmationToken(?string $token, string $userId): ?array {
         $stored = $this->session->get(self::LOGOUT_CONFIRMATION_SESSION_KEY);
         // Consume the token on every attempt to make it non-replayable.
         $this->session->remove(self::LOGOUT_CONFIRMATION_SESSION_KEY);
 
         if ($token === null || $token === '' || !is_array($stored)) {
-            return false;
+            return null;
         }
 
         $storedHash = $stored['token_hash'] ?? null;
         $createdAt = $stored['created_at'] ?? null;
         $storedUserId = $stored['user_id'] ?? null;
         if (!is_string($storedHash) || !is_int($createdAt) || !is_string($storedUserId)) {
-            return false;
+            return null;
         }
 
         if (!hash_equals($storedUserId, $userId)) {
-            return false;
+            return null;
         }
 
         $age = $this->time->getTime() - $createdAt;
         if ($age < 0 || $age > self::LOGOUT_CONFIRMATION_TTL) {
-            return false;
+            return null;
         }
 
-        return hash_equals($storedHash, hash('sha256', $token));
+        if (!hash_equals($storedHash, hash('sha256', $token))) {
+            return null;
+        }
+
+        $clientId = $stored['client_id'] ?? null;
+        $redirectUri = $stored['post_logout_redirect_uri'] ?? null;
+        $state = $stored['state'] ?? null;
+        if (($clientId !== null && !is_string($clientId))
+            || ($redirectUri !== null && !is_string($redirectUri))
+            || ($state !== null && !is_string($state))) {
+            return null;
+        }
+
+        return [
+            'client_id' => $clientId,
+            'post_logout_redirect_uri' => $redirectUri,
+            'state' => $state,
+        ];
     }
 
-    private function buildLogoutConfirmationResponse(string $userId): TemplateResponse {
-        $token = $this->createLogoutConfirmationToken($userId);
+    private function resolveClient(?string $clientId): ?Client {
+        if ($clientId === null || trim($clientId) === '') {
+            return null;
+        }
+
+        try {
+            $client = $this->clientMapper->getByIdentifier(trim($clientId));
+            return $client instanceof Client ? $client : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    private function isRegisteredPostLogoutRedirect(Client $client, string $redirectUri): bool {
+        foreach ($this->logoutRedirectUriMapper->getEffectiveByClientId($client->getId()) as $registered) {
+            if (hash_equals($registered->getRedirectUri(), $redirectUri)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * client_id plus an exact registered redirect URI is the independent
+     * legitimacy signal used when no id_token_hint is available. If an OP
+     * session is active, the user must still explicitly confirm logout.
+     *
+     * @return array{client_id:?string,post_logout_redirect_uri:?string,state:?string}
+     */
+    private function buildConfirmationRedirectContext(?string $clientId, ?string $redirectUri, ?string $state): array {
+        $empty = [
+            'client_id' => null,
+            'post_logout_redirect_uri' => null,
+            'state' => null,
+        ];
+        if ($redirectUri === null || $redirectUri === '') {
+            return $empty;
+        }
+
+        $client = $this->resolveClient($clientId);
+        if ($client === null || !$this->isRegisteredPostLogoutRedirect($client, $redirectUri)) {
+            return $empty;
+        }
+
+        return [
+            'client_id' => $client->getClientIdentifier(),
+            'post_logout_redirect_uri' => $redirectUri,
+            'state' => $state,
+        ];
+    }
+
+    /**
+     * Revalidate a stored confirmation context immediately before using it.
+     */
+    private function redirectFromConfirmationContext(array $context): ?RedirectResponse {
+        $clientId = $context['client_id'] ?? null;
+        $redirectUri = $context['post_logout_redirect_uri'] ?? null;
+        $state = $context['state'] ?? null;
+        if (!is_string($clientId) || !is_string($redirectUri) || $redirectUri === '') {
+            return null;
+        }
+
+        $client = $this->resolveClient($clientId);
+        if ($client === null || !$this->isRegisteredPostLogoutRedirect($client, $redirectUri)) {
+            return null;
+        }
+
+        return $this->buildLogoutRedirect($redirectUri, is_string($state) ? $state : null);
+    }
+
+    /**
+     * @param array{client_id:?string,post_logout_redirect_uri:?string,state:?string}|null $redirectContext
+     */
+    private function buildLogoutConfirmationResponse(string $userId, ?array $redirectContext = null): TemplateResponse {
+        $redirectContext ??= [
+            'client_id' => null,
+            'post_logout_redirect_uri' => null,
+            'state' => null,
+        ];
+        $token = $this->createLogoutConfirmationToken($userId, $redirectContext);
 
         $response = new TemplateResponse(
             Application::APP_ID,
@@ -245,7 +349,12 @@ class LogoutController extends ApiController {
         }
 
         if ($algorithm === 'HS256') {
-            $verificationKey = new Key($client->getSecret(), 'HS256');
+            $clientSecret = $client->getSecret();
+            if (!is_string($clientSecret) || trim($clientSecret) === '') {
+                $this->logger->error('Cannot validate HS256 id_token_hint because the RP has no usable client secret.');
+                return $this->invalidIdTokenHint('HS256 id_token_hint cannot be validated for this relying party.');
+            }
+            $verificationKey = new Key($clientSecret, 'HS256');
         } else {
             $ourKid = $this->appConfig->getAppValueString('kid');
             if (!empty($ourKid) && isset($headerData['kid']) && $headerData['kid'] !== $ourKid) {
@@ -321,10 +430,6 @@ class LogoutController extends ApiController {
         ];
     }
 
-    private function revokeOidcState(string $userId): void {
-        $this->accessTokenMapper->deleteByUserId($userId);
-        $this->logger->debug('OIDC tokens revoked for user ' . $userId . '.');
-    }
 
     #[BruteForceProtection(action: 'oidc_logout')]
     #[NoCSRFRequired]
@@ -369,25 +474,39 @@ class LogoutController extends ApiController {
             if ($activeUserId === null) {
                 return $this->getDefaultLogoutRedirect();
             }
-            if (!$this->consumeLogoutConfirmationToken($logout_confirmation_token, $activeUserId)) {
+            $confirmationContext = $this->consumeLogoutConfirmationToken($logout_confirmation_token, $activeUserId);
+            if ($confirmationContext === null) {
                 return new JSONResponse([
                     'error' => 'invalid_request',
                     'error_description' => 'Logout confirmation is missing, expired, or has already been used.',
                 ], Http::STATUS_BAD_REQUEST);
             }
 
+            // Revalidate the RP-specific redirect immediately before logout.
+            // No OAuth/OIDC grants are revoked here: RP-Initiated Logout ends
+            // browser sessions and triggers registered logout notifications;
+            // it is not a global grant-revocation endpoint.
+            $confirmedRedirect = $this->redirectFromConfirmationContext($confirmationContext);
             $this->userSession->logout();
-            $this->revokeOidcState($activeUserId);
-            return $this->getDefaultLogoutRedirect();
+            return $confirmedRedirect ?? $this->getDefaultLogoutRedirect();
         }
 
         // RP-Initiated Logout requires explicit end-user confirmation when an
         // active OP session exists but no trustworthy id_token_hint identifies
-        // the RP/User/session that requested the logout.
+        // the RP/User/session that requested the logout. When client_id plus an
+        // exact registered post_logout_redirect_uri are supplied, remember that
+        // independently validated redirect across the confirmation round-trip.
         if ($id_token_hint === null || $id_token_hint === '') {
-            return $activeUserId !== null
-                ? $this->buildLogoutConfirmationResponse($activeUserId)
-                : $this->getDefaultLogoutRedirect();
+            $redirectContext = $this->buildConfirmationRedirectContext($client_id, $post_logout_redirect_uri, $state);
+            if ($activeUserId === null) {
+                // The user is already logged out. A client_id plus an exact
+                // registered redirect URI is sufficient independent evidence
+                // that the requested destination is controlled by that RP.
+                // There is no OP session left that requires user confirmation.
+                return $this->redirectFromConfirmationContext($redirectContext)
+                    ?? $this->getDefaultLogoutRedirect();
+            }
+            return $this->buildLogoutConfirmationResponse($activeUserId, $redirectContext);
         }
 
         $validated = $this->validateIdTokenHint($id_token_hint, $client_id);
@@ -402,10 +521,6 @@ class LogoutController extends ApiController {
         $sid = $validated['sid'];
         $expiredHint = $validated['expired'];
 
-        if ($expiredHint && $activeUserId === null) {
-            return $this->invalidIdTokenHint('Expired id_token_hint cannot be correlated to an active OP session.');
-        }
-
         if ($activeUserId !== null) {
             // A valid token for a different user, an old pre-upgrade sid, or an
             // RP not participating in this browser session must never cause a
@@ -417,20 +532,26 @@ class LogoutController extends ApiController {
             }
 
             // Only now is it safe to end the OP session. The Back-Channel
-            // Logout listener observes this event and notifies participating RPs.
+            // Logout listener observes this event, records recent sid state and
+            // notifies participating RPs.
             $this->userSession->logout();
+        } else {
+            // With no active OP browser session, only a session that this OP
+            // actually logged out recently is trusted. This also enables the
+            // specification's SHOULD-level acceptance of expired ID Token hints
+            // for a recent RP session without turning arbitrary old hints into
+            // logout authority.
+            if (!$this->backChannelLogoutService->isRecentClientSession($client, $userId, $sid)) {
+                $description = $expiredHint
+                    ? 'Expired id_token_hint does not match a recent OP/RP session.'
+                    : 'id_token_hint does not match a current or recent OP/RP session.';
+                return $this->invalidIdTokenHint($description);
+            }
         }
 
-        $this->revokeOidcState($userId);
-
-        if (!empty($post_logout_redirect_uri)) {
-            // The hint has been cryptographically validated and bound to a
-            // registered RP above. Redirect URI matching remains exact.
-            foreach ($this->logoutRedirectUriMapper->getEffectiveByClientId($client->getId()) as $logoutRedirectUri) {
-                if ($post_logout_redirect_uri === $logoutRedirectUri->getRedirectUri()) {
-                    return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
-                }
-            }
+        if (!empty($post_logout_redirect_uri)
+            && $this->isRegisteredPostLogoutRedirect($client, $post_logout_redirect_uri)) {
+            return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
         }
 
         return $this->getDefaultLogoutRedirect();
