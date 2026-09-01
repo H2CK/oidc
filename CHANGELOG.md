@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2026-09-01
+
+### Changed
+
+- Fixed migration: make tex_enabled nullable so 2.1.0 installs on Nextcloud 32 ([#696](https://github.com/H2CK/oidc/pull/696))
+- Updated translations
+
 ## [2.1.0] - 2026-08-31
 
 ### Added
