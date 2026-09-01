@@ -166,7 +166,7 @@ The discovery and web finger endpoint should be made available at the URL: `<Iss
 
 The discovery document advertises `end_session_endpoint` to signal support for [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html). The endpoint accepts both `GET` and `POST` requests and supports the optional `id_token_hint`, `client_id`, `post_logout_redirect_uri`, and `state` parameters.
 
-An active Nextcloud session is terminated whenever the endpoint is called. When a valid `id_token_hint` identifies a user, that user's OIDC access tokens are also revoked. Invalid ID token hints are rejected with an error response.
+An active Nextcloud session is terminated without additional interaction only when a cryptographically valid `id_token_hint` identifies the current user, RP, and `sid` registered for that browser session. The hint is verified with the ID-token signing algorithm configured for that RP (`RS256` or `HS256`); algorithm mismatches are rejected. An expired but otherwise valid ID Token hint is accepted for silent logout only while its `sid` still matches the current OP/RP browser session. If an active OP session exists but the hint is missing, invalid, belongs to another session, or contains a pre-upgrade `sid`, the endpoint shows an explicit logout confirmation page instead of terminating the session. The confirmation page is rendered as a Nextcloud `TemplateResponse` using the guest layout, so it follows the active Nextcloud theme and branding. All visible confirmation texts use Nextcloud's localization mechanism and can be translated in the same way as other app strings. The confirmation uses a short-lived, one-time token bound to the current Nextcloud session. When logout completes, the user's persisted OIDC access/refresh state is revoked. If no active OP session exists, an invalid or expired ID Token hint is rejected with an error response.
 
 For security, a `post_logout_redirect_uri` is used only when all of the following are true:
 
@@ -189,7 +189,7 @@ The Logout Token:
 - contains `iss`, `sub`, `aud`, `iat`, `exp`, `jti`, `sid`, and the Back-Channel Logout `events` claim and does not contain `nonce`;
 - expires 120 seconds after issuance.
 
-The RP endpoint should validate the signature and the Logout Token claims, especially `iss`, `aud`, `iat`/`exp`, `jti`, `events`, and `sid`, terminate the corresponding RP session, and return HTTP `200` or `204`. A failing or unavailable RP is logged but does not prevent the local Nextcloud logout or notifications to other RPs. Logout requests are not queued for later retry.
+The RP endpoint should validate the signature and the Logout Token claims, especially `iss`, `aud`, `iat`/`exp`, `jti`, `events`, and `sid`, terminate the corresponding RP session, and return HTTP `200` or `204`. Back-Channel Logout requests for all participating RPs are started asynchronously before their results are awaited, so one slow RP does not serially delay requests to the remaining RPs. A failing or temporarily unavailable RP does not prevent the local Nextcloud logout or notifications to other RPs. HTTP 408, HTTP 429, HTTP 5xx responses, transport failures, and failures while starting the HTTP request are treated as potentially recoverable: the provider queues at most two retries with minimum delays of 30 seconds and 120 seconds. Each retry re-reads the current client configuration and generates a fresh, `sid`-correlated Logout Token; queued retry arguments intentionally do not retain the user ID. Other HTTP 4xx responses are not retried. Actual execution time depends on the configured Nextcloud background-job runner.
 
 #### Configure Back-Channel Logout in the Admin UI
 
@@ -198,7 +198,7 @@ The RP endpoint should validate the signature and the Logout Token claims, espec
 3. Set **Back-Channel Logout URI** to the RP endpoint that accepts Back-Channel Logout Tokens.
 4. Enable **Require sid in Back-Channel Logout Tokens** if the RP registers `backchannel_logout_session_required=true`.
 
-Use an absolute HTTPS URI. HTTP is accepted only for confidential clients; fragments and embedded user credentials are rejected. Nextcloud's HTTP client is used for delivery, so Nextcloud's remote-host validation also applies to outbound logout requests.
+Use an absolute HTTPS URI. HTTP is accepted only for confidential clients; fragments and embedded user credentials are rejected. For dynamically registered clients, an additional application-level SSRF policy applies independently of Nextcloud's global `allow_local_remote_servers` setting: loopback, RFC1918/private, link-local, IPv6 ULA, shared-address-space, reserved/non-publicly-routable addresses, and known cloud metadata endpoints are rejected. Hostnames must resolve successfully and every resolved IPv4/IPv6 address must be publicly routable. The policy is checked during DCR/RFC 7592 updates and again immediately before every initial Back-Channel Logout delivery and retry. For DCR callbacks the request also explicitly sets Nextcloud's per-request `allow_local_address` option to `false`, forcing its DNS-pinning/local-address protection even when `allow_local_remote_servers` is globally enabled; this additionally pins the validated DNS result for the actual HTTP connection and reduces DNS-rebinding exposure.
 
 The `backchannel_logout_session_required` option represents the standard client metadata value. This provider has session support and includes `sid` in Logout Tokens whenever an RP session has been registered, irrespective of whether the RP marks the claim as required.
 
@@ -227,7 +227,7 @@ The standard metadata can also be supplied through Dynamic Client Registration a
 
 `backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply.
 
-> **Upgrade note:** RP sessions created before the upgrade cannot be reconstructed from an existing Nextcloud session. Back-Channel Logout tracking starts with OIDC authorizations performed after the upgrade. Such pre-existing RP sessions therefore need a new sign-in/authorization before they can participate in Back-Channel Logout.
+> **Upgrade note:** The migration introducing strict Back-Channel Logout session correlation deliberately invalidates all existing persisted OIDC authorization-code and access/refresh grant state. The in-browser Back-Channel Logout session key is versioned as well, so an existing `sid` is not silently reused. Existing RPs must perform a new OIDC authorization after the upgrade before refresh-token use or silent RP-Initiated Logout can continue. This is intentional: pre-upgrade RP sessions cannot be reconstructed reliably and must not be allowed to mint new ID Tokens without a `sid` bound to the current OP browser session. Already issued self-contained ID Tokens may remain cryptographically valid until their `exp`, but they cannot silently terminate an active OP session unless their `sid` matches newly registered session state; otherwise explicit user confirmation is required.
 
 There is currently NO support for:
 

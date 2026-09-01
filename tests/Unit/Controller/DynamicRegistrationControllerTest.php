@@ -161,6 +161,63 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('no_redirect_uris_provided', $result->getData()['error']);
     }
 
+    /** @dataProvider blockedDynamicBackChannelUriProvider */
+    public function testDynamicRegistrationRejectsUnsafeBackChannelLogoutUri(string $uri): void {
+        $this->appConfig->method('getAppValueString')->willReturn('true');
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->registerClient(
+            redirect_uris: ['https://rp.example/callback'],
+            client_name: 'TEST-CLIENT',
+            backchannel_logout_uri: $uri,
+        );
+
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertEquals('invalid_client_metadata', $result->getData()['error']);
+    }
+
+    public static function blockedDynamicBackChannelUriProvider(): array {
+        return [
+            'loopback' => ['https://127.0.0.1/logout'],
+            'RFC1918' => ['https://10.0.0.1/logout'],
+            'link-local' => ['https://169.254.169.254/logout'],
+            'IPv6 ULA' => ['https://[fd00:ec2::254]/logout'],
+            'cloud metadata hostname' => ['https://metadata.google.internal/computeMetadata/v1'],
+            'Alibaba metadata' => ['https://100.100.100.200/latest/meta-data'],
+        ];
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsUnsafeBackChannelLogoutUri(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService
+            ->method('validateToken')
+            ->with('registration-token')
+            ->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client();
+        $reflection = new \ReflectionClass($client);
+        $id = $reflection->getProperty('id');
+        $id->setAccessible(true);
+        $id->setValue($client, 7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $client->setType('confidential');
+
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            backchannel_logout_uri: 'https://192.168.10.20/backchannel-logout',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+    }
+
     public function testMaxNumClientsExceeded() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig
