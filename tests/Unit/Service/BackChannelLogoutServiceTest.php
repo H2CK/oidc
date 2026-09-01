@@ -190,6 +190,37 @@ class BackChannelLogoutServiceTest extends TestCase {
         $service->logout('user1');
     }
 
+    public function testDynamicClientHttpTargetIsBlockedAgainAtDeliveryTime(): void {
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(
+            static fn (string $key) => $key === 'oidc_backchannel_sessions_v2' ? ['1' => 'sid-1'] : null
+        );
+
+        $client = $this->newClient(1, 'client-1', 'http://8.8.8.8/logout');
+        $client->setDcr(true);
+        $clientMapper = $this->createMock(ClientMapper::class);
+        $clientMapper->method('getByUid')->with(1)->willReturn($client);
+
+        $httpClient = $this->createMock(IClient::class);
+        $httpClient->expects($this->never())->method('postAsync');
+        $clientService = $this->createMock(IClientService::class);
+        $clientService->method('newClient')->willReturn($httpClient);
+
+        $service = new BackChannelLogoutService(
+            $session,
+            $this->createMock(ISecureRandom::class),
+            $clientMapper,
+            $this->createMock(JwtGenerator::class),
+            $clientService,
+            $this->createMock(IRequest::class),
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(IJobList::class),
+            $this->createMock(ITimeFactory::class),
+        );
+
+        $service->logout('user1');
+    }
+
     public function testDynamicClientForcesNextcloudLocalAddressProtectionOnRequest(): void {
         $session = $this->createMock(ISession::class);
         $session->method('get')->willReturnCallback(
@@ -515,6 +546,7 @@ class BackChannelLogoutServiceTest extends TestCase {
     public static function dynamicUriPolicyProvider(): array {
         return [
             'public IPv4 accepted' => ['https://8.8.8.8/logout', true],
+            'HTTP rejected for dynamic confidential client' => ['http://8.8.8.8/logout', false],
             'public IPv6 accepted' => ['https://[2606:4700:4700::1111]/logout', true],
             'IPv4 loopback rejected' => ['https://127.0.0.1/logout', false],
             'IPv6 loopback rejected' => ['https://[::1]/logout', false],

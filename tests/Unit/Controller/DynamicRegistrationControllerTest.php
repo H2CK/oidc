@@ -179,6 +179,7 @@ class DynamicRegistrationControllerTest extends TestCase {
 
     public static function blockedDynamicBackChannelUriProvider(): array {
         return [
+            'HTTP even for public address' => ['http://8.8.8.8/logout'],
             'loopback' => ['https://127.0.0.1/logout'],
             'RFC1918' => ['https://10.0.0.1/logout'],
             'link-local' => ['https://169.254.169.254/logout'],
@@ -212,6 +213,36 @@ class DynamicRegistrationControllerTest extends TestCase {
         $result = $this->controller->updateClientConfiguration(
             clientId: 'client-1',
             backchannel_logout_uri: 'https://192.168.10.20/backchannel-logout',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsHttpBackChannelLogoutUri(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService
+            ->method('validateToken')
+            ->with('registration-token')
+            ->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client();
+        $reflection = new \ReflectionClass($client);
+        $id = $reflection->getProperty('id');
+        $id->setAccessible(true);
+        $id->setValue($client, 7);
+        $client->setClientIdentifier('client-1');
+        $client->setDcr(true);
+        $client->setType('confidential');
+
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            backchannel_logout_uri: 'http://8.8.8.8/backchannel-logout',
         );
 
         $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());

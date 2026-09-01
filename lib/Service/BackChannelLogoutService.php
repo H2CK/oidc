@@ -430,7 +430,15 @@ class BackChannelLogoutService {
         }
 
         $parts = parse_url($uri);
-        if (!is_array($parts) || !isset($parts['host'])) {
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+            return false;
+        }
+
+        // Application policy for DCR/RFC 7592: dynamically registered
+        // Back-Channel Logout endpoints must always use TLS, even for
+        // confidential clients. Static/admin-managed clients retain the
+        // base specification policy implemented by isValidBackChannelLogoutUri().
+        if (strtolower((string)$parts['scheme']) !== 'https') {
             return false;
         }
 

@@ -203,7 +203,7 @@ class DynamicRegistrationController extends ApiController
             if (!BackChannelLogoutService::isAllowedDynamicBackChannelLogoutUri($backchannel_logout_uri, $client->getType())) {
                 return new JSONResponse([
                     'error' => 'invalid_client_metadata',
-                    'error_description' => 'backchannel_logout_uri must be an absolute HTTP(S) URI to a publicly routable host without a fragment. Local, private, link-local, shared-address-space, and cloud-metadata targets are not allowed for dynamically registered clients.',
+                    'error_description' => 'backchannel_logout_uri must be an absolute HTTPS URI to a publicly routable host without a fragment. HTTP, local, private, link-local, shared-address-space, and cloud-metadata targets are not allowed for dynamically registered clients.',
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setBackchannelLogoutUri($backchannel_logout_uri);
@@ -542,7 +542,7 @@ class DynamicRegistrationController extends ApiController
             } elseif (!BackChannelLogoutService::isAllowedDynamicBackChannelLogoutUri($backchannel_logout_uri, $client->getType())) {
                 return new JSONResponse([
                     'error' => 'invalid_client_metadata',
-                    'error_description' => 'backchannel_logout_uri must be an absolute HTTP(S) URI to a publicly routable host without a fragment. Local, private, link-local, shared-address-space, and cloud-metadata targets are not allowed for dynamically registered clients.',
+                    'error_description' => 'backchannel_logout_uri must be an absolute HTTPS URI to a publicly routable host without a fragment. HTTP, local, private, link-local, shared-address-space, and cloud-metadata targets are not allowed for dynamically registered clients.',
                 ], Http::STATUS_BAD_REQUEST);
             } else {
                 $client->setBackchannelLogoutUri($backchannel_logout_uri);
