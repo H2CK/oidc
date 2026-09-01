@@ -41,6 +41,8 @@ OC.L10N.register(
     "Address" : "地址",
     "Phone" : "電話",
     "Website" : "網站",
+    "The claim value will be true if the user is administrator, otherwise false." : "若使用者為管理員，則宣告值為 true；否則為 false。",
+    "The claim value will be true if the user is group administrator, otherwise false. Required parameter: group ID of the group for which to check the group administrator status." : "若使用者為群組管理員，宣告值將為 true；否則為 false。必填參數：要檢查群組管理員狀態之群組的群組 ID。",
     "OpenID Connect allows to authenticate at external services with {instanceName} user accounts." : "OpenID Connect 允許使用 {instanceName} 使用者帳戶在外部服務上進行身分驗證。",
     "OpenID Connect clients" : "OpenID Connect 用戶端",
     "Settings" : "設定",
