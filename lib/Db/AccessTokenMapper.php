@@ -143,7 +143,7 @@ class AccessTokenMapper extends QBMapper {
                 [IQueryBuilder::PARAM_INT]
             );
             try {
-                if ($result->fetchAssociative() === false) {
+                if ($result->fetch() === false) {
                     throw new AccessTokenNotFoundException('Could not lock access token');
                 }
             } finally {
