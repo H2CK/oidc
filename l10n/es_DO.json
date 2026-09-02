@@ -1,4 +1,6 @@
 { "translations": {
+    "Log out" : "Cerrar sesión",
+    "Cancel" : "Cancel",
     "Public" : "Público",
     "Avatar" : "Avatar",
     "Address" : "Dirección",
@@ -6,7 +8,6 @@
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
-    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Client Identifier" : "Identificador del cliente",
     "Secret" : "Secreto",

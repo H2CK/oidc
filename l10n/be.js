@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Карыстальнік не з'яўляецца членам груп, вызначаных для кліента. Вам не дазволена атрымліваць токен уваходу.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш кліент не мае права падключацца. Паведаміце пра гэта адміністратару вашага кліента.",
+    "Cancel" : "Скасаваць",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL-адрас перанакіравання павінен быць поўным, напрыклад: https://yourdomain.com/path",
     "Avatar" : "Аватар",
     "Address" : "Адрас",
@@ -13,7 +14,6 @@ OC.L10N.register(
     "Add client" : "Дадаць кліента",
     "Name" : "Назва",
     "Redirection URI" : "URI перанакіравання",
-    "Cancel" : "Скасаваць",
     "Add" : "Дадаць",
     "Type" : "Тып",
     "Client Identifier" : "Ідэнтыфікатар кліента",

@@ -2,6 +2,8 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашиот клиент не е авторизиран за да се поврзе. Ве молиме, информирајте администратор за вашиот клиент.",
+    "Log out" : "Одјава",
+    "Cancel" : "Откажи",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Вашето УРЛ со пренасочување треба да биде целосно УРЛ:\nhttps://vasdomen.com/pateka",
     "Public" : "Јавна",
     "Avatar" : "Аватар",
@@ -13,7 +15,6 @@ OC.L10N.register(
     "Add client" : "Додади клиент",
     "Name" : "Име",
     "Redirection URI" : "Пренасочено URI",
-    "Cancel" : "Откажи",
     "Add" : "Додади",
     "Type" : "Вид",
     "Client Identifier" : "Идентификатор на клиент",

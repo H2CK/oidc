@@ -1,13 +1,14 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Clàraich a-mach",
+    "Cancel" : "Cancel",
     "Avatar" : "Avatar",
     "Address" : "Seòladh",
     "Website" : "Làrach-lìn",
     "Settings" : "Roghainnean",
     "Back" : "Air ais",
     "Name" : "Ainm",
-    "Cancel" : "Cancel",
     "Type" : "Seòrsa",
     "Save" : "Sàbhail",
     "Delete" : "Sguab às",

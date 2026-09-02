@@ -1,13 +1,13 @@
 OC.L10N.register(
     "oidc",
     {
+    "Cancel" : "Cancel",
     "Public" : "Public",
     "Avatar" : "Avatar",
     "Website" : "Site web",
     "Settings" : "Setări",
     "Back" : "Înapoi",
     "Name" : "Nume",
-    "Cancel" : "Cancel",
     "Add" : "Adaugă",
     "Type" : "Tip",
     "Secret" : "Secret",

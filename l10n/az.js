@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "Cancel" : "Cancel",
     "Public" : "İctimai",
     "Settings" : "Quraşdırmalar",
     "Back" : "Geri",
     "Name" : "Ad",
-    "Cancel" : "Cancel",
     "Save" : "Saxla",
     "Delete" : "Sil",
     "Never" : "Heç vaxt",

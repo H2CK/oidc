@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Zure bezeroak ez du konektatzeko baimenik. Esan iezaiozu zure bezeroaren administratzaileari.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Jasotako birbideratzeko URIa ez da konektatzeko onartzen . Mesedez, jakinarazi zure bezeroaren administratzaileari.",
+    "Log out" : "Saioa itxi",
+    "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Berbideraketa egiteko URLa URL oso bat izan behar da, adibidez: https://zuredomeinua.eus/karpeta",
     "OIDC Identity Provider" : "OIDC identitate-hornitzailea",
     "Nextcloud as OpenID Connect Identity Provider" : "Nextcloud OpenID Connect identitate hornitzaile gisa",
@@ -24,7 +26,6 @@ OC.L10N.register(
     "Signing Algorithm" : "Sinatze algoritmoa",
     "Select Signing Algorithm" : "Hautatu sinatze algoritmoa",
     "Select Type" : "Hautatu mota",
-    "Cancel" : "Cancel",
     "Add" : "Gehitu",
     "Type" : "Mota",
     "Client Identifier" : "Bezeroaren Identifikadorea",

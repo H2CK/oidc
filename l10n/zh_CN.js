@@ -2,6 +2,8 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "您的客户端程序未获得连接授权。请联系您客户端程序的管理员",
+    "Log out" : "登出",
+    "Cancel" : "取消",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的跳转网址应为完整网址，例如:\nhttps://yourdomain.com/path",
     "Public" : "公开",
     "Avatar" : "头像",
@@ -15,7 +17,6 @@ OC.L10N.register(
     "Add client" : "添加客户端",
     "Name" : "名称",
     "Redirection URI" : "跳转URI",
-    "Cancel" : "取消",
     "Add" : "添加",
     "Type" : "类型",
     "Client Identifier" : "客户端标识",

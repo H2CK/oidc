@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "Cancel" : "Cancel",
     "Avatar" : "Avatar",
     "Settings" : "Innstillingar",
     "Back" : "Tilbake",
     "Name" : "Namn",
-    "Cancel" : "Cancel",
     "Add" : "Legg til",
     "Type" : "Skriv",
     "Save" : "Lagre",

@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Shkyçu",
+    "Cancel" : "Cancel",
     "Public" : "Publik",
     "Avatar" : "Avatari",
     "Address" : "Adresa",
@@ -10,7 +12,6 @@ OC.L10N.register(
     "Add client" : "Shto klient",
     "Name" : "Emër",
     "Redirection URI" : "URI Ridrejtimi",
-    "Cancel" : "Cancel",
     "Add" : "Shto ",
     "Type" : "Tipi",
     "Client Identifier" : "Identifikues Klienti",

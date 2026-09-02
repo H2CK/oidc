@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El vostre client no té autorització per a connectar-se. Informeu-ne a l'administrador del client.",
+    "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "L'URL de redirecció ha de ser un URL complet, com ara: https://domini.com/camí",
     "Public" : "Públic",
     "Avatar" : "Avatar",
@@ -14,7 +15,6 @@ OC.L10N.register(
     "Add client" : "Afegeix un client",
     "Name" : "Nom",
     "Redirection URI" : "URI de redirecció",
-    "Cancel" : "Cancel",
     "Add" : "Afegeix",
     "Type" : "Tipus",
     "Client Identifier" : "Identificador del client",

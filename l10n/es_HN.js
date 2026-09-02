@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Salir",
+    "Cancel" : "Cancel",
     "Public" : "Público",
     "Avatar" : "Avatar",
     "Address" : "Dirección",
@@ -9,7 +11,6 @@ OC.L10N.register(
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
-    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Type" : "Tipo",
     "Client Identifier" : "Identificador del cliente",

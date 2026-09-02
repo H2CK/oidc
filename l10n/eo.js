@@ -1,12 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
+    "Cancel" : "Cancel",
     "Public" : "Publika",
     "Avatar" : "Avataro",
     "Website" : "Retejo",
     "Settings" : "Agordoj",
     "Name" : "Nomo",
-    "Cancel" : "Cancel",
     "Type" : "Tipo",
     "Secret" : "Sekreta",
     "Save" : "Konservi",

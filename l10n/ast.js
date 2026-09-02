@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El veceru nun tien autorización pa conectase. Informa al alministrador de l'aplicación.",
+    "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "La URL de redireición tien de ser una URL completa, por exemplu: https://dominiu.com/camin",
     "Public" : "Pública",
     "Avatar" : "Avatar",
@@ -14,7 +15,6 @@ OC.L10N.register(
     "Add client" : "Amestar el veceru",
     "Name" : "Nome",
     "Redirection URI" : "URI de redireición",
-    "Cancel" : "Cancel",
     "Add" : "Amestar",
     "Type" : "Tipu",
     "Client Identifier" : "Identificador del veceru",

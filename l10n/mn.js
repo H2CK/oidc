@@ -2,6 +2,8 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Таны клиент холбогдох эрхгүй байна. Клиентийнхээ администраторт мэдэгдэнэ үү.",
+    "Log out" : "Гарах",
+    "Cancel" : "‚Äì¬±‚Äì√¶‚Äì¬™‚Äì‚àè‚Äî√â‚Äì¬™‚Äì‚àû‚Äî√ñ",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Таны дахин чиглүүлэлтийн URL бүрэн URL байх ёстой, жишээлбэл: https://yourdomain.com/path",
     "Confidential" : "Нууц",
     "Public" : "Нийтийн",
@@ -14,7 +16,6 @@ OC.L10N.register(
     "Add client" : "Клиент нэмэх",
     "Name" : "Нэр",
     "Redirection URI" : "Дахин чиглүүлэх URI",
-    "Cancel" : "‚Äì¬±‚Äì√¶‚Äì¬™‚Äì‚àè‚Äî√â‚Äì¬™‚Äì‚àû‚Äî√ñ",
     "Add" : "Нэмэх",
     "Type" : "Төрөл",
     "Client Identifier" : "Клиентийн танигч",

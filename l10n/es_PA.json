@@ -1,11 +1,12 @@
 { "translations": {
+    "Log out" : "Cerrar sesión",
+    "Cancel" : "Cancel",
     "Public" : "Público",
     "Avatar" : "Avatar",
     "Settings" : "Configuraciones ",
     "Add client" : "Agregar cliente",
     "Name" : "Nombre",
     "Redirection URI" : "URI para redirección",
-    "Cancel" : "Cancel",
     "Add" : "Guardar",
     "Type" : "Tipo",
     "Client Identifier" : "Identificador del cliente",

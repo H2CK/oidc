@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "N'eo ket aotreet ho kliant d'en em kenstagañ. Galvit merour ho kliant.",
+    "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ho adhenter URL en deus ezhomm bezhañ un URL klog da skouer : https://yourdomain.com/path",
     "Public" : "Publik",
     "Avatar" : "Avatar",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Add client" : "Ouzhoennañ kliant",
     "Name" : "Anv",
     "Redirection URI" : "Adhent URL",
-    "Cancel" : "Cancel",
     "Type" : "Seurt",
     "Client Identifier" : "Anavezer Kliant",
     "Secret" : "Sekret",

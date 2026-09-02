@@ -1,12 +1,13 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Odjava",
+    "Cancel" : "Poništi",
     "Avatar" : "Avatar",
     "Address" : "Adresa",
     "Website" : "Sajt",
     "Settings" : "Поставке",
     "Name" : "Ime",
-    "Cancel" : "Poništi",
     "Type" : "Tip",
     "Save" : "Sačuvaj",
     "Delete" : "Obriši",

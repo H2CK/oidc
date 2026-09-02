@@ -1,11 +1,11 @@
 OC.L10N.register(
     "oidc",
     {
+    "Cancel" : "Cancel",
     "Public" : "สาธารณะ",
     "Avatar" : "ภาพแทนตัว",
     "Settings" : "การตั้งค่า",
     "Name" : "ชื่อ",
-    "Cancel" : "Cancel",
     "Type" : "ประเภท",
     "Save" : "บันทึก",
     "Delete" : "ลบ",

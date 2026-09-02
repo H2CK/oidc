@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Senser",
+    "Cancel" : "Semmet",
     "Confidential" : "Abaḍni",
     "Public" : "Azayaz",
     "Avatar" : "Avatar",
@@ -10,7 +12,6 @@ OC.L10N.register(
     "Settings" : "Iɣewwaṛen",
     "Back" : "Tuɣalin",
     "Name" : "Nom",
-    "Cancel" : "Semmet",
     "Add" : "Rnu",
     "Type" : "Anaw",
     "Save" : "Sekles",

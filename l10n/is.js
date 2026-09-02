@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Biðlarinn þinn hefur ekki heimild til að tengjast. Láttu kerfisstjórann þinn vita.",
+    "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL-endurbeiningarslóðin verður að vera full URL-slóð, til dæmis: https://yourdomain.com/path",
     "Public" : "Opinbert",
     "Avatar" : "Auðkennismynd",
@@ -12,7 +13,6 @@ OC.L10N.register(
     "Add client" : "Bæta við biðlara",
     "Name" : "Heiti",
     "Redirection URI" : "Endurbeiningarslóð",
-    "Cancel" : "Cancel",
     "Add" : "Bæta við",
     "Type" : "Tegund",
     "Client Identifier" : "Biðlaraauðkenni",

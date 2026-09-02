@@ -1,6 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "გამოსვლა",
+    "Cancel" : "Cancel",
     "Public" : "ღია",
     "Avatar" : "ავატარი",
     "Website" : "ვებ-საიტი",
@@ -8,7 +10,6 @@ OC.L10N.register(
     "Add client" : "კლიენტის დამატება",
     "Name" : "სახელი",
     "Redirection URI" : "გადამისამართების URI",
-    "Cancel" : "Cancel",
     "Client Identifier" : "კლიენტის იდენტიფიკატორი",
     "Secret" : "საიდუმლო",
     "Save" : "შენახვა",

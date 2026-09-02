@@ -2,6 +2,8 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su cliente tuo no est autorizadu a si connètere. Pro praghere, informa s'amministradore de su cliente tuo.",
+    "Log out" : "Essi·nche",
+    "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : " S'URL tuo pro torrare a deretare tocat chi siat unu URL cumpretu, pro nàrrere: https://sudomìniutuo.com/caminu",
     "Public" : "Pùblicu",
     "Avatar" : "Avatar",
@@ -14,7 +16,6 @@ OC.L10N.register(
     "Add client" : "Agiunghe cliente",
     "Name" : "Nùmene",
     "Redirection URI" : "URI de torrada a deretare",
-    "Cancel" : "Cancel",
     "Add" : "Agiunghe",
     "Type" : "Genia",
     "Client Identifier" : "Identificadore cliente",
