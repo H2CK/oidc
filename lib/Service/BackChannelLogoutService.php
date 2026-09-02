@@ -100,6 +100,15 @@ class BackChannelLogoutService {
         return $sid;
     }
 
+    /** @return array<string,string> Current RP-id => sid mappings for the OP browser session. */
+    public function getCurrentClientSessions(): array {
+        $sessions = $this->session->get(self::SESSION_KEY);
+        if (!is_array($sessions)) {
+            return [];
+        }
+        return array_filter($sessions, static fn ($sid, $clientId): bool => is_string($sid) && $sid !== '' && ctype_digit((string)$clientId), ARRAY_FILTER_USE_BOTH);
+    }
+
     /**
      * Check that an ID Token sid identifies the RP session registered for the
      * current OP browser session.

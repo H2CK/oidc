@@ -253,6 +253,20 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertContains('sid', $data['claims_supported']);
     }
 
+
+    public function testGenerateDiscoveryAdvertisesFrontChannelLogoutAndSessionManagement(): void {
+        $result = $this->generator->generateDiscovery($this->request);
+        $data = $result->getData();
+
+        $this->assertArrayHasKey('frontchannel_logout_supported', $data);
+        $this->assertTrue($data['frontchannel_logout_supported']);
+        $this->assertArrayHasKey('frontchannel_logout_session_supported', $data);
+        $this->assertTrue($data['frontchannel_logout_session_supported']);
+        $this->assertArrayHasKey('check_session_iframe', $data);
+        $this->assertStringContainsString('/oidc/oidc/Session/checkSessionIframe', $data['check_session_iframe']);
+        $this->assertContains('sid', $data['claims_supported']);
+    }
+
     public function testGenerateDiscoveryHasIntrospectionEndpoint() {
         $result = $this->generator->generateDiscovery($this->request);
         $data = $result->getData();

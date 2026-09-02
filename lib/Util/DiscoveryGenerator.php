@@ -237,6 +237,9 @@ class DiscoveryGenerator
             'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
             'backchannel_logout_supported' => true,
             'backchannel_logout_session_supported' => true,
+            'frontchannel_logout_supported' => true,
+            'frontchannel_logout_session_supported' => true,
+            'check_session_iframe' => $host . $this->urlGenerator->linkToRoute('oidc.Session.checkSessionIframe', []),
         ];
 
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION) == 'true') {

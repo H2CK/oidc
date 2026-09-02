@@ -11,8 +11,11 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Services\IAppConfig;
@@ -36,6 +39,8 @@ class LogoutControllerTest extends TestCase {
     private IAppConfig $appConfig;
     private ClientMapper $clientMapper;
     private BackChannelLogoutService $backChannelLogoutService;
+    private FrontChannelLogoutService $frontChannelLogoutService;
+    private SessionManagementService $sessionManagementService;
     private string $privateKey;
 
     /** @var array<string, mixed> */
@@ -55,6 +60,8 @@ class LogoutControllerTest extends TestCase {
         $logger = $this->createMock(LoggerInterface::class);
         $secureRandom = $this->createMock(ISecureRandom::class);
         $this->backChannelLogoutService = $this->createMock(BackChannelLogoutService::class);
+        $this->frontChannelLogoutService = $this->createMock(FrontChannelLogoutService::class);
+        $this->sessionManagementService = $this->createMock(SessionManagementService::class);
 
         $this->privateKey = $this->configureJwtKeys();
 
@@ -96,6 +103,8 @@ class LogoutControllerTest extends TestCase {
             $logger,
             $secureRandom,
             $this->backChannelLogoutService,
+            $this->frontChannelLogoutService,
+            $this->sessionManagementService,
         );
     }
 
@@ -448,6 +457,42 @@ class LogoutControllerTest extends TestCase {
 
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+    }
+
+
+    public function testSilentLogoutRendersFrontChannelIframesAndResetsSessionManagementState(): void {
+        $userId = 'user1';
+        $clientId = 'client1';
+        $client = $this->newClient($clientId);
+        $idTokenHint = $this->createIdTokenHint([
+            'sub' => $userId,
+            'aud' => $clientId,
+            'sid' => 'sid-1',
+        ]);
+
+        $this->configureActiveUser($userId);
+        $this->userManager->method('get')->with($userId)->willReturn($this->createMock(IUser::class));
+        $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+        $this->backChannelLogoutService->method('isCurrentClientSession')->with($client, 'sid-1')->willReturn(true);
+        $this->backChannelLogoutService->expects($this->once())
+            ->method('getCurrentClientSessions')
+            ->willReturn(['7' => 'sid-1']);
+        $this->frontChannelLogoutService->expects($this->once())
+            ->method('getLogoutUris')
+            ->with(['7' => 'sid-1'])
+            ->willReturn(['https://rp.example/frontchannel?iss=https%3A%2F%2Fnextcloud.local&sid=sid-1']);
+        $this->sessionManagementService->expects($this->once())->method('resetBrowserState');
+        $this->userSession->expects($this->once())->method('logout');
+
+        $result = $this->controller->logout($clientId, $idTokenHint);
+
+        $this->assertInstanceOf(DataDisplayResponse::class, $result);
+        $this->assertSame(Http::STATUS_OK, $result->getStatus());
+        $this->assertStringContainsString('https://rp.example/frontchannel?iss=https%3A%2F%2Fnextcloud.local&amp;sid=sid-1', $result->getData());
+        $this->assertStringContainsString('http-equiv="refresh"', $result->getData());
+        $headers = $result->getHeaders();
+        $this->assertStringContainsString('frame-src https://rp.example', $headers['Content-Security-Policy']);
+        $this->assertSame('no-store, no-cache, must-revalidate', $headers['Cache-Control']);
     }
 
     private function configureActiveUser(string $userId): void {

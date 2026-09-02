@@ -26,6 +26,7 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -114,6 +115,8 @@ class DynamicRegistrationController extends ApiController
         string|null $resource_url = null,
         string|null $backchannel_logout_uri = null,
         bool $backchannel_logout_session_required = false,
+        string|null $frontchannel_logout_uri = null,
+        bool $frontchannel_logout_session_required = false,
         array|null $post_logout_redirect_uris = null,
         ): JSONResponse
     {
@@ -218,6 +221,24 @@ class DynamicRegistrationController extends ApiController
         }
         $client->setBackchannelLogoutSessionRequired($backchannel_logout_session_required);
 
+        if ($frontchannel_logout_uri !== null) {
+            $frontchannel_logout_uri = trim($frontchannel_logout_uri);
+            if (!FrontChannelLogoutService::isValidForClientType($frontchannel_logout_uri, $client->getType())) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'frontchannel_logout_uri must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients).',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setFrontchannelLogoutUri($frontchannel_logout_uri);
+        }
+        if ($frontchannel_logout_session_required && $client->getFrontchannelLogoutUri() === null) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'frontchannel_logout_session_required requires frontchannel_logout_uri.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        $client->setFrontchannelLogoutSessionRequired($frontchannel_logout_session_required);
+
         $normalizedPostLogoutRedirectUris = null;
         if ($post_logout_redirect_uris !== null) {
             $normalizedPostLogoutRedirectUris = $this->normalizePostLogoutRedirectUris($post_logout_redirect_uris, $client->getType());
@@ -311,6 +332,11 @@ class DynamicRegistrationController extends ApiController
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
             'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
+
+        if ($client->getFrontchannelLogoutUri() !== null) {
+            $jsonResponse['frontchannel_logout_uri'] = $client->getFrontchannelLogoutUri();
+            $jsonResponse['frontchannel_logout_session_required'] = $client->getFrontchannelLogoutSessionRequired();
+        }
 
         // Include resource_url in response if it was provided
         if ($client->getResourceUrl() !== null) {
@@ -581,6 +607,11 @@ class DynamicRegistrationController extends ApiController
             'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
 
+        if ($client->getFrontchannelLogoutUri() !== null) {
+            $jsonResponse['frontchannel_logout_uri'] = $client->getFrontchannelLogoutUri();
+            $jsonResponse['frontchannel_logout_session_required'] = $client->getFrontchannelLogoutSessionRequired();
+        }
+
         $response = new JSONResponse($jsonResponse);
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET');
@@ -615,6 +646,8 @@ class DynamicRegistrationController extends ApiController
         string|null $scope = null,
         string|null $backchannel_logout_uri = null,
         bool|null $backchannel_logout_session_required = null,
+        string|null $frontchannel_logout_uri = null,
+        bool|null $frontchannel_logout_session_required = null,
         array|null $post_logout_redirect_uris = null,
         string|null $client_id = null,
         string|null $client_secret = null
@@ -691,6 +724,30 @@ class DynamicRegistrationController extends ApiController
             return new JSONResponse([
                 'error' => 'invalid_client_metadata',
                 'error_description' => 'backchannel_logout_session_required requires backchannel_logout_uri.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        if ($frontchannel_logout_uri !== null) {
+            $frontchannel_logout_uri = trim($frontchannel_logout_uri);
+            if ($frontchannel_logout_uri === '') {
+                $client->setFrontchannelLogoutUri(null);
+                $client->setFrontchannelLogoutSessionRequired(false);
+            } elseif (!FrontChannelLogoutService::isValidForClientType($frontchannel_logout_uri, $client->getType())) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'frontchannel_logout_uri must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients).',
+                ], Http::STATUS_BAD_REQUEST);
+            } else {
+                $client->setFrontchannelLogoutUri($frontchannel_logout_uri);
+            }
+        }
+        if ($frontchannel_logout_session_required !== null) {
+            $client->setFrontchannelLogoutSessionRequired($frontchannel_logout_session_required);
+        }
+        if ($client->getFrontchannelLogoutSessionRequired() && $client->getFrontchannelLogoutUri() === null) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'frontchannel_logout_session_required requires frontchannel_logout_uri.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
@@ -780,6 +837,11 @@ class DynamicRegistrationController extends ApiController
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
             'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
+
+        if ($client->getFrontchannelLogoutUri() !== null) {
+            $jsonResponse['frontchannel_logout_uri'] = $client->getFrontchannelLogoutUri();
+            $jsonResponse['frontchannel_logout_session_required'] = $client->getFrontchannelLogoutSessionRequired();
+        }
 
         $response = new JSONResponse($jsonResponse);
         $response->addHeader('Access-Control-Allow-Origin', '*');

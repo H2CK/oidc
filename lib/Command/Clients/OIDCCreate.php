@@ -16,6 +16,7 @@ use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClient;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Exceptions\CliException;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
@@ -142,6 +143,19 @@ class OIDCCreate extends Command
                 'Require the sid claim in Back-Channel Logout Tokens for this client.'
             )
             ->addOption(
+                'frontchannel_logout_uri',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'OpenID Connect Front-Channel Logout URI for this client.',
+                ''
+            )
+            ->addOption(
+                'frontchannel_logout_session_required',
+                null,
+                InputOption::VALUE_NONE,
+                'Require iss and sid parameters in Front-Channel Logout requests for this client.'
+            )
+            ->addOption(
                 'tex_enabled',
                 null,
                 InputOption::VALUE_NONE,
@@ -260,6 +274,19 @@ class OIDCCreate extends Command
                 throw new CliException('--backchannel_logout_session_required requires --backchannel_logout_uri.');
             }
             $client->setBackchannelLogoutSessionRequired($backchannelLogoutSessionRequired);
+
+            $frontchannelLogoutUri = trim((string)$input->getOption('frontchannel_logout_uri'));
+            if ($frontchannelLogoutUri !== '') {
+                if (!FrontChannelLogoutService::isValidForClientType($frontchannelLogoutUri, $client->getType())) {
+                    throw new CliException("The Front-Channel Logout URI '$frontchannelLogoutUri' must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients).");
+                }
+                $client->setFrontchannelLogoutUri($frontchannelLogoutUri);
+            }
+            $frontchannelLogoutSessionRequired = (bool)$input->getOption('frontchannel_logout_session_required');
+            if ($frontchannelLogoutSessionRequired && $client->getFrontchannelLogoutUri() === null) {
+                throw new CliException('--frontchannel_logout_session_required requires --frontchannel_logout_uri.');
+            }
+            $client->setFrontchannelLogoutSessionRequired($frontchannelLogoutSessionRequired);
 
             $client->setTexEnabled((bool)$input->getOption('tex_enabled'));
             $client->setTexAllowedScopes(trim((string)$input->getOption('tex_allowed_scopes')) ?: null);

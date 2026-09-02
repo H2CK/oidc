@@ -25,6 +25,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -216,6 +217,8 @@ class SettingsController extends Controller
             'resourceUrl' => $client->getResourceUrl(),
             'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
             'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
+            'frontchannelLogoutUri' => $client->getFrontchannelLogoutUri(),
+            'frontchannelLogoutSessionRequired' => $client->getFrontchannelLogoutSessionRequired(),
         ]);
     }
 
@@ -301,6 +304,27 @@ class SettingsController extends Controller
         }
         if ($client->getBackchannelLogoutSessionRequired() && $client->getBackchannelLogoutUri() === null) {
             return new JSONResponse(['error' => 'Back-Channel Logout session support requires a Back-Channel Logout URI.'], Http::STATUS_BAD_REQUEST);
+        }
+        if (array_key_exists('frontchannelLogoutUri', $params)) {
+            $frontchannelLogoutUri = trim((string)$params['frontchannelLogoutUri']);
+            if ($frontchannelLogoutUri === '') {
+                $client->setFrontchannelLogoutUri(null);
+                $client->setFrontchannelLogoutSessionRequired(false);
+            } elseif (!FrontChannelLogoutService::isValidForClientType($frontchannelLogoutUri, $client->getType())) {
+                return new JSONResponse(['error' => 'Invalid Front-Channel Logout URI. Use an absolute HTTPS URI without a fragment; HTTP is allowed only for confidential clients.'], Http::STATUS_BAD_REQUEST);
+            } else {
+                $client->setFrontchannelLogoutUri($frontchannelLogoutUri);
+            }
+        }
+        if (array_key_exists('frontchannelLogoutSessionRequired', $params)) {
+            $client->setFrontchannelLogoutSessionRequired((bool)$params['frontchannelLogoutSessionRequired']);
+        }
+        if ($client->getFrontchannelLogoutSessionRequired() && $client->getFrontchannelLogoutUri() === null) {
+            return new JSONResponse(['error' => 'Front-Channel Logout session support requires a Front-Channel Logout URI.'], Http::STATUS_BAD_REQUEST);
+        }
+        if ($client->getFrontchannelLogoutUri() !== null
+            && !FrontChannelLogoutService::isValidForClientType($client->getFrontchannelLogoutUri(), $client->getType())) {
+            return new JSONResponse(['error' => 'The configured Front-Channel Logout URI is not valid for this client type.'], Http::STATUS_BAD_REQUEST);
         }
         if (array_key_exists('redirectUris', $params)) {
             $redirectUris = array_map('trim', (array)$params['redirectUris']);
@@ -556,6 +580,8 @@ class SettingsController extends Controller
                 'resourceUrl' => $client->getResourceUrl(),
                 'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
                 'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
+            'frontchannelLogoutUri' => $client->getFrontchannelLogoutUri(),
+            'frontchannelLogoutSessionRequired' => $client->getFrontchannelLogoutSessionRequired(),
             ];
         }
         return new JSONResponse($result);
@@ -683,6 +709,8 @@ class SettingsController extends Controller
                 'resourceUrl' => $client->getResourceUrl(),
                 'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
                 'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
+            'frontchannelLogoutUri' => $client->getFrontchannelLogoutUri(),
+            'frontchannelLogoutSessionRequired' => $client->getFrontchannelLogoutSessionRequired(),
             ];
         }
         return new JSONResponse($result);
@@ -745,6 +773,8 @@ class SettingsController extends Controller
                 'resourceUrl' => $client->getResourceUrl(),
                 'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
                 'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
+            'frontchannelLogoutUri' => $client->getFrontchannelLogoutUri(),
+            'frontchannelLogoutSessionRequired' => $client->getFrontchannelLogoutSessionRequired(),
             ];
         }
         return new JSONResponse($result);

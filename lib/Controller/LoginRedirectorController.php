@@ -16,6 +16,7 @@ use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -88,6 +89,8 @@ class LoginRedirectorController extends ApiController
     private $backChannelLogoutService;
     /** @var LoggerInterface */
     private $logger;
+    /** @var SessionManagementService */
+    private $sessionManagementService;
 
     /**
      * @param string $appName
@@ -131,6 +134,7 @@ class LoginRedirectorController extends ApiController
                     JwtGenerator $jwtGenerator,
                     RedirectUriService $redirectUriService,
                     BackChannelLogoutService $backChannelLogoutService,
+                    SessionManagementService $sessionManagementService,
                     LoggerInterface $logger
                     )
         {
@@ -154,6 +158,7 @@ class LoginRedirectorController extends ApiController
         $this->jwtGenerator = $jwtGenerator;
         $this->redirectUriService = $redirectUriService;
         $this->backChannelLogoutService = $backChannelLogoutService;
+        $this->sessionManagementService = $sessionManagementService;
         $this->logger = $logger;
     }
 
@@ -793,6 +798,14 @@ class LoginRedirectorController extends ApiController
         $responseParams = [
             'state' => $state,
         ];
+        try {
+            // Session Management is defined for browser origins. Preserve
+            // compatibility with native/custom-scheme redirect URIs by only
+            // returning session_state when the redirect has an HTTP(S) origin.
+            $responseParams['session_state'] = $this->sessionManagementService->generateSessionState($client_id, (string)$redirect_uri);
+        } catch (\InvalidArgumentException $e) {
+            $this->logger->debug('No OIDC session_state generated for redirect URI without an HTTP(S) origin.');
+        }
         if (in_array('code', $responseTypeEntries)) {
             $responseParams['code'] = $code;
         }

@@ -236,6 +236,35 @@ class BackChannelLogoutServiceTest extends TestCase {
         $this->assertFalse($service->isRecentClientSession($client, 'user1', 'sid-7'));
     }
 
+
+    public function testGetCurrentClientSessionsReturnsOnlyValidSidMappings(): void {
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(
+            static fn (string $key) => $key === 'oidc_backchannel_sessions_v2' ? [
+                '1' => 'sid-1',
+                2 => 'sid-2',
+                'invalid' => 'sid-x',
+                '3' => '',
+                '4' => null,
+            ] : null
+        );
+
+        $service = new BackChannelLogoutService(
+            $session,
+            $this->createMock(ISecureRandom::class),
+            $this->createMock(ClientMapper::class),
+            $this->createMock(RecentSessionMapper::class),
+            $this->createMock(JwtGenerator::class),
+            $this->createMock(IClientService::class),
+            $this->createMock(IRequest::class),
+            $this->createMock(LoggerInterface::class),
+            $this->createMock(IJobList::class),
+            $this->createMock(ITimeFactory::class),
+        );
+
+        $this->assertSame(['1' => 'sid-1', 2 => 'sid-2'], $service->getCurrentClientSessions());
+    }
+
     /** @dataProvider dynamicUriPolicyProvider */
     public function testDynamicBackChannelLogoutUriPolicy(string $uri, bool $expected): void {
         $this->assertSame(

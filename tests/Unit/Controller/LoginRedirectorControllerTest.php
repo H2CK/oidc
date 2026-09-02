@@ -45,6 +45,7 @@ use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
@@ -105,6 +106,9 @@ class LoginRedirectorControllerTest extends TestCase {
     private $redirectUriService;
     /** @var \PHPUnit\Framework\MockObject\MockObject|BackChannelLogoutService */
     private $backChannelLogoutService;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|SessionManagementService */
+    private $sessionManagementService;
+    private ?string $sessionStateToReturn = null;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     private $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ISubAdmin */
@@ -208,6 +212,15 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->backChannelLogoutService
             ->method('registerClientSession')
             ->willReturn('test-session-id');
+        $this->sessionManagementService = $this->createMock(SessionManagementService::class);
+        $this->sessionManagementService
+            ->method('generateSessionState')
+            ->willReturnCallback(function (): string {
+                if ($this->sessionStateToReturn === null) {
+                    throw new \InvalidArgumentException('Session state disabled for legacy test expectation.');
+                }
+                return $this->sessionStateToReturn;
+            });
 
         $this->controller = new LoginRedirectorController(
             'oidc',
@@ -229,6 +242,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
     }
@@ -417,6 +431,7 @@ class LoginRedirectorControllerTest extends TestCase {
     }
 
     public function testAuthorizeUsesStoredOidcAuthenticationTimeForAccessToken() {
+        $this->sessionStateToReturn = 'session-state-1';
         $clientId = 'client1';
         $state = 'state-1';
         $redirectUri = 'https://client.example.com/callback';
@@ -470,6 +485,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -555,7 +571,7 @@ class LoginRedirectorControllerTest extends TestCase {
         );
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
-        $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
+        $this->assertStringStartsWith($redirectUri . '?state=state-1&session_state=session-state-1&code=', $result->getRedirectURL());
     }
 
     public function testAuthorizeCodeFlowFormPostReturnsAutoSubmittingForm() {
@@ -611,6 +627,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -913,6 +930,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -1063,6 +1081,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -1219,6 +1238,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 

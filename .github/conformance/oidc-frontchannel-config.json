@@ -1,0 +1,16 @@
+{
+  "alias": "${CONFORMANCE_ALIAS}-frontchannel",
+  "description": "Nextcloud OIDC GitHub Actions front-channel logout conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
+  },
+  "client": {
+    "client_id": "${OIDC_FRONTCHANNEL_CLIENT_ID}",
+    "client_secret": "${OIDC_FRONTCHANNEL_CLIENT_SECRET}"
+  },
+  "client_secret_post": {
+    "client_id": "${OIDC_FRONTCHANNEL_CLIENT_ID}",
+    "client_secret": "${OIDC_FRONTCHANNEL_CLIENT_SECRET}"
+  }
+}
