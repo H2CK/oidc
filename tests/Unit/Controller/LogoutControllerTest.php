@@ -482,6 +482,10 @@ class LogoutControllerTest extends TestCase {
             ->with(['7' => 'sid-1'])
             ->willReturn(['https://rp.example/frontchannel?iss=https%3A%2F%2Fnextcloud.local&sid=sid-1']);
         $this->sessionManagementService->expects($this->once())->method('resetBrowserState');
+        $this->sessionManagementService
+            ->expects($this->once())
+            ->method('applyBrowserStateCookie')
+            ->with($this->isInstanceOf(DataDisplayResponse::class));
         $this->userSession->expects($this->once())->method('logout');
 
         $result = $this->controller->logout($clientId, $idTokenHint);

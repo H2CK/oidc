@@ -91,7 +91,9 @@ class LogoutController extends ApiController {
     /** @param list<string> $frontChannelUris */
     private function completeBrowserLogout(array $frontChannelUris, string $redirectUrl): Response {
         if ($frontChannelUris === []) {
-            return new RedirectResponse($redirectUrl);
+            $response = new RedirectResponse($redirectUrl);
+            $this->sessionManagementService->applyBrowserStateCookie($response);
+            return $response;
         }
 
         $frames = '';
@@ -112,6 +114,7 @@ class LogoutController extends ApiController {
         $response = new DataDisplayResponse($html, Http::STATUS_OK, ['Content-Type' => 'text/html; charset=utf-8']);
         $response->addHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
         $response->addHeader('Content-Security-Policy', "default-src 'none'; frame-src " . implode(' ', array_keys($frameOrigins)) . "; frame-ancestors 'none'; base-uri 'none'");
+        $this->sessionManagementService->applyBrowserStateCookie($response);
         return $response;
     }
 

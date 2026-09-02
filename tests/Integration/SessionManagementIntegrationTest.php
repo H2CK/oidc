@@ -12,6 +12,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\App;
+use OCP\AppFramework\Http\Response;
 use OCP\IDBConnection;
 use PHPUnit\Framework\TestCase;
 
@@ -57,6 +58,12 @@ class SessionManagementIntegrationTest extends TestCase {
             $this->client->getClientIdentifier(),
             'https://rp.example/callback'
         );
+
+        $response = new Response();
+        $this->sessionManagementService->applyBrowserStateCookie($response);
+        $cookies = $response->getCookies();
+        $this->assertArrayHasKey(SessionManagementService::OP_BROWSER_STATE_COOKIE, $cookies);
+        $this->assertSame('None', $cookies[SessionManagementService::OP_BROWSER_STATE_COOKIE]['sameSite']);
 
         $this->assertSame(
             'unchanged',

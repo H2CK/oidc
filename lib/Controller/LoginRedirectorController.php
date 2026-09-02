@@ -832,7 +832,9 @@ class LoginRedirectorController extends ApiController
 
         if ($responseMode === 'form_post') {
             $this->logger->debug('Send form_post response for client ' . $client_id . '.');
-            return new FormPostResponse((string)$redirect_uri, $responseParams);
+            $response = new FormPostResponse((string)$redirect_uri, $responseParams);
+            $this->sessionManagementService->applyBrowserStateCookie($response);
+            return $response;
         }
 
         $url = $this->buildAuthorizationResponseRedirectUri(
@@ -843,7 +845,9 @@ class LoginRedirectorController extends ApiController
 
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
-        return new RedirectResponse($url);
+        $response = new RedirectResponse($url);
+        $this->sessionManagementService->applyBrowserStateCookie($response);
+        return $response;
     }
 
     private function rejectUnsupportedRequestParameters(

@@ -701,6 +701,10 @@ class LoginRedirectorControllerTest extends TestCase {
                 $this->isType('int')
             )
             ->willReturn(new AuthorizationCode());
+        $this->sessionManagementService
+            ->expects($this->once())
+            ->method('applyBrowserStateCookie')
+            ->with($this->isInstanceOf(FormPostResponse::class));
 
         $result = $controller->authorize(
             $clientId,

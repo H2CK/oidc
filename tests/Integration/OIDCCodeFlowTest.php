@@ -557,6 +557,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             ->method('generateSessionState')
             ->with($this->testClientId, $this->testRedirectUri)
             ->willReturn('integration-session-state');
+        $sessionManagementService
+            ->expects($this->once())
+            ->method('applyBrowserStateCookie')
+            ->with($this->isInstanceOf(FormPostResponse::class));
 
         $controller = new LoginRedirectorController(
             'oidc',
