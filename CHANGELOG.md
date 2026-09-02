@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.3] - 2026-09-02
+
+### Changed
+
+- Updated release metadata
+
+## [2.1.2] - 2026-09-02
+
+### Fixed
+
+- Fixed migration compatibility with Nextcloud 32
+
 ## [2.1.1] - 2026-09-01
 
 ### Changed

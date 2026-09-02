@@ -58,7 +58,7 @@ class Version0027Date20260828115000 extends SimpleMigrationStep {
         $parents = [];
         $children = [];
         try {
-            while (($row = $result->fetchAssociative()) !== false) {
+            while (($row = $result->fetch()) !== false) {
                 $id = (int)$row['id'];
                 $parentTokenId = $row['parent_token_id'] === null ? null : (int)$row['parent_token_id'];
                 $parents[$id] = $parentTokenId;
