@@ -12,6 +12,7 @@ use OCA\OIDCIdentityProvider\Controller\SessionController;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\IRequest;
 use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
@@ -68,4 +69,11 @@ class SessionControllerTest extends TestCase {
         $this->assertStringContainsString("frame-ancestors *", $headers['Content-Security-Policy']);
         $this->assertStringContainsString("connect-src 'self'", $headers['Content-Security-Policy']);
     }
+    public function testSessionEndpointsDoNotForceNextcloudSession(): void {
+        foreach (['checkSessionIframe', 'check'] as $methodName) {
+            $method = new \ReflectionMethod(SessionController::class, $methodName);
+            $this->assertSame([], $method->getAttributes(UseSession::class), $methodName . ' must not force a PHP session');
+        }
+    }
+
 }

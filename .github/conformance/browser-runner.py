@@ -71,6 +71,26 @@ def new_driver():
     return webdriver.Remote(command_executor=SELENIUM_REMOTE_URL, options=options)
 
 
+def log_op_browser_state_cookie(driver, phase):
+    """Log only metadata for the OP browser-state cookie, never its value."""
+    try:
+        result = driver.execute_cdp_cmd("Network.getAllCookies", {})
+        cookies = result.get("cookies", []) if isinstance(result, dict) else []
+        matches = [cookie for cookie in cookies if cookie.get("name") == "oidc_opbs"]
+        if not matches:
+            log(f"OIDC OP browser-state cookie missing at {phase}")
+            return
+        for cookie in matches:
+            log(
+                "OIDC OP browser-state cookie present at " + phase
+                + f": domain={cookie.get('domain')} path={cookie.get('path')}"
+                + f" secure={cookie.get('secure')} httpOnly={cookie.get('httpOnly')}"
+                + f" sameSite={cookie.get('sameSite')}"
+            )
+    except Exception as exc:
+        log(f"Unable to inspect OIDC OP browser-state cookie at {phase}: {exc}")
+
+
 def first_present(driver, selectors, timeout=5):
     end = time.monotonic() + timeout
     while time.monotonic() < end:
@@ -357,6 +377,10 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
             log(f"Browser at {current_url}")
 
         if is_conformance_callback(current_url):
+            if "session_state=" in current_url:
+                log_op_browser_state_cookie(driver, "authentication callback")
+            elif "/session_verify" in urllib.parse.urlsplit(current_url).path:
+                log_op_browser_state_cookie(driver, "session verification page")
             log(f"Reached conformance callback {current_url}")
             return current_url
 

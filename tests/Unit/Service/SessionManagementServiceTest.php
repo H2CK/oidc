@@ -153,6 +153,30 @@ class SessionManagementServiceTest extends TestCase {
         $this->assertSame('changed', $iframeService->checkSessionState('client-1', 'https://rp.example', $state));
     }
 
+    public function testIframeCheckNeverFallsBackToPhpSessionState(): void {
+        $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
+        $this->secureRandom->method('generate')->willReturnCallback(
+            static fn (int $length): string => $length === 32 ? str_repeat('S', 32) : str_repeat('O', 64)
+        );
+        $state = $this->service->generateSessionState('client-1', 'https://rp.example/callback');
+
+        $iframeRequest = $this->createMock(IRequest::class);
+        $iframeRequest->method('getCookie')->with(SessionManagementService::OP_BROWSER_STATE_COOKIE)->willReturn(null);
+        $iframeSession = $this->createMock(ISession::class);
+        $iframeSession->expects($this->never())->method('get');
+        $iframeSession->expects($this->never())->method('set');
+
+        $iframeService = new SessionManagementService(
+            $iframeSession,
+            $this->secureRandom,
+            $this->clientMapper,
+            $this->redirectUriMapper,
+            $iframeRequest,
+        );
+
+        $this->assertSame('changed', $iframeService->checkSessionState('client-1', 'https://rp.example', $state));
+    }
+
     public function testResetBrowserStateChangesPreviouslyIssuedSessionStateAndCookie(): void {
         $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
         $opbsCount = 0;

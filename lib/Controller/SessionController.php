@@ -14,7 +14,6 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\NoSameSiteCookieRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
-use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -32,7 +31,6 @@ class SessionController extends ApiController {
 
     #[NoCSRFRequired]
     #[NoSameSiteCookieRequired]
-    #[UseSession]
     #[PublicPage]
     public function checkSessionIframe(): DataDisplayResponse {
         $statusUrl = json_encode($this->urlGenerator->linkToRouteAbsolute('oidc.Session.check', []), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES);
@@ -53,7 +51,6 @@ class SessionController extends ApiController {
 
     #[NoCSRFRequired]
     #[NoSameSiteCookieRequired]
-    #[UseSession]
     #[PublicPage]
     public function check(string $client_id = '', string $session_state = '', string $origin = ''): JSONResponse {
         $status = $this->sessionManagementService->checkSessionState($client_id, $origin, $session_state);

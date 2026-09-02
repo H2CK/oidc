@@ -148,23 +148,15 @@ class SessionManagementService {
             return $this->pendingBrowserState;
         }
 
-        // The dedicated cookie is deliberately independent from Nextcloud's
-        // PHP session cookie. The latter is SameSite=Lax and is therefore not
-        // available when check_session_iframe is embedded by a cross-origin RP.
+        // check_session_iframe MUST evaluate the OP User Agent state that is
+        // actually presented by the browser. Never fall back to Nextcloud's PHP
+        // session here: that cookie is SameSite=Lax, so an embedded cross-origin
+        // OP iframe can have a different (or anonymous) PHP session. Falling back
+        // to that server-side session makes the result depend on request-session
+        // creation instead of on the OP User Agent state defined by OIDC Session
+        // Management 1.0.
         $cookie = $this->request->getCookie(self::OP_BROWSER_STATE_COOKIE);
-        if ($this->isValidBrowserState($cookie)) {
-            return $cookie;
-        }
-
-        // Keep the server-side copy as a same-request/top-level fallback only.
-        // In the cross-site iframe the PHP session may be unavailable, which is
-        // exactly why the dedicated SameSite=None cookie exists.
-        $sessionValue = $this->session->get(self::OP_BROWSER_STATE_KEY);
-        if ($this->isValidBrowserState($sessionValue)) {
-            return $sessionValue;
-        }
-
-        return null;
+        return $this->isValidBrowserState($cookie) ? $cookie : null;
     }
 
     private function generateBrowserState(): string {
