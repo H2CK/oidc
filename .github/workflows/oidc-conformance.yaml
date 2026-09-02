@@ -403,6 +403,10 @@ jobs:
           CONFORMANCE_SERVER: https://nginx:8443/
           CONFORMANCE_SERVER_MTLS: https://nginx:8444/
           SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+          # OIDC Session Management 1.0 requires the embedded OP iframe to
+          # access OP User Agent state. Chromium 151 can otherwise block that
+          # state as third-party content and report "changed" before logout.
+          CONFORMANCE_ALLOW_THIRD_PARTY_COOKIES: 1
           CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite

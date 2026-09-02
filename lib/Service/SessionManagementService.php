@@ -116,9 +116,26 @@ class SessionManagementService {
     }
 
     private function getOrCreateOpBrowserState(): string {
-        $current = $this->getCurrentOpBrowserState();
-        if ($current !== null) {
-            return $current;
+        if ($this->isValidBrowserState($this->pendingBrowserState)) {
+            return $this->pendingBrowserState;
+        }
+
+        $cookie = $this->request->getCookie(self::OP_BROWSER_STATE_COOKIE);
+        if ($this->isValidBrowserState($cookie)) {
+            // Keep the server-side copy synchronized with the browser state used
+            // to calculate session_state.
+            $this->session->set(self::OP_BROWSER_STATE_KEY, $cookie);
+            return $cookie;
+        }
+
+        $sessionValue = $this->session->get(self::OP_BROWSER_STATE_KEY);
+        if ($this->isValidBrowserState($sessionValue)) {
+            // The browser cookie can disappear independently from the PHP
+            // session (for example after cookie cleanup or a policy change).
+            // Re-emit it on the Authentication Response instead of calculating
+            // a session_state that the subsequent OP iframe cannot reproduce.
+            $this->pendingBrowserState = $sessionValue;
+            return $sessionValue;
         }
 
         $this->pendingBrowserState = $this->generateBrowserState();

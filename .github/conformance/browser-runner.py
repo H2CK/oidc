@@ -31,6 +31,7 @@ VISIT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_VISIT_TIMEOUT", 
 LOGIN_REDIRECT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT", "15"))
 PLACEHOLDER_CHECK_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_PLACEHOLDER_CHECK_SECONDS", "2"))
 SCREENSHOT_STABILITY_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_SCREENSHOT_STABILITY_SECONDS", "2"))
+ALLOW_THIRD_PARTY_COOKIES = os.environ.get("CONFORMANCE_ALLOW_THIRD_PARTY_COOKIES", "1").lower() not in ("0", "false", "no")
 
 
 def log(message):
@@ -40,6 +41,25 @@ def log(message):
 def new_driver():
     options = ChromeOptions()
     options.set_capability("acceptInsecureCerts", True)
+
+    # OpenID Connect Session Management 1.0 intentionally embeds the OP iframe
+    # cross-site and requires it to access OP User Agent state. Modern Chromium
+    # versions can block that state as third-party content, which makes a valid
+    # cookie-based OP return "changed" for every check. This runner exists only
+    # for the OIDF conformance environment, so explicitly permit third-party
+    # cookies when requested by the workflow. The application still keeps the
+    # production-side defensive handling required by the specification.
+    if ALLOW_THIRD_PARTY_COOKIES:
+        options.add_experimental_option(
+            "prefs",
+            {
+                "profile.block_third_party_cookies": False,
+                "profile.default_content_setting_values.cookies": 1,
+            },
+        )
+        options.add_argument("--disable-features=TrackingProtection3pcd")
+        log("Starting Chromium with third-party cookies enabled for OIDC Session Management conformance")
+
     for argument in (
         "--headless=new",
         "--no-sandbox",

@@ -97,6 +97,41 @@ class SessionManagementServiceTest extends TestCase {
         $this->assertSame('unchanged', $iframeService->checkSessionState('client-1', 'https://rp.example', $state));
     }
 
+    public function testExistingServerSideStateIsReemittedWhenBrowserCookieIsMissing(): void {
+        $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
+        $this->secureRandom->method('generate')->willReturnCallback(
+            static fn (int $length): string => $length === 32 ? str_repeat('S', 32) : str_repeat('O', 64)
+        );
+
+        // First request creates the OP browser state and stores a server-side copy.
+        $this->service->generateSessionState('client-1', 'https://rp.example/callback');
+
+        // Simulate a later top-level authentication request where the PHP
+        // session survived but the dedicated browser cookie did not.
+        $requestWithoutCookie = $this->createMock(IRequest::class);
+        $requestWithoutCookie->method('getCookie')->willReturn(null);
+        $service = new SessionManagementService(
+            $this->session,
+            $this->secureRandom,
+            $this->clientMapper,
+            $this->redirectUriMapper,
+            $requestWithoutCookie,
+        );
+
+        $service->generateSessionState('client-1', 'https://rp.example/callback');
+        $response = new Response();
+        $service->applyBrowserStateCookie($response);
+
+        $this->assertSame(
+            str_repeat('O', 64),
+            $response->getCookies()[SessionManagementService::OP_BROWSER_STATE_COOKIE]['value']
+        );
+        $this->assertSame(
+            'None',
+            $response->getCookies()[SessionManagementService::OP_BROWSER_STATE_COOKIE]['sameSite']
+        );
+    }
+
     public function testCheckWithoutOpBrowserCookieInSeparateRequestReturnsChanged(): void {
         $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
         $this->secureRandom->method('generate')->willReturnCallback(
