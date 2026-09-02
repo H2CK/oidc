@@ -22,7 +22,7 @@ class Version0032Date20260902090000 extends SimpleMigrationStep {
             $table->addColumn('frontchannel_logout_uri', Types::STRING, ['notnull' => false, 'length' => 2000]);
         }
         if (!$table->hasColumn('frontchannel_logout_sess_req')) {
-            $table->addColumn('frontchannel_logout_sess_req', Types::BOOLEAN, ['notnull' => true, 'default' => false]);
+            $table->addColumn('frontchannel_logout_sess_req', Types::BOOLEAN, ['notnull' => false, 'default' => false]);
         }
         return $schema;
     }
