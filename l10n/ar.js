@@ -5,6 +5,7 @@ OC.L10N.register(
     "Your client is not authorized to connect. Please inform the administrator of your client." : "الجهاز العميل ليس مُخوّلاً بالتوصيل. رجاءً، أبلغ مسؤول النظام.",
     "Your client is expired. Please inform the administrator of your client." : "انتهت صلاحية الجهاز العميل عندك. يرجى إبلاغ مسؤول النظام عن هذا الجهاز العميل.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "لم يتم قبول URI لإعادة التوجيه المتلقاة للاتصال. يرجى إبلاغ المسؤول عن العميل الخاص بك.",
+    "Log out" : "خروج",
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "عنوان URL المُعاد توجيهه يجب أن يكون عنواناً كاملاً كما في المثال التالي:  https://yourdomain.com/path",
     "Code Authorization Flow" : "أتمتة سير العمل للترخيص الكودي",

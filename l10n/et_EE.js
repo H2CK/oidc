@@ -11,6 +11,8 @@ OC.L10N.register(
     "Authorization request is missing a redirect URI." : "Autoriseerimispäringust on puudu edasisuunamise URI.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Su klient ei ole ühenduseks autoriseeritud. Palun teavita oma kliendi administraatorit.",
     "Your client is expired. Please inform the administrator of your client." : "Sinu klient on aegunud. Palun teavita oma kliendi administraatorit.",
+    "Confirm logout" : "Kinnita väljalogimine",
+    "A relying party requested to end your OpenID Connect session. Do you want to log out?" : "Edastav osapool soovib sinu OpenID Connecti sessiooni lõpetada. Kas sa soovid logida välja?",
     "Log out" : "Logi välja",
     "Cancel" : "Katkesta",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ümbersuunamise võrguaadress peab olema täielik võrguaadress, näiteks: https://sinudomeen.com/asukoht",

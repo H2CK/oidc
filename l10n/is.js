@@ -2,6 +2,7 @@ OC.L10N.register(
     "oidc",
     {
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Biðlarinn þinn hefur ekki heimild til að tengjast. Láttu kerfisstjórann þinn vita.",
+    "Log out" : "Skrá út",
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL-endurbeiningarslóðin verður að vera full URL-slóð, til dæmis: https://yourdomain.com/path",
     "Public" : "Opinbert",

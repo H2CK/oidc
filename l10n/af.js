@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Teken af",
     "Cancel" : "Cancel",
     "Settings" : "Instellings",
     "Add client" : "Voeg kliënt toe",

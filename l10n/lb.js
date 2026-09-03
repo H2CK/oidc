@@ -13,6 +13,7 @@ OC.L10N.register(
     "Delete" : "Läschen",
     "Never" : "Ni",
     "Disable" : "Ofschalten",
+    "Enable" : "Aktivéieren",
     "Scope" : "Uwendungsberäich"
 },
 "nplurals=2; plural=(n != 1);");
