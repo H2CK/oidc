@@ -60,6 +60,8 @@ class SessionControllerTest extends TestCase {
         $this->assertStringContainsString('WebCrypto unavailable', $html);
         $this->assertStringContainsString('a.length!==5||a[0]!=="3"', $html);
         $this->assertStringContainsString('validBinding(c,e.origin,a[4])', $html);
+        $this->assertStringContainsString('canonical===original?decoded:null', $html);
+        $this->assertStringContainsString('v.length%4===1', $html);
         $this->assertStringContainsString('document.cookie.split("; ")', $html);
         $this->assertStringContainsString('oidc_opbs', $html);
         $this->assertStringContainsString('observedOpbs?"changed":"error"', $html);

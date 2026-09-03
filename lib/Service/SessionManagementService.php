@@ -480,11 +480,28 @@ class SessionManagementService {
         if ($value === '' || preg_match('/^[A-Za-z0-9_-]+$/', $value) !== 1) {
             return null;
         }
+
+        // Unpadded Base64url values with length mod 4 == 1 can never be a
+        // valid encoding. Reject them before adding transport padding.
         $padding = strlen($value) % 4;
-        if ($padding !== 0) {
-            $value .= str_repeat('=', 4 - $padding);
+        if ($padding === 1) {
+            return null;
         }
-        $decoded = base64_decode(strtr($value, '-_', '+/'), true);
-        return is_string($decoded) ? $decoded : null;
+
+        $encoded = $value;
+        if ($padding !== 0) {
+            $encoded .= str_repeat('=', 4 - $padding);
+        }
+        $decoded = base64_decode(strtr($encoded, '-_', '+/'), true);
+        if (!is_string($decoded)) {
+            return null;
+        }
+
+        // PHP's Base64 decoder accepts non-zero unused padding bits. That can
+        // make two different Base64url strings decode to the same signature
+        // bytes (notably the final character of an RSA-2048 signature). Accept
+        // only the canonical unpadded representation so textual tampering can
+        // never survive verification as an equivalent encoding.
+        return hash_equals(self::base64UrlEncode($decoded), $value) ? $decoded : null;
     }
 }
