@@ -53,15 +53,15 @@ More information on the compliance can be found in the [latest test run](https:/
 
 ## Attention - Potential Breaking Change
 
-### Version 2.3.0
-
-Version 2.3.0 adds OpenID Connect Front-Channel Logout 1.0 and OpenID Connect Session Management 1.0. The database migration adds optional per-client Front-Channel Logout metadata only; existing clients remain valid and Front-Channel Logout is disabled for a client until a `frontchannel_logout_uri` is configured. Session Management is a browser feature: HTTP(S) authorization responses include `session_state` when the OP itself is served over HTTPS. Native/custom-scheme redirect URIs keep their existing behavior and intentionally do not receive `session_state`, because they have no browser web origin that can host the Session Management RP iframe.
-
 ### Version 2.2.0
 
-Version 2.2.0 hardens RP-Initiated Logout and Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
+Version 2.2.0 adds OpenID Connect Front-Channel Logout 1.0 and OpenID Connect Session Management 1.0. The database migration adds optional per-client Front-Channel Logout metadata only; existing clients remain valid and Front-Channel Logout is disabled for a client until a `frontchannel_logout_uri` is configured. Session Management is a browser feature: HTTP(S) authorization responses include `session_state` when the OP itself is served over HTTPS. Native/custom-scheme redirect URIs keep their existing behavior and intentionally do not receive `session_state`, because they have no browser web origin that can host the Session Management RP iframe.
+
+This version also hardens RP-Initiated Logout and Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
 
 The same migration extends accepted post-logout redirect URIs with an optional RP binding. Existing logout redirect URI rows remain global (`client_id = NULL`) and keep their historical behavior. An RP-specific list takes precedence when at least one URI is configured for that RP; the global list is used only when that RP has no RP-specific post-logout redirect URI configured.
+
+### Version 2.0.0
 
 Version 2.0.0 tightens several behaviours to better match the OpenID Connect conformance suite. OIDC-compliant clients should continue to work, but clients that depend on legacy 1.x behaviour should be reviewed before upgrading.
 
