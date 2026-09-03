@@ -9,6 +9,7 @@ through the suite's existing runner API.
 """
 
 import base64
+import hashlib
 import os
 import sys
 import time
@@ -31,6 +32,7 @@ VISIT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_VISIT_TIMEOUT", 
 LOGIN_REDIRECT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT", "15"))
 PLACEHOLDER_CHECK_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_PLACEHOLDER_CHECK_SECONDS", "2"))
 SCREENSHOT_STABILITY_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_SCREENSHOT_STABILITY_SECONDS", "2"))
+ALLOW_THIRD_PARTY_COOKIES = os.environ.get("CONFORMANCE_ALLOW_THIRD_PARTY_COOKIES", "1").lower() not in ("0", "false", "no")
 
 
 def log(message):
@@ -40,6 +42,29 @@ def log(message):
 def new_driver():
     options = ChromeOptions()
     options.set_capability("acceptInsecureCerts", True)
+
+    # OpenID Connect Session Management 1.0 intentionally embeds the OP iframe
+    # cross-site and requires it to access OP User Agent state. Modern Chromium
+    # versions can block that state as third-party content, which makes a valid
+    # cookie-based OP return "changed" for every check. This runner exists only
+    # for the OIDF conformance environment, so explicitly permit third-party
+    # cookies when requested by the workflow. The application still keeps the
+    # production-side defensive handling required by the specification.
+    if ALLOW_THIRD_PARTY_COOKIES:
+        options.add_experimental_option(
+            "prefs",
+            {
+                # Current Chromium uses cookie_controls_mode as the primary
+                # profile switch for third-party-cookie controls. 0 is kOff.
+                "profile.cookie_controls_mode": 0,
+                # Keep the legacy preference as well for older Chromium builds.
+                "profile.block_third_party_cookies": False,
+                "profile.default_content_setting_values.cookies": 1,
+            },
+        )
+        options.add_argument("--disable-features=TrackingProtection3pcd")
+        log("Starting Chromium with third-party cookies enabled for OIDC Session Management conformance")
+
     for argument in (
         "--headless=new",
         "--no-sandbox",
@@ -48,7 +73,52 @@ def new_driver():
         "--window-size=1280,1000",
     ):
         options.add_argument(argument)
-    return webdriver.Remote(command_executor=SELENIUM_REMOTE_URL, options=options)
+
+    driver = webdriver.Remote(command_executor=SELENIUM_REMOTE_URL, options=options)
+    if ALLOW_THIRD_PARTY_COOKIES:
+        # Chromium exposes the effective third-party-cookie restriction via CDP.
+        # This is stronger and more deterministic than profile preferences alone
+        # and is applied before the first navigation of the fresh browser session.
+        try:
+            driver.execute_cdp_cmd(
+                "Network.setCookieControls",
+                {"enableThirdPartyCookieRestriction": False},
+            )
+            log("Disabled Chromium third-party-cookie restriction via CDP")
+        except Exception as exc:
+            try:
+                driver.quit()
+            finally:
+                raise RuntimeError(
+                    "Unable to disable Chromium third-party-cookie restriction via CDP"
+                ) from exc
+    return driver
+
+
+def log_op_browser_state_cookie(driver, phase):
+    """Log only metadata for the OP browser-state cookie, never its value."""
+    try:
+        result = driver.execute_cdp_cmd("Network.getAllCookies", {})
+        cookies = result.get("cookies", []) if isinstance(result, dict) else []
+        matches = [cookie for cookie in cookies if cookie.get("name") == "oidc_opbs"]
+        if not matches:
+            log(f"OIDC OP browser-state cookie missing at {phase}")
+            return
+        for cookie in matches:
+            value = cookie.get("value")
+            fingerprint = (
+                hashlib.sha256(value.encode("utf-8")).hexdigest()[:12]
+                if isinstance(value, str)
+                else "unavailable"
+            )
+            log(
+                "OIDC OP browser-state cookie present at " + phase
+                + f": domain={cookie.get('domain')} path={cookie.get('path')}"
+                + f" secure={cookie.get('secure')} httpOnly={cookie.get('httpOnly')}"
+                + f" sameSite={cookie.get('sameSite')} fingerprint={fingerprint}"
+            )
+    except Exception as exc:
+        log(f"Unable to inspect OIDC OP browser-state cookie at {phase}: {exc}")
 
 
 def first_present(driver, selectors, timeout=5):
@@ -337,6 +407,10 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
             log(f"Browser at {current_url}")
 
         if is_conformance_callback(current_url):
+            if "session_state=" in current_url:
+                log_op_browser_state_cookie(driver, "authentication callback")
+            elif "/session_verify" in urllib.parse.urlsplit(current_url).path:
+                log_op_browser_state_cookie(driver, "session verification page")
             log(f"Reached conformance callback {current_url}")
             return current_url
 

@@ -1,0 +1,16 @@
+{
+  "alias": "${CONFORMANCE_ALIAS}-session",
+  "description": "Nextcloud OIDC GitHub Actions session management conformance",
+  "publish": "no",
+  "server": {
+    "discoveryUrl": "${NEXTCLOUD_BASE_URL}/.well-known/openid-configuration"
+  },
+  "client": {
+    "client_id": "${OIDC_SESSION_CLIENT_ID}",
+    "client_secret": "${OIDC_SESSION_CLIENT_SECRET}"
+  },
+  "client_secret_post": {
+    "client_id": "${OIDC_SESSION_CLIENT_ID}",
+    "client_secret": "${OIDC_SESSION_CLIENT_SECRET}"
+  }
+}

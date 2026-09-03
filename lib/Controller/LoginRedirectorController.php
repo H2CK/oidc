@@ -16,6 +16,7 @@ use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -88,6 +89,8 @@ class LoginRedirectorController extends ApiController
     private $backChannelLogoutService;
     /** @var LoggerInterface */
     private $logger;
+    /** @var SessionManagementService */
+    private $sessionManagementService;
 
     /**
      * @param string $appName
@@ -131,6 +134,7 @@ class LoginRedirectorController extends ApiController
                     JwtGenerator $jwtGenerator,
                     RedirectUriService $redirectUriService,
                     BackChannelLogoutService $backChannelLogoutService,
+                    SessionManagementService $sessionManagementService,
                     LoggerInterface $logger
                     )
         {
@@ -154,6 +158,7 @@ class LoginRedirectorController extends ApiController
         $this->jwtGenerator = $jwtGenerator;
         $this->redirectUriService = $redirectUriService;
         $this->backChannelLogoutService = $backChannelLogoutService;
+        $this->sessionManagementService = $sessionManagementService;
         $this->logger = $logger;
     }
 
@@ -767,7 +772,15 @@ class LoginRedirectorController extends ApiController
 
         try {
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+            $newClientSession = !$this->backChannelLogoutService->hasCurrentClientSession($client);
             $accessToken->setSid($this->backChannelLogoutService->registerClientSession($client));
+            if ($newClientSession && $this->sessionManagementService->isSupported()) {
+                // OpenID Connect Session Management recommends changing OP User
+                // Agent state when the authentication status of participating
+                // clients changes. Rotate only for a newly participating RP,
+                // not for every authorization request of an existing RP.
+                $this->sessionManagementService->resetBrowserState();
+            }
             $accessToken = $this->accessTokenMapper->insert($accessToken);
             if (in_array('code', $responseTypeEntries)) {
                 $this->authorizationCodeMapper->createForAccessToken(
@@ -793,6 +806,16 @@ class LoginRedirectorController extends ApiController
         $responseParams = [
             'state' => $state,
         ];
+        if ($this->sessionManagementService->isSupported()) {
+            try {
+                // Session Management is defined for browser origins. Preserve
+                // compatibility with native/custom-scheme redirect URIs by only
+                // returning session_state when the redirect has an HTTP(S) origin.
+                $responseParams['session_state'] = $this->sessionManagementService->generateSessionState($client_id, (string)$redirect_uri);
+            } catch (\InvalidArgumentException $e) {
+                $this->logger->debug('No OIDC session_state generated for redirect URI without an HTTP(S) origin.');
+            }
+        }
         if (in_array('code', $responseTypeEntries)) {
             $responseParams['code'] = $code;
         }
@@ -819,7 +842,9 @@ class LoginRedirectorController extends ApiController
 
         if ($responseMode === 'form_post') {
             $this->logger->debug('Send form_post response for client ' . $client_id . '.');
-            return new FormPostResponse((string)$redirect_uri, $responseParams);
+            $response = new FormPostResponse((string)$redirect_uri, $responseParams);
+            $this->sessionManagementService->applyBrowserStateCookie($response);
+            return $response;
         }
 
         $url = $this->buildAuthorizationResponseRedirectUri(
@@ -830,7 +855,9 @@ class LoginRedirectorController extends ApiController
 
         $this->logger->debug('Send redirect response for client ' . $client_id . '.');
 
-        return new RedirectResponse($url);
+        $response = new RedirectResponse($url);
+        $this->sessionManagementService->applyBrowserStateCookie($response);
+        return $response;
     }
 
     private function rejectUnsupportedRequestParameters(
@@ -1340,17 +1367,35 @@ class LoginRedirectorController extends ApiController
             $params['state'] = (string)$state;
         }
 
+        // OIDC Session Management says an Authentication Error Response SHOULD
+        // carry session_state as well. Add it whenever the OP is HTTPS and the
+        // request identifies a client with a browser redirect origin.
+        if ($this->sessionManagementService->isSupported()) {
+            $clientId = trim((string)$this->request->getParam('client_id', ''));
+            if ($clientId !== '') {
+                try {
+                    $params['session_state'] = $this->sessionManagementService->generateSessionState($clientId, $redirectUri);
+                } catch (\InvalidArgumentException $e) {
+                    $this->logger->debug('No OIDC session_state generated for Authentication Error Response without an HTTP(S) origin.');
+                }
+            }
+        }
+
         $responseTypeEntries = $this->parseResponseTypeEntries($responseType);
         $normalizedResponseMode = $this->normalizeAuthorizationResponseMode($responseMode);
 
         if ($normalizedResponseMode === 'form_post') {
-            return new FormPostResponse($redirectUri, $params);
+            $response = new FormPostResponse($redirectUri, $params);
+            $this->sessionManagementService->applyBrowserStateCookie($response);
+            return $response;
         }
 
-        return new RedirectResponse($this->buildAuthorizationResponseRedirectUri(
+        $response = new RedirectResponse($this->buildAuthorizationResponseRedirectUri(
             $redirectUri,
             $params,
             $this->authorizationResponseUsesFragment($responseTypeEntries, $normalizedResponseMode)
         ));
+        $this->sessionManagementService->applyBrowserStateCookie($response);
+        return $response;
     }
 }

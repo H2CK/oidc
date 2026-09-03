@@ -389,5 +389,7 @@ return [
             'url' => '/introspect',
             'verb' => 'OPTIONS',
         ],
+        ['name' => 'Session#checkSessionIframe', 'url' => '/session/check-session-iframe', 'verb' => 'GET'],
+        ['name' => 'Session#check', 'url' => '/session/check', 'verb' => 'GET'],
     ],
 ];

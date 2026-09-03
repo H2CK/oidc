@@ -218,6 +218,18 @@
 							type="checkbox">
 							{{ t('oidc', 'Require sid in Back-Channel Logout Tokens') }}
 						</NcCheckboxRadioSwitch>
+						<NcTextField id="frontchannelLogoutUri"
+							v-model="editClient.frontchannelLogoutUri"
+							:label="t('oidc', 'Front-Channel Logout URI')"
+							placeholder="https://client.example/frontchannel-logout"
+							:helper-text="t('oidc', 'Browser endpoint embedded by the provider during logout. Use HTTPS; HTTP is accepted only for confidential clients.')"
+							type="url" />
+						<NcCheckboxRadioSwitch v-if="editClient.frontchannelLogoutUri"
+							v-model="editClient.frontchannelLogoutSessionRequired"
+							name="frontchannel_logout_session_required"
+							type="checkbox">
+							{{ t('oidc', 'Require iss and sid in Front-Channel Logout requests') }}
+						</NcCheckboxRadioSwitch>
 						<NcCheckboxRadioSwitch v-if="!isPublic" v-model="editClient.texEnabled"
 							name="tex_enabled"
 							type="checkbox">
@@ -729,6 +741,8 @@ export default {
 				resourceUrl: '',
 				backchannelLogoutUri: '',
 				backchannelLogoutSessionRequired: false,
+				frontchannelLogoutUri: '',
+				frontchannelLogoutSessionRequired: false,
 				texEnabled: false,
 				texAllowedScopes: '',
 				texAllowedSubjectClients: [],
@@ -1170,6 +1184,8 @@ export default {
 				this.editClient.resourceUrl = tmpClient.resourceUrl || ''
 				this.editClient.backchannelLogoutUri = tmpClient.backchannelLogoutUri || ''
 				this.editClient.backchannelLogoutSessionRequired = tmpClient.backchannelLogoutSessionRequired === true || tmpClient.backchannelLogoutSessionRequired === 1 || tmpClient.backchannelLogoutSessionRequired === '1' || tmpClient.backchannelLogoutSessionRequired === 'true'
+				this.editClient.frontchannelLogoutUri = tmpClient.frontchannelLogoutUri || ''
+				this.editClient.frontchannelLogoutSessionRequired = tmpClient.frontchannelLogoutSessionRequired === true || tmpClient.frontchannelLogoutSessionRequired === 1 || tmpClient.frontchannelLogoutSessionRequired === '1' || tmpClient.frontchannelLogoutSessionRequired === 'true'
 				this.editClient.texEnabled = tmpClient.texEnabled === true || tmpClient.texEnabled === 1 || tmpClient.texEnabled === '1' || tmpClient.texEnabled === 'true'
 				this.editClient.texAllowedScopes = tmpClient.texAllowedScopes || ''
 				const texAllowedSubjectClientIds = Array.isArray(tmpClient.texAllowedSubjectClients) ? tmpClient.texAllowedSubjectClients : []
@@ -1488,6 +1504,8 @@ export default {
 						resourceUrl: this.editClient.resourceUrl,
 						backchannelLogoutUri: this.editClient.backchannelLogoutUri,
 						backchannelLogoutSessionRequired: Boolean(this.editClient.backchannelLogoutUri) && this.editClient.backchannelLogoutSessionRequired,
+						frontchannelLogoutUri: this.editClient.frontchannelLogoutUri,
+						frontchannelLogoutSessionRequired: Boolean(this.editClient.frontchannelLogoutUri) && this.editClient.frontchannelLogoutSessionRequired,
 						groups: this.editClient.groupData.props.value,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
@@ -1508,6 +1526,8 @@ export default {
 						resourceUrl: this.editClient.resourceUrl,
 						backchannelLogoutUri: this.editClient.backchannelLogoutUri,
 						backchannelLogoutSessionRequired: Boolean(this.editClient.backchannelLogoutUri) && this.editClient.backchannelLogoutSessionRequired,
+						frontchannelLogoutUri: this.editClient.frontchannelLogoutUri,
+						frontchannelLogoutSessionRequired: Boolean(this.editClient.frontchannelLogoutUri) && this.editClient.frontchannelLogoutSessionRequired,
 						texEnabled: this.editClient.type === 'confidential' && this.editClient.texEnabled,
 						texAllowedScopes: this.editClient.texAllowedScopes,
 						texAllowedSubjectClients: texAllowedSubjectClientIds,

@@ -22,6 +22,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OC\AppFramework\Utility\TimeFactory;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Security\ISecureRandom;
 use OCP\Security\ICrypto;
 use OCP\Security\ICredentialsManager;
@@ -45,6 +46,7 @@ use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCA\OIDCIdentityProvider\Service\CustomClaimService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Db\CustomClaimMapper;
@@ -105,6 +107,9 @@ class LoginRedirectorControllerTest extends TestCase {
     private $redirectUriService;
     /** @var \PHPUnit\Framework\MockObject\MockObject|BackChannelLogoutService */
     private $backChannelLogoutService;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|SessionManagementService */
+    private $sessionManagementService;
+    private ?string $sessionStateToReturn = null;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     private $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ISubAdmin */
@@ -208,6 +213,16 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->backChannelLogoutService
             ->method('registerClientSession')
             ->willReturn('test-session-id');
+        $this->sessionManagementService = $this->createMock(SessionManagementService::class);
+        $this->sessionManagementService->method('isSupported')->willReturn(true);
+        $this->sessionManagementService
+            ->method('generateSessionState')
+            ->willReturnCallback(function (): string {
+                if ($this->sessionStateToReturn === null) {
+                    throw new \InvalidArgumentException('Session state disabled for legacy test expectation.');
+                }
+                return $this->sessionStateToReturn;
+            });
 
         $this->controller = new LoginRedirectorController(
             'oidc',
@@ -229,6 +244,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
     }
@@ -417,6 +433,7 @@ class LoginRedirectorControllerTest extends TestCase {
     }
 
     public function testAuthorizeUsesStoredOidcAuthenticationTimeForAccessToken() {
+        $this->sessionStateToReturn = 'session-state-1';
         $clientId = 'client1';
         $state = 'state-1';
         $redirectUri = 'https://client.example.com/callback';
@@ -470,6 +487,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -539,6 +557,14 @@ class LoginRedirectorControllerTest extends TestCase {
                 $this->isType('int')
             )
             ->willReturn(new AuthorizationCode());
+        $this->backChannelLogoutService
+            ->expects($this->once())
+            ->method('hasCurrentClientSession')
+            ->with($client)
+            ->willReturn(false);
+        $this->sessionManagementService
+            ->expects($this->once())
+            ->method('resetBrowserState');
 
         $result = $controller->authorize(
             $clientId,
@@ -555,7 +581,7 @@ class LoginRedirectorControllerTest extends TestCase {
         );
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
-        $this->assertStringStartsWith($redirectUri . '?state=state-1&code=', $result->getRedirectURL());
+        $this->assertStringStartsWith($redirectUri . '?state=state-1&session_state=session-state-1&code=', $result->getRedirectURL());
     }
 
     public function testAuthorizeCodeFlowFormPostReturnsAutoSubmittingForm() {
@@ -611,6 +637,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -684,6 +711,18 @@ class LoginRedirectorControllerTest extends TestCase {
                 $this->isType('int')
             )
             ->willReturn(new AuthorizationCode());
+        $this->backChannelLogoutService
+            ->expects($this->once())
+            ->method('hasCurrentClientSession')
+            ->with($client)
+            ->willReturn(true);
+        $this->sessionManagementService
+            ->expects($this->never())
+            ->method('resetBrowserState');
+        $this->sessionManagementService
+            ->expects($this->once())
+            ->method('applyBrowserStateCookie')
+            ->with($this->isInstanceOf(FormPostResponse::class));
 
         $result = $controller->authorize(
             $clientId,
@@ -913,6 +952,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -1063,6 +1103,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -1219,6 +1260,7 @@ class LoginRedirectorControllerTest extends TestCase {
             $this->jwtGenerator,
             $this->redirectUriService,
             $this->backChannelLogoutService,
+            $this->sessionManagementService,
             $this->logger
         );
 
@@ -1649,6 +1691,30 @@ class LoginRedirectorControllerTest extends TestCase {
             $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.',
             $result->getRedirectURL()
         );
+    }
+
+    public function testAuthorizationErrorResponseIncludesSessionStateWhenSupported(): void {
+        $this->sessionStateToReturn = 'session-state-error';
+        $this->request->method('getParam')->willReturnCallback(
+            static fn (string $name, mixed $default = null): mixed => $name === 'client_id' ? 'client-1' : $default
+        );
+        $this->sessionManagementService->expects($this->once())
+            ->method('applyBrowserStateCookie');
+
+        $method = new \ReflectionMethod(LoginRedirectorController::class, 'createAuthorizationErrorRedirect');
+        $method->setAccessible(true);
+        $response = $method->invoke(
+            $this->controller,
+            'https://rp.example/callback',
+            'invalid_request',
+            'bad request',
+            'state-1',
+            'code',
+            'query'
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('session_state=session-state-error', $response->getRedirectURL());
     }
 
     private function assertMissingNonceReturnsInvalidRequestInFragment(string $responseType): void {

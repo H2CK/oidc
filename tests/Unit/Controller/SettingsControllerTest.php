@@ -766,4 +766,44 @@ class SettingsControllerTest extends TestCase {
     }
 
 
+    public function testUpdateClientConfigurationRejectsFrontChannelLogoutOnDifferentRedirectOrigin(): void {
+        $client = new Client('TEST', ['https://rp.example/callback'], 'RS256', 'confidential');
+        $client->setId(1);
+        $redirect = new RedirectUri();
+        $redirect->setId(9);
+        $redirect->setClientId(1);
+        $redirect->setRedirectUri('https://rp.example/callback');
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([$redirect]);
+        $this->request->method('getParams')->willReturn([
+            'frontchannelLogoutUri' => 'https://other.example/logout',
+        ]);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertStringContainsString('scheme, host, and effective port', $result->getData()['error']);
+    }
+
+    public function testDeleteRedirectUriRejectsRemovingLastOriginForFrontChannelLogout(): void {
+        $client = new Client('TEST', ['https://rp.example/callback'], 'RS256', 'confidential');
+        $client->setId(1);
+        $client->setFrontchannelLogoutUri('https://rp.example/logout');
+        $redirect = new RedirectUri();
+        $redirect->setId(9);
+        $redirect->setClientId(1);
+        $redirect->setRedirectUri('https://rp.example/callback');
+        $this->redirectUriMapper->method('getById')->with(9)->willReturn($redirect);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([$redirect]);
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->redirectUriMapper->expects($this->never())->method('deleteOneById');
+
+        $result = $this->controller->deleteRedirectUri(9);
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertStringContainsString('last redirect URI', $result->getData()['error']);
+    }
+
+
 }

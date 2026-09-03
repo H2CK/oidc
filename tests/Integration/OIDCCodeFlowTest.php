@@ -25,6 +25,7 @@ use OCA\OIDCIdentityProvider\Controller\UserInfoController;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\IRequest;
 use OCP\IL10N;
@@ -550,6 +551,20 @@ class OIDCCodeFlowTest extends \Test\TestCase
             ->method('registerClientSession')
             ->willReturn('integration-session-id');
 
+        $sessionManagementService = $this->createMock(SessionManagementService::class);
+        $sessionManagementService
+            ->method('isSupported')
+            ->willReturn(true);
+        $sessionManagementService
+            ->expects($this->once())
+            ->method('generateSessionState')
+            ->with($this->testClientId, $this->testRedirectUri)
+            ->willReturn('integration-session-state');
+        $sessionManagementService
+            ->expects($this->once())
+            ->method('applyBrowserStateCookie')
+            ->with($this->isInstanceOf(FormPostResponse::class));
+
         $controller = new LoginRedirectorController(
             'oidc',
             $request,
@@ -570,6 +585,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->jwtGenerator,
             new RedirectUriService($this->logger),
             $backChannelLogoutService,
+            $sessionManagementService,
             $this->logger
         );
 
@@ -588,6 +604,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $html = $response->render();
         $this->assertStringContainsString('<form method="post" action="' . $this->testRedirectUri . '">', $html);
         $this->assertStringContainsString('<input type="hidden" name="state" value="' . $state . '">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="session_state" value="integration-session-state">', $html);
         $this->assertMatchesRegularExpression('/<input type="hidden" name="code" value="([A-Za-z0-9]+)">/', $html);
 
         preg_match('/<input type="hidden" name="code" value="([A-Za-z0-9]+)">/', $html, $matches);

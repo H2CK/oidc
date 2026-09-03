@@ -23,6 +23,8 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
@@ -30,6 +32,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -64,6 +67,8 @@ class LogoutController extends ApiController {
         private LoggerInterface $logger,
         private ISecureRandom $secureRandom,
         private BackChannelLogoutService $backChannelLogoutService,
+        private FrontChannelLogoutService $frontChannelLogoutService,
+        private SessionManagementService $sessionManagementService,
     ) {
         parent::__construct($appName, $request);
     }
@@ -71,12 +76,29 @@ class LogoutController extends ApiController {
     /**
      * Build a logout redirect URL with optional state parameter.
      */
-    private function buildLogoutRedirect(string $url, ?string $state): RedirectResponse {
+    private function buildLogoutRedirectUrl(string $url, ?string $state): string {
         if ($state !== null && $state !== '') {
             $separator = str_contains($url, '?') ? '&' : '?';
             $url .= $separator . 'state=' . urlencode($state);
         }
-        return new RedirectResponse($url);
+        return $url;
+    }
+
+    private function buildLogoutRedirect(string $url, ?string $state): RedirectResponse {
+        return new RedirectResponse($this->buildLogoutRedirectUrl($url, $state));
+    }
+
+    /** @param list<string> $frontChannelUris */
+    private function completeBrowserLogout(array $frontChannelUris, string $redirectUrl): Response {
+        // Preserve the established RP-Initiated Logout response contract when
+        // there is no Front-Channel Logout work to perform. Besides avoiding an
+        // unnecessary rendering step, callers (and existing integrations) can
+        // continue to rely on an actual RedirectResponse in this common case.
+        if ($frontChannelUris === []) {
+            return new RedirectResponse($redirectUrl);
+        }
+
+        return $this->frontChannelLogoutService->createBrowserLogoutResponse($frontChannelUris, $redirectUrl);
     }
 
     private function getDefaultLogoutRedirect(): RedirectResponse {
@@ -487,8 +509,16 @@ class LogoutController extends ApiController {
             // browser sessions and triggers registered logout notifications;
             // it is not a global grant-revocation endpoint.
             $confirmedRedirect = $this->redirectFromConfirmationContext($confirmationContext);
+            $frontChannelUris = $this->frontChannelLogoutService->getLogoutUris($this->backChannelLogoutService->getCurrentClientSessions());
             $this->userSession->logout();
-            return $confirmedRedirect ?? $this->getDefaultLogoutRedirect();
+            $targetUrl = $this->urlGenerator->linkToRoute('core.login.showLoginForm', []);
+            if ($confirmedRedirect !== null && is_string($confirmationContext['post_logout_redirect_uri'] ?? null)) {
+                $targetUrl = $this->buildLogoutRedirectUrl(
+                    $confirmationContext['post_logout_redirect_uri'],
+                    is_string($confirmationContext['state'] ?? null) ? $confirmationContext['state'] : null
+                );
+            }
+            return $this->completeBrowserLogout($frontChannelUris, $targetUrl);
         }
 
         // RP-Initiated Logout requires explicit end-user confirmation when an
@@ -534,6 +564,7 @@ class LogoutController extends ApiController {
             // Only now is it safe to end the OP session. The Back-Channel
             // Logout listener observes this event, records recent sid state and
             // notifies participating RPs.
+            $frontChannelUris = $this->frontChannelLogoutService->getLogoutUris($this->backChannelLogoutService->getCurrentClientSessions());
             $this->userSession->logout();
         } else {
             // With no active OP browser session, only a session that this OP
@@ -549,11 +580,12 @@ class LogoutController extends ApiController {
             }
         }
 
+        $targetUrl = $this->urlGenerator->linkToRoute('core.login.showLoginForm', []);
         if (!empty($post_logout_redirect_uri)
             && $this->isRegisteredPostLogoutRedirect($client, $post_logout_redirect_uri)) {
-            return $this->buildLogoutRedirect($post_logout_redirect_uri, $state);
+            $targetUrl = $this->buildLogoutRedirectUrl($post_logout_redirect_uri, $state);
         }
 
-        return $this->getDefaultLogoutRedirect();
+        return $this->completeBrowserLogout($frontChannelUris ?? [], $targetUrl);
     }
 }

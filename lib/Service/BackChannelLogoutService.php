@@ -101,6 +101,30 @@ class BackChannelLogoutService {
     }
 
     /**
+     * Return whether the RP already participates in the current OP browser
+     * session. Session Management uses this to rotate OP browser state only
+     * when the authentication status of the set of participating clients
+     * actually changes.
+     */
+    public function hasCurrentClientSession(Client $client): bool {
+        $sessions = $this->session->get(self::SESSION_KEY);
+        if (!is_array($sessions) || $client->getId() === null) {
+            return false;
+        }
+        $sid = $sessions[(string)$client->getId()] ?? null;
+        return is_string($sid) && $sid !== '';
+    }
+
+    /** @return array<string,string> Current RP-id => sid mappings for the OP browser session. */
+    public function getCurrentClientSessions(): array {
+        $sessions = $this->session->get(self::SESSION_KEY);
+        if (!is_array($sessions)) {
+            return [];
+        }
+        return array_filter($sessions, static fn ($sid, $clientId): bool => is_string($sid) && $sid !== '' && ctype_digit((string)$clientId), ARRAY_FILTER_USE_BOTH);
+    }
+
+    /**
      * Check that an ID Token sid identifies the RP session registered for the
      * current OP browser session.
      */
@@ -174,6 +198,16 @@ class BackChannelLogoutService {
         $this->session->remove(self::REAUTHENTICATION_SUPPRESS_KEY);
     }
 
+    /**
+     * Expose the request-local reauthentication suppression state to other
+     * logout lifecycle components. Front-Channel Logout must not be triggered
+     * by prompt=login/max_age reauthentication, because the participating RP
+     * sessions remain valid across that local OP authentication refresh.
+     */
+    public function isReauthenticationSuppressed(): bool {
+        return $this->session->get(self::REAUTHENTICATION_SUPPRESS_KEY) === true;
+    }
+
     /** @param array{user_id:string,sessions:array<string,string>} $state */
     public function storePendingReauthentication(array $state): void {
         $this->session->remove(self::REAUTHENTICATION_SUPPRESS_KEY);
@@ -214,7 +248,7 @@ class BackChannelLogoutService {
      * Token. A retry never runs inside the interactive logout request.
      */
     public function logout(?string $userId): void {
-        if ($this->session->get(self::REAUTHENTICATION_SUPPRESS_KEY) === true) {
+        if ($this->isReauthenticationSuppressed()) {
             $this->logger->debug('Skipping Back-Channel Logout for OIDC reauthentication.');
             return;
         }

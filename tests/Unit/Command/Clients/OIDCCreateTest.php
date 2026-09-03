@@ -226,6 +226,63 @@ class OIDCCreateTest extends TestCase
         );
     }
 
+    public function testExecuteSetsFrontChannelLogoutOptionsWhenOriginMatchesRedirectUri(): void
+    {
+        $client = null;
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallback(static function (Client $value) use (&$client): Client {
+                $client = $value;
+                return $value;
+            });
+
+        $tester = new CommandTester($this->command);
+        $statusCode = $tester->execute([
+            'name' => 'Front-Channel Client',
+            'redirect_uris' => ['https://local.lo:443/callback'],
+            '--frontchannel_logout_uri' => 'https://local.lo/frontchannel-logout',
+            '--frontchannel_logout_session_required' => true,
+        ]);
+
+        $this->assertSame(Command::SUCCESS, $statusCode);
+        $this->assertSame('https://local.lo/frontchannel-logout', $client->getFrontchannelLogoutUri());
+        $this->assertTrue($client->getFrontchannelLogoutSessionRequired());
+    }
+
+    public function testExecuteRejectsFrontChannelLogoutUriOnDifferentOrigin(): void
+    {
+        $tester = new CommandTester($this->command);
+
+        $statusCode = $tester->execute([
+            'name' => 'Front-Channel Client',
+            'redirect_uris' => ['https://local.lo/callback'],
+            '--frontchannel_logout_uri' => 'https://unrelated.example/logout',
+        ]);
+
+        $this->assertSame(Command::FAILURE, $statusCode);
+        $this->assertStringContainsString(
+            'scheme, host, and effective port must match a configured redirect URI',
+            $tester->getDisplay()
+        );
+    }
+
+    public function testExecuteRejectsFrontChannelSessionRequiredWithoutUri(): void
+    {
+        $tester = new CommandTester($this->command);
+
+        $statusCode = $tester->execute([
+            'name' => 'Front-Channel Client',
+            'redirect_uris' => ['https://local.lo/callback'],
+            '--frontchannel_logout_session_required' => true,
+        ]);
+
+        $this->assertSame(Command::FAILURE, $statusCode);
+        $this->assertStringContainsString(
+            '--frontchannel_logout_session_required requires --frontchannel_logout_uri.',
+            $tester->getDisplay()
+        );
+    }
+
     public static function validCredentialProvider(): array
     {
         return [

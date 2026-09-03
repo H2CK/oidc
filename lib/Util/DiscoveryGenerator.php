@@ -237,7 +237,16 @@ class DiscoveryGenerator
             'end_session_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.Logout.logout', []),
             'backchannel_logout_supported' => true,
             'backchannel_logout_session_supported' => true,
+            'frontchannel_logout_supported' => true,
+            'frontchannel_logout_session_supported' => true,
         ];
+
+        // OpenID Connect Session Management requires check_session_iframe to
+        // be an HTTPS URL. An HTTP deployment therefore does not advertise the
+        // feature (and authorization responses likewise omit session_state).
+        if (strtolower($request->getServerProtocol()) === 'https') {
+            $discoveryPayload['check_session_iframe'] = $host . $this->urlGenerator->linkToRoute('oidc.Session.checkSessionIframe', []);
+        }
 
         if ($this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION) == 'true') {
             $discoveryPayload['registration_endpoint'] = $host . $this->urlGenerator->linkToRoute('oidc.DynamicRegistration.registerClient', []);

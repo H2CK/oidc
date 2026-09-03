@@ -28,6 +28,10 @@ jobs:
       OIDC_LOGOUT_CLIENT_SECRET: nextcloud-conformance-logout-secret-00001
       OIDC_BACKCHANNEL_CLIENT_ID: nextcloud-conformance-backchannel-client-00001
       OIDC_BACKCHANNEL_CLIENT_SECRET: nextcloud-conformance-backchannel-secret-00001
+      OIDC_FRONTCHANNEL_CLIENT_ID: nextcloud-conformance-frontchannel-client-00001
+      OIDC_FRONTCHANNEL_CLIENT_SECRET: nextcloud-conformance-frontchannel-secret-00001
+      OIDC_SESSION_CLIENT_ID: nextcloud-conformance-session-client-00001
+      OIDC_SESSION_CLIENT_SECRET: nextcloud-conformance-session-secret-00001
       OIDC_HYBRID_CLIENT_ID_1: nextcloud-conformance-hybrid-client-00001
       OIDC_HYBRID_CLIENT_SECRET_1: nextcloud-conformance-hybrid-secret-00001
       OIDC_HYBRID_CLIENT_ID_2: nextcloud-conformance-hybrid-client-00002
@@ -183,6 +187,27 @@ jobs:
             --backchannel_logout_uri "${backchannel_logout_uri}" \
             --backchannel_logout_session_required
           php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-backchannel/post_logout_redirect"
+
+          frontchannel_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-frontchannel/callback"
+          frontchannel_logout_uri="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-frontchannel/frontchannel_logout"
+          php occ oidc:create "OIDC Conformance Front-Channel Logout" "${frontchannel_callback}" \
+            --client_id "${OIDC_FRONTCHANNEL_CLIENT_ID}" \
+            --client_secret "${OIDC_FRONTCHANNEL_CLIENT_SECRET}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access" \
+            --frontchannel_logout_uri "${frontchannel_logout_uri}" \
+            --frontchannel_logout_session_required
+          php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-frontchannel/post_logout_redirect"
+
+          session_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-session/callback"
+          php occ oidc:create "OIDC Conformance Session Management" "${session_callback}" \
+            --client_id "${OIDC_SESSION_CLIENT_ID}" \
+            --client_secret "${OIDC_SESSION_CLIENT_SECRET}" \
+            --type confidential \
+            --flow "code id_token" \
+            --allowed_scopes "openid profile email offline_access"
+          php occ oidc:create-logout-redirect-uri "https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-session/post_logout_redirect"
           hybrid_callback="https://nginx:8443/test/a/${CONFORMANCE_ALIAS}-hybrid/callback"
           php occ oidc:create "OIDC Conformance Hybrid 1" "${hybrid_callback}" \
             --client_id "${OIDC_HYBRID_CLIENT_ID_1}" \
@@ -357,6 +382,12 @@ jobs:
           python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
             nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-backchannel-config.json \
             conformance-config/oidc-backchannel-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-frontchannel-config.json \
+            conformance-config/oidc-frontchannel-config.json
+          python3 nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/write-config.py \
+            nextcloud/apps/${{ env.APP_NAME }}/.github/conformance/oidc-session-management-config.json \
+            conformance-config/oidc-session-management-config.json
           python3 -m json.tool conformance-config/oidc-basic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-config-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-hybrid-config.json > /dev/null
@@ -364,6 +395,8 @@ jobs:
           python3 -m json.tool conformance-config/oidc-dynamic-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-logout-config.json > /dev/null
           python3 -m json.tool conformance-config/oidc-backchannel-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-frontchannel-config.json > /dev/null
+          python3 -m json.tool conformance-config/oidc-session-management-config.json > /dev/null
 
       - name: Run OIDC conformance plans
         env:
@@ -371,6 +404,10 @@ jobs:
           CONFORMANCE_SERVER: https://nginx:8443/
           CONFORMANCE_SERVER_MTLS: https://nginx:8444/
           SELENIUM_REMOTE_URL: http://chrome:4444/wd/hub
+          # OIDC Session Management 1.0 requires the embedded OP iframe to
+          # access OP User Agent state. Chromium 151 can otherwise block that
+          # state as third-party content and report "changed" before logout.
+          CONFORMANCE_ALLOW_THIRD_PARTY_COOKIES: 1
           CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
         run: |
           cd conformance-suite
@@ -539,6 +576,16 @@ jobs:
             "oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
             ../conformance-config/oidc-backchannel-config.json \
             "../conformance-results/oidcc-backchannel-rp-initiated-logout-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-frontchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
+            ../conformance-config/oidc-frontchannel-config.json \
+            "../conformance-results/oidcc-frontchannel-rp-initiated-logout-certification-test-plan-*.zip"
+
+          run_conformance_plan \
+            "oidcc-session-management-certification-test-plan[response_type=code id_token][client_registration=static_client]" \
+            ../conformance-config/oidc-session-management-config.json \
+            "../conformance-results/oidcc-session-management-certification-test-plan-*.zip"
 
           cleanup_browser_runner
           trap - EXIT

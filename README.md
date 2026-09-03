@@ -20,7 +20,7 @@ Provided features:
 - Support for RFC9068 JWT Access Tokens (must be activated per client)
 - Support for OAuth 2.0 Token Exchange (RFC 8693) using a constrained access-token-to-access-token profile
 - Discovery & WebFinger endpoint provided
-- RP-Initiated Logout and OpenID Connect Back-Channel Logout 1.0
+- RP-Initiated Logout, OpenID Connect Front-Channel Logout 1.0, Back-Channel Logout 1.0, and Session Management 1.0
 - Dynamic Client Registration
 - Client Configuration Management (RFC 7592)
 - Token Introspection (RFC 7662)
@@ -46,6 +46,8 @@ The OIDC conformance workflow is executed daily and on demand against the OpenID
 - `oidcc-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-implicit-certification-test-plan[server_metadata=discovery][client_registration=static_client]` with `id_token` response type, testing modules: server, nonce enforcement, scope handling (profile, email, address, phone), prompt parameters (login, none), max_age variations, redirect URI validation, request object support/rejection, claims essential, and form post
 - `oidcc-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]` for RP-Initiated Logout, including valid logout flows, state handling, ID token hint validation, and post-logout redirect URI validation
 - `oidcc-backchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]` for OpenID Connect Back-Channel Logout, including `sid`-based RP session correlation and signed Logout Token delivery
+- `oidcc-frontchannel-rp-initiated-logout-certification-test-plan[response_type=code id_token][client_registration=static_client]` for OpenID Connect Front-Channel Logout
+- `oidcc-session-management-certification-test-plan[response_type=code id_token][client_registration=static_client]` for OpenID Connect Session Management and `check_session_iframe` behavior
 
 More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
@@ -53,7 +55,13 @@ More information on the compliance can be found in the [latest test run](https:/
 
 ### Version 2.2.0
 
-Version 2.2.0 hardens RP-Initiated Logout and Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
+Version 2.2.0 adds OpenID Connect Front-Channel Logout 1.0 and OpenID Connect Session Management 1.0. The database migration adds optional per-client Front-Channel Logout metadata only; existing clients remain valid and Front-Channel Logout is disabled for a client until a `frontchannel_logout_uri` is configured. Session Management is a browser feature: HTTP(S) authorization responses include `session_state` when the OP itself is served over HTTPS. Native/custom-scheme redirect URIs keep their existing behavior and intentionally do not receive `session_state`, because they have no browser web origin that can host the Session Management RP iframe.
+
+This version also hardens RP-Initiated Logout and Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
+
+The same migration extends accepted post-logout redirect URIs with an optional RP binding. Existing logout redirect URI rows remain global (`client_id = NULL`) and keep their historical behavior. An RP-specific list takes precedence when at least one URI is configured for that RP; the global list is used only when that RP has no RP-specific post-logout redirect URI configured.
+
+### Version 2.0.0
 
 Version 2.0.0 tightens several behaviours to better match the OpenID Connect conformance suite. OIDC-compliant clients should continue to work, but clients that depend on legacy 1.x behaviour should be reviewed before upgrading.
 
@@ -158,6 +166,7 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
 - Logout: `logout` (GET / POST)
+- Session Management OP iframe: `session/check-session-iframe` (GET; advertised as `check_session_iframe`)
 - Dynamic Client Registration: `register` (POST) - Disabled by default. Must be enabled in settings.
 - Client Configuration Management: `register/<client_id>` (PUT / GET / DELETE) - Authenticate with retrieved registration token during creation as Bearer.
 - Instrospection: `introspect`(POST) - Validation of access tokens
@@ -202,6 +211,56 @@ occ oidc:remove-logout-redirect-uri https://legacy.example.com/logout/callback
 When accepted, `state` is appended to the redirect URI. Without an accepted post-logout redirect URI, the user is redirected to the Nextcloud login page.
 
 OIDC reauthentication requests are intentionally different from logout. `prompt=login` and an exceeded `max_age` force the user through a fresh Nextcloud authentication flow, but they do not send Back-Channel Logout notifications, revoke other RP grants, or discard the existing RP-to-`sid` correlations. A real Nextcloud/RP-Initiated Logout continues to notify all participating RPs normally.
+
+### Front-Channel Logout
+
+The provider supports [OpenID Connect Front-Channel Logout 1.0](https://openid.net/specs/openid-connect-frontchannel-1_0.html). Discovery advertises `frontchannel_logout_supported=true` and `frontchannel_logout_session_supported=true`. The same stable per-RP `sid` used for Back-Channel Logout is included in ID Tokens and is also used for session-specific Front-Channel Logout.
+
+When an actual OP logout is performed through the OIDC logout endpoint, the provider takes a snapshot of all RPs participating in the current browser session before the Nextcloud session is destroyed. It then renders the configured Front-Channel Logout URIs in hidden iframes and continues to the normal post-logout destination. When a Front-Channel Logout URI is called, the provider includes both `iss` and `sid`; this is also done when `frontchannel_logout_session_required` is `false`, because this OP supports session-specific logout.
+
+The same browser notification is also applied to normal Nextcloud logouts. The app detects the logout through Nextcloud's public `BeforeUserLoggedOutEvent`, snapshots the RP sessions before they are cleared, and passes the Front-Channel targets through a request-local context to a global response middleware. The middleware only replaces an existing post-logout redirect when browser fan-out is required; it does not depend on an internal `OC\\Core` controller class. OIDC reauthentication caused by `prompt=login` or `max_age` is explicitly excluded from this logout context and therefore does not trigger Front-Channel Logout.
+
+#### Configure Front-Channel Logout in the Admin UI
+
+1. Open **Administration settings > OIDC** and edit the client.
+2. Expand **Further Settings**.
+3. Set **Front-Channel Logout URI** to the browser endpoint at the RP that clears the RP session when loaded in an iframe.
+4. Enable **Require iss and sid in Front-Channel Logout requests** if the RP registers `frontchannel_logout_session_required=true`.
+
+Use an absolute HTTPS URI without a fragment. HTTP is accepted only for confidential clients. The URI may contain its own query parameters; the provider retains them when it appends `iss` and `sid`. As required by OpenID Connect Front-Channel Logout 1.0, the Front-Channel Logout URI must use the same scheme, host, and effective port as at least one registered authorization redirect URI. Default HTTP/HTTPS ports are normalized according to normal origin serialization rules (for example, `https://rp.example:443/callback` and `https://rp.example/frontchannel-logout` have the same origin).
+
+The same settings can be supplied when creating a static client with OCC:
+
+```bash
+occ oidc:create "Example RP" https://rp.example.com/oidc/callback \
+  --frontchannel_logout_uri https://rp.example.com/oidc/frontchannel-logout \
+  --frontchannel_logout_session_required
+```
+
+For Dynamic Client Registration and RFC 7592 Client Configuration Management, use the standard metadata members:
+
+```json
+{
+  "frontchannel_logout_uri": "https://rp.example.com/oidc/frontchannel-logout",
+  "frontchannel_logout_session_required": true
+}
+```
+
+`frontchannel_logout_session_required=true` is rejected if no Front-Channel Logout URI is configured.
+
+### Session Management
+
+The provider supports [OpenID Connect Session Management 1.0](https://openid.net/specs/openid-connect-session-1_0.html) for browser-based HTTP(S) relying parties. When the OP is served over HTTPS, Discovery contains `check_session_iframe`, and browser-based HTTP(S) Authentication Responses contain the required opaque `session_state` parameter. Native/custom-scheme redirect URIs are outside this browser-session profile and intentionally do not receive `session_state`. The value is bound to the client identifier, the concrete registered RP origin, the current OP browser state, and a random salt. It also carries an OP-signed RS256 client/origin binding so the iframe can reject unregistered or forged source origins locally without a network request for every status check. It never contains a space.
+
+An RP can embed the advertised `check_session_iframe` in a hidden iframe and send the standard message:
+
+```text
+<client_id> <session_state>
+```
+
+The iframe returns `unchanged`, `changed`, or `error` with `postMessage`. Before calculating session status, it requires the source origin to match the origin embedded in `session_state` and verifies the OP's RS256 signature over the supplied `client_id` and that origin. The OP only creates this signed binding after the concrete authorization redirect URI has matched the client's registered redirect URI configuration, including supported wildcard patterns. A forged or unexpected client/origin combination therefore returns `error` instead of being treated as a normal session change. The OP browser state changes on login/logout/user changes and when a previously non-participating RP is added to the current OP browser session, so existing RPs subsequently observe `changed`.
+
+No per-client switch is required for Session Management. RPs that do not use the feature can ignore both `check_session_iframe` and `session_state`. Session Management is intentionally limited to browser-based HTTP(S) RPs; custom-scheme/native redirect URIs are not given `session_state`, preserving compatibility for non-browser clients.
 
 ### Back-Channel Logout
 
@@ -250,24 +309,23 @@ The standard metadata can also be supplied through Dynamic Client Registration a
   "redirect_uris": ["https://rp.example.com/oidc/callback"],
   "post_logout_redirect_uris": ["https://rp.example.com/logout/callback"],
   "backchannel_logout_uri": "https://rp.example.com/oidc/backchannel-logout",
-  "backchannel_logout_session_required": true
+  "backchannel_logout_session_required": true,
+  "frontchannel_logout_uri": "https://rp.example.com/oidc/frontchannel-logout",
+  "frontchannel_logout_session_required": true
 }
 ```
 
-`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. The same URI validation rules as in the Admin UI apply. Dynamic registration and RFC 7592 also support the RP-Initiated Logout `post_logout_redirect_uris` metadata member. These values are stored as RP-specific entries and are returned by the registration/configuration endpoints. Matching at logout time is exact; wildcards, fragments, embedded credentials, and malformed/non-absolute values are rejected. HTTPS is recommended; HTTP is accepted only for confidential clients, and custom URI schemes remain possible for native-style callbacks. The active or local schemes `javascript:`, `data:`, `file:`, and `vbscript:` are explicitly rejected (case-insensitively) and cannot be registered through DCR or RFC 7592. On RFC 7592 update, the JSON payload must include `client_id`, and it must exactly match the currently issued client identifier. If `client_secret` is included, it must exactly match the currently issued secret; the update endpoint never accepts a caller-chosen replacement secret. Omitting `post_logout_redirect_uris` leaves the current RP-specific list unchanged, while an explicit empty array removes the RP-specific list and therefore re-enables the documented legacy global fallback for that RP.
+`backchannel_logout_session_required=true` is rejected if no Back-Channel Logout URI is configured. `frontchannel_logout_session_required=true` likewise requires `frontchannel_logout_uri`. The same URI validation rules as in the Admin UI apply. Dynamic registration and RFC 7592 also support the RP-Initiated Logout `post_logout_redirect_uris` metadata member. These values are stored as RP-specific entries and are returned by the registration/configuration endpoints. Matching at logout time is exact; wildcards, fragments, embedded credentials, and malformed/non-absolute values are rejected. HTTPS is recommended; HTTP is accepted only for confidential clients, and custom URI schemes remain possible for native-style callbacks. The active or local schemes `javascript:`, `data:`, `file:`, and `vbscript:` are explicitly rejected (case-insensitively) and cannot be registered through DCR or RFC 7592. On RFC 7592 update, the JSON payload must include `client_id`, and it must exactly match the currently issued client identifier. If `client_secret` is included, it must exactly match the currently issued secret; the update endpoint never accepts a caller-chosen replacement secret. Omitting `post_logout_redirect_uris` leaves the current RP-specific list unchanged, while an explicit empty array removes the RP-specific list and therefore re-enables the documented legacy global fallback for that RP.
 
 Dynamic registration and RFC 7592 updates accept only `RS256` and `HS256` for `id_token_signed_response_alg`; unsupported algorithms are rejected with `invalid_client_metadata`. Token generation also fails closed if an unsupported algorithm is nevertheless found in persisted client state.
 
-There is currently NO support for:
-
-- [OpenID Connect Session Management](https://openid.net/specs/openid-connect-session-1_0.html)
-- [OpenID Connect Front-Channel Logout](https://openid.net/specs/openid-connect-frontchannel-1_0.html)
+> **Version 2.2.0 upgrade note:** Upgrading to 2.2.0 deliberately invalidates all existing persisted OIDC authorization-code and access/refresh grant state. Existing RPs must start a new OIDC authorization/login flow; pre-upgrade refresh tokens can no longer be used. This one-time reauthentication is required to establish fresh security state after the Back-Channel/RP-Initiated Logout hardening. Existing accepted logout redirect URIs are preserved as global fallback entries, while new RP-specific `post_logout_redirect_uri` entries can be configured per client. The upgrade also adds the recent-session table used for RP-Initiated Logout correlation; it contains only user ID, client identifier, `sid`, and logout time and is not an OAuth grant store. Entries are accepted only for 10 minutes and older rows are opportunistically cleaned during later logout processing. The in-browser Back-Channel Logout session key remains versioned so a pre-upgrade `sid` is not silently reused. Already issued self-contained ID Tokens may remain cryptographically valid until their `exp`, but they cannot silently terminate an active OP session unless their `sid` matches current session state; after logout, expired hints are accepted only within the 10-minute recent-session window.
 
 ### Dynamic Client Registration Details
 
 It is possible to use the dynamic client registration according to [OpenID Connect Dynamic Client Registration 1.0](https://openid.net/specs/openid-connect-registration-1_0.html). To use this feature you have to enable it in the settings of this application (see above).
 
-Back-Channel Logout client metadata (`backchannel_logout_uri` and `backchannel_logout_session_required`) and RP-Initiated Logout metadata (`post_logout_redirect_uris`) are accepted during registration and are returned/updated by RFC 7592 Client Configuration Management. See the Logout sections above for URI restrictions, the global-fallback compatibility rule, and examples.
+Back-Channel Logout metadata (`backchannel_logout_uri` and `backchannel_logout_session_required`), Front-Channel Logout metadata (`frontchannel_logout_uri` and `frontchannel_logout_session_required`), and RP-Initiated Logout metadata (`post_logout_redirect_uris`) are accepted during registration and are returned/updated by RFC 7592 Client Configuration Management. See the Logout sections above for URI restrictions, the global-fallback compatibility rule, and examples.
 
 Due to security reasons there is a BruteForce throttleing as well as a limitation of dynamically registered clients to 100. Additionally a dynamically registered client is only valid for 3600 seconds. Both parameters can currently not be changed via the settings.
 The registration endpoint is accessible for everybody without any authentication and authorization. So please enable this feature with the possible thread in mind.

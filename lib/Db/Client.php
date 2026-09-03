@@ -46,6 +46,10 @@ use JsonSerializable;
  * @method void setBackchannelLogoutUri(string|null $backchannelLogoutUri)
  * @method bool getBackchannelLogoutSessReq()
  * @method void setBackchannelLogoutSessReq(bool $backchannelLogoutSessReq)
+ * @method string|null getFrontchannelLogoutUri()
+ * @method void setFrontchannelLogoutUri(string|null $frontchannelLogoutUri)
+ * @method bool getFrontchannelLogoutSessReq()
+ * @method void setFrontchannelLogoutSessReq(bool $frontchannelLogoutSessReq)
  */
 class Client extends Entity implements JsonSerializable {
     /** @var int */
@@ -84,6 +88,10 @@ class Client extends Entity implements JsonSerializable {
     protected $backchannelLogoutUri;
     /** @var bool */
     protected $backchannelLogoutSessReq = false;
+    /** @var string|null */
+    protected $frontchannelLogoutUri;
+    /** @var bool */
+    protected $frontchannelLogoutSessReq = false;
 
     public function __construct(
         $name = '',
@@ -98,7 +106,9 @@ class Client extends Entity implements JsonSerializable {
         $texEnabled = false,
         $texAllowedScopes = null,
         $backchannelLogoutUri = null,
-        $backchannelLogoutSessionRequired = false
+        $backchannelLogoutSessionRequired = false,
+        $frontchannelLogoutUri = null,
+        $frontchannelLogoutSessionRequired = false
     ) {
         $this->addType('id', Types::INTEGER);
         $this->addType('name', Types::STRING);
@@ -117,6 +127,8 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('tex_allowed_scopes', Types::STRING);
         $this->addType('backchannel_logout_uri', Types::STRING);
         $this->addType('backchannel_logout_sess_req', Types::BOOLEAN);
+        $this->addType('frontchannel_logout_uri', Types::STRING);
+        $this->addType('frontchannel_logout_sess_req', Types::BOOLEAN);
 
         $this->setName($name);
         $this->redirectUris = $redirectUris;
@@ -132,6 +144,8 @@ class Client extends Entity implements JsonSerializable {
         $this->setTexAllowedScopes($texAllowedScopes);
         $this->setBackchannelLogoutUri($backchannelLogoutUri);
         $this->setBackchannelLogoutSessionRequired($backchannelLogoutSessionRequired);
+        $this->setFrontchannelLogoutUri($frontchannelLogoutUri);
+        $this->setFrontchannelLogoutSessionRequired($frontchannelLogoutSessionRequired);
 
     }
 
@@ -141,6 +155,14 @@ class Client extends Entity implements JsonSerializable {
 
     public function setBackchannelLogoutSessionRequired(bool $backchannelLogoutSessionRequired): void {
         $this->setBackchannelLogoutSessReq($backchannelLogoutSessionRequired);
+    }
+
+    public function getFrontchannelLogoutSessionRequired(): bool {
+        return $this->getFrontchannelLogoutSessReq();
+    }
+
+    public function setFrontchannelLogoutSessionRequired(bool $required): void {
+        $this->setFrontchannelLogoutSessReq($required);
     }
 
     public function getRedirectUris(): array {
@@ -173,7 +195,9 @@ class Client extends Entity implements JsonSerializable {
             'tex_enabled' => $this->getTexEnabled(),
             'tex_allowed_scopes' => $this->getTexAllowedScopes(),
             'backchannel_logout_uri' => $this->getBackchannelLogoutUri(),
-            'backchannel_logout_session_required' => $this->getBackchannelLogoutSessionRequired()
+            'backchannel_logout_session_required' => $this->getBackchannelLogoutSessionRequired(),
+            'frontchannel_logout_uri' => $this->getFrontchannelLogoutUri(),
+            'frontchannel_logout_session_required' => $this->getFrontchannelLogoutSessionRequired()
         ];
     }
 }
