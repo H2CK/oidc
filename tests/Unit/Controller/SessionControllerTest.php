@@ -10,29 +10,22 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 
 use OCA\OIDCIdentityProvider\Controller\SessionController;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\IRequest;
-use OCP\IURLGenerator;
 use PHPUnit\Framework\TestCase;
 
 class SessionControllerTest extends TestCase {
     private SessionManagementService $sessionManagementService;
-    private IURLGenerator $urlGenerator;
     private SessionController $controller;
 
     protected function setUp(): void {
         parent::setUp();
         $request = $this->createMock(IRequest::class);
         $this->sessionManagementService = $this->createMock(SessionManagementService::class);
-        $this->urlGenerator = $this->createMock(IURLGenerator::class);
-        $this->controller = new SessionController(
-            'oidc',
-            $request,
-            $this->sessionManagementService,
-            $this->urlGenerator,
-        );
+        $this->controller = new SessionController('oidc', $request, $this->sessionManagementService);
     }
 
     public function testCheckDelegatesToSessionManagementService(): void {
@@ -48,32 +41,36 @@ class SessionControllerTest extends TestCase {
         $this->assertSame('no-store, no-cache, must-revalidate', $response->getHeaders()['Cache-Control']);
     }
 
-    public function testCheckSessionIframeContainsMessageAndStatusProtocol(): void {
-        $statusUrl = 'https://nextcloud.example/index.php/apps/oidc/session/check';
-        $this->urlGenerator->expects($this->once())
-            ->method('linkToRouteAbsolute')
-            ->with('oidc.Session.check', [])
-            ->willReturn($statusUrl);
-
+    public function testCheckSessionIframePerformsLocalWebCryptoCheckWithoutFetch(): void {
         $response = $this->controller->checkSessionIframe();
 
         $this->assertInstanceOf(DataDisplayResponse::class, $response);
         $html = $response->getData();
         $this->assertStringContainsString('window.addEventListener("message"', $html);
-        $this->assertStringContainsString('encodeURIComponent(e.origin)', $html);
-        $this->assertStringContainsString('fetch(u,{credentials:"include",cache:"no-store"})', $html);
-        $this->assertStringContainsString($statusUrl, $html);
+        $this->assertStringContainsString('crypto.subtle.digest("SHA-256"', $html);
+        $this->assertStringContainsString('document.cookie.split("; ")', $html);
+        $this->assertStringContainsString('oidc_opbs', $html);
+        $this->assertStringContainsString('observedOpbs?"changed":"error"', $html);
+        $this->assertStringNotContainsString('fetch(', $html);
         $headers = $response->getHeaders();
         $this->assertSame('text/html; charset=utf-8', $headers['Content-Type']);
         $this->assertSame('no-store, no-cache, must-revalidate', $headers['Cache-Control']);
         $this->assertStringContainsString("frame-ancestors *", $headers['Content-Security-Policy']);
-        $this->assertStringContainsString("connect-src 'self'", $headers['Content-Security-Policy']);
+        $this->assertStringNotContainsString('connect-src', $headers['Content-Security-Policy']);
     }
-    public function testSessionEndpointsDoNotForceNextcloudSession(): void {
+
+    public function testIframeDistinguishesInitiallyBlockedCookieFromLaterExpiry(): void {
+        $html = $this->controller->checkSessionIframe()->getData();
+        $this->assertStringContainsString('if(readOpbs()!==null){observedOpbs=true;}', $html);
+        $this->assertStringContainsString('opbs===null){e.source.postMessage(observedOpbs?"changed":"error"', $html);
+    }
+
+    public function testSessionEndpointsDoNotForceNextcloudSessionAndCheckIsRateLimited(): void {
         foreach (['checkSessionIframe', 'check'] as $methodName) {
             $method = new \ReflectionMethod(SessionController::class, $methodName);
             $this->assertSame([], $method->getAttributes(UseSession::class), $methodName . ' must not force a PHP session');
         }
+        $check = new \ReflectionMethod(SessionController::class, 'check');
+        $this->assertCount(1, $check->getAttributes(AnonRateLimit::class));
     }
-
 }

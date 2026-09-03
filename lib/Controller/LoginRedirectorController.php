@@ -798,13 +798,15 @@ class LoginRedirectorController extends ApiController
         $responseParams = [
             'state' => $state,
         ];
-        try {
-            // Session Management is defined for browser origins. Preserve
-            // compatibility with native/custom-scheme redirect URIs by only
-            // returning session_state when the redirect has an HTTP(S) origin.
-            $responseParams['session_state'] = $this->sessionManagementService->generateSessionState($client_id, (string)$redirect_uri);
-        } catch (\InvalidArgumentException $e) {
-            $this->logger->debug('No OIDC session_state generated for redirect URI without an HTTP(S) origin.');
+        if ($this->sessionManagementService->isSupported()) {
+            try {
+                // Session Management is defined for browser origins. Preserve
+                // compatibility with native/custom-scheme redirect URIs by only
+                // returning session_state when the redirect has an HTTP(S) origin.
+                $responseParams['session_state'] = $this->sessionManagementService->generateSessionState($client_id, (string)$redirect_uri);
+            } catch (\InvalidArgumentException $e) {
+                $this->logger->debug('No OIDC session_state generated for redirect URI without an HTTP(S) origin.');
+            }
         }
         if (in_array('code', $responseTypeEntries)) {
             $responseParams['code'] = $code;
@@ -1357,17 +1359,35 @@ class LoginRedirectorController extends ApiController
             $params['state'] = (string)$state;
         }
 
+        // OIDC Session Management says an Authentication Error Response SHOULD
+        // carry session_state as well. Add it whenever the OP is HTTPS and the
+        // request identifies a client with a browser redirect origin.
+        if ($this->sessionManagementService->isSupported()) {
+            $clientId = trim((string)$this->request->getParam('client_id', ''));
+            if ($clientId !== '') {
+                try {
+                    $params['session_state'] = $this->sessionManagementService->generateSessionState($clientId, $redirectUri);
+                } catch (\InvalidArgumentException $e) {
+                    $this->logger->debug('No OIDC session_state generated for Authentication Error Response without an HTTP(S) origin.');
+                }
+            }
+        }
+
         $responseTypeEntries = $this->parseResponseTypeEntries($responseType);
         $normalizedResponseMode = $this->normalizeAuthorizationResponseMode($responseMode);
 
         if ($normalizedResponseMode === 'form_post') {
-            return new FormPostResponse($redirectUri, $params);
+            $response = new FormPostResponse($redirectUri, $params);
+            $this->sessionManagementService->applyBrowserStateCookie($response);
+            return $response;
         }
 
-        return new RedirectResponse($this->buildAuthorizationResponseRedirectUri(
+        $response = new RedirectResponse($this->buildAuthorizationResponseRedirectUri(
             $redirectUri,
             $params,
             $this->authorizationResponseUsesFragment($responseTypeEntries, $normalizedResponseMode)
         ));
+        $this->sessionManagementService->applyBrowserStateCookie($response);
+        return $response;
     }
 }

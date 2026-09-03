@@ -173,6 +173,15 @@ class LogoutControllerTest extends TestCase {
             ->method('isCurrentClientSession')
             ->with($client, 'sid-1')
             ->willReturn(true);
+        $this->backChannelLogoutService->expects($this->once())
+            ->method('getCurrentClientSessions')
+            ->willReturn([]);
+        $this->frontChannelLogoutService->expects($this->once())
+            ->method('getLogoutUris')
+            ->with([])
+            ->willReturn([]);
+        $this->frontChannelLogoutService->expects($this->never())
+            ->method('createBrowserLogoutResponse');
         $this->userSession->expects($this->once())->method('logout');
 
         $result = $this->controller->logout($clientId, $idTokenHint);
@@ -481,11 +490,22 @@ class LogoutControllerTest extends TestCase {
             ->method('getLogoutUris')
             ->with(['7' => 'sid-1'])
             ->willReturn(['https://rp.example/frontchannel?iss=https%3A%2F%2Fnextcloud.local&sid=sid-1']);
-        $this->sessionManagementService->expects($this->once())->method('resetBrowserState');
-        $this->sessionManagementService
-            ->expects($this->once())
-            ->method('applyBrowserStateCookie')
-            ->with($this->isInstanceOf(DataDisplayResponse::class));
+        $frontChannelResponse = new DataDisplayResponse(
+            '<!doctype html><iframe src="https://rp.example/frontchannel?iss=https%3A%2F%2Fnextcloud.local&amp;sid=sid-1"></iframe><meta http-equiv="refresh">',
+            Http::STATUS_OK,
+            ['Content-Type' => 'text/html; charset=utf-8']
+        );
+        $frontChannelResponse->addHeader('Content-Security-Policy', "default-src 'none'; frame-src https://rp.example");
+        $frontChannelResponse->addHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+        $this->frontChannelLogoutService->expects($this->once())
+            ->method('createBrowserLogoutResponse')
+            ->with(
+                ['https://rp.example/frontchannel?iss=https%3A%2F%2Fnextcloud.local&sid=sid-1'],
+                '/login'
+            )
+            ->willReturn($frontChannelResponse);
+        $this->sessionManagementService->expects($this->never())->method('rotateBrowserStateForResponse');
+        $this->sessionManagementService->expects($this->never())->method('applyBrowserStateCookie');
         $this->userSession->expects($this->once())->method('logout');
 
         $result = $this->controller->logout($clientId, $idTokenHint);

@@ -10,6 +10,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Integration;
 
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCP\AppFramework\App;
 use OCP\IDBConnection;
@@ -20,6 +21,7 @@ use Psr\Log\LoggerInterface;
 
 class FrontChannelLogoutIntegrationTest extends TestCase {
     private ClientMapper $clientMapper;
+    private RedirectUriMapper $redirectUriMapper;
     private IDBConnection $db;
     private ?Client $client = null;
 
@@ -27,6 +29,7 @@ class FrontChannelLogoutIntegrationTest extends TestCase {
         parent::setUp();
         $container = (new App('oidc'))->getContainer();
         $this->clientMapper = $container->query(ClientMapper::class);
+        $this->redirectUriMapper = $container->query(RedirectUriMapper::class);
         $this->db = $container->query(IDBConnection::class);
     }
 
@@ -79,6 +82,7 @@ class FrontChannelLogoutIntegrationTest extends TestCase {
         $urlGenerator->method('getWebroot')->willReturn('/cloud');
         $service = new FrontChannelLogoutService(
             $this->clientMapper,
+            $this->redirectUriMapper,
             $request,
             $urlGenerator,
             $this->createMock(LoggerInterface::class),

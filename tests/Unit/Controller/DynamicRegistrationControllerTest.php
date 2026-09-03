@@ -522,12 +522,12 @@ class DynamicRegistrationControllerTest extends TestCase {
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
             client_name: 'RP',
-            frontchannel_logout_uri: 'https://logout.rp.example/frontchannel',
+            frontchannel_logout_uri: 'https://rp.example/frontchannel',
             frontchannel_logout_session_required: true,
         );
 
         $this->assertSame(Http::STATUS_CREATED, $result->getStatus());
-        $this->assertSame('https://logout.rp.example/frontchannel', $result->getData()['frontchannel_logout_uri']);
+        $this->assertSame('https://rp.example/frontchannel', $result->getData()['frontchannel_logout_uri']);
         $this->assertTrue($result->getData()['frontchannel_logout_session_required']);
     }
 
@@ -539,6 +539,20 @@ class DynamicRegistrationControllerTest extends TestCase {
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
             frontchannel_logout_uri: 'https://user:password@rp.example/logout#fragment',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
+    }
+
+    public function testDynamicRegistrationRejectsFrontChannelLogoutUriOnDifferentRedirectOrigin(): void {
+        $this->appConfig->method('getAppValueString')->willReturn('true');
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->registerClient(
+            redirect_uris: ['https://rp.example/callback'],
+            frontchannel_logout_uri: 'https://other.example/frontchannel',
         );
 
         $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
@@ -572,6 +586,10 @@ class DynamicRegistrationControllerTest extends TestCase {
         $client->setDcr(true);
         $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
         $this->clientMapper->method('update')->willReturn($client);
+        $redirect = new \OCA\OIDCIdentityProvider\Db\RedirectUri();
+        $redirect->setClientId(7);
+        $redirect->setRedirectUri('https://rp.example/callback');
+        $this->redirectUriMapper->method('getByClientId')->with(7)->willReturn([$redirect]);
 
         $newToken = new \OCA\OIDCIdentityProvider\Db\RegistrationToken();
         $newToken->setToken('rotated-token');
@@ -590,6 +608,32 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertTrue($result->getData()['frontchannel_logout_session_required']);
         $this->assertSame('https://rp.example/frontchannel', $client->getFrontchannelLogoutUri());
         $this->assertTrue($client->getFrontchannelLogoutSessionRequired());
+    }
+
+    public function testDynamicClientConfigurationUpdateRejectsRemovingLastMatchingRedirectOrigin(): void {
+        $this->request->method('getHeader')->willReturnCallback(
+            static fn (string $name): string => $name === 'Authorization' ? 'Bearer registration-token' : ''
+        );
+        $this->registrationTokenService->method('validateToken')->with('registration-token')->willReturn(7);
+
+        $client = new \OCA\OIDCIdentityProvider\Db\Client('RP', [], 'RS256', 'confidential');
+        $client->setId(7);
+        $client->setClientIdentifier('client-1');
+        $client->setSecret('current-secret');
+        $client->setDcr(true);
+        $client->setFrontchannelLogoutUri('https://rp.example/frontchannel');
+        $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(
+            clientId: 'client-1',
+            client_id: 'client-1',
+            client_secret: 'current-secret',
+            redirect_uris: ['https://other.example/callback'],
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_client_metadata', $result->getData()['error']);
     }
 
     public function testMaxNumClientsExceeded() {

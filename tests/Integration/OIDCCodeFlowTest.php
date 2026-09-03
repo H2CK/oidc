@@ -553,6 +553,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         $sessionManagementService = $this->createMock(SessionManagementService::class);
         $sessionManagementService
+            ->method('isSupported')
+            ->willReturn(true);
+        $sessionManagementService
             ->expects($this->once())
             ->method('generateSessionState')
             ->with($this->testClientId, $this->testRedirectUri)

@@ -15,11 +15,15 @@ use OCA\OIDCIdentityProvider\Http\BasicAuthRequestSanitizer;
 use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\BackChannelLogoutListener;
+use OCA\OIDCIdentityProvider\Listener\SessionManagementLoginListener;
+use OCA\OIDCIdentityProvider\Middleware\LogoutMiddleware;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\User\Events\BeforeUserLoggedOutEvent;
+use OCP\User\Events\UserLoggedInEvent;
+use OCP\User\Events\UserLoggedInWithCookieEvent;
 
 class Application extends App implements IBootstrap
 {
@@ -77,6 +81,12 @@ class Application extends App implements IBootstrap
         $context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
         $context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
         $context->registerEventListener(BeforeUserLoggedOutEvent::class, BackChannelLogoutListener::class);
+        $context->registerEventListener(UserLoggedInEvent::class, SessionManagementLoginListener::class);
+        $context->registerEventListener(UserLoggedInWithCookieEvent::class, SessionManagementLoginListener::class);
+
+        // Front-Channel Logout must also run for Nextcloud's normal browser
+        // logout endpoint, not just the OIDC end_session_endpoint.
+        $context->registerMiddleware(LogoutMiddleware::class, true);
     }
 
     public function boot(IBootContext $context): void

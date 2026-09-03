@@ -277,8 +277,8 @@ class OIDCCreate extends Command
 
             $frontchannelLogoutUri = trim((string)$input->getOption('frontchannel_logout_uri'));
             if ($frontchannelLogoutUri !== '') {
-                if (!FrontChannelLogoutService::isValidForClientType($frontchannelLogoutUri, $client->getType())) {
-                    throw new CliException("The Front-Channel Logout URI '$frontchannelLogoutUri' must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients).");
+                if (!FrontChannelLogoutService::isValidForRedirectUris($frontchannelLogoutUri, $client->getType(), $redirect_uris)) {
+                    throw new CliException("The Front-Channel Logout URI '$frontchannelLogoutUri' must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients) and its scheme, host, and effective port must match a configured redirect URI.");
                 }
                 $client->setFrontchannelLogoutUri($frontchannelLogoutUri);
             }

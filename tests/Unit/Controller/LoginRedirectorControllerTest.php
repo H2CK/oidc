@@ -22,6 +22,7 @@ use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OC\AppFramework\Utility\TimeFactory;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\Security\ISecureRandom;
 use OCP\Security\ICrypto;
 use OCP\Security\ICredentialsManager;
@@ -213,6 +214,7 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('registerClientSession')
             ->willReturn('test-session-id');
         $this->sessionManagementService = $this->createMock(SessionManagementService::class);
+        $this->sessionManagementService->method('isSupported')->willReturn(true);
         $this->sessionManagementService
             ->method('generateSessionState')
             ->willReturnCallback(function (): string {
@@ -1673,6 +1675,30 @@ class LoginRedirectorControllerTest extends TestCase {
             $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.',
             $result->getRedirectURL()
         );
+    }
+
+    public function testAuthorizationErrorResponseIncludesSessionStateWhenSupported(): void {
+        $this->sessionStateToReturn = 'session-state-error';
+        $this->request->method('getParam')->willReturnCallback(
+            static fn (string $name, mixed $default = null): mixed => $name === 'client_id' ? 'client-1' : $default
+        );
+        $this->sessionManagementService->expects($this->once())
+            ->method('applyBrowserStateCookie');
+
+        $method = new \ReflectionMethod(LoginRedirectorController::class, 'createAuthorizationErrorRedirect');
+        $method->setAccessible(true);
+        $response = $method->invoke(
+            $this->controller,
+            'https://rp.example/callback',
+            'invalid_request',
+            'bad request',
+            'state-1',
+            'code',
+            'query'
+        );
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('session_state=session-state-error', $response->getRedirectURL());
     }
 
     private function assertMissingNonceReturnsInvalidRequestInFragment(string $responseType): void {

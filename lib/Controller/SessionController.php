@@ -11,20 +11,19 @@ namespace OCA\OIDCIdentityProvider\Controller;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\NoSameSiteCookieRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
-use OCP\IURLGenerator;
 
 class SessionController extends ApiController {
     public function __construct(
         string $appName,
         IRequest $request,
         private SessionManagementService $sessionManagementService,
-        private IURLGenerator $urlGenerator,
     ) {
         parent::__construct($appName, $request);
     }
@@ -33,25 +32,43 @@ class SessionController extends ApiController {
     #[NoSameSiteCookieRequired]
     #[PublicPage]
     public function checkSessionIframe(): DataDisplayResponse {
-        $statusUrl = json_encode($this->urlGenerator->linkToRouteAbsolute('oidc.Session.check', []), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES);
+        // The dedicated oidc_opbs cookie is intentionally JavaScript-readable
+        // and contains only random OP browser state (never authentication data).
+        // Reading it for every message means an already loaded iframe observes
+        // login/logout rotations immediately without network polling.
+        $cookieName = json_encode(
+            SessionManagementService::OP_BROWSER_STATE_COOKIE,
+            JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
+        );
         $html = '<!doctype html><html><head><meta charset="utf-8"><title>OIDC Session Management</title></head><body><script>'
+            . 'const opbsName=' . $cookieName . ';let observedOpbs=false;'
+            . 'function readOpbs(){var p=document.cookie.split("; "),n=opbsName+"=";for(var i=0;i<p.length;i++){if(p[i].startsWith(n)){try{var v=decodeURIComponent(p[i].substring(n.length));return /^[A-Za-z0-9]{64}$/.test(v)?v:null;}catch(x){return null;}}}return null;}'
+            . 'function b64uDecode(v){try{v=v.replace(/-/g,"+").replace(/_/g,"/");while(v.length%4){v+="=";}return atob(v);}catch(x){return null;}}'
+            . 'async function sha256(v){var b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(v));return Array.from(new Uint8Array(b),function(x){return x.toString(16).padStart(2,"0");}).join("");}'
+            . 'if(readOpbs()!==null){observedOpbs=true;}'
             . 'window.addEventListener("message",async function(e){'
             . 'if(!e.source||typeof e.origin!=="string"||typeof e.data!=="string"){return;}'
-            . 'var p=e.data.indexOf(" ");if(p<=0){e.source.postMessage("error",e.origin);return;}'
-            . 'var c=e.data.substring(0,p),s=e.data.substring(p+1);'
-            . 'try{var u=' . $statusUrl . '+"?client_id="+encodeURIComponent(c)+"&session_state="+encodeURIComponent(s)+"&origin="+encodeURIComponent(e.origin);'
-            . 'var r=await fetch(u,{credentials:"include",cache:"no-store"});var j=await r.json();'
-            . 'e.source.postMessage(j.status||"error",e.origin);}catch(x){e.source.postMessage("error",e.origin);}'
+            . 'var p=e.data.lastIndexOf(" ");if(p<=0){e.source.postMessage("error",e.origin);return;}'
+            . 'var c=e.data.substring(0,p),s=e.data.substring(p+1),a=s.split("."),opbs=readOpbs();'
+            . 'if(a.length!==4||a[0]!=="2"){e.source.postMessage("error",e.origin);return;}'
+            . 'if(opbs===null){e.source.postMessage(observedOpbs?"changed":"error",e.origin);return;}observedOpbs=true;'
+            . 'var o=b64uDecode(a[1]);if(o===null||o!==e.origin||!/^[a-fA-F0-9]{64}$/.test(a[2])||!/^[A-Za-z0-9]{16,128}$/.test(a[3])){e.source.postMessage("error",e.origin);return;}'
+            . 'try{var h=await sha256(c+" "+e.origin+" "+opbs+" "+a[3]);e.source.postMessage(h===a[2].toLowerCase()?"unchanged":"changed",e.origin);}catch(x){e.source.postMessage("error",e.origin);}'
             . '});</script></body></html>';
         $response = new DataDisplayResponse($html, Http::STATUS_OK, ['Content-Type' => 'text/html; charset=utf-8']);
         $response->addHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
-        $response->addHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'; connect-src 'self'; frame-ancestors *");
+        $response->addHeader('Pragma', 'no-cache');
+        $response->addHeader('Content-Security-Policy', "default-src 'none'; script-src 'unsafe-inline'; frame-ancestors *; base-uri 'none'; form-action 'none'");
         return $response;
     }
 
+    // Kept for backwards compatibility/diagnostics. Normal Session Management
+    // iframe polling no longer calls this endpoint. Rate limiting prevents it
+    // from becoming an unauthenticated DB-amplification surface.
     #[NoCSRFRequired]
     #[NoSameSiteCookieRequired]
     #[PublicPage]
+    #[AnonRateLimit(limit: 120, period: 60)]
     public function check(string $client_id = '', string $session_state = '', string $origin = ''): JSONResponse {
         $status = $this->sessionManagementService->checkSessionState($client_id, $origin, $session_state);
         $response = new JSONResponse(['status' => $status]);

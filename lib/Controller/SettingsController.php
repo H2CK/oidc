@@ -305,13 +305,20 @@ class SettingsController extends Controller
         if ($client->getBackchannelLogoutSessionRequired() && $client->getBackchannelLogoutUri() === null) {
             return new JSONResponse(['error' => 'Back-Channel Logout session support requires a Back-Channel Logout URI.'], Http::STATUS_BAD_REQUEST);
         }
+        $effectiveRedirectUris = array_key_exists('redirectUris', $params)
+            ? array_map('trim', (array)$params['redirectUris'])
+            : array_map(
+                static fn (RedirectUri $entry): string => $entry->getRedirectUri(),
+                $this->redirectUriMapper->getByClientId($client_id)
+            );
+
         if (array_key_exists('frontchannelLogoutUri', $params)) {
             $frontchannelLogoutUri = trim((string)$params['frontchannelLogoutUri']);
             if ($frontchannelLogoutUri === '') {
                 $client->setFrontchannelLogoutUri(null);
                 $client->setFrontchannelLogoutSessionRequired(false);
-            } elseif (!FrontChannelLogoutService::isValidForClientType($frontchannelLogoutUri, $client->getType())) {
-                return new JSONResponse(['error' => 'Invalid Front-Channel Logout URI. Use an absolute HTTPS URI without a fragment; HTTP is allowed only for confidential clients.'], Http::STATUS_BAD_REQUEST);
+            } elseif (!FrontChannelLogoutService::isValidForRedirectUris($frontchannelLogoutUri, $client->getType(), $effectiveRedirectUris)) {
+                return new JSONResponse(['error' => 'Invalid Front-Channel Logout URI. Its scheme, host, and effective port must match at least one redirect URI.'], Http::STATUS_BAD_REQUEST);
             } else {
                 $client->setFrontchannelLogoutUri($frontchannelLogoutUri);
             }
@@ -323,11 +330,11 @@ class SettingsController extends Controller
             return new JSONResponse(['error' => 'Front-Channel Logout session support requires a Front-Channel Logout URI.'], Http::STATUS_BAD_REQUEST);
         }
         if ($client->getFrontchannelLogoutUri() !== null
-            && !FrontChannelLogoutService::isValidForClientType($client->getFrontchannelLogoutUri(), $client->getType())) {
-            return new JSONResponse(['error' => 'The configured Front-Channel Logout URI is not valid for this client type.'], Http::STATUS_BAD_REQUEST);
+            && !FrontChannelLogoutService::isValidForRedirectUris($client->getFrontchannelLogoutUri(), $client->getType(), $effectiveRedirectUris)) {
+            return new JSONResponse(['error' => 'The configured Front-Channel Logout URI must keep the same scheme, host, and effective port as at least one redirect URI.'], Http::STATUS_BAD_REQUEST);
         }
         if (array_key_exists('redirectUris', $params)) {
-            $redirectUris = array_map('trim', (array)$params['redirectUris']);
+            $redirectUris = $effectiveRedirectUris;
             foreach ($redirectUris as $redirectUri) {
                 try {
                     if (!$this->redirectUriService->isValidRedirectUri(
@@ -721,6 +728,31 @@ class SettingsController extends Controller
                     ): JSONResponse
     {
         $this->logger->debug("Deleting Redirect URI with id " . $id);
+
+        try {
+            $entryToDelete = $this->redirectUriMapper->getById($id);
+            $owner = $this->clientMapper->getByUid($entryToDelete->getClientId());
+        } catch (\Exception $e) {
+            return new JSONResponse(['error' => 'Redirect URI not found.'], Http::STATUS_NOT_FOUND);
+        }
+
+        if ($owner->getFrontchannelLogoutUri() !== null) {
+            $remainingRedirectUris = [];
+            foreach ($this->redirectUriMapper->getByClientId($owner->getId()) as $entry) {
+                if ($entry->getId() !== $id) {
+                    $remainingRedirectUris[] = $entry->getRedirectUri();
+                }
+            }
+            if (!FrontChannelLogoutService::isValidForRedirectUris(
+                $owner->getFrontchannelLogoutUri(),
+                $owner->getType(),
+                $remainingRedirectUris
+            )) {
+                return new JSONResponse([
+                    'error' => 'Cannot remove the last redirect URI whose origin matches the configured Front-Channel Logout URI.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+        }
 
         $this->redirectUriMapper->deleteOneById($id);
 

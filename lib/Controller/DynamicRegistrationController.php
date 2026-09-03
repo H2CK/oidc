@@ -223,10 +223,10 @@ class DynamicRegistrationController extends ApiController
 
         if ($frontchannel_logout_uri !== null) {
             $frontchannel_logout_uri = trim($frontchannel_logout_uri);
-            if (!FrontChannelLogoutService::isValidForClientType($frontchannel_logout_uri, $client->getType())) {
+            if (!FrontChannelLogoutService::isValidForRedirectUris($frontchannel_logout_uri, $client->getType(), $redirect_uris)) {
                 return new JSONResponse([
                     'error' => 'invalid_client_metadata',
-                    'error_description' => 'frontchannel_logout_uri must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients).',
+                    'error_description' => 'frontchannel_logout_uri must be an allowed absolute HTTP(S) URI whose scheme, host, and effective port match one of redirect_uris.',
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setFrontchannelLogoutUri($frontchannel_logout_uri);
@@ -727,15 +727,23 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        $effectiveRedirectUris = $redirect_uris;
+        if ($effectiveRedirectUris === null || $effectiveRedirectUris === []) {
+            $effectiveRedirectUris = array_map(
+                static fn ($entry): string => $entry->getRedirectUri(),
+                $this->redirectUriMapper->getByClientId($client->getId())
+            );
+        }
+
         if ($frontchannel_logout_uri !== null) {
             $frontchannel_logout_uri = trim($frontchannel_logout_uri);
             if ($frontchannel_logout_uri === '') {
                 $client->setFrontchannelLogoutUri(null);
                 $client->setFrontchannelLogoutSessionRequired(false);
-            } elseif (!FrontChannelLogoutService::isValidForClientType($frontchannel_logout_uri, $client->getType())) {
+            } elseif (!FrontChannelLogoutService::isValidForRedirectUris($frontchannel_logout_uri, $client->getType(), $effectiveRedirectUris)) {
                 return new JSONResponse([
                     'error' => 'invalid_client_metadata',
-                    'error_description' => 'frontchannel_logout_uri must be an absolute HTTPS URI without a fragment (HTTP is allowed only for confidential clients).',
+                    'error_description' => 'frontchannel_logout_uri must be an allowed absolute HTTP(S) URI whose scheme, host, and effective port match one of redirect_uris.',
                 ], Http::STATUS_BAD_REQUEST);
             } else {
                 $client->setFrontchannelLogoutUri($frontchannel_logout_uri);
@@ -748,6 +756,14 @@ class DynamicRegistrationController extends ApiController
             return new JSONResponse([
                 'error' => 'invalid_client_metadata',
                 'error_description' => 'frontchannel_logout_session_required requires frontchannel_logout_uri.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        if ($client->getFrontchannelLogoutUri() !== null
+            && !FrontChannelLogoutService::isValidForRedirectUris($client->getFrontchannelLogoutUri(), $client->getType(), $effectiveRedirectUris)) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'The configured frontchannel_logout_uri must keep the same scheme, host, and effective port as at least one redirect_uri.',
             ], Http::STATUS_BAD_REQUEST);
         }
 

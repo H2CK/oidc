@@ -267,6 +267,17 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertContains('sid', $data['claims_supported']);
     }
 
+    public function testGenerateDiscoveryDoesNotAdvertiseSessionManagementIframeOnHttp(): void {
+        $request = $this->createMock(IRequest::class);
+        $request->method('getServerProtocol')->willReturn('http');
+        $request->method('getServerHost')->willReturn('localhost');
+
+        $data = $this->generator->generateDiscovery($request)->getData();
+
+        $this->assertArrayNotHasKey('check_session_iframe', $data);
+        $this->assertTrue($data['frontchannel_logout_supported']);
+    }
+
     public function testGenerateDiscoveryHasIntrospectionEndpoint() {
         $result = $this->generator->generateDiscovery($this->request);
         $data = $result->getData();
