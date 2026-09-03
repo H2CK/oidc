@@ -12,9 +12,12 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\Http\IOutput;
 use OCP\AppFramework\Http\Response;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\ICache;
 use OCP\ICacheFactory;
 use OCP\IConfig;
@@ -22,8 +25,11 @@ use OCP\IRequest;
 use OCP\ISession;
 use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class SessionManagementServiceTest extends TestCase {
+    /** @var array{0:string,1:string,2:string}|null */
+    private static ?array $rsaKeyMaterial = null;
     /** @var array<string,mixed> */
     private array $sessionData = [];
     /** @var array<string,string> */
@@ -36,6 +42,9 @@ class SessionManagementServiceTest extends TestCase {
     private ISecureRandom $secureRandom;
     private ClientMapper $clientMapper;
     private RedirectUriMapper $redirectUriMapper;
+    private RedirectUriService $redirectUriService;
+    private CredentialService $credentialService;
+    private IAppConfig $appConfig;
     private ICacheFactory $cacheFactory;
     private IConfig $config;
     private SessionManagementService $service;
@@ -51,6 +60,19 @@ class SessionManagementServiceTest extends TestCase {
         $this->secureRandom = $this->createMock(ISecureRandom::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
+        $this->redirectUriService = new RedirectUriService($this->createMock(LoggerInterface::class));
+        $this->credentialService = $this->createMock(CredentialService::class);
+        $this->appConfig = $this->createMock(IAppConfig::class);
+        self::$rsaKeyMaterial ??= $this->createRsaKeyMaterial();
+        [$privateKey, $modulus, $exponent] = self::$rsaKeyMaterial;
+        $this->credentialService->method('getPrivateKey')->willReturn($privateKey);
+        $this->appConfig->method('getAppValueString')->willReturnCallback(
+            static fn (string $key, string $default = ''): string => match ($key) {
+                'public_key_n' => $modulus,
+                'public_key_e' => $exponent,
+                default => $default,
+            }
+        );
         $this->cacheFactory = $this->createCacheFactoryMock($this->cacheData);
         $this->config = $this->createMock(IConfig::class);
         $this->config->method('getSystemValueInt')->with('session_lifetime', 86400)->willReturn(3600);
@@ -61,8 +83,8 @@ class SessionManagementServiceTest extends TestCase {
         $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
         $this->configureRandom('O');
 
-        $state = $this->service->generateSessionState('client-1', 'https://rp.example/callback?foo=bar');
-        $this->assertMatchesRegularExpression('/^2\.[A-Za-z0-9_-]+\.[a-f0-9]{64}\.[A-Za-z0-9]{32}$/', $state);
+        $state = $this->service->generateSessionState('client-1', 'https://rp.example/callback');
+        $this->assertMatchesRegularExpression('/^3\.[A-Za-z0-9_-]+\.[a-f0-9]{64}\.[A-Za-z0-9]{32}\.[A-Za-z0-9_-]{64,2048}$/', $state);
         $parsed = SessionManagementService::parseSessionState($state);
         $this->assertSame('https://rp.example', $parsed['origin'] ?? null);
 
@@ -167,6 +189,58 @@ class SessionManagementServiceTest extends TestCase {
         $this->assertSame('error', $this->service->checkSessionState('client-1', 'https://rp.example', 'bad-state'));
     }
 
+    public function testGenerateRejectsRedirectUriThatIsNotRegisteredForClient(): void {
+        $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
+        $this->configureRandom('O');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->service->generateSessionState('client-1', 'https://evil.example/callback');
+    }
+
+    public function testGenerateAcceptsConcreteRedirectMatchingRegisteredWildcard(): void {
+        $this->configureClientAndRedirect('client-1', 7, 'https://*.example.com/callback/*');
+        $this->configureRandom('O');
+
+        $state = $this->service->generateSessionState('client-1', 'https://app.example.com/callback/complete');
+        $parsed = SessionManagementService::parseSessionState($state);
+
+        $this->assertSame('https://app.example.com', $parsed['origin'] ?? null);
+        $this->assertNotSame('', $parsed['binding'] ?? '');
+    }
+
+    public function testSignedOriginBindingRejectsDifferentClientIdentifier(): void {
+        $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
+        $this->configureRandom('O');
+        $state = $this->service->generateSessionState('client-1', 'https://rp.example/callback');
+        $this->cookies[SessionManagementService::OP_BROWSER_STATE_COOKIE] = str_repeat('O', 64);
+
+        $this->assertSame('error', $this->service->checkSessionState('forged-client', 'https://rp.example', $state));
+    }
+
+    public function testTamperedOriginBindingIsRejected(): void {
+        $this->configureClientAndRedirect('client-1', 7, 'https://rp.example/callback');
+        $this->configureRandom('O');
+        $state = $this->service->generateSessionState('client-1', 'https://rp.example/callback');
+        $parts = explode('.', $state);
+        $this->assertCount(5, $parts);
+        $parts[4] = substr($parts[4], 0, -1) . ($parts[4][-1] === 'A' ? 'B' : 'A');
+        $this->cookies[SessionManagementService::OP_BROWSER_STATE_COOKIE] = str_repeat('O', 64);
+
+        $this->assertSame(
+            'error',
+            $this->service->checkSessionState('client-1', 'https://rp.example', implode('.', $parts))
+        );
+    }
+
+    public function testOriginBindingJwkUsesConfiguredPublicRsaKey(): void {
+        $jwk = $this->service->getOriginBindingJwk();
+        $this->assertSame('RSA', $jwk['kty']);
+        $this->assertSame('RS256', $jwk['alg']);
+        $this->assertNotSame('', $jwk['n']);
+        $this->assertNotSame('', $jwk['e']);
+        $this->assertTrue($jwk['ext']);
+    }
+
     public function testGetOriginUsesRfc6454DefaultPortSerialization(): void {
         $this->assertSame('https://rp.example', SessionManagementService::getOrigin('HTTPS://RP.EXAMPLE/callback?x=1'));
         $this->assertSame('https://rp.example', SessionManagementService::getOrigin('https://RP.EXAMPLE:443/callback'));
@@ -196,6 +270,9 @@ class SessionManagementServiceTest extends TestCase {
             $this->secureRandom,
             $this->clientMapper,
             $this->redirectUriMapper,
+            $this->redirectUriService,
+            $this->credentialService,
+            $this->appConfig,
             $request,
             $this->output,
             $this->cacheFactory,
@@ -206,7 +283,9 @@ class SessionManagementServiceTest extends TestCase {
     /** @param array<string,mixed> $data */
     private function createSessionMock(array &$data): ISession {
         $session = $this->createMock(ISession::class);
-        $session->method('get')->willReturnCallback(static fn (string $key) => $data[$key] ?? null);
+        $session->method('get')->willReturnCallback(static function (string $key) use (&$data): mixed {
+            return $data[$key] ?? null;
+        });
         $session->method('set')->willReturnCallback(static function (string $key, mixed $value) use (&$data): void { $data[$key] = $value; });
         $session->method('remove')->willReturnCallback(static function (string $key) use (&$data): void { unset($data[$key]); });
         return $session;
@@ -233,6 +312,22 @@ class SessionManagementServiceTest extends TestCase {
         $factory = $this->createMock(ICacheFactory::class);
         $factory->method('createDistributed')->with('oidc_session_management')->willReturn($cache);
         return $factory;
+    }
+
+    /** @return array{0:string,1:string,2:string} */
+    private function createRsaKeyMaterial(): array {
+        $key = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ]);
+        $this->assertNotFalse($key);
+        $privateKey = '';
+        $this->assertTrue(openssl_pkey_export($key, $privateKey));
+        $details = openssl_pkey_get_details($key);
+        $this->assertIsArray($details);
+        $this->assertArrayHasKey('rsa', $details);
+        $encode = static fn (string $value): string => rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+        return [$privateKey, $encode($details['rsa']['n']), $encode($details['rsa']['e'])];
     }
 
     private function configureClientAndRedirect(string $identifier, int $id, string $redirect): void {

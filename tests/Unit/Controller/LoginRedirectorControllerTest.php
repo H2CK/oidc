@@ -557,6 +557,14 @@ class LoginRedirectorControllerTest extends TestCase {
                 $this->isType('int')
             )
             ->willReturn(new AuthorizationCode());
+        $this->backChannelLogoutService
+            ->expects($this->once())
+            ->method('hasCurrentClientSession')
+            ->with($client)
+            ->willReturn(false);
+        $this->sessionManagementService
+            ->expects($this->once())
+            ->method('resetBrowserState');
 
         $result = $controller->authorize(
             $clientId,
@@ -703,6 +711,14 @@ class LoginRedirectorControllerTest extends TestCase {
                 $this->isType('int')
             )
             ->willReturn(new AuthorizationCode());
+        $this->backChannelLogoutService
+            ->expects($this->once())
+            ->method('hasCurrentClientSession')
+            ->with($client)
+            ->willReturn(true);
+        $this->sessionManagementService
+            ->expects($this->never())
+            ->method('resetBrowserState');
         $this->sessionManagementService
             ->expects($this->once())
             ->method('applyBrowserStateCookie')

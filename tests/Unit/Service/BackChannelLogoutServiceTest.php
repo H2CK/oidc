@@ -65,9 +65,13 @@ class BackChannelLogoutServiceTest extends TestCase {
         $clientOne = $this->newClient(1, 'client-1', 'https://rp1.example/logout');
         $clientTwo = $this->newClient(2, 'client-2', 'https://rp2.example/logout');
 
+        $this->assertFalse($service->hasCurrentClientSession($clientOne));
         $this->assertSame('sid-one', $service->registerClientSession($clientOne));
+        $this->assertTrue($service->hasCurrentClientSession($clientOne));
         $this->assertSame('sid-one', $service->registerClientSession($clientOne));
+        $this->assertFalse($service->hasCurrentClientSession($clientTwo));
         $this->assertSame('sid-two', $service->registerClientSession($clientTwo));
+        $this->assertTrue($service->hasCurrentClientSession($clientTwo));
     }
 
     public function testCurrentClientSessionRequiresSidFromCurrentVersionedSessionState(): void {
@@ -706,6 +710,7 @@ class BackChannelLogoutServiceTest extends TestCase {
         $service = $this->newService($session);
         $snapshot = $service->prepareReauthentication('user-1');
         $this->assertSame(['user_id' => 'user-1', 'sessions' => ['7' => 'sid-7']], $snapshot);
+        $this->assertTrue($service->isReauthenticationSuppressed());
 
         // Listener invocation during IUserSession::logout() must not fan out.
         $service->logout('user-1');
@@ -715,6 +720,7 @@ class BackChannelLogoutServiceTest extends TestCase {
         // the active sid map is restored only after the same user authenticates.
         $state = [];
         $service->storePendingReauthentication($snapshot);
+        $this->assertFalse($service->isReauthenticationSuppressed());
         $this->assertArrayNotHasKey('oidc_backchannel_sessions_v2', $state);
         $service->resumeAfterReauthentication('user-1');
         $this->assertSame(['7' => 'sid-7'], $state['oidc_backchannel_sessions_v2']);

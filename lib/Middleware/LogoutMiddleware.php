@@ -8,7 +8,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Middleware;
 
-use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutContext;
 use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\Controller;
@@ -17,41 +17,25 @@ use OCP\AppFramework\Middleware;
 use OCP\IUserSession;
 
 /**
- * Extends Front-Channel Logout to Nextcloud's normal browser logout endpoint.
- * Front-channel notifications must run in the user agent; server-side HTTP
- * requests would not carry the RP's browser cookies and are not equivalent.
+ * Completes browser Front-Channel Logout after any real Nextcloud logout.
+ *
+ * Logout detection is deliberately event-driven via FrontChannelLogoutContext;
+ * this middleware has no dependency on internal OC\\Core controller classes.
+ * Front-channel notifications must run in the user agent because server-side
+ * HTTP requests would not carry the RP's browser cookies.
  */
 class LogoutMiddleware extends Middleware {
-    /** @var list<string> */
-    private array $frontChannelUris = [];
-    private bool $coreLogout = false;
-
     public function __construct(
-        private BackChannelLogoutService $backChannelLogoutService,
         private FrontChannelLogoutService $frontChannelLogoutService,
+        private FrontChannelLogoutContext $frontChannelLogoutContext,
         private SessionManagementService $sessionManagementService,
         private IUserSession $userSession,
     ) {
     }
 
-    public function beforeController(Controller $controller, string $methodName): void {
-        $this->coreLogout = is_a($controller, 'OC\\Core\\Controller\\LoginController')
-            && $methodName === 'logout';
-        $this->frontChannelUris = [];
-
-        if (!$this->coreLogout || !$this->userSession->isLoggedIn()) {
-            return;
-        }
-
-        // Capture RP sessions before IUserSession::logout() dispatches the
-        // back-channel listener that clears them.
-        $this->frontChannelUris = $this->frontChannelLogoutService->getLogoutUris(
-            $this->backChannelLogoutService->getCurrentClientSessions()
-        );
-    }
-
     public function afterController(Controller $controller, string $methodName, Response $response): Response {
-        if (!$this->coreLogout) {
+        $frontChannelUris = $this->frontChannelLogoutContext->consumeLogoutUris();
+        if ($frontChannelUris === null) {
             if ($this->userSession->isLoggedIn()) {
                 $this->sessionManagementService->refreshBrowserStateValidity();
                 $this->sessionManagementService->applyBrowserStateCookie($response);
@@ -59,24 +43,29 @@ class LogoutMiddleware extends Middleware {
             return $response;
         }
 
+        // A real logout occurred, but no participating RP needs browser fan-out.
+        // Preserve the original controller response exactly.
+        if ($frontChannelUris === []) {
+            return $response;
+        }
+
         $headers = $response->getHeaders();
         $redirectUrl = $headers['Location'] ?? $headers['location'] ?? null;
         if (!is_string($redirectUrl) || $redirectUrl === '') {
-            // Core logout normally returns a RedirectResponse. If that contract
-            // ever changes, do not manufacture an unsafe redirect destination.
+            // OIDC end_session may already have rendered the Front-Channel HTML
+            // response itself. Other logout endpoints may also intentionally
+            // return a non-redirect response. Never manufacture a destination.
             return $response;
         }
 
         $replacement = $this->frontChannelLogoutService->createBrowserLogoutResponse(
-            $this->frontChannelUris,
+            $frontChannelUris,
             $redirectUrl
         );
 
-        // Preserve the explicit compatibility/security headers emitted by
-        // Nextcloud's core logout controller. Do not copy the core CSP: the
-        // Front-Channel response deliberately has a stricter CSP with the
-        // registered RP origins in frame-src, and overwriting it would block
-        // the logout iframes.
+        // Preserve the explicit compatibility/security headers emitted by the
+        // original logout controller. Do not copy its CSP: the Front-Channel
+        // response deliberately allows only the registered RP frame origins.
         foreach (['Clear-Site-Data', 'X-User-Id'] as $headerName) {
             $value = $headers[$headerName] ?? $headers[strtolower($headerName)] ?? null;
             if (is_string($value) && $value !== '') {

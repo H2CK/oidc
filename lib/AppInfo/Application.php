@@ -84,8 +84,10 @@ class Application extends App implements IBootstrap
         $context->registerEventListener(UserLoggedInEvent::class, SessionManagementLoginListener::class);
         $context->registerEventListener(UserLoggedInWithCookieEvent::class, SessionManagementLoginListener::class);
 
-        // Front-Channel Logout must also run for Nextcloud's normal browser
-        // logout endpoint, not just the OIDC end_session_endpoint.
+        // Run globally so the response middleware can complete browser
+        // Front-Channel Logout whenever the public BeforeUserLoggedOutEvent
+        // marked the current request as a real logout. No internal OC\\Core
+        // controller class is used for logout detection.
         $context->registerMiddleware(LogoutMiddleware::class, true);
     }
 

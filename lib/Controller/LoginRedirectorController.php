@@ -772,7 +772,15 @@ class LoginRedirectorController extends ApiController
 
         try {
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost()));
+            $newClientSession = !$this->backChannelLogoutService->hasCurrentClientSession($client);
             $accessToken->setSid($this->backChannelLogoutService->registerClientSession($client));
+            if ($newClientSession && $this->sessionManagementService->isSupported()) {
+                // OpenID Connect Session Management recommends changing OP User
+                // Agent state when the authentication status of participating
+                // clients changes. Rotate only for a newly participating RP,
+                // not for every authorization request of an existing RP.
+                $this->sessionManagementService->resetBrowserState();
+            }
             $accessToken = $this->accessTokenMapper->insert($accessToken);
             if (in_array('code', $responseTypeEntries)) {
                 $this->authorizationCodeMapper->createForAccessToken(

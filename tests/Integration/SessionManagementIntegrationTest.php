@@ -11,10 +11,13 @@ namespace OCA\OIDCIdentityProvider\Tests\Integration;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Service\CredentialService;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Http\IOutput;
 use OCP\AppFramework\Http\Response;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\ICacheFactory;
 use OCP\IConfig;
 use OCP\IDBConnection;
@@ -22,6 +25,7 @@ use OCP\IRequest;
 use OCP\ISession;
 use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class SessionManagementIntegrationTest extends TestCase {
     private ClientMapper $clientMapper;
@@ -115,11 +119,26 @@ class SessionManagementIntegrationTest extends TestCase {
             }
         );
 
+        [$privateKey, $modulus, $exponent] = $this->createRsaKeyMaterial();
+        $credentialService = $this->createMock(CredentialService::class);
+        $credentialService->method('getPrivateKey')->willReturn($privateKey);
+        $appConfig = $this->createMock(IAppConfig::class);
+        $appConfig->method('getAppValueString')->willReturnCallback(
+            static fn (string $key, string $default = ''): string => match ($key) {
+                'public_key_n' => $modulus,
+                'public_key_e' => $exponent,
+                default => $default,
+            }
+        );
+
         $this->sessionManagementService = new SessionManagementService(
             $session,
             $container->query(ISecureRandom::class),
             $this->clientMapper,
             $this->redirectUriMapper,
+            new RedirectUriService($this->createMock(LoggerInterface::class)),
+            $credentialService,
+            $appConfig,
             $request,
             $output,
             $container->query(ICacheFactory::class),
@@ -137,6 +156,10 @@ class SessionManagementIntegrationTest extends TestCase {
             $this->client->getClientIdentifier(),
             'https://rp.example/callback'
         );
+        $parsedState = SessionManagementService::parseSessionState($state);
+        $this->assertNotNull($parsedState);
+        $this->assertSame('https://rp.example', $parsedState['origin']);
+        $this->assertNotSame('', $parsedState['binding']);
 
         $this->sessionManagementService->applyBrowserStateCookie(new Response());
         $this->assertArrayHasKey(SessionManagementService::OP_BROWSER_STATE_COOKIE, $cookies);
@@ -175,4 +198,19 @@ class SessionManagementIntegrationTest extends TestCase {
             )
         );
     }
+    /** @return array{0:string,1:string,2:string} */
+    private function createRsaKeyMaterial(): array {
+        $key = openssl_pkey_new([
+            'private_key_bits' => 2048,
+            'private_key_type' => OPENSSL_KEYTYPE_RSA,
+        ]);
+        $this->assertNotFalse($key);
+        $privateKey = '';
+        $this->assertTrue(openssl_pkey_export($key, $privateKey));
+        $details = openssl_pkey_get_details($key);
+        $this->assertIsArray($details);
+        $encode = static fn (string $value): string => rtrim(strtr(base64_encode($value), '+/', '-_'), '=');
+        return [$privateKey, $encode($details['rsa']['n']), $encode($details['rsa']['e'])];
+    }
+
 }

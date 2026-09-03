@@ -8,6 +8,7 @@ use OCA\OIDCIdentityProvider\Controller\SessionController;
 use OCA\OIDCIdentityProvider\Listener\BackChannelLogoutListener;
 use OCA\OIDCIdentityProvider\Listener\SessionManagementLoginListener;
 use OCA\OIDCIdentityProvider\Middleware\LogoutMiddleware;
+use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutContext;
 use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
 use OCP\AppFramework\App;
@@ -47,5 +48,6 @@ class AppTest extends TestCase {
         $this->assertInstanceOf(LogoutMiddleware::class, $this->appContainer->query(LogoutMiddleware::class));
         $this->assertInstanceOf(BackChannelLogoutListener::class, $this->appContainer->query(BackChannelLogoutListener::class));
         $this->assertInstanceOf(SessionManagementLoginListener::class, $this->appContainer->query(SessionManagementLoginListener::class));
+        $this->assertInstanceOf(FrontChannelLogoutContext::class, $this->appContainer->query(FrontChannelLogoutContext::class));
     }
 }

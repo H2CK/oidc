@@ -11,6 +11,7 @@ namespace OCA\OIDCIdentityProvider\Service;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCP\AppFramework\Http\IOutput;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Response;
 use OCP\ICache;
 use OCP\ICacheFactory;
@@ -24,7 +25,7 @@ class SessionManagementService {
     public const OP_BROWSER_STATE_COOKIE = 'oidc_opbs';
     private const OP_BROWSER_STATE_KEY = 'oidc_session_management_opbs_v2';
     private const OP_BROWSER_STATE_TOUCH_KEY = 'oidc_session_management_opbs_touch_v1';
-    private const SESSION_STATE_VERSION = '2';
+    private const SESSION_STATE_VERSION = '3';
     private const DEFAULT_SESSION_LIFETIME = 86400;
     private const MIN_BROWSER_STATE_TTL = 300;
     private const REFRESH_INTERVAL = 300;
@@ -39,6 +40,9 @@ class SessionManagementService {
         private ISecureRandom $secureRandom,
         private ClientMapper $clientMapper,
         private RedirectUriMapper $redirectUriMapper,
+        private RedirectUriService $redirectUriService,
+        private CredentialService $credentialService,
+        private IAppConfig $appConfig,
         private IRequest $request,
         private IOutput $output,
         ICacheFactory $cacheFactory,
@@ -56,15 +60,19 @@ class SessionManagementService {
     }
 
     /**
-     * Create an opaque session_state. The authenticated RP origin is carried in
-     * the state itself and integrity-protected by the hash. This allows the OP
-     * iframe to perform the protocol-defined check locally without a network
-     * request for every postMessage.
+     * Create an opaque session_state for a redirect URI that is currently
+     * registered for the supplied client. Besides the browser-state hash, the
+     * state contains an RS256 signature over client_id + origin. The OP iframe
+     * can therefore reject messages from origins for which this OP never issued
+     * a session_state, without a database/network request on every postMessage.
      */
     public function generateSessionState(string $clientIdentifier, string $redirectUri): string {
         $origin = self::getOrigin($redirectUri);
         if ($origin === null) {
             throw new \InvalidArgumentException('Redirect URI has no valid web origin.');
+        }
+        if (!$this->isRegisteredRedirectUriForClient($clientIdentifier, $redirectUri)) {
+            throw new \InvalidArgumentException('Redirect URI is not registered for the supplied client.');
         }
 
         $salt = $this->secureRandom->generate(
@@ -73,8 +81,43 @@ class SessionManagementService {
         );
         $opBrowserState = $this->getOrCreateOpBrowserState();
         $hash = $this->calculate($clientIdentifier, $origin, $opBrowserState, $salt);
+        $originBinding = $this->signOriginBinding($clientIdentifier, $origin);
 
-        return self::SESSION_STATE_VERSION . '.' . self::base64UrlEncode($origin) . '.' . $hash . '.' . $salt;
+        return self::SESSION_STATE_VERSION . '.' . self::base64UrlEncode($origin) . '.' . $hash . '.' . $salt . '.' . $originBinding;
+    }
+
+    /**
+     * Public RSA key used by the OP iframe to verify the signed client/origin
+     * binding in session_state. The values are already stored in JWK-compatible
+     * base64url form by the app's key-generation service.
+     *
+     * @return array{kty:string,n:string,e:string,alg:string,ext:bool}
+     */
+    public function getOriginBindingJwk(): array {
+        $n = $this->appConfig->getAppValueString('public_key_n', '');
+        $e = $this->appConfig->getAppValueString('public_key_e', '');
+
+        if ($n === '' || $e === '') {
+            $privateKey = $this->credentialService->getPrivateKey();
+            if (!is_string($privateKey) || $privateKey === '') {
+                throw new \RuntimeException('OIDC signing key is unavailable for Session Management origin binding.');
+            }
+            $key = openssl_pkey_get_private($privateKey);
+            $details = $key !== false ? openssl_pkey_get_details($key) : false;
+            if (!is_array($details) || !isset($details['rsa']['n'], $details['rsa']['e'])) {
+                throw new \RuntimeException('OIDC RSA public key is unavailable for Session Management origin binding.');
+            }
+            $n = self::base64UrlEncode($details['rsa']['n']);
+            $e = self::base64UrlEncode($details['rsa']['e']);
+        }
+
+        return [
+            'kty' => 'RSA',
+            'n' => $n,
+            'e' => $e,
+            'alg' => 'RS256',
+            'ext' => true,
+        ];
     }
 
     /** @return 'unchanged'|'changed'|'error' */
@@ -87,30 +130,15 @@ class SessionManagementService {
         if ($parsed === null || !hash_equals($parsed['origin'], $origin)) {
             return 'error';
         }
-
-        // Keep the public status endpoint strict even though the iframe now
-        // performs the normal check locally. This prevents a caller from using
-        // a syntactically valid state for an origin that is not registered to
-        // the supplied client.
-        try {
-            $client = $this->clientMapper->getByIdentifier($clientIdentifier);
-        } catch (\Throwable $e) {
-            return 'error';
-        }
-        if ($client === null) {
+        if (!$this->verifyOriginBinding($clientIdentifier, $origin, $parsed['binding'])) {
             return 'error';
         }
 
-        $registeredOrigin = false;
-        foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $redirectUri) {
-            if (self::getOrigin($redirectUri->getRedirectUri()) === $origin) {
-                $registeredOrigin = true;
-                break;
-            }
-        }
-        if (!$registeredOrigin) {
-            return 'error';
-        }
+        // The signature proves that this OP minted the state for this exact
+        // client/origin pair only after a concrete redirect URI matched the
+        // client's registration. Do not repeat a database lookup here: apart
+        // from being unnecessary, an origin-only lookup cannot faithfully
+        // represent path/host/port wildcard redirect registrations.
 
         $opBrowserState = $this->getBrowserStateForIframe();
         if ($opBrowserState === null) {
@@ -314,10 +342,10 @@ class SessionManagementService {
         return hash('sha256', $clientIdentifier . ' ' . $origin . ' ' . $opBrowserState . ' ' . $salt);
     }
 
-    /** @return array{origin:string,hash:string,salt:string}|null */
+    /** @return array{origin:string,hash:string,salt:string,binding:string}|null */
     public static function parseSessionState(string $sessionState): ?array {
-        $parts = explode('.', $sessionState, 4);
-        if (count($parts) !== 4 || $parts[0] !== self::SESSION_STATE_VERSION) {
+        $parts = explode('.', $sessionState, 5);
+        if (count($parts) !== 5 || $parts[0] !== self::SESSION_STATE_VERSION) {
             return null;
         }
         $origin = self::base64UrlDecode($parts[1]);
@@ -326,10 +354,81 @@ class SessionManagementService {
         }
         $hash = strtolower($parts[2]);
         $salt = $parts[3];
-        if (!preg_match('/^[a-f0-9]{64}$/', $hash) || !preg_match('/^[A-Za-z0-9]{16,128}$/', $salt)) {
+        $binding = $parts[4];
+        if (!preg_match('/^[a-f0-9]{64}$/', $hash)
+            || !preg_match('/^[A-Za-z0-9]{16,128}$/', $salt)
+            || preg_match('/^[A-Za-z0-9_-]{64,2048}$/', $binding) !== 1) {
             return null;
         }
-        return ['origin' => $origin, 'hash' => $hash, 'salt' => $salt];
+        return ['origin' => $origin, 'hash' => $hash, 'salt' => $salt, 'binding' => $binding];
+    }
+
+    private function isRegisteredRedirectUriForClient(string $clientIdentifier, string $redirectUri): bool {
+        try {
+            $client = $this->clientMapper->getByIdentifier($clientIdentifier);
+        } catch (\Throwable $e) {
+            return false;
+        }
+        if ($client === null || $client->getId() === null) {
+            return false;
+        }
+
+        foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $registeredRedirectUri) {
+            try {
+                if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri())) {
+                    return true;
+                }
+            } catch (\Throwable $e) {
+                continue;
+            }
+        }
+        return false;
+    }
+
+    private function originBindingPayload(string $clientIdentifier, string $origin): string {
+        return $clientIdentifier . "\n" . $origin;
+    }
+
+    private function signOriginBinding(string $clientIdentifier, string $origin): string {
+        $privateKey = $this->credentialService->getPrivateKey();
+        if (!is_string($privateKey) || $privateKey === '') {
+            throw new \RuntimeException('OIDC signing key is unavailable for Session Management origin binding.');
+        }
+        $signature = '';
+        if (!openssl_sign(
+            $this->originBindingPayload($clientIdentifier, $origin),
+            $signature,
+            $privateKey,
+            OPENSSL_ALGO_SHA256
+        )) {
+            throw new \RuntimeException('Could not sign Session Management origin binding.');
+        }
+        return self::base64UrlEncode($signature);
+    }
+
+    private function verifyOriginBinding(string $clientIdentifier, string $origin, string $binding): bool {
+        $signature = self::base64UrlDecode($binding);
+        if ($signature === null) {
+            return false;
+        }
+
+        $publicKey = $this->appConfig->getAppValueString('public_key', '');
+        if ($publicKey === '') {
+            $privateKey = $this->credentialService->getPrivateKey();
+            $key = is_string($privateKey) && $privateKey !== '' ? openssl_pkey_get_private($privateKey) : false;
+            $details = $key !== false ? openssl_pkey_get_details($key) : false;
+            if (!is_array($details) || !isset($details['key']) || !is_string($details['key'])) {
+                return false;
+            }
+            $publicKey = $details['key'];
+        }
+
+        return openssl_verify(
+            $this->originBindingPayload($clientIdentifier, $origin),
+            $signature,
+            $publicKey,
+            OPENSSL_ALGO_SHA256
+        ) === 1;
     }
 
     public static function getOrigin(string $uri): ?string {

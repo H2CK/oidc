@@ -25,6 +25,13 @@ class SessionControllerTest extends TestCase {
         parent::setUp();
         $request = $this->createMock(IRequest::class);
         $this->sessionManagementService = $this->createMock(SessionManagementService::class);
+        $this->sessionManagementService->method('getOriginBindingJwk')->willReturn([
+            'kty' => 'RSA',
+            'n' => 'test-modulus',
+            'e' => 'AQAB',
+            'alg' => 'RS256',
+            'ext' => true,
+        ]);
         $this->controller = new SessionController('oidc', $request, $this->sessionManagementService);
     }
 
@@ -47,7 +54,12 @@ class SessionControllerTest extends TestCase {
         $this->assertInstanceOf(DataDisplayResponse::class, $response);
         $html = $response->getData();
         $this->assertStringContainsString('window.addEventListener("message"', $html);
-        $this->assertStringContainsString('crypto.subtle.digest("SHA-256"', $html);
+        $this->assertStringContainsString('subtle.digest("SHA-256"', $html);
+        $this->assertStringContainsString('subtle.verify({name:"RSASSA-PKCS1-v1_5"}', $html);
+        $this->assertStringContainsString('subtle.importKey("jwk"', $html);
+        $this->assertStringContainsString('WebCrypto unavailable', $html);
+        $this->assertStringContainsString('a.length!==5||a[0]!=="3"', $html);
+        $this->assertStringContainsString('validBinding(c,e.origin,a[4])', $html);
         $this->assertStringContainsString('document.cookie.split("; ")', $html);
         $this->assertStringContainsString('oidc_opbs', $html);
         $this->assertStringContainsString('observedOpbs?"changed":"error"', $html);
