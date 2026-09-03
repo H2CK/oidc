@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.0] - 2026-09-03
+
+### Added
+
+- Added support for OpenID Connect Back-Channel Logout 1.0 ([#697](https://github.com/H2CK/oidc/pull/697))
+- Added support for OpenID Connect Front-Channel Logout 1.0 and Session Management 1.0 ([#701](https://github.com/H2CK/oidc/pull/701))
+
+### Changed
+
+- Updated dependencies ([#699](https://github.com/H2CK/oidc/pull/699))
+- Updated translations
+
 ## [2.1.3] - 2026-09-02
 
 ### Changed

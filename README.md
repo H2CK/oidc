@@ -175,6 +175,8 @@ CORS is enabled for all domains on all the above endpoints. Except the webfinger
 
 The discovery and web finger endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration` (or `<Issuer>/index.php/.well-known/openid-configuration`). For web finger there should be a redirect to `<Issuer>/index.php/.well-known/webfinger`.
 
+When using pretty URLs without `index.php`, make sure that the web server rewrite configuration preserves the complete query string when redirecting to the canonical `index.php` URL. The OIDC authorization request parameters, including `client_id`, `redirect_uri`, `response_type`, `scope`, and `state`, are required after the redirect. If the web server cannot preserve them, use the `index.php`-prefixed authorization endpoint directly, for example `<Issuer>/index.php/apps/oidc/authorize`.
+
 ### Logout Details
 
 The discovery document advertises `end_session_endpoint` to signal support for [RP-Initiated Logout](https://openid.net/specs/openid-connect-rpinitiated-1_0.html). The endpoint accepts both `GET` and `POST` requests and supports the optional `id_token_hint`, `client_id`, `post_logout_redirect_uri`, and `state` parameters.
