@@ -38,7 +38,7 @@ Full documentation can be found at:
 
 ## Note - OIDC compliance
 
-The OIDC conformance workflow is executed daily and on demand against the OpenID Foundation conformance suite. For reproducible CI results, the workflow pins the suite to the fixed upstream release `release-v5.1.43` instead of building the moving `master` branch. It currently runs the following test plans:
+The OIDC conformance workflow is executed daily and on demand against the OpenID Foundation conformance suite. For reproducible CI results, the workflow pins the suite to the fixed upstream release `release-v5.1.43`. It currently runs the following test plans:
 
 - `oidcc-config-certification-test-plan` for OpenID Provider discovery and metadata validation
 - `oidcc-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` and `oidcc-formpost-basic-certification-test-plan[server_metadata=discovery][client_registration=static_client]` for authorization code flow
@@ -57,7 +57,7 @@ More information on the compliance can be found in the [latest test run](https:/
 
 Version 2.2.0 adds OpenID Connect Front-Channel Logout 1.0 and OpenID Connect Session Management 1.0. The database migration adds optional per-client Front-Channel Logout metadata only; existing clients remain valid and Front-Channel Logout is disabled for a client until a `frontchannel_logout_uri` is configured. Session Management is a browser feature: HTTP(S) authorization responses include `session_state` when the OP itself is served over HTTPS. Native/custom-scheme redirect URIs keep their existing behavior and intentionally do not receive `session_state`, because they have no browser web origin that can host the Session Management RP iframe.
 
-This version also hardens RP-Initiated Logout and Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
+This version also hardens RP-Initiated Logout and adds Back-Channel Logout session handling. The 2.2.0 upgrade migration deliberately invalidates persisted OIDC authorization codes and access/refresh grant state. Existing relying parties therefore cannot continue with pre-upgrade refresh tokens and must start a new OIDC authorization/login flow after the upgrade. This one-time reauthentication is intentional so that newly issued ID Tokens and RP sessions are correlated with the current `sid` state.
 
 The same migration extends accepted post-logout redirect URIs with an optional RP binding. Existing logout redirect URI rows remain global (`client_id = NULL`) and keep their historical behavior. An RP-specific list takes precedence when at least one URI is configured for that RP; the global list is used only when that RP has no RP-specific post-logout redirect URI configured.
 
@@ -567,4 +567,4 @@ Several global OIDC app settings can be changed with the Nextcloud `occ config:a
 
 ## JWT Access Tokens (RFC9068)
 
-It is possible to activate the use of JWT based access tokens according to RFC9068. This can be done in the settings UI or while creating a client in the CLI. If not activated an opaque access token will be generated (as it was done previously).
+It is possible to activate the use of JWT based access tokens according to RFC9068. This can be done in the settings UI or while creating a client in the CLI. If not activated an opaque access token will be generated.
