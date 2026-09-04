@@ -78,6 +78,7 @@ OC.L10N.register(
     "Secret" : "Secret",
     "Redirection URIs" : "URIs de redirection",
     "Add Redirection URI" : "Ajouter un URI de redirection",
+    "https://example.com/logout/callback" : "https://exemple.com/logout/callback",
     "Flows" : "Flux",
     "Flows allowed to be used with the client." : "Flux autorisés avec le client.",
     "Access Token Type" : "Type de token d'accès",

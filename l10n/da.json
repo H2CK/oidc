@@ -11,6 +11,7 @@
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient er ikke autoriseret til at oprette forbindelse. Informer venligst din klients administrator.",
     "Your client is expired. Please inform the administrator of your client." : "Din klient er udløbet. Underret din administrator om din klient.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den modtagne omdirigerings URI er ikke accepteret til at forbinde med. Underret din administrator.",
+    "Log out" : "Log ud",
     "Cancel" : "Annullér",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Din omdirigerings-URL skal være en fuld URL, for eksempel: https://yourdomain.com/path",
     "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "Dit klient- id skal overholde følgende regler: Udskriv ASCII undtagen: og længde 32- 64",
