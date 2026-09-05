@@ -247,6 +247,26 @@ return [
             'verb' => 'POST'
         ],
         [
+            'name' => 'DeviceAuthorization#authorize',
+            'url' => '/device_authorization',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'DeviceAuthorization#verify',
+            'url' => '/device',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'DeviceAuthorization#approve',
+            'url' => '/device/approve',
+            'verb' => 'POST',
+        ],
+        [
+            'name' => 'DeviceAuthorization#deny',
+            'url' => '/device/deny',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Cors#tokenCorsResponse',
             'url' => '/token',
             'verb' => 'OPTIONS',

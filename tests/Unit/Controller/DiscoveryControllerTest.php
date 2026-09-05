@@ -119,6 +119,7 @@ class DiscoveryControllerTest extends TestCase {
             'authorization_code',
             'implicit',
             'refresh_token',
+            'urn:ietf:params:oauth:grant-type:device_code',
             'urn:ietf:params:oauth:grant-type:token-exchange',
         ];
         $acrValuesSupported = [
@@ -187,6 +188,7 @@ class DiscoveryControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertEquals($issuer, $result->getData()['issuer']);
+        $this->assertArrayHasKey('device_authorization_endpoint', $result->getData());
         $this->assertEquals($scopesSupported, $result->getData()['scopes_supported']);
         $this->assertEquals($responseTypesSupported, $result->getData()['response_types_supported']);
         $this->assertEquals($responseModesSupported, $result->getData()['response_modes_supported']);

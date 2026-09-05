@@ -132,6 +132,7 @@ class DiscoveryGenerator
             'authorization_code',
             'implicit',
             'refresh_token',
+            'urn:ietf:params:oauth:grant-type:device_code',
             'urn:ietf:params:oauth:grant-type:token-exchange',
         ];
         $acrValuesSupported = [
@@ -202,6 +203,7 @@ class DiscoveryGenerator
         $discoveryPayload = [
             'issuer' => $issuer,
             'authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
+            'device_authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.DeviceAuthorization.authorize', []),
             'token_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
             'userinfo_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []),
             'jwks_uri' => $host . $this->urlGenerator->linkToRoute('oidc.Jwks.getKeyInfo', []),

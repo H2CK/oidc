@@ -7,6 +7,7 @@ webpackConfig.entry = {
 	main: path.join(__dirname, 'src', 'main.js'),
 	personal: path.join(__dirname, 'src', 'personal.js'),
 	consent: path.join(__dirname, 'src', 'consent.js'),
+	device: path.join(__dirname, 'src', 'device.js'),
 }
 
 module.exports = webpackConfig

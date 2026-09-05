@@ -12,6 +12,7 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
+use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
@@ -24,6 +25,8 @@ class CleanupExpiredTokens extends TimedJob {
     private $authorizationCodeMapper;
     /** @var RegistrationTokenMapper */
     private $registrationTokenMapper;
+    /** @var DeviceCodeMapper */
+    private $deviceCodeMapper;
     /** @var IAppConfig */
     private $appConfig;
     /** @var IConfig */
@@ -34,18 +37,21 @@ class CleanupExpiredTokens extends TimedJob {
      * @param AccessTokenMapper $accessTokenMapper
      * @param AuthorizationCodeMapper $authorizationCodeMapper
      * @param RegistrationTokenMapper $registrationTokenMapper
+     * @param DeviceCodeMapper $deviceCodeMapper
      * @param IAppConfig $appConfig
      */
     public function __construct(ITimeFactory $time,
                                 AccessTokenMapper $accessTokenMapper,
                                 AuthorizationCodeMapper $authorizationCodeMapper,
                                 RegistrationTokenMapper $registrationTokenMapper,
+                                DeviceCodeMapper $deviceCodeMapper,
                                 IAppConfig $appConfig,
                                 IConfig $settings) {
         parent::__construct($time);
         $this->accessTokenMapper = $accessTokenMapper;
         $this->authorizationCodeMapper = $authorizationCodeMapper;
         $this->registrationTokenMapper = $registrationTokenMapper;
+        $this->deviceCodeMapper = $deviceCodeMapper;
         $this->appConfig = $appConfig;
         $this->settings = $settings;
 
@@ -65,6 +71,7 @@ class CleanupExpiredTokens extends TimedJob {
             $authorizationCodeRetention['used'] === null ? null : $currentTime - $authorizationCodeRetention['used']
         );
         $this->registrationTokenMapper->cleanUp($currentTime);
+        $this->deviceCodeMapper->cleanUp($currentTime);
     }
 
     /**

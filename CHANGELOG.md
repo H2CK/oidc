@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Added OAuth 2.0 Device Authorization Grant support (RFC 8628), including device-code issuance, browser verification and approval, token polling, discovery metadata, expiry, throttling, and cleanup.
+
 ## [2.2.0] - 2026-09-03
 
 ### Added
