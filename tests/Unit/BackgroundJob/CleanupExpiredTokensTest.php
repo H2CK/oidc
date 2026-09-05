@@ -12,6 +12,7 @@ use OCP\IConfig;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
+use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 
 use OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens;
 
@@ -40,6 +41,8 @@ class CleanupExpiredTokensTest extends TestCase
     private $authorizationCodeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|RegistrationTokenMapper */
     private $registrationTokenMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|DeviceCodeMapper */
+    private $deviceCodeMapper;
 
     public function setUp(): void
     {
@@ -63,12 +66,14 @@ class CleanupExpiredTokensTest extends TestCase
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
         $this->registrationTokenMapper = $this->createMock(RegistrationTokenMapper::class);
+        $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
 
         $this->job = new CleanupExpiredTokens(
             $this->time,
             $this->accessTokenMapper,
             $this->authorizationCodeMapper,
             $this->registrationTokenMapper,
+            $this->deviceCodeMapper,
             $this->appConfig,
             $this->config
         );

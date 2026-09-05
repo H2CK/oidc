@@ -19,6 +19,8 @@ use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\DeviceCode;
+use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
@@ -53,6 +55,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
+    private const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code';
     private const TOKEN_EXCHANGE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:token-exchange';
     private const TOKEN_TYPE_ACCESS_TOKEN = 'urn:ietf:params:oauth:token-type:access_token';
     /** @var AccessTokenMapper */
@@ -95,6 +98,8 @@ class OIDCApiController extends ApiController {
     private $logger;
     /** @var FormUrlencodedParameterParser */
     private $formUrlencodedParameterParser;
+    /** @var DeviceCodeMapper */
+    private $deviceCodeMapper;
 
     /**
      * @param string $appName
@@ -119,6 +124,7 @@ class OIDCApiController extends ApiController {
      * @param TexTargetMapper $texTargetMapper
      * @param FormUrlencodedParameterParser|null $formUrlencodedParameterParser
      * @param TexSubjectClientMapper|null $texSubjectClientMapper
+     * @param DeviceCodeMapper $deviceCodeMapper
      */
     public function __construct(
                     string $appName,
@@ -140,6 +146,7 @@ class OIDCApiController extends ApiController {
                     IAppConfig $appConfig,
                     JwtGenerator $jwtGenerator,
                     LoggerInterface $logger,
+                    DeviceCodeMapper $deviceCodeMapper,
                     ?TexTargetMapper $texTargetMapper = null,
                     ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null,
                     ?TexSubjectClientMapper $texSubjectClientMapper = null
@@ -166,6 +173,7 @@ class OIDCApiController extends ApiController {
         $this->texTargetMapper = $texTargetMapper;
         $this->formUrlencodedParameterParser = $formUrlencodedParameterParser ?? new FormUrlencodedParameterParser();
         $this->texSubjectClientMapper = $texSubjectClientMapper;
+        $this->deviceCodeMapper = $deviceCodeMapper;
     }
 
     /**
@@ -306,6 +314,7 @@ class OIDCApiController extends ApiController {
      * @param string|null $client_id
      * @param string|null $client_secret
      * @param string|null $code_verifier
+     * @param string|null $device_code
      * @return JSONResponse
      */
     // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
@@ -318,7 +327,8 @@ class OIDCApiController extends ApiController {
         string|null $refresh_token = null,
         string|null $client_id = null,
         string|null $client_secret = null,
-        string|null $code_verifier = null): JSONResponse
+        string|null $code_verifier = null,
+        string|null $device_code = null): JSONResponse
     {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
@@ -341,13 +351,24 @@ class OIDCApiController extends ApiController {
 
                 return $this->handleTokenExchange($client_id, $client_secret);
             }
+            if ($rawGrantTypes !== null && in_array(self::DEVICE_CODE_GRANT_TYPE, $rawGrantTypes['grant_type'], true)) {
+                if (count($rawGrantTypes['grant_type']) !== 1) {
+                    return $this->deviceGrantError('invalid_request', 'Parameter grant_type must occur exactly once.');
+                }
+
+                return $this->handleDeviceCodeGrant($device_code, $client_id, $client_secret);
+            }
         }
 
         if ($grant_type === self::TOKEN_EXCHANGE_GRANT_TYPE) {
             return $this->handleTokenExchange($client_id, $client_secret);
         }
 
-        // We only handle two types
+        if ($grant_type === self::DEVICE_CODE_GRANT_TYPE) {
+            return $this->handleDeviceCodeGrant($device_code, $client_id, $client_secret);
+        }
+
+        // Handle the authorization-code and refresh-token grants.
         if ($grant_type !== 'authorization_code' && $grant_type !== 'refresh_token') {
             $this->logger->info('Invalid grant_type provided. Must be authorization_code, refresh_token, or token-exchange for client id ' . $client_id . '.');
             return new JSONResponse([
@@ -575,6 +596,189 @@ class OIDCApiController extends ApiController {
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 
+        return $response;
+    }
+
+    /**
+     * Complete an RFC 8628 device authorization grant.
+     */
+    private function handleDeviceCodeGrant(
+        ?string $deviceCode,
+        ?string $clientId,
+        ?string $clientSecret,
+    ): JSONResponse {
+        if (!$this->isFormUrlencodedRequest()) {
+            return $this->deviceGrantError('invalid_request', 'Device token requests must use application/x-www-form-urlencoded.');
+        }
+        $parameters = $this->formUrlencodedParameterParser->readSelectedParameters([
+            'grant_type',
+            'device_code',
+            'client_id',
+            'client_secret',
+        ]);
+        if ($parameters === null) {
+            return $this->deviceGrantError('invalid_request', 'Could not parse the form body.');
+        }
+        foreach ($parameters as $name => $values) {
+            if (count($values) > 1) {
+                return $this->deviceGrantError('invalid_request', 'Parameter ' . $name . ' must not occur more than once.');
+            }
+        }
+        if (count($parameters['grant_type']) !== 1 || $parameters['grant_type'][0] !== self::DEVICE_CODE_GRANT_TYPE) {
+            return $this->deviceGrantError('invalid_request', 'The device grant_type must occur exactly once.');
+        }
+        if (count($parameters['device_code']) !== 1) {
+            return $this->deviceGrantError('invalid_request', 'Parameter device_code must occur exactly once.');
+        }
+        if ($deviceCode === null || trim($deviceCode) === '') {
+            return $this->deviceGrantError('invalid_request', 'Missing device_code.');
+        }
+        $basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
+        if ($basicAuthenticationAttempted && ($clientId !== null || $clientSecret !== null)) {
+            return $this->deviceGrantError('invalid_request', 'Use exactly one client authentication method.');
+        }
+        if ($basicAuthenticationAttempted) {
+            $credentials = $this->getBasicClientCredentials();
+            if ($credentials === null) {
+                return $this->invalidClientResponse('Malformed client credentials.', true);
+            }
+            [$clientId, $clientSecret] = $credentials;
+        }
+        if ($clientId === null || trim($clientId) === '') {
+            return $this->invalidClientResponse('Missing client_id.', $basicAuthenticationAttempted);
+        }
+
+        try {
+            $client = $this->clientMapper->getByIdentifier($clientId);
+        } catch (ClientNotFoundException $e) {
+            return $this->invalidClientResponse('Client not found.', $basicAuthenticationAttempted);
+        }
+        if ($client === null) {
+            return $this->invalidClientResponse('Client not found.', $basicAuthenticationAttempted);
+        }
+        if ($client->getType() !== 'public' && (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret))) {
+            return $this->invalidClientResponse('Client authentication failed.', $basicAuthenticationAttempted);
+        }
+        if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
+            return $this->deviceGrantError('expired_client', 'Client expired.');
+        }
+
+        $authorization = $this->deviceCodeMapper->findByDeviceCode($deviceCode);
+        if ($authorization === null || $authorization->getClientId() !== $client->getId()) {
+            return $this->deviceGrantError('invalid_grant', 'The device code is invalid.');
+        }
+        $now = $this->time->getTime();
+        if ($now >= $authorization->getExpiresAt()) {
+            return $this->deviceGrantError('expired_token', 'The device code has expired.');
+        }
+        if ($authorization->getStatus() === DeviceCode::STATUS_DENIED) {
+            return $this->deviceGrantError('access_denied', 'The user denied the authorization request.');
+        }
+        if (!in_array($authorization->getStatus(), [DeviceCode::STATUS_PENDING, DeviceCode::STATUS_APPROVED], true)
+            || ($authorization->getStatus() === DeviceCode::STATUS_APPROVED && $authorization->getUserId() === null)) {
+            return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
+        }
+        if (!$this->deviceCodeMapper->recordPoll($authorization, $now)) {
+            return $this->deviceGrantError('slow_down', 'Polling is faster than the permitted interval.');
+        }
+        if ($authorization->getStatus() === DeviceCode::STATUS_PENDING) {
+            return $this->deviceGrantError('authorization_pending', 'The user has not completed authorization.');
+        }
+
+        $user = $this->userManager->get($authorization->getUserId());
+        if ($user === null) {
+            return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
+        }
+        $groups = $this->groupManager->getUserGroups($user);
+        $requiredGroups = $this->groupMapper->getGroupsByClientId($client->getId());
+        $groupAllowed = $requiredGroups === [];
+        foreach ($requiredGroups as $requiredGroup) {
+            foreach ($groups as $group) {
+                if ($requiredGroup->getGroupId() === $group->getGID()) {
+                    $groupAllowed = true;
+                    break 2;
+                }
+            }
+        }
+        if (!$groupAllowed) {
+            return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
+        }
+        if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
+            return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
+        }
+
+        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+        $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
+        $refreshCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+
+        $accessToken = new AccessToken();
+        $accessToken->setClientId($client->getId());
+        $accessToken->setUserId($authorization->getUserId());
+        $accessToken->setScope($authorization->getScope());
+        $accessToken->setHashedCode(hash('sha512', $refreshCode));
+        $accessToken->setCreated($now);
+        $accessToken->setRefreshed($now);
+        $accessToken->setExpiresAt($now + $expireTime);
+        $accessToken->setNonce('');
+        $accessToken->setResource(null);
+        $accessToken->setCodeChallenge('');
+        $accessToken->setCodeChallengeMethod('');
+        $accessToken->setIdTokenClaims(null);
+        $accessToken->setUserinfoClaims(null);
+        $accessToken->setSid(null);
+
+        try {
+            $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken(
+                $accessToken,
+                $client,
+                $this->request->getServerProtocol(),
+                $this->request->getServerHost()
+            ));
+            $accessToken = $this->accessTokenMapper->insert($accessToken);
+            $idToken = $this->jwtGenerator->generateIdToken(
+                $accessToken,
+                $client,
+                $this->request->getServerProtocol(),
+                $this->request->getServerHost(),
+                false,
+                false
+            );
+        } catch (JwtCreationErrorException $e) {
+            return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+
+        $responseData = [
+            'access_token' => $accessToken->getAccessToken(),
+            'token_type' => 'Bearer',
+            'expires_in' => $expireTime,
+            'id_token' => $idToken,
+            'scope' => $accessToken->getScope(),
+        ];
+        $scopeArray = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY);
+        $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
+            Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS,
+            Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
+        ) === 'true';
+        if ($provideRefreshTokenAlways || in_array('offline_access', $scopeArray, true)) {
+            $responseData['refresh_token'] = $refreshCode;
+            if ($refreshExpireTime !== 'never') {
+                $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+            }
+        }
+
+        $response = new JSONResponse($responseData);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        return $response;
+    }
+
+    private function deviceGrantError(string $error, string $description, int $status = Http::STATUS_BAD_REQUEST): JSONResponse {
+        $response = new JSONResponse([
+            'error' => $error,
+            'error_description' => $description,
+        ], $status);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
         return $response;
     }
 
