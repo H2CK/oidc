@@ -43,6 +43,8 @@ use Psr\Log\LoggerInterface;
 class DeviceAuthorizationController extends Controller {
 	private const DEVICE_CODE_LIFETIME = 600;
 	private const INITIAL_POLL_INTERVAL = 5;
+	/** Consent lifetime matches ConsentController (90 days). */
+	private const CONSENT_LIFETIME = 7776000;
 	private const USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 	private const DEVICE_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
 
@@ -277,10 +279,13 @@ class DeviceAuthorizationController extends Controller {
 	}
 
 	private function normalizeScope(?string $scope, Client $client): string|JSONResponse {
-		$requested = preg_split('/\s+/', strtolower(trim($scope ?? Application::DEFAULT_SCOPE)), -1, PREG_SPLIT_NO_EMPTY);
-		if (!in_array('openid', $requested, true)) {
-			$requested[] = 'openid';
-		}
+		// RFC 8628 is an OAuth 2.0 grant and does not require openid. Only use the
+		// provider default when scope is omitted; never inject openid into an
+		// explicit request that did not include it.
+		$scopeValue = ($scope === null || trim($scope) === '')
+			? Application::DEFAULT_SCOPE
+			: $scope;
+		$requested = preg_split('/\s+/', strtolower(trim($scopeValue)), -1, PREG_SPLIT_NO_EMPTY);
 		$requested = array_values(array_unique($requested));
 		$allowed = preg_split('/\s+/', strtolower(trim($client->getAllowedScopes())), -1, PREG_SPLIT_NO_EMPTY);
 		if ($allowed !== [] && array_diff($requested, $allowed) !== []) {
@@ -328,14 +333,17 @@ class DeviceAuthorizationController extends Controller {
 	private function storeConsent(string $userId, Client $client, string $scope): void {
 		$existingConsent = $this->userConsentMapper->findByUserAndClient($userId, $client->getId());
 		$consent = $existingConsent ?? new UserConsent();
+		$now = $this->time->getTime();
 		if ($existingConsent === null) {
 			$consent->setUserId($userId);
 			$consent->setClientId($client->getId());
-			$consent->setCreatedAt($this->time->getTime());
+			$consent->setCreatedAt($now);
 		}
 		$consent->setScopesGranted($scope);
-		$consent->setUpdatedAt($this->time->getTime());
-		$consent->setExpiresAt(null);
+		$consent->setUpdatedAt($now);
+		// Keep the same time-limited consent policy as ConsentController (90 days).
+		// Device approval must not convert an existing expiry into permanent consent.
+		$consent->setExpiresAt($now + self::CONSENT_LIFETIME);
 		$this->userConsentMapper->createOrUpdate($consent);
 	}
 

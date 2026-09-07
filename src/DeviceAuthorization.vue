@@ -16,11 +16,22 @@
 			<div v-else-if="currentMode === 'approve'">
 				<p>{{ t('oidc', '{clientName} is requesting access to your account.', { clientName }) }}</p>
 				<p><strong>{{ formattedCode }}</strong></p>
-				<p>{{ t('oidc', 'Requested permissions:') }} {{ scope }}</p>
+				<div class="consent-scopes">
+					<h3>{{ t('oidc', 'This application will be able to:') }}</h3>
+					<div class="scope-list">
+						<div v-for="entry in parsedScopes" :key="entry.name" class="scope-item">
+							<span class="scope-title">{{ entry.label }}</span>
+							<span class="scope-description">{{ entry.description }}</span>
+						</div>
+					</div>
+				</div>
 				<div class="actions">
 					<button class="button secondary" :disabled="busy" @click="respond('deny')">{{ t('oidc', 'Deny') }}</button>
 					<button class="button primary" :disabled="busy" @click="respond('approve')">{{ t('oidc', 'Allow') }}</button>
 				</div>
+				<p class="consent-note">
+					{{ t('oidc', 'You can revoke this access at any time from your account settings.') }}
+				</p>
 			</div>
 
 			<p v-else-if="currentMode === 'complete'">{{ t('oidc', 'The device request is complete. You can close this page.') }}</p>
@@ -51,6 +62,39 @@ const formattedCode = computed(() => {
 	const normalized = props.userCode.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
 	return normalized.length === 8 ? normalized.slice(0, 4) + '-' + normalized.slice(4) : normalized
 })
+
+const scopeDescriptions = {
+	openid: {
+		label: t('oidc', 'Basic authentication'),
+		description: t('oidc', 'Verify your identity (required)'),
+	},
+	profile: {
+		label: t('oidc', 'Profile information'),
+		description: t('oidc', 'Access your name, username, profile picture, and quota'),
+	},
+	email: {
+		label: t('oidc', 'Email address'),
+		description: t('oidc', 'Access your email address and verification status'),
+	},
+	roles: {
+		label: t('oidc', 'Group memberships'),
+		description: t('oidc', 'Access your Nextcloud groups and roles'),
+	},
+	groups: {
+		label: t('oidc', 'Group memberships'),
+		description: t('oidc', 'Access your Nextcloud group information'),
+	},
+	offline_access: {
+		label: t('oidc', 'Access when you\'re away'),
+		description: t('oidc', 'Allow this app to access your data even when you\'re not signed in'),
+	},
+}
+
+const parsedScopes = computed(() => props.scope.split(' ').filter(s => s.trim() !== '').map(scope => ({
+	name: scope,
+	label: scopeDescriptions[scope]?.label || scope,
+	description: scopeDescriptions[scope]?.description || '',
+})))
 
 function verifyCode() {
 	window.location.href = generateUrl('/apps/oidc/device') + '?user_code=' + encodeURIComponent(enteredCode.value)
@@ -95,11 +139,53 @@ input {
 	text-transform: uppercase;
 }
 
+.consent-scopes {
+	margin: 20px 0;
+}
+
+.consent-scopes h3 {
+	font-size: 18px;
+	margin-bottom: 15px;
+}
+
+.scope-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.scope-item {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 12px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	background: var(--color-background-hover);
+}
+
+.scope-title {
+	font-weight: bold;
+	font-size: 14px;
+}
+
+.scope-description {
+	font-size: 13px;
+	color: var(--color-text-maxcontrast);
+}
+
 .actions {
 	display: flex;
 	justify-content: flex-end;
 	gap: 12px;
 	margin-top: 24px;
+}
+
+.consent-note {
+	margin-top: 16px;
+	text-align: center;
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
 }
 
 .error {

@@ -55,9 +55,29 @@ class DeviceCodeMapperIntegrationTest extends \Test\TestCase {
 
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
-			$this->assertSame(5, $stored->getIntervalSeconds());
+			$this->assertSame(10, $stored->getIntervalSeconds());
 			$this->assertSame(1011, $stored->getLastPolledAt());
-			$this->assertTrue($this->mapper->recordPoll($stored, 1016));
+
+			// A second consecutive early poll must increase the interval again (RFC 8628).
+			$this->assertFalse($this->mapper->recordPoll($stored, 1015));
+			$stored = $this->mapper->findByDeviceCode($deviceCode);
+			$this->assertNotNull($stored);
+			$this->assertSame(15, $stored->getIntervalSeconds());
+			$this->assertSame(1015, $stored->getLastPolledAt());
+
+			// Still too early for the increased interval of 15 seconds.
+			$this->assertFalse($this->mapper->recordPoll($stored, 1029));
+			$stored = $this->mapper->findByDeviceCode($deviceCode);
+			$this->assertNotNull($stored);
+			$this->assertSame(20, $stored->getIntervalSeconds());
+
+			$stored = $this->mapper->findByDeviceCode($deviceCode);
+			$this->assertNotNull($stored);
+			$this->assertTrue($this->mapper->recordPoll($stored, 1049));
+			$stored = $this->mapper->findByDeviceCode($deviceCode);
+			$this->assertNotNull($stored);
+			$this->assertSame(20, $stored->getIntervalSeconds());
+			$this->assertSame(1049, $stored->getLastPolledAt());
 
 			$this->assertTrue($this->mapper->markApproved($stored, 'alice'));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
@@ -65,11 +85,11 @@ class DeviceCodeMapperIntegrationTest extends \Test\TestCase {
 			$this->assertSame(DeviceCode::STATUS_APPROVED, $stored->getStatus());
 			$this->assertSame('alice', $stored->getUserId());
 
-			$this->assertTrue($this->mapper->markConsumed($stored, 1020));
+			$this->assertTrue($this->mapper->markConsumed($stored, 1050));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
 			$this->assertSame(DeviceCode::STATUS_CONSUMED, $stored->getStatus());
-			$this->assertSame(1020, $stored->getConsumedAt());
+			$this->assertSame(1050, $stored->getConsumedAt());
 		} finally {
 			$this->mapper->delete($entity);
 		}

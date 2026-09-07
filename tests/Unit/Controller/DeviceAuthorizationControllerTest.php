@@ -204,6 +204,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
 				$this->assertSame('alice', $consent->getUserId());
 				$this->assertSame(1, $consent->getClientId());
 				$this->assertSame('openid profile email', $consent->getScopesGranted());
+				$this->assertSame(1_000 + 7_776_000, $consent->getExpiresAt());
 				return true;
 			}));
 
@@ -211,6 +212,76 @@ class DeviceAuthorizationControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertTrue($response->getData()['success']);
+	}
+
+	public function testDeviceApprovalPreservesTimeLimitedConsentSemantics(): void {
+		$deviceCode = new DeviceCode();
+		$deviceCode->setId(8);
+		$deviceCode->setClientId(1);
+		$deviceCode->setScope('openid profile email');
+		$deviceCode->setExpiresAt(2_000);
+		$deviceCode->setStatus(DeviceCode::STATUS_PENDING);
+
+		$existingConsent = new UserConsent();
+		$existingConsent->setUserId('alice');
+		$existingConsent->setClientId(1);
+		$existingConsent->setScopesGranted('openid profile');
+		$existingConsent->setCreatedAt(100);
+		$existingConsent->setUpdatedAt(100);
+		$existingConsent->setExpiresAt(1_500);
+
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+
+		$this->deviceCodeMapper->method('findByUserCode')->with('WXYZ-9876')->willReturn($deviceCode);
+		$this->time->method('getTime')->willReturn(1_200);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->clientMapper->method('getByUid')->with(1)->willReturn($this->createClient('public'));
+		$this->groupMapper->method('getGroupsByClientId')->with(1)->willReturn([]);
+		$this->deviceCodeMapper->method('markApproved')->willReturn(true);
+		$this->userConsentMapper->method('findByUserAndClient')->with('alice', 1)->willReturn($existingConsent);
+		$this->userConsentMapper->expects($this->once())
+			->method('createOrUpdate')
+			->with($this->callback(function (UserConsent $consent) use ($existingConsent): bool {
+				$this->assertSame($existingConsent, $consent);
+				$this->assertSame('openid profile email', $consent->getScopesGranted());
+				$this->assertSame(1_200 + 7_776_000, $consent->getExpiresAt());
+				$this->assertNotNull($consent->getExpiresAt());
+				return true;
+			}));
+
+		$response = $this->controller->approve('WXYZ-9876');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		// After approval, consent remains time-limited, so later authorize checks
+		// that compare expires_at against now continue to apply.
+		$this->assertSame(1_200 + 7_776_000, $existingConsent->getExpiresAt());
+		$this->assertGreaterThan(1_200, $existingConsent->getExpiresAt());
+	}
+
+	public function testExplicitScopeWithoutOpenidIsPreserved(): void {
+		$client = $this->createClient('public');
+		$this->rawParameters = [
+			'client_id' => ['device-client'],
+			'client_secret' => [],
+			'scope' => ['profile email'],
+		];
+		$this->clientMapper->method('getByIdentifier')->willReturn($client);
+		$this->secureRandom->method('generate')->willReturnOnConsecutiveCalls('device-code', 'ABCD2345');
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn(null);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example/apps/oidc/device');
+		$this->deviceCodeMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(function (DeviceCode $code): bool {
+				$this->assertSame('profile email', $code->getScope());
+				$this->assertStringNotContainsString('openid', $code->getScope());
+				return true;
+			}));
+
+		$response = $this->controller->authorize('device-client', 'profile email');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	private function createClient(string $type): Client {

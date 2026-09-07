@@ -89,8 +89,14 @@ class DeviceCodeMapper extends QBMapper {
 	}
 
 	/**
+	 * Seconds added to the polling interval for each RFC 8628 slow_down.
+	 */
+	public const SLOW_DOWN_INCREMENT_SECONDS = 5;
+
+	/**
 	 * Record a compliant poll. False means the client polled before its current
-	 * interval elapsed; in that case RFC 8628 requires a slow_down response.
+	 * interval elapsed; in that case RFC 8628 requires a slow_down response and
+	 * the persisted interval is increased by 5 seconds for subsequent polls.
 	 */
 	public function recordPoll(DeviceCode $deviceCode, int $now): bool {
 		$qb = $this->db->getQueryBuilder();
@@ -105,14 +111,19 @@ class DeviceCodeMapper extends QBMapper {
 			->executeStatement();
 
 		if ($updated === 1) {
+			$deviceCode->setLastPolledAt($now);
 			return true;
 		}
 
+		$newInterval = $deviceCode->getIntervalSeconds() + self::SLOW_DOWN_INCREMENT_SECONDS;
 		$tooEarly = $this->db->getQueryBuilder();
 		$tooEarly->update($this->getTableName())
 			->set('last_polled_at', $tooEarly->createNamedParameter($now, IQueryBuilder::PARAM_INT))
+			->set('interval_seconds', $tooEarly->createNamedParameter($newInterval, IQueryBuilder::PARAM_INT))
 			->where($tooEarly->expr()->eq('id', $tooEarly->createNamedParameter($deviceCode->getId(), IQueryBuilder::PARAM_INT)))
 			->executeStatement();
+		$deviceCode->setLastPolledAt($now);
+		$deviceCode->setIntervalSeconds($newInterval);
 		return false;
 	}
 
