@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.2.1] - 2026-09-08
+
+### Fixed
+
+- Fixed a regression where access tokens could be deleted during token validation ([#711](https://github.com/H2CK/oidc/pull/711))
+- Updated translations
+
 ## [2.2.0] - 2026-09-03
 
 ### Added
