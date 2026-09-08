@@ -275,12 +275,17 @@ class ClientMapper extends QBMapper {
     }
 
     /**
-    * Bind client feature flags as integers for MariaDB compatibility.
+     * Bind client feature flags as integers for MariaDB compatibility.
      * Some Nextcloud/DBAL combinations serialize false as an empty string for
      * nullable boolean columns, which strict MariaDB rejects for TINYINT(1).
      */
     protected function getParameterTypeForProperty(Entity $entity, string $property) {
-        if ($entity instanceof Client && in_array($property, [
+        if ($entity instanceof Client
+            && in_array($this->db->getDatabaseProvider(), [
+                IDBConnection::PLATFORM_MARIADB,
+                IDBConnection::PLATFORM_MYSQL,
+            ], true)
+            && in_array($property, [
             'dcr',
             'texEnabled',
             'backchannelLogoutSessReq',
