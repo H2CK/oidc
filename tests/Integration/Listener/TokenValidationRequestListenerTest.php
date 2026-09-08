@@ -17,7 +17,6 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent;
-use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
 use OCP\AppFramework\Services\IAppConfig;
@@ -110,6 +109,7 @@ class TokenValidationRequestListenerTest extends \Test\TestCase
             ->willReturnCallback(function ($key, $default) {
                 $config = [
                     Application::APP_CONFIG_DEFAULT_EXPIRE_TIME => Application::DEFAULT_EXPIRE_TIME,
+                    Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME => '604800',
                     'kid' => 'test-kid',
                     'public_key_n' => 'test-n',
                     'public_key_e' => 'test-e',
@@ -202,17 +202,18 @@ class TokenValidationRequestListenerTest extends \Test\TestCase
     /**
      * Test validation of an expired access token (negative scenario)
      */
-    public function testValidationOfExpiredAccessToken(): void
+    public function testValidationOfExpiredAccessTokenKeepsRefreshToken(): void
     {
         // Setup app config mock
         $this->setupAppConfigMock();
 
         // Create an expired access token in the database
         $client = $this->clientMapper->getByIdentifier($this->testClientId);
+        $refreshToken = 'expired-refresh-token-' . uniqid();
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($this->testUserId);
-        $accessToken->setHashedCode(hash('sha512', 'expired-refresh-token-' . uniqid()));
+        $accessToken->setHashedCode(hash('sha512', $refreshToken));
         $accessToken->setScope('openid profile email');
         $now = $this->time->getTime();
         $accessToken->setCreated($now - 1800); // Created 30 minutes ago
@@ -234,13 +235,10 @@ class TokenValidationRequestListenerTest extends \Test\TestCase
         $this->assertFalse($event->getIsValid(), 'Expired token should be invalid');
         $this->assertNull($event->getUserId(), 'User ID should not be set for invalid token');
 
-        // Verify the expired token was deleted from the database
-        try {
-            $this->accessTokenMapper->getByAccessToken($accessToken->getAccessToken());
-            $this->fail('Expired access token should have been deleted');
-        } catch (AccessTokenNotFoundException) {
-            // Expected - token should have been deleted
-        }
+        // The refresh token remains usable until its own lifetime expires.
+        $storedToken = $this->accessTokenMapper->getByAccessToken($accessToken->getAccessToken());
+        $this->assertSame($accessToken->getId(), $storedToken->getId());
+        $this->assertSame($accessToken->getId(), $this->accessTokenMapper->getByCode($refreshToken)->getId());
     }
 
     /**
