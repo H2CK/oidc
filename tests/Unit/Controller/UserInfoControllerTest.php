@@ -39,52 +39,52 @@ use Psr\Log\LoggerInterface;
 use OCA\DAV\CardDAV\Converter;
 
 class UserInfoControllerTest extends TestCase {
-    
+
     /** @var UserInfoController */
     protected $controller;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IRequest */
     protected $request;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|AccessTokenMapper */
     private $accessTokenMapper;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|ClientMapper */
     private $clientMapper;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|ITimeFactory */
     private $time;
-    
+
     /** @var \OC\Security\Bruteforce\Throttler|\PHPUnit\Framework\MockObject\MockObject */
     private $throttler;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     private $userManager;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
     private $groupManager;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IAccountManager */
     private $accountManager;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IAppConfig */
     private $appConfig;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserConfig */
     private $userConfig;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IConfig */
     private $config;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|CustomClaimService */
     private $customClaimService;
-    
+
     /** @var LoggerInterface */
     private $logger;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|IURLGenerator */
     private $urlGenerator;
-    
+
     /** @var \PHPUnit\Framework\MockObject\MockObject|Converter */
     private $converter;
 
@@ -92,13 +92,13 @@ class UserInfoControllerTest extends TestCase {
         $this->request = $this->createMock(IRequest::class);
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('localhost');
-        
+
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->logger->method('notice')->willReturnCallback(function() {});
         $this->logger->method('error')->willReturnCallback(function() {});
         $this->logger->method('warning')->willReturnCallback(function() {});
         $this->logger->method('debug')->willReturnCallback(function() {});
-        
+
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->time = $this->createMock(ITimeFactory::class);
@@ -116,7 +116,7 @@ class UserInfoControllerTest extends TestCase {
             ->with('oidc.UserInfo.getInfo', [])
             ->willReturn('/index.php/apps/oidc/userinfo');
         $this->converter = $this->createMock(Converter::class);
-        
+
         $this->appConfig->method('getAppValueString')
             ->willReturnCallback(function($key, $default) {
                 switch($key) {
@@ -130,7 +130,7 @@ class UserInfoControllerTest extends TestCase {
                     default: return $default;
                 }
             });
-        
+
         $this->controller = new UserInfoController(
             'oidc',
             $this->request,
@@ -155,11 +155,11 @@ class UserInfoControllerTest extends TestCase {
         $originalServer = $_SERVER ?? [];
         unset($_SERVER['HTTP_AUTHORIZATION']);
         unset($_SERVER['Authorization']);
-        
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_request', $result->getData()['error']);
@@ -168,19 +168,19 @@ class UserInfoControllerTest extends TestCase {
 
     public function testGetInfoAccessTokenNotFound() {
         $token = 'test-token';
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willThrowException(new AccessTokenNotFoundException());
-        
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_request', $result->getData()['error']);
@@ -189,27 +189,27 @@ class UserInfoControllerTest extends TestCase {
 
     public function testGetInfoClientNotFound() {
         $token = 'test-token';
-        
+
         // Create a real AccessToken entity and set its properties
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willReturn($accessToken);
-        
+
         $this->clientMapper->method('getByUid')
             ->with(1)
             ->willThrowException(new ClientNotFoundException());
-        
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_request', $result->getData()['error']);
@@ -219,34 +219,34 @@ class UserInfoControllerTest extends TestCase {
     public function testGetInfoClientExpired() {
         $token = 'test-token';
         $now = time();
-        
+
         // Create real Client entity
         $client = new Client();
         $client->id = 1;
         $client->setDcr(true);
         $client->setIssuedAt($now - 100000); // Issued long time ago
-        
+
         // Create real AccessToken entity
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
         $accessToken->setUserId('user1');
         $accessToken->setRefreshed($now);
         $accessToken->setScope('openid profile email');
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willReturn($accessToken);
-        
+
         $this->clientMapper->method('getByUid')
             ->with(1)
             ->willReturn($client);
-        
+
         $this->time->method('getTime')->willReturn($now);
-        
+
         $this->appConfig->method('getAppValueString')
             ->willReturnCallback(function($key, $default) {
                 if ($key === 'default_client_expire_time') {
@@ -254,11 +254,11 @@ class UserInfoControllerTest extends TestCase {
                 }
                 return $default;
             });
-        
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('expired_client', $result->getData()['error']);
@@ -268,7 +268,7 @@ class UserInfoControllerTest extends TestCase {
     public function testGetInfoAccessTokenExpired() {
         $token = 'test-token';
         $now = time();
-        
+
         // Create real Client entity
         $client = new Client();
         $client->id = 1;
@@ -276,7 +276,7 @@ class UserInfoControllerTest extends TestCase {
         $client->setClientIdentifier('client1');
         $client->setSecret('secret');
         $client->setEmailRegex('');
-        
+
         // Create real AccessToken entity
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
@@ -284,29 +284,28 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setRefreshed($now); // A recent refresh must not override explicit expiry
         $accessToken->setExpiresAt($now - 1);
         $accessToken->setScope('openid profile email');
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willReturn($accessToken);
-        
+
         $this->clientMapper->method('getByUid')
             ->with(1)
             ->willReturn($client);
-        
+
         $this->time->method('getTime')->willReturn($now);
-        
-        $this->accessTokenMapper->expects($this->once())
-            ->method('delete')
-            ->with($accessToken);
-        
+
+        $this->accessTokenMapper->expects($this->never())
+            ->method('delete');
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_grant', $result->getData()['error']);
@@ -316,7 +315,7 @@ class UserInfoControllerTest extends TestCase {
     public function testGetInfoSuccessForRegularResourceBoundToken() {
         $token = 'test-token';
         $now = time();
-        
+
         // Create real Client entity
         $client = new Client();
         $client->id = 1;
@@ -324,7 +323,7 @@ class UserInfoControllerTest extends TestCase {
         $client->setClientIdentifier('client1');
         $client->setSecret('secret');
         $client->setEmailRegex('');
-        
+
         // Create real AccessToken entity
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
@@ -333,23 +332,23 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setExpiresAt($now + 900);
         $accessToken->setScope('openid profile email');
         $accessToken->setResource('https://backend.example/api');
-        
+
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
         $user->method('getLastLogin')->willReturn($now);
         $user->method('getQuota')->willReturn('none');
-        
+
         $account = $this->createMock(IAccount::class);
-        
+
         $displayNameProperty = $this->createMock(IAccountProperty::class);
         $displayNameProperty->method('getValue')->willReturn('Test User');
-        
+
         $emailProperty = $this->createMock(IAccountProperty::class);
         $emailProperty->method('getValue')->willReturn('test@example.com');
         $emailProperty->method('getVerified')->willReturn(\OCP\Accounts\IAccountManager::VERIFIED);
-        
+
         $account->method('getProperty')
             ->willReturnCallback(function($property) use ($displayNameProperty, $emailProperty) {
                 if ($property === IAccountManager::PROPERTY_DISPLAYNAME) {
@@ -360,33 +359,33 @@ class UserInfoControllerTest extends TestCase {
                 }
                 return $this->createMock(IAccountProperty::class);
             });
-        
+
         $this->userManager->method('get')->with('user1')->willReturn($user);
         $this->groupManager->method('getUserGroups')->with($user)->willReturn([]);
         $this->accountManager->method('getAccount')->with($user)->willReturn($account);
-        
+
         $this->customClaimService->method('provideCustomClaims')
             ->with(1, 'openid profile email', 'user1')
             ->willReturn([]);
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willReturn($accessToken);
-        
+
         $this->clientMapper->method('getByUid')
             ->with(1)
             ->willReturn($client);
-        
+
         $this->time->method('getTime')->willReturn($now);
-        
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $data = $result->getData();
@@ -445,7 +444,7 @@ class UserInfoControllerTest extends TestCase {
     public function testGetInfoPostSuccess() {
         $token = 'test-token';
         $now = time();
-        
+
         // Create real Client entity
         $client = new Client();
         $client->id = 1;
@@ -453,30 +452,30 @@ class UserInfoControllerTest extends TestCase {
         $client->setClientIdentifier('client1');
         $client->setSecret('secret');
         $client->setEmailRegex('');
-        
+
         // Create real AccessToken entity
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
         $accessToken->setUserId('user1');
         $accessToken->setRefreshed($now);
         $accessToken->setScope('openid profile email');
-        
+
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
         $user->method('getLastLogin')->willReturn($now);
         $user->method('getQuota')->willReturn('none');
-        
+
         $account = $this->createMock(IAccount::class);
-        
+
         $displayNameProperty = $this->createMock(IAccountProperty::class);
         $displayNameProperty->method('getValue')->willReturn('Test User');
-        
+
         $emailProperty = $this->createMock(IAccountProperty::class);
         $emailProperty->method('getValue')->willReturn('test@example.com');
         $emailProperty->method('getVerified')->willReturn(\OCP\Accounts\IAccountManager::VERIFIED);
-        
+
         $account->method('getProperty')
             ->willReturnCallback(function($property) use ($displayNameProperty, $emailProperty) {
                 if ($property === IAccountManager::PROPERTY_DISPLAYNAME) {
@@ -487,33 +486,33 @@ class UserInfoControllerTest extends TestCase {
                 }
                 return $this->createMock(IAccountProperty::class);
             });
-        
+
         $this->userManager->method('get')->with('user1')->willReturn($user);
         $this->groupManager->method('getUserGroups')->with($user)->willReturn([]);
         $this->accountManager->method('getAccount')->with($user)->willReturn($account);
-        
+
         $this->customClaimService->method('provideCustomClaims')
             ->with(1, 'openid profile email', 'user1')
             ->willReturn([]);
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willReturn($accessToken);
-        
+
         $this->clientMapper->method('getByUid')
             ->with(1)
             ->willReturn($client);
-        
+
         $this->time->method('getTime')->willReturn($now);
-        
+
         $result = $this->controller->getInfoPost();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $data = $result->getData();
@@ -613,27 +612,27 @@ class UserInfoControllerTest extends TestCase {
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('getAuthorizationHeader');
         $method->setAccessible(true);
-        
+
         // Mock $_SERVER
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = $authHeader;
-        
+
         $header = $method->invoke($this->controller);
-        
+
         $_SERVER = $originalServer;
-        
+
         // getAuthorizationHeader trims the header, so expect trimmed value
         $this->assertEquals(trim($authHeader), $header);
-        
+
         // Now test the getBearerToken method
         $method2 = $reflection->getMethod('getBearerToken');
         $method2->setAccessible(true);
-        
+
         $_SERVER['HTTP_AUTHORIZATION'] = $authHeader;
         $token = $method2->invoke($this->controller);
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertEquals('abc123def456', $token);
     }
 
@@ -641,22 +640,22 @@ class UserInfoControllerTest extends TestCase {
         $reflection = new \ReflectionClass($this->controller);
         $method = $reflection->getMethod('getBearerToken');
         $method->setAccessible(true);
-        
+
         $originalServer = $_SERVER ?? [];
         unset($_SERVER['HTTP_AUTHORIZATION']);
         unset($_SERVER['Authorization']);
-        
+
         $token = $method->invoke($this->controller);
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertNull($token);
     }
 
     public function testGetInfoWithGroups() {
         $token = 'test-token';
         $now = time();
-        
+
         // Create real Client entity
         $client = new Client();
         $client->id = 1;
@@ -664,38 +663,38 @@ class UserInfoControllerTest extends TestCase {
         $client->setClientIdentifier('client1');
         $client->setSecret('secret');
         $client->setEmailRegex('');
-        
+
         // Create real AccessToken entity
         $accessToken = new AccessToken();
         $accessToken->setClientId(1);
         $accessToken->setUserId('user1');
         $accessToken->setRefreshed($now);
         $accessToken->setScope('openid profile email groups roles');
-        
+
         $user = $this->createMock(IUser::class);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
         $user->method('getLastLogin')->willReturn($now);
         $user->method('getQuota')->willReturn('none');
-        
+
         $group1 = $this->createMock(IGroup::class);
         $group1->method('getGID')->willReturn('group1');
         $group1->method('getDisplayName')->willReturn('Group One');
-        
+
         $group2 = $this->createMock(IGroup::class);
         $group2->method('getGID')->willReturn('group2');
         $group2->method('getDisplayName')->willReturn('');
-        
+
         $account = $this->createMock(IAccount::class);
-        
+
         $displayNameProperty = $this->createMock(IAccountProperty::class);
         $displayNameProperty->method('getValue')->willReturn('Test User');
-        
+
         $emailProperty = $this->createMock(IAccountProperty::class);
         $emailProperty->method('getValue')->willReturn('test@example.com');
         $emailProperty->method('getVerified')->willReturn(\OCP\Accounts\IAccountManager::VERIFIED);
-        
+
         $account->method('getProperty')
             ->willReturnCallback(function($property) use ($displayNameProperty, $emailProperty) {
                 if ($property === IAccountManager::PROPERTY_DISPLAYNAME) {
@@ -706,42 +705,42 @@ class UserInfoControllerTest extends TestCase {
                 }
                 return $this->createMock(IAccountProperty::class);
             });
-        
+
         $this->userManager->method('get')->with('user1')->willReturn($user);
         $this->groupManager->method('getUserGroups')->with($user)->willReturn([$group1, $group2]);
         $this->accountManager->method('getAccount')->with($user)->willReturn($account);
-        
+
         $this->customClaimService->method('provideCustomClaims')
             ->with(1, 'openid profile email groups roles', 'user1')
             ->willReturn([]);
-        
+
         // Set up $_SERVER for getBearerToken to find the token
         $originalServer = $_SERVER ?? [];
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $token;
-        
+
         $this->accessTokenMapper->method('getByAccessToken')
             ->with($token)
             ->willReturn($accessToken);
-        
+
         $this->clientMapper->method('getByUid')
             ->with(1)
             ->willReturn($client);
-        
+
         $this->time->method('getTime')->willReturn($now);
-        
+
         $result = $this->controller->getInfo();
-        
+
         $_SERVER = $originalServer;
-        
+
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $data = $result->getData();
-        
+
         // Check groups are included
         $this->assertArrayHasKey('groups', $data);
         $this->assertContains('group1', $data['groups']);
         $this->assertContains('group2', $data['groups']);
-        
+
         // Check roles are included (uses GID since group_claim_type is 'gid' and roles_claim_type is 'null')
         $this->assertArrayHasKey('roles', $data);
         $this->assertContains('group1', $data['roles']);
