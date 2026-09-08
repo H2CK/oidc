@@ -103,7 +103,7 @@ OC.L10N.register(
     "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "URL de recurso (RFC 9728) para autorização de introspecção de token. Clientes com este URL podem introspectar tokens emitidos para este recurso.",
     "Back-Channel Logout URI" : "URI de logout do canal secundário (back-channel)",
     "Endpoint that receives signed OpenID Connect Back-Channel Logout Tokens when the Nextcloud session ends." : "Ponto final que recebe tokens de logout de canal secundário (back-channel) do OpenID Connect assinados quando a sessão do Nextcloud é encerrada.",
-    "Require sid in Back-Channel Logout Tokens" : "Exigir o sid nos tokens de logout do canal secundário",
+    "Require sid in Back-Channel Logout Tokens" : "Exigir sid nos tokens de logout do canal secundário",
     "Front-Channel Logout URI" : "URI de logout do canal principal (front-channel)",
     "Browser endpoint embedded by the provider during logout. Use HTTPS; HTTP is accepted only for confidential clients." : "Ponto final do navegador incorporado pelo provedor durante o logout. Use HTTPS; o HTTP é aceito apenas para clientes confidenciais.",
     "Require iss and sid in Front-Channel Logout requests" : "Exigir iss e sid nas solicitações de logout do canal principal (front-channel)",
