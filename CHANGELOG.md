@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Fixed MySQL/MariaDB incompatibility when storing boolean client fields ([#709](https://github.com/H2CK/oidc/pull/709))
 
+### Changed
+
+- Updated dependencies ([#712](https://github.com/H2CK/oidc/pull/712))
+
 ## [2.2.1] - 2026-09-08
 
 ### Fixed
