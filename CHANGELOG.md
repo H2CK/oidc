@@ -8,6 +8,23 @@ All notable changes to this project will be documented in this file.
 
 - Added OAuth 2.0 Device Authorization Grant support (RFC 8628), including device-code issuance, browser verification and approval, token polling, discovery metadata, expiry, throttling, and cleanup.
 
+## [2.2.2] - 2026-09-09
+
+### Fixed
+
+- Fixed MySQL/MariaDB incompatibility when storing boolean client fields ([#709](https://github.com/H2CK/oidc/pull/709))
+
+### Changed
+
+- Updated dependencies ([#712](https://github.com/H2CK/oidc/pull/712))
+
+## [2.2.1] - 2026-09-08
+
+### Fixed
+
+- Fixed a regression where access tokens could be deleted during token validation ([#711](https://github.com/H2CK/oidc/pull/711))
+- Updated translations
+
 ## [2.2.0] - 2026-09-03
 
 ### Added
@@ -17,7 +34,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Updated dependencies ([#699](https://github.com/H2CK/oidc/pull/699))
+- Updated dependencies ([#699](https://github.com/H2CK/oidc/pull/699), [#702](https://github.com/H2CK/oidc/pull/702), [#703](https://github.com/H2CK/oidc/pull/703), [#705](https://github.com/H2CK/oidc/pull/705), [#706](https://github.com/H2CK/oidc/pull/706))
+- Updated documentation
 - Updated translations
 
 ## [2.1.3] - 2026-09-02

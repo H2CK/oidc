@@ -290,7 +290,6 @@ class UserInfoController extends ApiController
 
         // The accessToken must not be expired
         if ($this->time->getTime() >= $accessToken->getEffectiveExpiresAt((int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME)) ) {
-            $this->accessTokenMapper->delete($accessToken);
             $this->logger->notice('Access token already expired.');
             return new JSONResponse([
                 'error' => 'invalid_grant',
