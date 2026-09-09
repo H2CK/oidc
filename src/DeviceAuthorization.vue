@@ -117,15 +117,19 @@ async function respond(action) {
 
 <style scoped>
 .device-page {
-	min-height: 70vh;
+	position: fixed;
+	inset: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 24px;
+	box-sizing: border-box;
+	z-index: 1000;
 }
 
 .device-card {
 	width: min(560px, 100%);
+	margin: 0 auto;
 	padding: 32px;
 	background: var(--color-main-background);
 	border-radius: var(--border-radius-large);

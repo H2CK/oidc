@@ -193,6 +193,8 @@ class DeviceAuthorizationController extends Controller {
 
 	#[NoAdminRequired]
 	#[UseSession]
+	#[AnonRateLimit(limit: 30, period: 60)]
+	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function approve(string $user_code): JSONResponse {
 		$deviceCodeOrResponse = $this->loadPendingDeviceCode($user_code);
 		if ($deviceCodeOrResponse instanceof JSONResponse) {
@@ -223,6 +225,8 @@ class DeviceAuthorizationController extends Controller {
 
 	#[NoAdminRequired]
 	#[UseSession]
+	#[AnonRateLimit(limit: 30, period: 60)]
+	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function deny(string $user_code): JSONResponse {
 		$deviceCodeOrResponse = $this->loadPendingDeviceCode($user_code);
 		if ($deviceCodeOrResponse instanceof JSONResponse) {
