@@ -59,6 +59,7 @@
     "Secret" : "Tajemství",
     "Redirection URIs" : "URI adresy přesměrován",
     "Add Redirection URI" : "Přidat URI přesměrování",
+    "https://example.com/logout/callback" : "https://example.com/logout/callback",
     "Flows" : "Toky",
     "Flows allowed to be used with the client." : "Toky, které je umožněno používat pomocí klienta.",
     "Access Token Type" : "Typ přístupového tokenu",
