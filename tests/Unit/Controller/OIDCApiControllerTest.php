@@ -35,6 +35,8 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
+use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
+use OCA\OIDCIdentityProvider\Db\DeviceCode;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -61,6 +63,8 @@ class OIDCApiControllerTest extends TestCase {
     protected $texTargetMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|TexSubjectClientMapper */
     protected $texSubjectClientMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|DeviceCodeMapper */
+    protected $deviceCodeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
@@ -142,6 +146,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
         $this->texTargetMapper = $this->createMock(TexTargetMapper::class);
         $this->texSubjectClientMapper = $this->createMock(TexSubjectClientMapper::class);
+        $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
 
         $throttler = $this->createMock(Throttler::class);
 
@@ -165,6 +170,7 @@ class OIDCApiControllerTest extends TestCase {
             $this->appConfig,
             $this->jwtGenerator,
             $this->logger,
+            $this->deviceCodeMapper,
             $this->texTargetMapper,
             $this->formUrlencodedParameterParser,
             $this->texSubjectClientMapper
@@ -212,6 +218,15 @@ class OIDCApiControllerTest extends TestCase {
         $this->authorizationHeader = 'Basic ' . base64_encode(rawurlencode($clientId) . ':' . rawurlencode($clientSecret));
     }
 
+    private function setDeviceGrantForm(string $deviceCode = 'device-code', string $clientId = 'device-client', ?string $clientSecret = null): void {
+        $this->tokenExchangeRawParameters = [
+            'grant_type' => ['urn:ietf:params:oauth:grant-type:device_code'],
+            'device_code' => [$deviceCode],
+            'client_id' => [$clientId],
+            'client_secret' => $clientSecret === null ? [] : [$clientSecret],
+        ];
+    }
+
     private function createTexClient(string $identifier = 'test-client', bool $enabled = true, string $type = 'confidential'): Client {
         $client = new Client($identifier, ['https://test.org'], 'RS256');
         $client->setClientIdentifier($identifier);
@@ -235,6 +250,160 @@ class OIDCApiControllerTest extends TestCase {
         $subjectToken->setAccessToken('old_access_token');
         $subjectToken->setResource($resource);
         return $subjectToken;
+    }
+
+    private function createDeviceClient(string $type = 'public'): Client {
+        $client = new Client('Device client', [], 'RS256', $type);
+        $client->setId(1);
+        $client->setClientIdentifier('device-client');
+        $client->setSecret('device-secret');
+        $client->setAllowedScopes('openid profile email offline_access');
+        return $client;
+    }
+
+    private function createDeviceAuthorization(string $status = DeviceCode::STATUS_PENDING): DeviceCode {
+        $authorization = new DeviceCode();
+        $authorization->setId(7);
+        $authorization->setClientId(1);
+        $authorization->setHashedDeviceCode(hash('sha512', 'device-code'));
+        $authorization->setHashedUserCode(hash('sha512', 'ABCD2345'));
+        $authorization->setScope('openid profile email offline_access');
+        $authorization->setCreatedAt(900);
+        $authorization->setExpiresAt(1600);
+        $authorization->setIntervalSeconds(5);
+        $authorization->setLastPolledAt(0);
+        $authorization->setStatus($status);
+        $authorization->setUserId($status === DeviceCode::STATUS_APPROVED ? 'alice' : null);
+        $authorization->setConsumedAt(0);
+        return $authorization;
+    }
+
+    public function testDeviceGrantReturnsAuthorizationPending(): void {
+        $this->setDeviceGrantForm(clientSecret: 'device-secret');
+        $client = $this->createDeviceClient('confidential');
+        $authorization = $this->createDeviceAuthorization();
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->with('device-client')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->with('device-code')->willReturn($authorization);
+        $this->deviceCodeMapper->method('recordPoll')->with($authorization, 1000)->willReturn(true);
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+            client_secret: 'device-secret',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('authorization_pending', $response->getData()['error']);
+        $this->assertSame('no-store', $response->getHeaders()['Cache-Control']);
+    }
+
+    public function testDeviceGrantReturnsSlowDownWhenClientPollsEarly(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $authorization = $this->createDeviceAuthorization();
+        $this->time->method('getTime')->willReturn(1001);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
+        $this->deviceCodeMapper->method('recordPoll')->with($authorization, 1001)->willReturn(false);
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+        );
+
+        $this->assertSame('slow_down', $response->getData()['error']);
+    }
+
+    public function testDeviceGrantRejectsDuplicateDeviceCode(): void {
+        $this->setDeviceGrantForm();
+        $this->tokenExchangeRawParameters['device_code'] = ['device-code', 'other-code'];
+        $this->clientMapper->expects($this->never())->method('getByIdentifier');
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'other-code',
+            client_id: 'device-client',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_request', $response->getData()['error']);
+        $this->assertStringContainsString('device_code', $response->getData()['error_description']);
+    }
+
+    public function testDeviceGrantReturnsAccessDenied(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_DENIED);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
+        $this->deviceCodeMapper->expects($this->never())->method('recordPoll');
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+        );
+
+        $this->assertSame('access_denied', $response->getData()['error']);
+    }
+
+    public function testConsumedDeviceCodeCannotBeReplayedEvenWhenPollingTooFast(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_CONSUMED);
+        $this->time->method('getTime')->willReturn(1001);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
+        $this->deviceCodeMapper->expects($this->never())->method('recordPoll');
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+        );
+
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testDeviceGrantIssuesTokensForApprovedUser(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
+        $user = $this->createMock(IUser::class);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
+        $this->deviceCodeMapper->method('recordPoll')->willReturn(true);
+        $this->deviceCodeMapper->expects($this->once())->method('markConsumed')->with($authorization, 1000)->willReturn(true);
+        $this->userManager->method('get')->with('alice')->willReturn($user);
+        $this->groupManager->method('getUserGroups')->with($user)->willReturn([]);
+        $this->groupMapper->method('getGroupsByClientId')->with(1)->willReturn([]);
+        $this->secureRandom->method('generate')->willReturn('refresh-code');
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('idp.example.com');
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('access-token');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('id-token');
+        $this->accessTokenMapper->method('insert')->willReturnCallback(static function (AccessToken $token): AccessToken {
+            $token->setId(17);
+            return $token;
+        });
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+        );
+        $data = $response->getData();
+
+        $this->assertSame(Http::STATUS_OK, $response->getStatus());
+        $this->assertSame('access-token', $data['access_token']);
+        $this->assertSame('id-token', $data['id_token']);
+        $this->assertSame('refresh-code', $data['refresh_token']);
+        $this->assertSame('openid profile email offline_access', $data['scope']);
     }
 
     private function createTexTarget(string $resource = 'https://resource.example/api'): TexTargets {

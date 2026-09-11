@@ -237,7 +237,8 @@ class OIDCImplicitFlowTest extends \Test\TestCase
             $this->urlGenerator,
             $appContainer->get(\OCP\AppFramework\Services\IAppConfig::class),
             $jwtGenerator,
-            $this->logger
+            $this->logger,
+            Server::get(\OCA\OIDCIdentityProvider\Db\DeviceCodeMapper::class)
         );
 
         $userInfoConfig = Server::get(\OCP\Config\IUserConfig::class);

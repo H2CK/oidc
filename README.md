@@ -11,6 +11,7 @@ This is the an OIDC App for Nextcloud. This application allows to use your Nextc
 Provided features:
 
 - Support for OpenID Connect Code (response_type = code) and Implicit (response_type = id_token) Flow - Implicite Flow must be activated per client
+- Support for the OAuth 2.0 Device Authorization Grant (RFC 8628)
 - Support for PKCE
 - Public and confidential types of clients are supported
 - Creation of ID Tokens and UserInfo responses with claims based on requested scopes and the OpenID Connect `claims` parameter (currently supported scopes: openid, profile, email, roles, groups, and offline_access)
@@ -162,6 +163,8 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Discovery: `openid-configuration` (GET) or at `index.php/.well-known/openid-configuration`
 - WebFinger: at `index.php/.well-known/webfinger`
 - Authorization: `authorize`(GET)
+- Device Authorization: `device_authorization` (POST)
+- Device Verification: `device` (GET), followed by an authenticated approval or denial
 - Token: `token`(POST) - Credentials for authentication can be passed via Authorization header (client_secret_basic) or in body (client_secret_post).
 - UserInfo: `userinfo`(GET / POST - Authentication with previously retrieved access token)
 - JWKS: `jwks`(GET)
@@ -172,6 +175,14 @@ The following endpoint are available below `index.php/apps/oidc/`:
 - Instrospection: `introspect`(POST) - Validation of access tokens
 
 CORS is enabled for all domains on all the above endpoints. Except the webfinger endpoint for which the CORS settings cannot be controlled by the oidc app.
+
+### Device Authorization Grant
+
+Device Authorization Grant clients start the flow by sending an `application/x-www-form-urlencoded` request to `device_authorization` with their `client_id` and optional `scope`. Confidential clients must also authenticate using `client_secret_post` or `client_secret_basic`. The response contains a device code, a short user code, and verification URIs as defined by RFC 8628.
+
+The End-User opens the verification URI, signs in to Nextcloud, and approves or denies the request. While waiting, the client polls the normal token endpoint with `grant_type=urn:ietf:params:oauth:grant-type:device_code`, its device code, and its client credentials. The token endpoint returns the standard `authorization_pending`, `slow_down`, `access_denied`, `expired_token`, and `invalid_grant` responses. An approved device code can be exchanged only once.
+
+Request `offline_access` when the device needs a refresh token. Device clients can be registered as public clients when they cannot protect a client secret. Existing per-client scope and group restrictions are enforced when the request is created and again before tokens are issued.
 
 The discovery and web finger endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration` (or `<Issuer>/index.php/.well-known/openid-configuration`). For web finger there should be a redirect to `<Issuer>/index.php/.well-known/webfinger`.
 

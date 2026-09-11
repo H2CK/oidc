@@ -119,6 +119,7 @@ class DiscoveryGeneratorTest extends TestCase {
         // Required endpoints
         $requiredEndpoints = [
             'authorization_endpoint',
+            'device_authorization_endpoint',
             'token_endpoint',
             'userinfo_endpoint',
             'jwks_uri',
@@ -177,7 +178,12 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertArrayHasKey('grant_types_supported', $data);
         $grantTypes = $data['grant_types_supported'];
 
-        $expectedTypes = ['authorization_code', 'implicit', 'refresh_token'];
+        $expectedTypes = [
+            'authorization_code',
+            'implicit',
+            'refresh_token',
+            'urn:ietf:params:oauth:grant-type:device_code',
+        ];
         foreach ($expectedTypes as $type) {
             $this->assertContains($type, $grantTypes, "Missing grant type: $type");
         }

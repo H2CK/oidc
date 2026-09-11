@@ -265,7 +265,8 @@ class OIDCCodeFlowTest extends \Test\TestCase
             $this->urlGenerator,
             $this->appConfig,
             $this->jwtGenerator,
-            $this->logger
+            $this->logger,
+            Server::get(\OCA\OIDCIdentityProvider\Db\DeviceCodeMapper::class)
         );
 
         $userInfoConfig = Server::get(\OCP\Config\IUserConfig::class);
