@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.3.0] - 2026-09-11
 
 ### Added
 
-- Added OAuth 2.0 Device Authorization Grant support (RFC 8628), including device-code issuance, browser verification and approval, token polling, discovery metadata, expiry, throttling, and cleanup.
+- Added support for OAuth 2.0 Device Authorization Grant (RFC 8628) ([#707](https://github.com/H2CK/oidc/pull/707))
+
+### Changed
+
+- Updated translations
 
 ## [2.2.2] - 2026-09-09
 
