@@ -161,6 +161,7 @@ OC.L10N.register(
     "Deny" : "رد کردن  ",
     "Allow" : "اجازه دادن  ",
     "You can revoke this access at any time from your account settings." : "می‌توانید این دسترسی را هر زمان از تنظیمات حساب خود لغو کنید.  ",
+    "Continue" : "ادامه",
     "OpenID Connect Redirect" : "بازجهت‌دهی OpenID Connect  ",
     "Failed to load authorized applications" : "بارگیری برنامه‌های مجاز انجام نشد  ",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "آیا مطمئن هستید که می‌خواهید دسترسی \"{clientName}\" را لغو کنید؟  ",

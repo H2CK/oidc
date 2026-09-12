@@ -34,6 +34,7 @@ OC.L10N.register(
     "Email address" : "Tölvupóstfang",
     "Deny" : "Neita",
     "Allow" : "Leyfa",
+    "Continue" : "Halda áfram",
     "Loading..." : "Hleð..."
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

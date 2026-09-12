@@ -29,6 +29,7 @@
     "Scope" : "Shtrirje",
     "Deny" : "Refuzo",
     "Allow" : "Lejo",
+    "Continue" : "Vazhdo",
     "Loading..." : "Po ngarkohet"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -23,6 +23,7 @@ OC.L10N.register(
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
     "Email address" : "E-pochta manzili",
-    "Deny" : "Rad etish"
+    "Deny" : "Rad etish",
+    "Continue" : "Davom etish"
 },
 "nplurals=1; plural=0;");

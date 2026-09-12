@@ -33,6 +33,7 @@ OC.L10N.register(
     "Profile information" : "Profile information",
     "Email address" : "Email address",
     "Deny" : "Deny",
-    "Allow" : "Allow"
+    "Allow" : "Allow",
+    "Continue" : "გაგრძელება"
 },
 "nplurals=2; plural=(n!=1);");

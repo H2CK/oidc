@@ -115,6 +115,7 @@
     "Deny" : "Одбиј",
     "Allow" : "Дозволи",
     "You can revoke this access at any time from your account settings." : "Овај приступ можете да укинете кад год то желите из подешавања вашег налога.",
+    "Continue" : "Настави",
     "OpenID Connect Redirect" : "OpenID Connect преусмеравање",
     "Failed to load authorized applications" : "Није успело учитавање одобрених апликација",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Да ли заиста желите да укинете приступ за „{clientName}”?",

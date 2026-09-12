@@ -32,6 +32,7 @@ OC.L10N.register(
     "Email address" : "Dirección de correo electrónico",
     "Deny" : "Denegar",
     "Allow" : "Permitir",
+    "Continue" : "Continuar",
     "Loading..." : "Cargando..."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -197,6 +197,7 @@
     "Deny" : "Zamietnuť",
     "Allow" : "Povoliť",
     "You can revoke this access at any time from your account settings." : "Tento prístup môžete kedykoľvek odvolať v nastaveniach svojho účtu.",
+    "Continue" : "Pokračovať",
     "OpenID Connect Redirect" : "Presmerovanie OpenID Connect",
     "Failed to load authorized applications" : "Nepodarilo sa načítať autorizované aplikácie",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Naozaj chcete odvolať prístup pre „{clientName}“?",

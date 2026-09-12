@@ -34,6 +34,7 @@ OC.L10N.register(
     "Email address" : "이메일 주소",
     "Deny" : "거부",
     "Allow" : "허용",
+    "Continue" : "계속",
     "Loading..." : "불러오는 중..."
 },
 "nplurals=1; plural=0;");

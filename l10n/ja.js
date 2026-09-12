@@ -65,6 +65,7 @@ OC.L10N.register(
     "Email address" : "メールアドレス",
     "Deny" : "拒否",
     "Allow" : "許可",
+    "Continue" : "続ける",
     "Authorized Applications" : "承認済みアプリケーション",
     "These applications have access to your account. Access is managed by your administrator." : "これらのアプリケーションはあなたのアカウントにアクセスできます。アクセス権限は管理者によって管理されています。",
     "Loading..." : "読み込み中…"

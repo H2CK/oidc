@@ -35,6 +35,7 @@
     "Email address" : "Adreça electrònica",
     "Deny" : "Denega",
     "Allow" : "Permet",
+    "Continue" : "Continuar",
     "Loading..." : "Carregant..."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

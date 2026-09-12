@@ -197,6 +197,7 @@
     "Deny" : "Verweigern",
     "Allow" : "Zulassen",
     "You can revoke this access at any time from your account settings." : "Sie können diesen Zugriff jederzeit in Ihren Kontoeinstellungen widerrufen.",
+    "Continue" : "Fortsetzen",
     "OpenID Connect Redirect" : "OpenID Connect-Weiterleitung",
     "Failed to load authorized applications" : "Autorisierte Anwendungen konnten nicht geladen werden",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Soll der Zugriff für \"{clientName}\" widerrufen werden?",

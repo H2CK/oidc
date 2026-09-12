@@ -197,6 +197,7 @@
     "Deny" : "Deny",
     "Allow" : "Allow",
     "You can revoke this access at any time from your account settings." : "You can revoke this access at any time from your account settings.",
+    "Continue" : "Continue",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",
     "Failed to load authorized applications" : "Failed to load authorised applications",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Are you sure you want to revoke access for \"{clientName}\"?",

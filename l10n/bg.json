@@ -56,6 +56,7 @@
     "Email address" : "Имейл адрес",
     "Deny" : "Не",
     "Allow" : "Да",
+    "Continue" : "Продължаване",
     "OpenID Connect Redirect" : "OpenID Connect Пренасочване"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

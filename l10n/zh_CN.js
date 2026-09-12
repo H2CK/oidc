@@ -39,6 +39,7 @@ OC.L10N.register(
     "Email address" : "电子邮箱地址",
     "Deny" : "禁止",
     "Allow" : "允许",
+    "Continue" : "继续",
     "Loading..." : "载入中..."
 },
 "nplurals=1; plural=0;");

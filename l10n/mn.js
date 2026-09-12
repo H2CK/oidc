@@ -34,6 +34,7 @@ OC.L10N.register(
     "Profile information" : "Профайлын мэдээлэл",
     "Email address" : "Имэйл хаяг",
     "Deny" : "Татгалзах",
-    "Allow" : "Зөвшөөрөх"
+    "Allow" : "Зөвшөөрөх",
+    "Continue" : "“Ø—Ä–≥—ç–ª–∂–ª“Ø“Ø–ª—ç—Ö"
 },
 "nplurals=2; plural=(n != 1);");

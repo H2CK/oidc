@@ -197,6 +197,7 @@
     "Deny" : "Reddet",
     "Allow" : "İzin ver",
     "You can revoke this access at any time from your account settings." : "Bu erişim iznini istediğiniz zaman hesap ayarlarınızdan iptal edebilirsiniz.",
+    "Continue" : "İlerle",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",
     "Failed to load authorized applications" : "İzin verilmiş uygulamalar yüklenemedi",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "\"{clientName}\" için erişim iznini iptal etmek istediğinize emin misiniz?",

@@ -120,6 +120,7 @@ OC.L10N.register(
     "Deny" : "رەت قىلىش",
     "Allow" : "رۇخسەت قىلىڭ",
     "You can revoke this access at any time from your account settings." : "سىز بۇ زىيارەتنى ھېسابات تەڭشىكىدىن ھەر-قانداق ۋاقىتتا رەت قىلالايسىز.",
+    "Continue" : "داۋاملاشتۇر",
     "OpenID Connect Redirect" : "OpenID ئۇلىنىش قايتا نىشانلاش",
     "Failed to load authorized applications" : "ھوقوق بېرىلگەن ئەپلەرنى يۈكلەش مەغلۇپ بولدى",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "سىز \"{clientName}\" نىڭ زىيارەت ھوقوقىنى تارتىۋالماقچىمۇ؟",

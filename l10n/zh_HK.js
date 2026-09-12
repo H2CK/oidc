@@ -199,6 +199,7 @@ OC.L10N.register(
     "Deny" : "拒絕",
     "Allow" : "允許",
     "You can revoke this access at any time from your account settings." : "您可以從您的帳號設定中隨時撤銷此存取權。",
+    "Continue" : "繼續",
     "OpenID Connect Redirect" : "OpenID 連接重定向",
     "Failed to load authorized applications" : "無法載入授權應用程式",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "您確定您想要撤銷「{clientName}」的存取權嗎？",

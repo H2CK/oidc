@@ -135,6 +135,7 @@
     "Deny" : "Keela",
     "Allow" : "Luba",
     "You can revoke this access at any time from your account settings." : "Sa saad oma kasutajakonto seadistustest ligipääsuõiguse alati tühistada.",
+    "Continue" : "Jätka",
     "OpenID Connect Redirect" : "OpenID Connecti edasisuunamine",
     "Failed to load authorized applications" : "Lubatud rakenduste laadimine ei õnnestunud",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Kas oled kindel, et soovid tühistada ligipääsuõiguse klientrakendusele „{clientName}“?",

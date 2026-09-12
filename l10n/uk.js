@@ -91,6 +91,7 @@ OC.L10N.register(
     "Email address" : "Адреса ел.пошти",
     "Deny" : "Заборонити",
     "Allow" : "Дозволити",
+    "Continue" : "Продовжити",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",
     "Loading..." : "Завантаження..."
 },

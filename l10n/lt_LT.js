@@ -177,6 +177,7 @@ OC.L10N.register(
     "Deny" : "Drausti",
     "Allow" : "Leisti",
     "You can revoke this access at any time from your account settings." : "Šią prieigą galite bet kada atšaukti savo paskyros nustatymuose.",
+    "Continue" : "Tęsti",
     "OpenID Connect Redirect" : "„OpenID Connect“ nukreipimas",
     "Failed to load authorized applications" : "Nepavyko įkelti autorizuotų programėlių",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Ar tikrai norite atšaukti prieigą prie „{clientName}“?",

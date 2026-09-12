@@ -31,6 +31,7 @@ OC.L10N.register(
     "Scope" : "Shtrirje",
     "Deny" : "Refuzo",
     "Allow" : "Lejo",
+    "Continue" : "Vazhdo",
     "Loading..." : "Po ngarkohet"
 },
 "nplurals=2; plural=(n != 1);");

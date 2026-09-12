@@ -52,6 +52,7 @@ OC.L10N.register(
     "Email address" : "Helbide elektronikoa",
     "Deny" : "Ukatu",
     "Allow" : "Baimendu",
+    "Continue" : "Jarraitu",
     "OpenID Connect Redirect" : "OpenID Connect birbideraketa",
     "Loading..." : "Kargatzen..."
 },

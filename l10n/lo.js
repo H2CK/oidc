@@ -37,6 +37,7 @@ OC.L10N.register(
     "Email address" : "ທີ່ຢູ່ອີເມວ",
     "Deny" : "ປະຕິເສດ",
     "Allow" : "ອະນຸຍາດ",
+    "Continue" : "ສືບຕໍ່",
     "Loading..." : "ກຳລັງໂຫລດ..."
 },
 "nplurals=1; plural=0;");

@@ -37,6 +37,7 @@ OC.L10N.register(
     "Email address" : "Adreça electrònica",
     "Deny" : "Denega",
     "Allow" : "Permet",
+    "Continue" : "Continuar",
     "Loading..." : "Carregant..."
 },
 "nplurals=2; plural=(n != 1);");

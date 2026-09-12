@@ -13,6 +13,7 @@ OC.L10N.register(
     "Never" : "ไม่เคย",
     "Disable" : "ปิดใช้งาน",
     "Scope" : "ขอบเขต",
-    "Email address" : "ที่อยู่อีเมล"
+    "Email address" : "ที่อยู่อีเมล",
+    "Continue" : "ดำเนินการต่อ"
 },
 "nplurals=1; plural=0;");

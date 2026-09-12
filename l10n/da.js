@@ -177,6 +177,7 @@ OC.L10N.register(
     "Deny" : "Afvis",
     "Allow" : "Tillad",
     "You can revoke this access at any time from your account settings." : "Du kan til enhver tid tilbagekalde denne adgang fra dine kontoindstillinger.",
+    "Continue" : "Fortsæt",
     "OpenID Connect Redirect" : "OpenID Connect omdirigerer",
     "Failed to load authorized applications" : "Kunne ikke indlæse godkendte programmer",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Er du sikker på, du ønsker at tilbagekalde adgang til \"{clientName}\"?",

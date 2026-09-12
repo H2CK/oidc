@@ -34,6 +34,7 @@ OC.L10N.register(
     "Profile information" : "Информации за профилот",
     "Email address" : "Е-пошта адреса",
     "Deny" : "Забрани",
-    "Allow" : "Дозволи"
+    "Allow" : "Дозволи",
+    "Continue" : "Продолжи"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

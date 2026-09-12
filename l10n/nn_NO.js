@@ -14,6 +14,7 @@ OC.L10N.register(
     "10 minutes" : "10 minuttar",
     "Never" : "Aldri",
     "Disable" : "Slå av",
-    "Enable" : "SLå på"
+    "Enable" : "SLå på",
+    "Continue" : "Gå vidare"
 },
 "nplurals=2; plural=(n != 1);");

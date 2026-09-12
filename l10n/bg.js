@@ -58,6 +58,7 @@ OC.L10N.register(
     "Email address" : "Имейл адрес",
     "Deny" : "Не",
     "Allow" : "Да",
+    "Continue" : "Продължаване",
     "OpenID Connect Redirect" : "OpenID Connect Пренасочване"
 },
 "nplurals=2; plural=(n != 1);");

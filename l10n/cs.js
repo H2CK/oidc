@@ -153,6 +153,7 @@ OC.L10N.register(
     "Deny" : "Odepřít",
     "Allow" : "Umožnit",
     "You can revoke this access at any time from your account settings." : "Tento přístup je možné kdykoli odvolat a to z nastavení vašeho účtu.",
+    "Continue" : "Pokračovat",
     "OpenID Connect Redirect" : "Přesměrování OpenID Connect",
     "Failed to load authorized applications" : "Nepodařilo se načíst pověřené aplikace",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Opravdu chcete odvolat přístup pro „{clientName}“?",

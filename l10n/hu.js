@@ -58,6 +58,7 @@ OC.L10N.register(
     "Email address" : "E-mail-cím",
     "Deny" : "Megtagadás",
     "Allow" : "Engedélyezés",
+    "Continue" : "Folytatás",
     "OpenID Connect Redirect" : "OpenID Connect átirányítások",
     "Loading..." : "Betöltés…"
 },

@@ -91,6 +91,7 @@ OC.L10N.register(
     "Email address" : "Indirizzo email",
     "Deny" : "Nega",
     "Allow" : "Consenti",
+    "Continue" : "Continua",
     "OpenID Connect Redirect" : "Reindirizzamento di OpenID Connect",
     "Loading..." : "Caricamento in corso..."
 },

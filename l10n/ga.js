@@ -199,6 +199,7 @@ OC.L10N.register(
     "Deny" : "shéanadh",
     "Allow" : "Ceadaigh",
     "You can revoke this access at any time from your account settings." : "Is féidir leat an rochtain seo a chúlghairm tráth ar bith ó shocruithe do chuntais.",
+    "Continue" : "Lean ar aghaidh",
     "OpenID Connect Redirect" : "OpenID Connect Atreorú",
     "Failed to load authorized applications" : "Theip ar lódáil feidhmchlár údaraithe",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "An bhfuil tú cinnte gur mian leat rochtain a chúlghairm do \"{clientName}\"?",

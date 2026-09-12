@@ -175,6 +175,7 @@
     "Deny" : "Απόρριψη",
     "Allow" : "Να επιτρέπεται",
     "You can revoke this access at any time from your account settings." : "Μπορείτε να ανακαλέσετε αυτήν την πρόσβαση ανά πάσα στιγμή από τις ρυθμίσεις του λογαριασμού σας.",
+    "Continue" : "Συνέχεια",
     "OpenID Connect Redirect" : "Ανακατεύθυνση OpenID Connect",
     "Failed to load authorized applications" : "Αποτυχία φόρτωσης εξουσιοδοτημένων εφαρμογών",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Είστε βέβαιοι ότι θέλετε να ανακαλέσετε την πρόσβαση για την εφαρμογή \"{clientName}\";",

@@ -63,6 +63,7 @@
     "Email address" : "E-post adresse",
     "Deny" : "ikke tillatt",
     "Allow" : "Tillatt",
+    "Continue" : "Fortsett",
     "OpenID Connect Redirect" : "OpenID Connect Omdirigering",
     "Loading..." : "Laster…"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

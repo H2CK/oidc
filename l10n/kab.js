@@ -27,6 +27,7 @@ OC.L10N.register(
     "Enable" : "Sermed",
     "Email address" : "Tansa imayl",
     "Deny" : "Agwi",
-    "Allow" : "Sireg"
+    "Allow" : "Sireg",
+    "Continue" : "Kemmel"
 },
 "nplurals=2; plural=(n != 1);");

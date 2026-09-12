@@ -14,6 +14,7 @@ OC.L10N.register(
     "Never" : "Ni",
     "Disable" : "Ofschalten",
     "Enable" : "Aktivéieren",
-    "Scope" : "Uwendungsberäich"
+    "Scope" : "Uwendungsberäich",
+    "Continue" : "Weider"
 },
 "nplurals=2; plural=(n != 1);");

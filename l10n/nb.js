@@ -65,6 +65,7 @@ OC.L10N.register(
     "Email address" : "E-post adresse",
     "Deny" : "ikke tillatt",
     "Allow" : "Tillatt",
+    "Continue" : "Fortsett",
     "OpenID Connect Redirect" : "OpenID Connect Omdirigering",
     "Loading..." : "Laster…"
 },

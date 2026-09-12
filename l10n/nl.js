@@ -103,6 +103,7 @@ OC.L10N.register(
     "{clientName} is requesting access to your account." : "{clientName} vraagt toegang tot je account.",
     "Deny" : "Weigeren",
     "Allow" : "Toestaan",
+    "Continue" : "Doorgaan",
     "OpenID Connect Redirect" : "OpenID Connect omleiden",
     "Loading..." : "Laden...."
 },

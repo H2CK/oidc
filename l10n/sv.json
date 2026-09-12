@@ -194,6 +194,7 @@
     "Deny" : "Neka",
     "Allow" : "Tillåt",
     "You can revoke this access at any time from your account settings." : "Du kan när som helst återkalla åtkomsten i dina kontoinställningar.",
+    "Continue" : "Fortsätt",
     "OpenID Connect Redirect" : "Omdirigering av OpenID Connect",
     "Failed to load authorized applications" : "Kunde inte läsa in auktoriserade appar",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Vill du verkligen återkalla åtkomsten för ”{clientName}”?",

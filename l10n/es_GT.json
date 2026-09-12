@@ -24,6 +24,7 @@
     "Disable" : "Deshabilitar",
     "Scope" : "Alcance",
     "Email address" : "Dirección de correo electrónico",
+    "Continue" : "Continuar",
     "Loading..." : "Cargando..."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

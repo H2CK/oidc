@@ -29,6 +29,7 @@ OC.L10N.register(
     "Profile information" : "Thông tin cá nhân",
     "Email address" : "Địa chỉ thư điện tử",
     "Deny" : "Từ chối",
-    "Allow" : "Cho phép"
+    "Allow" : "Cho phép",
+    "Continue" : "Tiếp tục"
 },
 "nplurals=1; plural=0;");

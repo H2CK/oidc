@@ -30,6 +30,7 @@ OC.L10N.register(
     "Never" : "Jamai",
     "Disable" : "Desactivar",
     "Enable" : "Activar",
-    "Email address" : "Adreça mail"
+    "Email address" : "Adreça mail",
+    "Continue" : "Contunhar"
 },
 "nplurals=2; plural=(n > 1);");

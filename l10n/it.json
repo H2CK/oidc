@@ -89,6 +89,7 @@
     "Email address" : "Indirizzo email",
     "Deny" : "Nega",
     "Allow" : "Consenti",
+    "Continue" : "Continua",
     "OpenID Connect Redirect" : "Reindirizzamento di OpenID Connect",
     "Loading..." : "Caricamento in corso..."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

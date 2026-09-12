@@ -146,6 +146,7 @@ OC.L10N.register(
     "Deny" : "Denegar",
     "Allow" : "Permitir",
     "You can revoke this access at any time from your account settings." : "Pode revogar este acceso en calquera momento desde a configuración da súa conta.",
+    "Continue" : "Continuar",
     "OpenID Connect Redirect" : "Redirección de OpenID Connect",
     "Failed to load authorized applications" : "Produciuse un fallo ao cargar as aplicacións autorizadas",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Confirma que quere revogar o acceso de «{clientName}»",

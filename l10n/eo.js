@@ -18,6 +18,7 @@ OC.L10N.register(
     "Scope" : "Amplekso",
     "Email address" : "Retpoŝtadreso",
     "Deny" : "Rifuzi",
-    "Allow" : "Permesi"
+    "Allow" : "Permesi",
+    "Continue" : "Daŭrigi"
 },
 "nplurals=2; plural=(n != 1);");

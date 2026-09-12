@@ -91,6 +91,7 @@ OC.L10N.register(
     "Email address" : "Sähköpostiosoite",
     "Deny" : "Kiellä",
     "Allow" : "Salli",
+    "Continue" : "Jatka",
     "OpenID Connect Redirect" : "OpenID Connectin uudelleenohjaus",
     "Loading..." : "Ladataan..."
 },

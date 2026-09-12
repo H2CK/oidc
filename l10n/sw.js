@@ -90,6 +90,7 @@ OC.L10N.register(
     "Email address" : "Anwani ya barua pepe",
     "Deny" : "Kataa",
     "Allow" : "Ruhusu",
+    "Continue" : "Endelea",
     "OpenID Connect Redirect" : "OpenID Unganisha Uelekezaji Upya",
     "Loading..." : "Inapakia..."
 },
