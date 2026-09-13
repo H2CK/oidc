@@ -11,6 +11,7 @@ OC.L10N.register(
     "Never" : "Heç vaxt",
     "Disable" : "Dayandır",
     "Scope" : "Həcm",
-    "Profile information" : "Profil məlumatı"
+    "Profile information" : "Profil məlumatı",
+    "Continue" : "Davam et"
 },
 "nplurals=2; plural=(n != 1);");

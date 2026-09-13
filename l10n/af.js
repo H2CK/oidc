@@ -12,6 +12,7 @@ OC.L10N.register(
     "Save" : "Stoor",
     "Delete" : "Skrap",
     "Disable" : "Deaktiveer",
-    "Email address" : "E-posadres"
+    "Email address" : "E-posadres",
+    "Continue" : "Gaan voort"
 },
 "nplurals=2; plural=(n != 1);");

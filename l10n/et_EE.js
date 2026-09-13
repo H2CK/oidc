@@ -5,6 +5,7 @@ OC.L10N.register(
     "No consent request pending." : "Ühtegi nõusolekupäringut pole ootel.",
     "Client Identifier is missing in the request" : "Klienditunnus on päringust puudu",
     "Could not find client for the given uid or client identifier" : "Antud UID või klienditunnusega klienti ei leidu",
+    "The device code is invalid or has expired." : "See seadme kood on kas vigane või aegunud.",
     "Authorization session expired. Please try again." : "Autoriseerimise sessioon on aegunud. Palun proovi uuesti.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Kasutaja selle kliendi jaoks määratud gruppide liige. Sa ei saa sisselogimiseks mõeldud tunnusluba kasutada.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT tunnusloa loomisel tekkis viga. Palun teavita sellest oma teenuse peakasutajat.",

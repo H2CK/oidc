@@ -39,6 +39,7 @@ OC.L10N.register(
     "Email address" : "Direición de corréu electrónicu",
     "Deny" : "Negar",
     "Allow" : "Permitir",
+    "Continue" : "Siguir",
     "Loading..." : "Cargando..."
 },
 "nplurals=2; plural=(n != 1);");
