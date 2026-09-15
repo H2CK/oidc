@@ -92,15 +92,33 @@ jobs:
       - name: Start self-hosted OAuch, proxy and Chromium
         run: |
           docker compose -f .github/oauch/docker-compose.yml up -d --build
+          oauch_ready=false
           for i in {1..90}; do
-            curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null && break || true
+            if curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null; then
+              oauch_ready=true
+              break
+            fi
             sleep 1
           done
-          curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null
+          if [ "$oauch_ready" != true ]; then
+            docker compose -f .github/oauch/docker-compose.yml ps
+            docker compose -f .github/oauch/docker-compose.yml logs --no-color oauch
+            exit 1
+          fi
+
+          chrome_ready=false
           for i in {1..60}; do
-            curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true' && break || true
+            if curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true'; then
+              chrome_ready=true
+              break
+            fi
             sleep 1
           done
+          if [ "$chrome_ready" != true ]; then
+            docker compose -f .github/oauch/docker-compose.yml ps
+            docker compose -f .github/oauch/docker-compose.yml logs --no-color chrome
+            exit 1
+          fi
 
       - name: Run OAuch browser-driven test
         id: oauch_run
