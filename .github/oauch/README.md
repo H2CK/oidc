@@ -15,8 +15,10 @@ For that reason:
 - it should not initially be a required pull-request status check;
 - HTML pages, screenshots, OAuch DB files and Docker logs are retained as
   artifacts for diagnosis;
-- pin `OAUCH_IMAGE` to an image digest after validating a known-good OAuch
-  version. The default is the official image name documented by OAuch.
+- the workflow builds OAuch from a pinned commit of the official
+  `DistriNet/OAuch` repository instead of consuming a mutable Docker image;
+- the local Dockerfile also installs the ephemeral test CA so OAuch can reach
+  the HTTPS Nextcloud proxy.
 
 The OAuch client redirect URI is `https://oauch.io/Callback`. Docker network DNS
 maps `oauch.io` to the self-hosted container for the Selenium browser.

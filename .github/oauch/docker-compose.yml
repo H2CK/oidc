@@ -12,8 +12,6 @@ services:
   oauch:
     build:
       context: .
-      args:
-        OAUCH_IMAGE: ${OAUCH_IMAGE:-pieterphilippaerts/oauch-image:latest}
     hostname: oauch.io
     ports:
       - "9443:443"
