@@ -377,6 +377,35 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        if (!isset($client_id)) {
+            $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
+            $credentials = $this->getBasicClientCredentials();
+            if ($credentials !== null) {
+                [$client_id, $client_secret] = $credentials;
+            }
+        }
+
+        if ($client_id === null || trim($client_id) === '') {
+            $this->logger->info('Missing client_id in token request.');
+            return $this->invalidClientResponse('Missing client_id.', $this->hasBasicAuthorizationHeader());
+        }
+
+        try {
+            $client = $this->clientMapper->getByIdentifier($client_id);
+        } catch (ClientNotFoundException $e) {
+            $this->logger->info('Client not found. Client id was ' . $client_id . '.');
+            return $this->invalidClientResponse('Client not found.', $this->hasBasicAuthorizationHeader());
+        }
+        if ($client === null) {
+            $this->logger->info('Client not found. Client id was ' . $client_id . '.');
+            return $this->invalidClientResponse('Client not found.', $this->hasBasicAuthorizationHeader());
+        }
+
+        if ($client->getType() !== 'public' && (!is_string($client_secret) || !hash_equals($client->getSecret(), $client_secret))) {
+            $this->logger->error('Client authentication failed. Client id was ' . $client_id . '.');
+            return $this->invalidClientResponse('Client authentication failed.', $this->hasBasicAuthorizationHeader());
+        }
+
         // We handle the initial and refresh tokens the same way
         if ($grant_type === 'refresh_token') {
             $code = $refresh_token;
@@ -409,41 +438,6 @@ class OIDCApiController extends ApiController {
             }
             $this->logger->info('Could not find access token for code or refresh_token for client id ' . $client_id . '.');
             return $this->invalidGrantResponse('Could not find access token for code or refresh_token.');
-        }
-
-        if (!isset($client_id)) {
-            $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
-            $credentials = $this->getBasicClientCredentials();
-            if ($credentials !== null) {
-                [$client_id, $client_secret] = $credentials;
-            }
-        }
-
-        if ($client_id === null || trim($client_id) === '') {
-            $this->logger->info('Missing client_id in token request.');
-            return $this->invalidClientResponse('Missing client_id.', $this->hasBasicAuthorizationHeader());
-        }
-
-        try {
-            $client = $this->clientMapper->getByIdentifier($client_id);
-        } catch (ClientNotFoundException $e) {
-            $this->logger->info('Client not found. Client id was ' . $client_id . '.');
-            return $this->invalidClientResponse('Client not found.', $this->hasBasicAuthorizationHeader());
-        }
-        if ($client === null) {
-            $this->logger->info('Client not found. Client id was ' . $client_id . '.');
-            return $this->invalidClientResponse('Client not found.', $this->hasBasicAuthorizationHeader());
-        }
-
-        if ($client->getType() === 'public') {
-            // Only the client id must be present for a public client.
-            $this->logger->debug('Authenticated public client. Client id was ' . $client_id . '.');
-        } else {
-            // The client id and secret must match. Else we don't provide an access token!
-            if (!is_string($client_secret) || !hash_equals($client->getSecret(), $client_secret)) {
-                $this->logger->error('Client authentication failed. Client id was ' . $client_id . '.');
-                return $this->invalidClientResponse('Client authentication failed.', $this->hasBasicAuthorizationHeader());
-            }
         }
 
         if ($accessToken->getClientId() !== $client->getId()) {

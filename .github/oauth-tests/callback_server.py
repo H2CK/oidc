@@ -29,6 +29,7 @@ class Handler(BaseHTTPRequestHandler):
         fd, tmp_name = tempfile.mkstemp(dir=RESULTS, prefix="callback-", suffix=".json")
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             json.dump(payload, handle)
+        os.chmod(tmp_name, 0o644)
         os.replace(tmp_name, CALLBACK_FILE)
 
         self.send_response(200)

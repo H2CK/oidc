@@ -19,11 +19,32 @@ def test_device_authorization_response(oauth):
             pytest.fail("Device Authorization Grant is required but no endpoint is configured/advertised")
         pytest.skip("RFC 8628 Device Authorization is not implemented")
 
-    response = oauth.http.post(endpoint, data={"client_id": CLIENT_ID, "scope": "openid profile"}, auth=(CLIENT_ID, CLIENT_SECRET))
+    response = oauth.http.post(endpoint, data={"scope": "openid profile"}, auth=(CLIENT_ID, CLIENT_SECRET))
     assert response.status_code == 200, response.text
     data = response.json()
     for key in ("device_code", "user_code", "verification_uri", "expires_in"):
         assert data.get(key), f"missing {key}"
+
+
+@pytest.mark.optional_extension("RFC 8628 Device Authorization")
+@pytest.mark.rfc("RFC 8628", section="3.2")
+def test_device_authorization_client_secret_post(oauth):
+    endpoint = _device_endpoint(oauth)
+    if not endpoint:
+        if env_true("OAUTH_REQUIRE_DEVICE_AUTH"):
+            pytest.fail("Device Authorization Grant is required but no endpoint is configured/advertised")
+        pytest.skip("RFC 8628 Device Authorization is not implemented")
+
+    response = oauth.http.post(
+        endpoint,
+        data={
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+            "scope": "openid profile",
+        },
+    )
+    assert response.status_code == 200, response.text
+    assert response.json().get("device_code")
 
 
 @pytest.mark.optional_extension("RFC 8628 Device Authorization")
@@ -35,7 +56,7 @@ def test_device_code_poll_before_authorization_is_pending(oauth):
             pytest.fail("Device Authorization Grant is required but no endpoint is configured/advertised")
         pytest.skip("RFC 8628 Device Authorization is not implemented")
 
-    start = oauth.http.post(endpoint, data={"client_id": CLIENT_ID, "scope": "openid profile"}, auth=(CLIENT_ID, CLIENT_SECRET))
+    start = oauth.http.post(endpoint, data={"scope": "openid profile"}, auth=(CLIENT_ID, CLIENT_SECRET))
     assert start.status_code == 200, start.text
     response = oauth.token({"grant_type": DEVICE_GRANT, "device_code": start.json()["device_code"]})
     assert response.status_code == 400

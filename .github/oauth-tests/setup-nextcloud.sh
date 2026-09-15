@@ -73,7 +73,10 @@ rsync -a --delete \
     --client_secret "$OAUTH_CLIENT_SECRET" \
     --type confidential \
     --flow code \
-    --allowed_scopes "openid profile email roles groups offline_access"
+    --allowed_scopes "openid profile email roles groups offline_access" \
+    --tex_enabled \
+    --tex_allowed_scopes "openid profile email roles groups offline_access" \
+    --tex_allowed_subject_client "$OAUTH_CLIENT_ID"
 
   php occ oidc:create "OAuth conformance second client" "$OAUTH_CALLBACK_URI" \
     --client_id "$OAUTH_SECOND_CLIENT_ID" \
