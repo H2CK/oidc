@@ -8,6 +8,7 @@ OIDC_TEST_USER="${OIDC_TEST_USER:-oidc-test-user}"
 OIDC_TEST_PASSWORD="${OIDC_TEST_PASSWORD:-oidc-test-password}"
 OIDC_TEST_EMAIL="${OIDC_TEST_EMAIL:-oidc-test@example.invalid}"
 OAUTH_CALLBACK_URI="${OAUTH_CALLBACK_URI:-https://oauth-callback:9444/callback}"
+OAUTH_BASE_URL="${OAUTH_BASE_URL:-https://nextcloud-proxy:8443}"
 OAUTH_CLIENT_ID="${OAUTH_CLIENT_ID:-oauth-conformance-client-000000000001}"
 OAUTH_CLIENT_SECRET="${OAUTH_CLIENT_SECRET:-oauth-conformance-secret-0000000001}"
 OAUTH_SECOND_CLIENT_ID="${OAUTH_SECOND_CLIENT_ID:-oauth-conformance-client-000000000002}"
@@ -76,7 +77,8 @@ rsync -a --delete \
     --allowed_scopes "openid profile email roles groups offline_access" \
     --tex_enabled \
     --tex_allowed_scopes "openid profile email roles groups offline_access" \
-    --tex_allowed_subject_client "$OAUTH_CLIENT_ID"
+    --tex_allowed_subject_client "$OAUTH_CLIENT_ID" \
+    --tex_target_resource "$OAUTH_BASE_URL"
 
   php occ oidc:create "OAuth conformance second client" "$OAUTH_CALLBACK_URI" \
     --client_id "$OAUTH_SECOND_CLIENT_ID" \

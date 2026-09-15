@@ -22,6 +22,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCode;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
@@ -100,6 +101,8 @@ class OIDCApiController extends ApiController {
     private $formUrlencodedParameterParser;
     /** @var DeviceCodeMapper */
     private $deviceCodeMapper;
+    /** @var RedirectUriMapper|null */
+    private $redirectUriMapper;
 
     /**
      * @param string $appName
@@ -149,7 +152,8 @@ class OIDCApiController extends ApiController {
                     DeviceCodeMapper $deviceCodeMapper,
                     ?TexTargetMapper $texTargetMapper = null,
                     ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null,
-                    ?TexSubjectClientMapper $texSubjectClientMapper = null
+                    ?TexSubjectClientMapper $texSubjectClientMapper = null,
+                    ?RedirectUriMapper $redirectUriMapper = null
                     )
     {
         parent::__construct($appName, $request);
@@ -174,6 +178,7 @@ class OIDCApiController extends ApiController {
         $this->formUrlencodedParameterParser = $formUrlencodedParameterParser ?? new FormUrlencodedParameterParser();
         $this->texSubjectClientMapper = $texSubjectClientMapper;
         $this->deviceCodeMapper = $deviceCodeMapper;
+        $this->redirectUriMapper = $redirectUriMapper;
     }
 
     /**
@@ -328,7 +333,9 @@ class OIDCApiController extends ApiController {
         string|null $client_id = null,
         string|null $client_secret = null,
         string|null $code_verifier = null,
-        string|null $device_code = null): JSONResponse
+        string|null $device_code = null,
+        string|null $scope = null,
+        string|null $redirect_uri = null): JSONResponse
     {
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
@@ -406,6 +413,19 @@ class OIDCApiController extends ApiController {
             return $this->invalidClientResponse('Client authentication failed.', $this->hasBasicAuthorizationHeader());
         }
 
+        if ($redirect_uri !== null && $this->redirectUriMapper !== null) {
+            $redirectUriMatches = false;
+            foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $registeredRedirectUri) {
+                if ($registeredRedirectUri->getRedirectUri() === $redirect_uri) {
+                    $redirectUriMatches = true;
+                    break;
+                }
+            }
+            if (!$redirectUriMatches) {
+                return $this->invalidGrantResponse('Redirect URI does not match the authorization request.');
+            }
+        }
+
         // We handle the initial and refresh tokens the same way
         if ($grant_type === 'refresh_token') {
             $code = $refresh_token;
@@ -443,6 +463,18 @@ class OIDCApiController extends ApiController {
         if ($accessToken->getClientId() !== $client->getId()) {
             $this->logger->info('Grant is not valid for client id ' . $client_id . '.');
             return $this->invalidGrantResponse('Grant is not valid for this client.');
+        }
+
+        if ($grant_type === 'refresh_token' && $scope !== null) {
+            $requestedScopes = preg_split('/\s+/', trim($scope), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $originalScopes = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            if (array_diff($requestedScopes, $originalScopes) !== []) {
+                return new JSONResponse([
+                    'error' => 'invalid_scope',
+                    'error_description' => 'The requested scope exceeds the scope originally granted.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $accessToken->setScope(implode(' ', array_values(array_unique($requestedScopes))));
         }
 
         if (
@@ -587,6 +619,8 @@ class OIDCApiController extends ApiController {
             $this->logger->info('Denied refresh token - missing offline_access scope - User: ' . $uid . ', Client: ' . $client_id);
         }
         $response = new JSONResponse($responseData);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 

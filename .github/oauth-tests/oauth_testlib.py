@@ -18,6 +18,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 
 BASE_URL = os.environ.get("OAUTH_BASE_URL", "https://nextcloud-proxy:8443").rstrip("/")
+TOKEN_EXCHANGE_RESOURCE = os.environ.get("OAUTH_TOKEN_EXCHANGE_RESOURCE", BASE_URL)
 DISCOVERY_URL = os.environ.get(
     "OAUTH_DISCOVERY_URL", f"{BASE_URL}/index.php/.well-known/openid-configuration"
 )

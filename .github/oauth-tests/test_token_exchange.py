@@ -1,6 +1,6 @@
 import pytest
 
-from oauth_testlib import ACCESS_TOKEN_TYPE, TOKEN_EXCHANGE_GRANT, env_true
+from oauth_testlib import ACCESS_TOKEN_TYPE, TOKEN_EXCHANGE_GRANT, TOKEN_EXCHANGE_RESOURCE, env_true
 
 
 def _supported_or_required(oauth) -> bool:
@@ -13,6 +13,7 @@ def _exchange(oauth, subject_token: str | None, subject_type: str = ACCESS_TOKEN
         "grant_type": TOKEN_EXCHANGE_GRANT,
         "subject_token_type": subject_type,
         "requested_token_type": ACCESS_TOKEN_TYPE,
+        "resource": TOKEN_EXCHANGE_RESOURCE,
     }
     if subject_token is not None:
         data["subject_token"] = subject_token
