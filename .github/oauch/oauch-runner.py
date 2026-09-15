@@ -104,6 +104,17 @@ def select_matching(browser, element_id: str, value: str) -> bool:
         return False
 
 
+def fill_by_id(browser, element_id: str, value: str) -> None:
+    try:
+        element = browser.find_element(By.ID, element_id)
+    except NoSuchElementException as error:
+        raise RuntimeError(f"could not identify the OAuch field {element_id}") from error
+    element.clear()
+    element.send_keys(value)
+    if element.get_attribute("value") != value:
+        raise RuntimeError(f"could not set the OAuch field {element_id}")
+
+
 def login_nextcloud_if_needed(browser) -> bool:
     try:
         user = browser.find_element(By.ID, "user")
@@ -155,14 +166,13 @@ def main() -> int:
         time.sleep(1)
         save(browser, "02-profile")
 
-        if not fill_matching(browser, ("site name", "name"), "Nextcloud OIDC CI"):
-            raise RuntimeError("could not identify the OAuch site name field")
+        fill_by_id(browser, "Name", "Nextcloud OIDC CI")
         select_matching(browser, "SelectedInitialDocuments", "OIDC")
 
-        submit = browser.find_elements(By.CSS_SELECTOR, "form button[type='submit'],form input[type='submit']")
-        if not submit:
+        forms = browser.find_elements(By.CSS_SELECTOR, "form[action='/Dashboard/AddSite']")
+        if not forms:
             raise RuntimeError("could not submit the OAuch site form")
-        submit[0].click()
+        browser.execute_script("arguments[0].submit();", forms[0])
         WebDriverWait(browser, 15).until(
             lambda current: current.find_elements(By.ID, "Settings_AuthorizationUri")
             or current.find_elements(By.ID, "AuthorizationUri")
