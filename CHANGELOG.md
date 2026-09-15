@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.3.0] - 2026-09-11
+## [2.3.0] - 2026-09-15
 
 ### Added
 
 - Added support for OAuth 2.0 Device Authorization Grant (RFC 8628) ([#707](https://github.com/H2CK/oidc/pull/707))
+- Update dependencies ([#713](https://github.com/H2CK/oidc/pull/713))
 
 ### Changed
 
