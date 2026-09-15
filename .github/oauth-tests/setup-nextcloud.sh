@@ -32,7 +32,8 @@ PY
 )"
 
 rm -rf "$NEXTCLOUD_DIR"
-git clone --depth 1 --branch "stable${MAX_VERSION}" https://github.com/nextcloud/server.git "$NEXTCLOUD_DIR"
+git clone --depth 1 --recurse-submodules --shallow-submodules \
+  --branch "stable${MAX_VERSION}" https://github.com/nextcloud/server.git "$NEXTCLOUD_DIR"
 (
   cd "$NEXTCLOUD_DIR"
   composer install --no-interaction --prefer-dist --no-progress
