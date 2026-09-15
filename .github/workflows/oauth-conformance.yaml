@@ -1,0 +1,151 @@
+name: OAuth conformance
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      require_token_exchange:
+        description: Fail when RFC 8693 Token Exchange is not available
+        required: false
+        default: false
+        type: boolean
+      require_device_auth:
+        description: Fail when RFC 8628 Device Authorization is not available
+        required: false
+        default: false
+        type: boolean
+      require_revocation:
+        description: Fail when RFC 7009 revocation is not available
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: "8.5"
+  OAUTH_BASE_URL: https://nextcloud-proxy:8443
+  OAUTH_DISCOVERY_URL: https://nextcloud-proxy:8443/index.php/.well-known/openid-configuration
+  OAUTH_CALLBACK_URI: https://oauth-callback:9444/callback
+  OAUTH_CLIENT_ID: oauth-conformance-client-000000000001
+  OAUTH_CLIENT_SECRET: oauth-conformance-secret-0000000001
+  OAUTH_SECOND_CLIENT_ID: oauth-conformance-client-000000000002
+  OAUTH_SECOND_CLIENT_SECRET: oauth-conformance-secret-0000000002
+  OIDC_TEST_USER: oidc-test-user
+  OIDC_TEST_PASSWORD: oidc-test-password
+  OAUTH_RESULTS_DIR: ${{ github.workspace }}/oauth-results
+  OAUTH_CA_CERT: .github/oauth-tests/certs/ca.crt
+  SELENIUM_REMOTE_URL: http://127.0.0.1:4444/wd/hub
+
+jobs:
+  oauth-conformance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Build OIDC app
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+          npm run build
+
+      - name: Install OAuth test dependencies
+        run: python3 -m pip install -r .github/oauth-tests/requirements.txt
+
+      - name: Create ephemeral TLS CA
+        run: |
+          mkdir -p .github/oauth-tests/certs oauth-results
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
+            -subj "/CN=OIDC OAuth Conformance Test CA" \
+            -keyout .github/oauth-tests/certs/ca.key \
+            -out .github/oauth-tests/certs/ca.crt
+          openssl req -newkey rsa:2048 -nodes \
+            -subj "/CN=nextcloud-proxy" \
+            -keyout .github/oauth-tests/certs/server.key \
+            -out .github/oauth-tests/certs/server.csr
+          cat > .github/oauth-tests/certs/ext.cnf <<'CERT'
+          subjectAltName=DNS:nextcloud-proxy,DNS:oauth-callback,DNS:oauch.io,DNS:localhost,IP:127.0.0.1
+          extendedKeyUsage=serverAuth
+          CERT
+          openssl x509 -req -days 2 \
+            -in .github/oauth-tests/certs/server.csr \
+            -CA .github/oauth-tests/certs/ca.crt \
+            -CAkey .github/oauth-tests/certs/ca.key \
+            -CAcreateserial \
+            -extfile .github/oauth-tests/certs/ext.cnf \
+            -out .github/oauth-tests/certs/server.crt
+          echo "127.0.0.1 nextcloud-proxy" | sudo tee -a /etc/hosts
+
+      - name: Set up Nextcloud and OIDC provider
+        run: .github/oauth-tests/setup-nextcloud.sh
+
+      - name: Start TLS proxy, callback sink and Chromium
+        run: |
+          docker compose -f .github/oauth-tests/docker-compose.yml up -d
+          for i in {1..60}; do
+            curl --fail --silent --cacert .github/oauth-tests/certs/ca.crt \
+              "$OAUTH_DISCOVERY_URL" >/dev/null && break
+            sleep 1
+          done
+          curl --fail --cacert .github/oauth-tests/certs/ca.crt "$OAUTH_DISCOVERY_URL"
+          for i in {1..60}; do
+            curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true' && break || true
+            sleep 1
+          done
+
+      - name: Run OAuth protocol tests
+        id: oauth_tests
+        continue-on-error: true
+        env:
+          OAUTH_REQUIRE_TOKEN_EXCHANGE: ${{ inputs.require_token_exchange || 'false' }}
+          OAUTH_REQUIRE_DEVICE_AUTH: ${{ inputs.require_device_auth || 'false' }}
+          OAUTH_REQUIRE_REVOCATION: ${{ inputs.require_revocation || 'false' }}
+        run: |
+          python3 -m pytest .github/oauth-tests \
+            -c .github/oauth-tests/pytest.ini \
+            --junitxml=oauth-results/junit.xml \
+            -v
+
+      - name: Collect service logs
+        if: always()
+        run: |
+          docker compose -f .github/oauth-tests/docker-compose.yml logs --no-color > oauth-results/docker-compose.log 2>&1 || true
+          if [ -f "$NEXTCLOUD_DIR/data/nextcloud.log" ]; then
+            cp "$NEXTCLOUD_DIR/data/nextcloud.log" oauth-results/nextcloud.log
+          fi
+
+      - name: Upload OAuth conformance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oauth-conformance-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            oauth-results/OAUTH-CONFORMANCE.md
+            oauth-results/results.json
+            oauth-results/junit.xml
+            oauth-results/nextcloud-server.log
+            oauth-results/nextcloud.log
+            oauth-results/docker-compose.log
+
+      - name: Enforce OAuth conformance result
+        if: steps.oauth_tests.outcome != 'success'
+        run: exit 1
