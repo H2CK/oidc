@@ -157,7 +157,6 @@ def main() -> int:
 
         if not fill_matching(browser, ("site name", "name"), "Nextcloud OIDC CI"):
             raise RuntimeError("could not identify the OAuch site name field")
-        fill_matching(browser, ("metadata url", "metadata"), DISCOVERY)
         select_matching(browser, "SelectedInitialDocuments", "OIDC")
 
         submit = browser.find_elements(By.CSS_SELECTOR, "form button[type='submit'],form input[type='submit']")
