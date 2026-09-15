@@ -179,19 +179,25 @@ def main() -> int:
         )
         save(browser, "03-settings")
 
-        values = {
-            ("site name", "profile name", "name"): "Nextcloud OIDC CI",
-            ("authorization endpoint", "authorization url", "authorize url"): metadata["authorization_endpoint"],
-            ("token endpoint", "token url"): metadata["token_endpoint"],
-            ("client id", "client identifier"): CLIENT_ID,
-            ("client secret",): CLIENT_SECRET,
-        }
-        filled = 0
-        for needles, value in values.items():
-            filled += int(fill_matching(browser, needles, value))
-        if filled < 4:
+        fill_by_id(browser, "Settings_AuthorizationUri", metadata["authorization_endpoint"])
+        fill_by_id(browser, "Settings_TokenUri", metadata["token_endpoint"])
+        browser.find_element(By.ID, "label-client").click()
+        WebDriverWait(browser, 5).until(
+            lambda current: current.find_element(By.ID, "Settings_DefaultClient_ClientId").is_displayed()
+        )
+        fill_by_id(browser, "Settings_DefaultClient_ClientId", CLIENT_ID)
+        fill_by_id(browser, "Settings_DefaultClient_ClientSecret", CLIENT_SECRET)
+        if not all(
+            browser.find_element(By.ID, element_id).get_attribute("value") == value
+            for element_id, value in (
+                ("Settings_AuthorizationUri", metadata["authorization_endpoint"]),
+                ("Settings_TokenUri", metadata["token_endpoint"]),
+                ("Settings_DefaultClient_ClientId", CLIENT_ID),
+                ("Settings_DefaultClient_ClientSecret", CLIENT_SECRET),
+            )
+        ):
             save(browser, "error-profile-fields")
-            raise RuntimeError(f"could not identify enough OAuch profile fields (filled {filled})")
+            raise RuntimeError("could not populate enough OAuch settings fields")
 
         # Some releases have an explicit OIDC toggle. Select it if available,
         # but OAuth tests do not depend on it being present.
