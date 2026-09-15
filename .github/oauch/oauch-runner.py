@@ -20,7 +20,7 @@ import httpx
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException, WebDriverException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support.ui import Select, WebDriverWait
 
 RESULTS = Path(os.environ.get("OAUCH_RESULTS_DIR", "oauch-results"))
 RESULTS.mkdir(parents=True, exist_ok=True)
@@ -96,6 +96,14 @@ def fill_matching(browser, needles: tuple[str, ...], value: str) -> bool:
     return False
 
 
+def select_matching(browser, element_id: str, value: str) -> bool:
+    try:
+        Select(browser.find_element(By.ID, element_id)).select_by_value(value)
+        return True
+    except NoSuchElementException:
+        return False
+
+
 def login_nextcloud_if_needed(browser) -> bool:
     try:
         user = browser.find_element(By.ID, "user")
@@ -141,10 +149,26 @@ def main() -> int:
         click_text(browser, ("create link", "create login link"))
         time.sleep(2)
 
-        # Depending on the OAuch release this may be called site/profile/new test.
+        # The current OAuch UI creates a site before showing its endpoint and
+        # client settings. Those fields are not present on the initial page.
         click_text(browser, ("new site", "add site", "new profile", "add profile", "new test", "start testing"))
         time.sleep(1)
         save(browser, "02-profile")
+
+        if not fill_matching(browser, ("site name", "name"), "Nextcloud OIDC CI"):
+            raise RuntimeError("could not identify the OAuch site name field")
+        fill_matching(browser, ("metadata url", "metadata"), DISCOVERY)
+        select_matching(browser, "SelectedInitialDocuments", "OIDC")
+
+        submit = browser.find_elements(By.CSS_SELECTOR, "form button[type='submit'],form input[type='submit']")
+        if not submit:
+            raise RuntimeError("could not submit the OAuch site form")
+        submit[0].click()
+        WebDriverWait(browser, 15).until(
+            lambda current: current.find_elements(By.ID, "Settings_AuthorizationUri")
+            or current.find_elements(By.ID, "AuthorizationUri")
+        )
+        save(browser, "03-settings")
 
         values = {
             ("site name", "profile name", "name"): "Nextcloud OIDC CI",
