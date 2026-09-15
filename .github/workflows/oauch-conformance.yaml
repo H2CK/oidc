@@ -1,0 +1,124 @@
+name: OAuch OAuth security conformance
+
+on:
+  schedule:
+    - cron: "43 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PHP_VERSION: "8.5"
+  OAUTH_BASE_URL: https://nextcloud-proxy:8443
+  OAUTH_DISCOVERY_URL: https://nextcloud-proxy:8443/index.php/.well-known/openid-configuration
+  OAUTH_CA_CERT: .github/oauth-tests/certs/ca.crt
+  OIDC_TEST_USER: oidc-test-user
+  OIDC_TEST_PASSWORD: oidc-test-password
+  OAUCH_CLIENT_ID: oauch-conformance-client-00000000001
+  OAUCH_CLIENT_SECRET: oauch-conformance-secret-00000000001
+  OAUCH_CALLBACK_URI: https://oauch.io/Callback
+  OAUCH_RESULTS_DIR: ${{ github.workspace }}/oauch-results
+  OAUTH_RESULTS_DIR: ${{ github.workspace }}/oauth-results
+  SELENIUM_REMOTE_URL: http://127.0.0.1:4444/wd/hub
+  OAUCH_URL: https://oauch.io/
+  OAUCH_HEALTH_URL: https://127.0.0.1:9443/
+  OAUCH_IMAGE: pieterphilippaerts/oauch-image:latest
+
+jobs:
+  oauch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+          coverage: none
+
+      - name: Build OIDC app
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          npm ci
+          npm run build
+
+      - name: Install runner dependencies
+        run: python3 -m pip install -r .github/oauth-tests/requirements.txt
+
+      - name: Create ephemeral TLS CA
+        run: |
+          mkdir -p .github/oauth-tests/certs oauth-results oauch-results/db
+          openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
+            -subj "/CN=OIDC OAuch Test CA" \
+            -keyout .github/oauth-tests/certs/ca.key \
+            -out .github/oauth-tests/certs/ca.crt
+          openssl req -newkey rsa:2048 -nodes \
+            -subj "/CN=nextcloud-proxy" \
+            -keyout .github/oauth-tests/certs/server.key \
+            -out .github/oauth-tests/certs/server.csr
+          cat > .github/oauth-tests/certs/ext.cnf <<'CERT'
+          subjectAltName=DNS:nextcloud-proxy,DNS:oauch.io,DNS:localhost,IP:127.0.0.1
+          extendedKeyUsage=serverAuth
+          CERT
+          openssl x509 -req -days 2 \
+            -in .github/oauth-tests/certs/server.csr \
+            -CA .github/oauth-tests/certs/ca.crt \
+            -CAkey .github/oauth-tests/certs/ca.key \
+            -CAcreateserial \
+            -extfile .github/oauth-tests/certs/ext.cnf \
+            -out .github/oauth-tests/certs/server.crt
+          cp .github/oauth-tests/certs/ca.crt .github/oauch/nextcloud-test-ca.crt
+          echo "127.0.0.1 nextcloud-proxy" | sudo tee -a /etc/hosts
+
+      - name: Set up Nextcloud and OIDC provider
+        run: .github/oauth-tests/setup-nextcloud.sh
+
+      - name: Start self-hosted OAuch, proxy and Chromium
+        run: |
+          docker compose -f .github/oauch/docker-compose.yml up -d --build
+          for i in {1..90}; do
+            curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null && break || true
+            sleep 1
+          done
+          curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null
+          for i in {1..60}; do
+            curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true' && break || true
+            sleep 1
+          done
+
+      - name: Run OAuch browser-driven test
+        id: oauch_run
+        continue-on-error: true
+        run: python3 .github/oauch/oauch-runner.py
+
+      - name: Collect OAuch logs
+        if: always()
+        run: |
+          docker compose -f .github/oauch/docker-compose.yml logs --no-color > oauch-results/docker-compose.log 2>&1 || true
+          if [ -f "$NEXTCLOUD_DIR/data/nextcloud.log" ]; then
+            cp "$NEXTCLOUD_DIR/data/nextcloud.log" oauch-results/nextcloud.log
+          fi
+          cp oauth-results/nextcloud-server.log oauch-results/nextcloud-server.log 2>/dev/null || true
+
+      - name: Upload OAuch artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oauch-conformance-${{ github.run_id }}
+          if-no-files-found: warn
+          path: |
+            oauch-results/
+
+      - name: Enforce OAuch runner completion
+        if: steps.oauch_run.outcome != 'success'
+        run: exit 1
