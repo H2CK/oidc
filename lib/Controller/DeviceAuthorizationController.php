@@ -42,7 +42,6 @@ use Psr\Log\LoggerInterface;
 
 class DeviceAuthorizationController extends Controller {
 	private const DEVICE_CODE_LIFETIME = 600;
-	private const INITIAL_POLL_INTERVAL = 5;
 	/** Consent lifetime matches ConsentController (90 days). */
 	private const CONSENT_LIFETIME = 7776000;
 	private const USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -130,7 +129,7 @@ class DeviceAuthorizationController extends Controller {
 		$entity->setScope($scopeOrResponse);
 		$entity->setCreatedAt($now);
 		$entity->setExpiresAt($now + self::DEVICE_CODE_LIFETIME);
-		$entity->setIntervalSeconds(self::INITIAL_POLL_INTERVAL);
+		$entity->setIntervalSeconds(DeviceCodeMapper::INITIAL_INTERVAL_SECONDS);
 		$entity->setLastPolledAt(0);
 		$entity->setStatus(DeviceCode::STATUS_PENDING);
 		$entity->setUserId(null);
@@ -144,7 +143,7 @@ class DeviceAuthorizationController extends Controller {
 			'verification_uri' => $verificationUri,
 			'verification_uri_complete' => $verificationUri . '?user_code=' . rawurlencode($displayUserCode),
 			'expires_in' => self::DEVICE_CODE_LIFETIME,
-			'interval' => self::INITIAL_POLL_INTERVAL,
+			'interval' => DeviceCodeMapper::INITIAL_INTERVAL_SECONDS,
 		]);
 		$response->addHeader('Cache-Control', 'no-store');
 		$response->addHeader('Pragma', 'no-cache');

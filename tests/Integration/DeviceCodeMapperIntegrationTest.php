@@ -51,33 +51,46 @@ class DeviceCodeMapperIntegrationTest extends \Test\TestCase {
 			$this->assertTrue($this->mapper->recordPoll($stored, 1010));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
-			$this->assertFalse($this->mapper->recordPoll($stored, 1011));
 
+			// $now is whole seconds, so a client polling every 5.0s of wall clock
+			// yields integer deltas of 5,5,4,5,... The 4s deltas are not abuse.
+			$this->assertTrue($this->mapper->recordPoll($stored, 1014));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
-			$this->assertSame(10, $stored->getIntervalSeconds());
-			$this->assertSame(1011, $stored->getLastPolledAt());
+			$this->assertSame(5, $stored->getIntervalSeconds());
+			$this->assertSame(1014, $stored->getLastPolledAt());
 
-			// A second consecutive early poll must increase the interval again (RFC 8628).
+			// A genuinely early poll still gets slow_down and raises the interval,
+			// but must leave the anchor on the last ACCEPTED poll.
 			$this->assertFalse($this->mapper->recordPoll($stored, 1015));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
+			$this->assertSame(10, $stored->getIntervalSeconds());
+			$this->assertSame(1014, $stored->getLastPolledAt());
+
+			// A second consecutive early poll increases the interval again (RFC 8628).
+			$this->assertFalse($this->mapper->recordPoll($stored, 1016));
+			$stored = $this->mapper->findByDeviceCode($deviceCode);
+			$this->assertNotNull($stored);
 			$this->assertSame(15, $stored->getIntervalSeconds());
-			$this->assertSame(1015, $stored->getLastPolledAt());
+			$this->assertSame(1014, $stored->getLastPolledAt());
 
-			// Still too early for the increased interval of 15 seconds.
-			$this->assertFalse($this->mapper->recordPoll($stored, 1029));
+			// Escalation is capped, otherwise the window recedes as fast as the
+			// client advances and the code is locked out until it expires.
+			$this->assertFalse($this->mapper->recordPoll($stored, 1017));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
-			$this->assertSame(20, $stored->getIntervalSeconds());
+			$this->assertSame(DeviceCodeMapper::MAX_INTERVAL_SECONDS, $stored->getIntervalSeconds());
+			$this->assertSame(1014, $stored->getLastPolledAt());
 
+			// Regression guard: a client that keeps polling must get back in, and
+			// the escalation is undone so the interval does not creep up for the
+			// remaining life of the device code.
+			$this->assertTrue($this->mapper->recordPoll($stored, 1030));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
-			$this->assertTrue($this->mapper->recordPoll($stored, 1049));
-			$stored = $this->mapper->findByDeviceCode($deviceCode);
-			$this->assertNotNull($stored);
-			$this->assertSame(20, $stored->getIntervalSeconds());
-			$this->assertSame(1049, $stored->getLastPolledAt());
+			$this->assertSame(DeviceCodeMapper::INITIAL_INTERVAL_SECONDS, $stored->getIntervalSeconds());
+			$this->assertSame(1030, $stored->getLastPolledAt());
 
 			$this->assertTrue($this->mapper->markApproved($stored, 'alice'));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
