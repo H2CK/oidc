@@ -31,6 +31,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -62,6 +63,7 @@ class DeviceAuthorizationController extends Controller {
 		private IL10N $l,
 		private LoggerInterface $logger,
 		private FormUrlencodedParameterParser $formUrlencodedParameterParser,
+		private IAppConfig $appConfig,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -137,11 +139,16 @@ class DeviceAuthorizationController extends Controller {
 		$this->deviceCodeMapper->insert($entity);
 
 		$verificationUri = $this->urlGenerator->linkToRouteAbsolute('oidc.DeviceAuthorization.verify', []);
+		$verificationUriComplete = $verificationUri . '?user_code=' . rawurlencode($displayUserCode);
+		$inlineUserCode = $this->appConfig->getAppValueString(
+			Application::APP_CONFIG_DEVICE_CODE_IN_VERIFICATION_URI,
+			Application::DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI,
+		) === 'true';
 		$response = new JSONResponse([
 			'device_code' => $deviceCode,
 			'user_code' => $displayUserCode,
-			'verification_uri' => $verificationUri,
-			'verification_uri_complete' => $verificationUri . '?user_code=' . rawurlencode($displayUserCode),
+			'verification_uri' => $inlineUserCode ? $verificationUriComplete : $verificationUri,
+			'verification_uri_complete' => $verificationUriComplete,
 			'expires_in' => self::DEVICE_CODE_LIFETIME,
 			'interval' => DeviceCodeMapper::INITIAL_INTERVAL_SECONDS,
 		]);

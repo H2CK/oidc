@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- Added `device_code_in_verification_uri` to include the user code in `verification_uri` for device clients that build their QR code from it. Enabled by default.
+
 ### Fixed
 
 - Fixed the device authorization poll throttle moving its own window out of reach, which made a client that does not back off lose the device code permanently and delayed approval for clients that do.
