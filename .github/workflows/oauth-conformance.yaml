@@ -1,9 +1,9 @@
 name: OAuth conformance
 
 on:
-  pull_request:
-  push:
-    branches: [master]
+  #pull_request:
+  #push:
+  #  branches: [master]
   workflow_dispatch:
     inputs:
       require_token_exchange:
