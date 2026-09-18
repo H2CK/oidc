@@ -111,7 +111,7 @@ class DynamicRegistrationController extends ApiController
         array $response_types = ['code'],
         string $application_type = 'web',
         string|null $scope = null,
-        string $token_type = 'opaque',
+        ?string $token_type = null,
         string|null $resource_url = null,
         string|null $backchannel_logout_uri = null,
         bool $backchannel_logout_session_required = false,
@@ -183,13 +183,23 @@ class DynamicRegistrationController extends ApiController
         // Honor client's requested token type from DCR, fall back to server default if not specified or invalid
         $accessTokenType = $token_type;
 
-        // Validate token_type - only accept internal lowercase values: 'opaque' or 'jwt'
-        // Fall back to server default if invalid
-        if (!in_array($accessTokenType, ['opaque', 'jwt'], true)) {
+        // Use the configured server default when the client omits token_type.
+        // Normalize values before validation because the admin UI may expose
+        // the value as "JWT" while the internal value is "jwt".
+        if ($token_type === null || trim($token_type) === '') {
             $accessTokenType = $this->appConfig->getAppValueString(
                 Application::APP_CONFIG_DEFAULT_TOKEN_TYPE,
                 Application::DEFAULT_TOKEN_TYPE
             );
+        } else {
+            $accessTokenType = $token_type;
+        }
+
+        $accessTokenType = strtolower(trim($accessTokenType));
+
+        // Accept only the internal values: 'opaque' or 'jwt'.
+        if (!in_array($accessTokenType, ['opaque', 'jwt'], true)) {
+            $accessTokenType = Application::DEFAULT_TOKEN_TYPE;
         }
 
         $client = new Client(
