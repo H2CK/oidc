@@ -259,12 +259,22 @@ class AccessTokenMapper extends QBMapper {
      *
      */
     public function cleanUp() {
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
-        if ($refreshExpireTime !== 'never') {
-            // keep the token until its refresh token has expired
-            $expireTime = max($expireTime, (int)$refreshExpireTime);
+        if ($refreshExpireTime === 'never') {
+            // Every row here was issued together with a refresh token (see
+            // OIDCApiController), so "never" must mean this cleanup never
+            // deletes for staleness - not "fall back to the access-token
+            // expire_time", which silently reintroduced the very expiry the
+            // admin asked to turn off (rows going stale after ~expire_time
+            // instead of never).
+            return;
         }
+
+        // keep the token until its refresh token has expired
+        $expireTime = max(
+            (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME),
+            (int)$refreshExpireTime
+        );
         $timeLimit = $this->time->getTime() - $expireTime;
 
         // refreshed < $timeLimit
