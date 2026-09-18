@@ -20,12 +20,22 @@ use OCP\Server;
 class AccessTokenMapperIntegrationTest extends \Test\TestCase {
 	private AccessTokenMapper $mapper;
 	private IAppConfig $appConfig;
+
+	/** @var \OCP\AppFramework\App */
+    private $app;
+	
 	private ?string $previousRefreshExpireTime = null;
 
 	protected function setUp(): void {
 		parent::setUp();
+
+		// Load the app to ensure its services are registered
+        $this->app = new \OCP\AppFramework\App('oidc');
+        $appContainer = $this->app->getContainer();
+		
 		$this->mapper = Server::get(AccessTokenMapper::class);
-		$this->appConfig = Server::get(IAppConfig::class);
+		
+		$this->appConfig = $appContainer->get(IAppConfig::class);
 		$this->previousRefreshExpireTime = $this->appConfig->getAppValueString(
 			Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME,
 			Application::DEFAULT_REFRESH_EXPIRE_TIME
