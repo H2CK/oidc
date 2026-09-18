@@ -184,6 +184,8 @@ The End-User opens the verification URI, signs in to Nextcloud, and approves or 
 
 Request `offline_access` when the device needs a refresh token. Device clients can be registered as public clients when they cannot protect a client secret. Existing per-client scope and group restrictions are enforced when the request is created and again before tokens are issued.
 
+By default `verification_uri` also carries the `user_code`, so clients that render a QR code from it produce a code the End-User can scan straight through to the approval page. Ubuntu authd works this way. Set `device_code_in_verification_uri` to `false` to return the short form RFC 8628 section 3.2 recommends; `verification_uri_complete` contains the user code either way.
+
 The discovery and web finger endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration` (or `<Issuer>/index.php/.well-known/openid-configuration`). For web finger there should be a redirect to `<Issuer>/index.php/.well-known/webfinger`.
 
 When using pretty URLs without `index.php`, make sure that the web server rewrite configuration preserves the complete query string when redirecting to the canonical `index.php` URL. The OIDC authorization request parameters, including `client_id`, `redirect_uri`, `response_type`, `scope`, and `state`, are required after the redirect. If the web server cannot preserve them, use the `index.php`-prefixed authorization endpoint directly, for example `<Issuer>/index.php/apps/oidc/authorize`.

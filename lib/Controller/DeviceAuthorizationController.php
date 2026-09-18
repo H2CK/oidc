@@ -31,6 +31,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -42,7 +43,6 @@ use Psr\Log\LoggerInterface;
 
 class DeviceAuthorizationController extends Controller {
 	private const DEVICE_CODE_LIFETIME = 600;
-	private const INITIAL_POLL_INTERVAL = 5;
 	/** Consent lifetime matches ConsentController (90 days). */
 	private const CONSENT_LIFETIME = 7776000;
 	private const USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -63,6 +63,7 @@ class DeviceAuthorizationController extends Controller {
 		private IL10N $l,
 		private LoggerInterface $logger,
 		private FormUrlencodedParameterParser $formUrlencodedParameterParser,
+		private IAppConfig $appConfig,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -130,7 +131,7 @@ class DeviceAuthorizationController extends Controller {
 		$entity->setScope($scopeOrResponse);
 		$entity->setCreatedAt($now);
 		$entity->setExpiresAt($now + self::DEVICE_CODE_LIFETIME);
-		$entity->setIntervalSeconds(self::INITIAL_POLL_INTERVAL);
+		$entity->setIntervalSeconds(DeviceCodeMapper::INITIAL_INTERVAL_SECONDS);
 		$entity->setLastPolledAt(0);
 		$entity->setStatus(DeviceCode::STATUS_PENDING);
 		$entity->setUserId(null);
@@ -138,13 +139,18 @@ class DeviceAuthorizationController extends Controller {
 		$this->deviceCodeMapper->insert($entity);
 
 		$verificationUri = $this->urlGenerator->linkToRouteAbsolute('oidc.DeviceAuthorization.verify', []);
+		$verificationUriComplete = $verificationUri . '?user_code=' . rawurlencode($displayUserCode);
+		$inlineUserCode = $this->appConfig->getAppValueString(
+			Application::APP_CONFIG_DEVICE_CODE_IN_VERIFICATION_URI,
+			Application::DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI,
+		) === 'true';
 		$response = new JSONResponse([
 			'device_code' => $deviceCode,
 			'user_code' => $displayUserCode,
-			'verification_uri' => $verificationUri,
-			'verification_uri_complete' => $verificationUri . '?user_code=' . rawurlencode($displayUserCode),
+			'verification_uri' => $inlineUserCode ? $verificationUriComplete : $verificationUri,
+			'verification_uri_complete' => $verificationUriComplete,
 			'expires_in' => self::DEVICE_CODE_LIFETIME,
-			'interval' => self::INITIAL_POLL_INTERVAL,
+			'interval' => DeviceCodeMapper::INITIAL_INTERVAL_SECONDS,
 		]);
 		$response->addHeader('Cache-Control', 'no-store');
 		$response->addHeader('Pragma', 'no-cache');

@@ -678,10 +678,10 @@ class OIDCApiController extends ApiController {
             || ($authorization->getStatus() === DeviceCode::STATUS_APPROVED && $authorization->getUserId() === null)) {
             return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
         }
-        if (!$this->deviceCodeMapper->recordPoll($authorization, $now)) {
-            return $this->deviceGrantError('slow_down', 'Polling is faster than the permitted interval.');
-        }
         if ($authorization->getStatus() === DeviceCode::STATUS_PENDING) {
+            if (!$this->deviceCodeMapper->recordPoll($authorization, $now)) {
+                return $this->deviceGrantError('slow_down', 'Polling is faster than the permitted interval.');
+            }
             return $this->deviceGrantError('authorization_pending', 'The user has not completed authorization.');
         }
 
@@ -744,7 +744,11 @@ class OIDCApiController extends ApiController {
                 false
             );
         } catch (JwtCreationErrorException $e) {
+            $this->deviceCodeMapper->revertConsumed($authorization);
             return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            $this->deviceCodeMapper->revertConsumed($authorization);
+            throw $e;
         }
 
         $responseData = [

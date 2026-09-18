@@ -9,8 +9,25 @@
 
 			<form v-if="currentMode === 'enter'" @submit.prevent="verifyCode">
 				<p>{{ t('oidc', 'Enter the code displayed on your device.') }}</p>
-				<input v-model="enteredCode" type="text" autocomplete="one-time-code" autofocus required>
-				<button class="button primary" type="submit">{{ t('oidc', 'Continue') }}</button>
+				<label class="code-label" for="oidc-device-code">{{ t('oidc', 'Device code') }}</label>
+				<input id="oidc-device-code"
+					:value="enteredCode"
+					type="text"
+					class="code-input"
+					placeholder="XXXX-XXXX"
+					autocomplete="one-time-code"
+					autocapitalize="characters"
+					autocorrect="off"
+					spellcheck="false"
+					maxlength="9"
+					aria-describedby="oidc-device-code-hint"
+					autofocus
+					required
+					@input="onCodeInput">
+				<p id="oidc-device-code-hint" class="code-hint">
+					{{ t('oidc', 'Eight characters. The dash is added for you, and pasting the whole link works too.') }}
+				</p>
+				<button class="button primary" type="submit" :disabled="!codeComplete">{{ t('oidc', 'Continue') }}</button>
 			</form>
 
 			<div v-else-if="currentMode === 'approve'">
@@ -44,7 +61,7 @@
 import axios from '@nextcloud/axios'
 import { t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 
 const props = defineProps({
 	mode: { type: String, required: true },
@@ -54,14 +71,60 @@ const props = defineProps({
 	message: { type: String, default: '' },
 })
 
-const enteredCode = ref(props.userCode)
+const CODE_LENGTH = 8
+const CODE_GROUP = 4
+// Mirrors USER_CODE_ALPHABET on the server: no I, O, 0 or 1.
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
+/**
+ * Reduce user input to the canonical code. Accepts a dashed or undashed code,
+ * lower case, stray spaces, and a pasted verification URL.
+ */
+function extractUserCode(raw) {
+	let value = String(raw ?? '')
+	const fromUrl = value.match(/[?&]user_code=([^&#\s]*)/i)
+	if (fromUrl) {
+		try {
+			value = decodeURIComponent(fromUrl[1])
+		} catch {
+			value = fromUrl[1]
+		}
+	}
+	return value.toUpperCase().split('').filter(character => CODE_CHARS.includes(character)).join('').slice(0, CODE_LENGTH)
+}
+
+function formatUserCode(normalized) {
+	return normalized.length > CODE_GROUP
+		? normalized.slice(0, CODE_GROUP) + '-' + normalized.slice(CODE_GROUP)
+		: normalized
+}
+
+const enteredCode = ref(formatUserCode(extractUserCode(props.userCode)))
 const currentMode = ref(props.mode)
 const currentMessage = ref(props.message)
 const busy = ref(false)
-const formattedCode = computed(() => {
-	const normalized = props.userCode.replace(/[^A-Za-z0-9]/g, '').toUpperCase()
-	return normalized.length === 8 ? normalized.slice(0, 4) + '-' + normalized.slice(4) : normalized
-})
+const codeComplete = computed(() => extractUserCode(enteredCode.value).length === CODE_LENGTH)
+const formattedCode = computed(() => formatUserCode(extractUserCode(props.userCode)))
+
+function onCodeInput(event) {
+	const element = event.target
+	const raw = element.value
+	const pastedUrl = /[?&]user_code=/i.test(raw)
+	const caret = element.selectionStart ?? raw.length
+	// Count code characters before the caret so reformatting does not move it.
+	const precedingCharacters = pastedUrl ? CODE_LENGTH : extractUserCode(raw.slice(0, caret)).length
+	const formatted = formatUserCode(extractUserCode(raw))
+	enteredCode.value = formatted
+
+	nextTick(() => {
+		// Vue skips the DOM update when the model is unchanged, as with a
+		// rejected keystroke, so write the sanitised value back explicitly.
+		element.value = formatted
+		const skipDash = precedingCharacters >= CODE_GROUP && formatted.length > CODE_GROUP
+		const position = Math.min(precedingCharacters + (skipDash ? 1 : 0), formatted.length)
+		element.setSelectionRange(position, position)
+	})
+}
 
 const scopeDescriptions = {
 	openid: {
@@ -97,7 +160,11 @@ const parsedScopes = computed(() => props.scope.split(' ').filter(s => s.trim() 
 })))
 
 function verifyCode() {
-	window.location.href = generateUrl('/apps/oidc/device') + '?user_code=' + encodeURIComponent(enteredCode.value)
+	const normalized = extractUserCode(enteredCode.value)
+	if (normalized.length !== CODE_LENGTH) {
+		return
+	}
+	window.location.href = generateUrl('/apps/oidc/device') + '?user_code=' + encodeURIComponent(formatUserCode(normalized))
 }
 
 async function respond(action) {
@@ -136,11 +203,29 @@ async function respond(action) {
 	box-shadow: 0 4px 18px var(--color-box-shadow);
 }
 
-input {
+.code-label {
+	display: block;
+	margin-top: 16px;
+	font-weight: bold;
+	font-size: 14px;
+}
+
+.code-input {
 	width: 100%;
-	margin: 16px 0;
-	font-size: 1.4rem;
+	margin: 8px 0 4px;
+	padding: 12px;
+	box-sizing: border-box;
+	font-family: monospace;
+	font-size: 1.6rem;
+	letter-spacing: 0.18em;
+	text-align: center;
 	text-transform: uppercase;
+}
+
+.code-hint {
+	margin: 0 0 16px;
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
 }
 
 .consent-scopes {

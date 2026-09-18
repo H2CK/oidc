@@ -377,7 +377,9 @@ class OIDCApiControllerTest extends TestCase {
         $this->time->method('getTime')->willReturn(1000);
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
-        $this->deviceCodeMapper->method('recordPoll')->willReturn(true);
+        // RFC 8628 scopes slow_down to a request that is still pending, so an
+        // approved code must not be delayed by the poll throttle.
+        $this->deviceCodeMapper->expects($this->never())->method('recordPoll');
         $this->deviceCodeMapper->expects($this->once())->method('markConsumed')->with($authorization, 1000)->willReturn(true);
         $this->userManager->method('get')->with('alice')->willReturn($user);
         $this->groupManager->method('getUserGroups')->with($user)->willReturn([]);
