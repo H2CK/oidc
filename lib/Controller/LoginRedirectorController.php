@@ -446,12 +446,7 @@ class LoginRedirectorController extends ApiController
         if ($newScope === '') {
             $newScope = Application::DEFAULT_SCOPE;
         }
-        // Per-group scope ceiling. Applied before consent so the consent screen
-        // only offers scopes the user may hold.
-        $scope = $this->scopeCeiling->clamp($this->userSession->getUser()->getUID(), $newScope, $client_id);
-        if ($scope === '') {
-            $scope = Application::DEFAULT_SCOPE;
-        }
+        $scope = $newScope;
         $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);
@@ -627,6 +622,13 @@ class LoginRedirectorController extends ApiController
         }
 
         $uid = $this->userSession->getUser()->getUID();
+
+        // Per-group scope ceiling. Applied before consent so the consent screen
+        // only offers scopes the user may hold.
+        $scope = $this->scopeCeiling->clamp($uid, $scope, $client_id);
+        if ($scope === '') {
+            $scope = Application::DEFAULT_SCOPE;
+        }
 
         // Check if user consent/settings are allowed by administrator
         $allowUserSettings = $this->appConfig->getAppValueString(
