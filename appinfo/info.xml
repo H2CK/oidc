@@ -54,6 +54,9 @@ Full documentation can be found at:
     <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCListFunctions</command>
     <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCCreate</command>
     <command>OCA\OIDCIdentityProvider\Command\Claims\OIDCRemove</command>
+    <command>OCA\OIDCIdentityProvider\Command\GroupScopes\OIDCSet</command>
+    <command>OCA\OIDCIdentityProvider\Command\GroupScopes\OIDCList</command>
+    <command>OCA\OIDCIdentityProvider\Command\GroupScopes\OIDCRemove</command>
   </commands>
 
   <background-jobs>

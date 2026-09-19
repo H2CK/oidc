@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Group scope limits: cap the scopes members of a group may be issued, for every client including dynamically registered ones (admin settings and `occ oidc:group-scopes:*`)
+
+### Changed
+
+- Tokens requested via `TokenGenerationRequestEvent` now honour the client's allowed scopes and group restriction, like the authorization endpoint
 ## [2.3.1] - 2026-09-18
 
 ### Added

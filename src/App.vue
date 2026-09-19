@@ -525,7 +525,42 @@
 					</div>
 					<div class="container-inner">
 						<p style="margin-top: 1em;">
-							{{ t('oidc', 'Global Accepted Logout Redirect URIs') }}
+							{{ t('oidc', 'Group Scope Limits') }}
+						</p>
+						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+							{{ t('oidc', 'Members of a listed group can only be issued the scopes configured for their groups (the union across all of their listed groups). openid, profile, email and roles are always allowed. Users in no listed group are not limited. Applies to every client, including dynamically registered ones.') }}
+						</p>
+						<ul>
+							<li v-for="row in localGroupScopes" :key="row.groupId" style="display: flex; align-items: center; gap: 8px;">
+								<span><strong>{{ row.groupId }}</strong>: {{ row.scopes }}</span>
+								<NcButton :aria-label="t('oidc', 'Remove group scope limit')"
+									type="tertiary"
+									@click="deleteGroupScopes(row.groupId)">
+									{{ t('oidc', 'Remove') }}
+								</NcButton>
+							</li>
+						</ul>
+						<div style="display: flex; align-items: flex-end; gap: 8px; max-width: 100%; width: 740px;">
+							<select id="groupScopesGroup" v-model="newGroupScopes.groupId">
+								<option disabled value="">
+									{{ t('oidc', 'Select group') }}
+								</option>
+								<option v-for="group in groups" :key="group" :value="group">
+									{{ group }}
+								</option>
+							</select>
+							<NcTextField v-model="newGroupScopes.scopes"
+								:label="t('oidc', 'Maximum scopes')"
+								placeholder="notes.read files.read" />
+							<NcButton :disabled="newGroupScopes.groupId === ''"
+								@click="setGroupScopes">
+								{{ t('oidc', 'Save') }}
+							</NcButton>
+						</div>
+					</div>
+					<div class="container-inner">
+						<p style="margin-top: 1em;">
+														{{ t('oidc', 'Global Accepted Logout Redirect URIs') }}
 						</p>
 						<div v-if="localLogoutRedirectUris.length > 0"
 							:key="version"
@@ -709,6 +744,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		groupScopes: {
+			type: Array,
+			required: true,
+		},
 	},
 	data() {
 		return {
@@ -794,6 +833,11 @@ export default {
 			localDefaultTokenType: this.defaultTokenType,
 			localProvideRefreshTokenAlways: this.provideRefreshTokenAlways,
 			localAlwaysIncludeScopeClaims: this.alwaysIncludeScopeClaims,
+			localGroupScopes: this.groupScopes,
+			newGroupScopes: {
+				groupId: '',
+				scopes: '',
+			},
 			error: false,
 			errorMsg: '',
 			customClaimModal: {
@@ -1615,6 +1659,27 @@ export default {
 					alwaysIncludeScopeClaims: this.localAlwaysIncludeScopeClaims,
 				}).then((response) => {
 				this.localAlwaysIncludeScopeClaims = response.data.always_include_scope_claims
+			})
+		},
+		setGroupScopes() {
+			axios.post(
+				generateUrl('apps/oidc/api/v2/groupScopes'),
+				{
+					groupId: this.newGroupScopes.groupId,
+					scopes: this.newGroupScopes.scopes,
+				}).then((response) => {
+				this.localGroupScopes = response.data
+				this.newGroupScopes = { groupId: '', scopes: '' }
+			}).catch((reason) => {
+				this.error = true
+				this.errorMsg = reason.response?.data?.message ?? reason.message
+			})
+		},
+		deleteGroupScopes(groupId) {
+			axios.delete(
+				generateUrl('apps/oidc/api/v2/groupScopes/{groupId}', { groupId }),
+			).then((response) => {
+				this.localGroupScopes = response.data
 			})
 		},
 		regenerateKeys() {

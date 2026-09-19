@@ -143,6 +143,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
     /** @var string */
     private $testRedirectUri = 'https://client.example.com/callback';
 
+    /** @var string */
+    private $testScopeGroupId = 'test-oidc-codeflow-scope-group';
+
     /** @var \OCP\AppFramework\App */
     private $app;
 
@@ -300,6 +303,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
     private function cleanupTestData(): void
     {
+        $groupScopeMapper = Server::get(\OCA\OIDCIdentityProvider\Db\GroupScopeMapper::class);
+        $groupScopeMapper->deleteByGroupId($this->testScopeGroupId);
+        $this->groupManager->get($this->testScopeGroupId)?->delete();
+
         foreach ([$this->testClientId, $this->secondTestClientId] as $clientId) {
             try {
                 // Delete the test client (this will cascade and delete related redirect URIs and access tokens)
@@ -1128,5 +1135,127 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertEquals($this->testUserId, $userInfoData['sub'], 'Sub claim should match user ID');
         $this->assertArrayHasKey('scope', $userInfoData, 'UserInfo missing scope claim');
         $this->assertStringContainsString('openid', $userInfoData['scope'], 'Scope should contain openid');
+    }
+
+    private function putUserInScopeCeilingGroup(\OCP\IUser $user, string $ceiling): void
+    {
+        $group = $this->groupManager->get($this->testScopeGroupId) ?? $this->groupManager->createGroup($this->testScopeGroupId);
+        $group->addUser($user);
+        Server::get(\OCA\OIDCIdentityProvider\Db\GroupScopeMapper::class)->upsert($this->testScopeGroupId, $ceiling);
+    }
+
+    /**
+     * The authorize endpoint clamps the requested scope to the user's group
+     * ceiling before the token is stored (and before consent is evaluated).
+     */
+    public function testAuthorizeClampsScopeToGroupCeiling(): void
+    {
+        $client = $this->createTestClient();
+        $client->setAllowedScopes('');
+        $this->clientMapper->update($client);
+        $user = $this->createTestUser();
+        $this->putUserInScopeCeilingGroup($user, 'notes.read');
+
+        $request = $this->createMock(IRequest::class);
+        $request->method('getParam')->willReturnCallback(
+            static fn ($key) => $key === 'response_mode' ? 'form_post' : null
+        );
+        $request->method('getServerProtocol')->willReturn('https');
+        $request->method('getServerHost')->willReturn('nextcloud.local');
+
+        $session = $this->createMock(ISession::class);
+        $session->method('get')->willReturnCallback(fn ($key) => match ($key) {
+            'oidc_auth_time' => $this->time->getTime(),
+            'oidc_login_pending' => false,
+            default => null,
+        });
+
+        $userSession = $this->createMock(IUserSession::class);
+        $userSession->method('isLoggedIn')->willReturn(true);
+        $userSession->method('getUser')->willReturn($user);
+
+        $l10n = $this->createMock(IL10N::class);
+        $l10n->method('t')->willReturnCallback(static fn (string $text): string => $text);
+
+        $appConfig = $this->createMock(IAppConfig::class);
+        $appConfig->method('getAppValueString')->willReturnCallback(
+            static fn ($key, $default = '') => $key === Application::APP_CONFIG_ALLOW_USER_SETTINGS ? 'no' : $default
+        );
+
+        $controller = new LoginRedirectorController(
+            'oidc',
+            $request,
+            $this->urlGenerator,
+            $this->clientMapper,
+            $this->groupMapper,
+            $this->secureRandom,
+            $session,
+            $l10n,
+            $this->time,
+            $userSession,
+            $this->groupManager,
+            $this->accessTokenMapper,
+            $this->authorizationCodeMapper,
+            $this->redirectUriMapper,
+            $this->userConsentMapper,
+            $appConfig,
+            $this->jwtGenerator,
+            new RedirectUriService($this->logger),
+            $backChannelLogoutService,
+            $sessionManagementService,
+            $this->logger
+        );
+
+        $response = $controller->authorize(
+            $this->testClientId,
+            'state-ceiling',
+            'code',
+            $this->testRedirectUri,
+            'openid profile email notes.read notes.write files.read',
+            'nonce-ceiling'
+        );
+
+        $this->assertInstanceOf(FormPostResponse::class, $response);
+        preg_match('/<input type="hidden" name="code" value="([A-Za-z0-9]+)">/', $response->render(), $matches);
+        $this->assertNotEmpty($matches[1] ?? null, 'form_post response did not contain an authorization code');
+
+        $accessToken = $this->accessTokenMapper->getByCode($matches[1]);
+        $this->assertSame('openid profile email notes.read', $accessToken->getScope());
+    }
+
+    /**
+     * Refresh reuses the token row, so the ceiling is re-applied: a user
+     * restricted after the token was issued loses the scope at next refresh.
+     */
+    public function testRefreshNarrowsScopeToGroupCeiling(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        $tokenResult = $this->createAccessToken($client, $user, 'openid offline_access notes.read notes.write', false);
+
+        $consent = new \OCA\OIDCIdentityProvider\Db\UserConsent();
+        $consent->setUserId($user->getUID());
+        $consent->setClientId($client->getId());
+        $consent->setScopesGranted('openid offline_access notes.read notes.write');
+        $consent->setCreatedAt($this->time->getTime());
+        $consent->setUpdatedAt($this->time->getTime());
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
+        $this->userConsentMapper->insert($consent);
+
+        $this->putUserInScopeCeilingGroup($user, 'offline_access notes.read');
+
+        $response = $this->oidcApiController->getToken(
+            'refresh_token',
+            null,
+            $tokenResult['rawCode'],
+            $this->testClientId,
+            $this->testClientSecret,
+            null
+        );
+
+        $this->assertEquals(200, $response->getStatus(), 'Refresh should succeed');
+        $stored = $this->accessTokenMapper->getByAccessToken($response->getData()['access_token']);
+        $this->assertSame('openid offline_access notes.read', $stored->getScope());
     }
 }

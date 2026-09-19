@@ -17,6 +17,7 @@ use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\SessionManagementService;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -28,6 +29,7 @@ use OCP\IL10N;
 use OCP\IRequest;
 use OCP\ISession;
 use OCP\IURLGenerator;
+use OCP\Server;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -91,6 +93,8 @@ class LoginRedirectorController extends ApiController
     private $logger;
     /** @var SessionManagementService */
     private $sessionManagementService;
+    /** @var ScopeCeilingService */
+    private $scopeCeiling;
 
     /**
      * @param string $appName
@@ -135,7 +139,8 @@ class LoginRedirectorController extends ApiController
                     RedirectUriService $redirectUriService,
                     BackChannelLogoutService $backChannelLogoutService,
                     SessionManagementService $sessionManagementService,
-                    LoggerInterface $logger
+                    LoggerInterface $logger,
+                    ?ScopeCeilingService $scopeCeiling = null
                     )
         {
         parent::__construct(
@@ -160,6 +165,7 @@ class LoginRedirectorController extends ApiController
         $this->backChannelLogoutService = $backChannelLogoutService;
         $this->sessionManagementService = $sessionManagementService;
         $this->logger = $logger;
+        $this->scopeCeiling = $scopeCeiling ?? Server::get(ScopeCeilingService::class);
     }
 
 
@@ -440,7 +446,12 @@ class LoginRedirectorController extends ApiController
         if ($newScope === '') {
             $newScope = Application::DEFAULT_SCOPE;
         }
-        $scope = $newScope;
+        // Per-group scope ceiling. Applied before consent so the consent screen
+        // only offers scopes the user may hold.
+        $scope = $this->scopeCeiling->clamp($this->userSession->getUser()->getUID(), $newScope, $client_id);
+        if ($scope === '') {
+            $scope = Application::DEFAULT_SCOPE;
+        }
         $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);

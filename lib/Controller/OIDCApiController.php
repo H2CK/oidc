@@ -29,6 +29,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\ApiController;
@@ -48,6 +49,7 @@ use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
+use OCP\Server;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -72,6 +74,8 @@ class OIDCApiController extends ApiController {
     private $texTargetMapper;
     /** @var TexSubjectClientMapper */
     private $texSubjectClientMapper;
+    /** @var ScopeCeilingService */
+    private $scopeCeiling;
     /** @var ICrypto */
     private $crypto;
     /** @var TokenProvider */
@@ -125,6 +129,7 @@ class OIDCApiController extends ApiController {
      * @param FormUrlencodedParameterParser|null $formUrlencodedParameterParser
      * @param TexSubjectClientMapper|null $texSubjectClientMapper
      * @param DeviceCodeMapper $deviceCodeMapper
+     * @param ScopeCeilingService|null $scopeCeiling
      */
     public function __construct(
                     string $appName,
@@ -149,7 +154,8 @@ class OIDCApiController extends ApiController {
                     DeviceCodeMapper $deviceCodeMapper,
                     ?TexTargetMapper $texTargetMapper = null,
                     ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null,
-                    ?TexSubjectClientMapper $texSubjectClientMapper = null
+                    ?TexSubjectClientMapper $texSubjectClientMapper = null,
+                    ?ScopeCeilingService $scopeCeiling = null
                     )
     {
         parent::__construct($appName, $request);
@@ -174,6 +180,7 @@ class OIDCApiController extends ApiController {
         $this->formUrlencodedParameterParser = $formUrlencodedParameterParser ?? new FormUrlencodedParameterParser();
         $this->texSubjectClientMapper = $texSubjectClientMapper;
         $this->deviceCodeMapper = $deviceCodeMapper;
+        $this->scopeCeiling = $scopeCeiling ?? Server::get(ScopeCeilingService::class);
     }
 
     /**
@@ -543,6 +550,12 @@ class OIDCApiController extends ApiController {
             if (!$this->authorizationCodeMapper->markUsed($authorizationCode, $this->time->getTime())) {
                 return $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
             }
+        }
+
+        if ($grant_type === 'refresh_token') {
+            // Refresh reuses the token row, so re-apply the group scope ceiling:
+            // removing a user from a group narrows their scope at the next refresh.
+            $accessToken->setScope($this->scopeCeiling->clamp($uid, $accessToken->getScope(), $client_id));
         }
 
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
@@ -1169,6 +1182,15 @@ class OIDCApiController extends ApiController {
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Subject token is not acceptable.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        // A subject token issued before the user's group ceiling changed must
+        // not carry the old scopes into the exchanged token.
+        $effectiveScope = $this->scopeCeiling->clamp($uid, $effectiveScope, $client_id);
+        if ($effectiveScope === '') {
+            return new JSONResponse([
+                'error' => 'invalid_scope',
+                'error_description' => 'No permitted Token Exchange scopes remain for this subject token.',
             ], Http::STATUS_BAD_REQUEST);
         }
 

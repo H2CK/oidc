@@ -14,12 +14,17 @@ use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\Group;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\IGroupManager;
 use OCP\IURLGenerator;
 use OCP\Security\ISecureRandom;
 use OCP\IUserManager;
@@ -47,7 +52,13 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
     private TokenGenerationRequestListener $listener;
 
+    private GroupMapper $groupMapper;
+    private GroupScopeMapper $groupScopeMapper;
+    private IGroupManager $groupManager;
+
     private string $testUserId = 'test-oidc-user';
+    private string $testGroupA = 'test-oidc-scope-group-a';
+    private string $testGroupB = 'test-oidc-scope-group-b';
     private string $testClientId = 'test-client-id';
     private string $testClientSecret = 'test-secret';
 
@@ -64,6 +75,9 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         $this->urlGenerator = Server::get(IURLGenerator::class);
         $this->logger = Server::get(LoggerInterface::class);
         $this->appConfig = $this->createMock(IAppConfig::class);
+        $this->groupMapper = Server::get(GroupMapper::class);
+        $this->groupScopeMapper = Server::get(GroupScopeMapper::class);
+        $this->groupManager = Server::get(IGroupManager::class);
 
         // Create JwtGenerator with real dependencies
         $app = new \OCP\AppFramework\App('oidc');
@@ -79,7 +93,11 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->accessTokenMapper,
             $this->jwtGenerator,
             $this->clientMapper,
-            $this->urlGenerator
+            $this->urlGenerator,
+            $this->groupMapper,
+            $this->groupManager,
+            $this->userManager,
+            Server::get(ScopeCeilingService::class)
         );
 
         // Clean up any existing test data
@@ -95,6 +113,11 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
     private function cleanupTestData(): void
     {
+        foreach ([$this->testGroupA, $this->testGroupB] as $gid) {
+            $this->groupScopeMapper->deleteByGroupId($gid);
+            $this->groupManager->get($gid)?->delete();
+        }
+
         try {
             // Delete the test client (this will cascade and delete related access tokens)
             $client = $this->clientMapper->getByIdentifier($this->testClientId);
@@ -234,6 +257,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             });
 
         $extraScopes = 'custom:scope:read custom:scope:write';
+        $this->setClientAllowedScopes('openid profile email ' . $extraScopes);
 
         // Create event with extra scopes
         $event = new TokenGenerationRequestEvent(
@@ -469,6 +493,125 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->accessTokenMapper->delete($storedToken);
         } catch (\Exception $e) {
             // Ignore cleanup errors
+        }
+    }
+
+    private function configureAppConfig(): void
+    {
+        $this->appConfig->method('getAppValueString')
+            ->willReturnCallback(function ($key, $default) {
+                $config = [
+                    Application::APP_CONFIG_DEFAULT_EXPIRE_TIME => Application::DEFAULT_EXPIRE_TIME,
+                    Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME => Application::DEFAULT_REFRESH_EXPIRE_TIME,
+                    Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME => Application::DEFAULT_CLIENT_EXPIRE_TIME,
+                    'kid' => 'test-kid',
+                    'public_key_n' => 'test-n',
+                    'public_key_e' => 'test-e',
+                ];
+                return $config[$key] ?? $default;
+            });
+    }
+
+    private function setClientAllowedScopes(string $allowedScopes): void
+    {
+        $client = $this->clientMapper->getByIdentifier($this->testClientId);
+        $client->setAllowedScopes($allowedScopes);
+        $this->clientMapper->update($client);
+    }
+
+    private function addTestUserToGroup(string $gid, ?string $ceiling): void
+    {
+        $group = $this->groupManager->get($gid) ?? $this->groupManager->createGroup($gid);
+        $group->addUser($this->userManager->get($this->testUserId));
+        if ($ceiling !== null) {
+            $this->groupScopeMapper->upsert($gid, $ceiling);
+        }
+    }
+
+    private function mintScope(string $extraScopes): ?string
+    {
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, $extraScopes, '');
+        $this->listener->handle($event);
+        if ($event->getAccessToken() === null) {
+            return null;
+        }
+        return $this->accessTokenMapper->getByAccessToken($event->getAccessToken())->getScope();
+    }
+
+    /**
+     * Extra scopes outside the client's allowed_scopes are dropped, as on the
+     * authorize endpoint.
+     */
+    public function testExtraScopesOutsideClientAllowedScopesAreDropped(): void
+    {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('openid profile email notes.read');
+
+        $scope = $this->mintScope('notes.read notes.write');
+
+        $this->assertSame('openid profile email notes.read', $scope);
+    }
+
+    /**
+     * The per-group ceiling clamps event-minted tokens (Astrolabe's path).
+     */
+    public function testGroupScopeCeilingClampsExtraScopes(): void
+    {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('');
+        $this->addTestUserToGroup($this->testGroupA, 'notes.read');
+
+        $scope = $this->mintScope('notes.read notes.write files.read');
+
+        $this->assertSame('openid profile email roles notes.read', $scope);
+    }
+
+    public function testGroupScopeCeilingIsUnionOfGroups(): void
+    {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('');
+        $this->addTestUserToGroup($this->testGroupA, 'notes.read');
+        $this->addTestUserToGroup($this->testGroupB, 'files.read');
+
+        $scope = $this->mintScope('notes.read notes.write files.read');
+
+        $this->assertSame('openid profile email roles notes.read files.read', $scope);
+    }
+
+    public function testUserInNoConfiguredGroupIsUnrestricted(): void
+    {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('');
+        $this->addTestUserToGroup($this->testGroupA, null);
+
+        $scope = $this->mintScope('notes.read notes.write');
+
+        $this->assertSame('openid profile email roles notes.read notes.write', $scope);
+    }
+
+    /**
+     * The client group gate applies to event minting too: no token for a user
+     * outside the client's groups.
+     */
+    public function testClientGroupGateDeniesUserOutsideClientGroups(): void
+    {
+        $this->configureAppConfig();
+        if ($this->groupManager->get($this->testGroupB) === null) {
+            $this->groupManager->createGroup($this->testGroupB);
+        }
+        $client = $this->clientMapper->getByIdentifier($this->testClientId);
+        $mapping = new Group();
+        $mapping->setClientId($client->getId());
+        $mapping->setGroupId($this->testGroupB);
+        $this->groupMapper->insert($mapping);
+
+        try {
+            $this->assertNull($this->mintScope(''), 'No token for a user outside the client groups');
+
+            $this->addTestUserToGroup($this->testGroupB, null);
+            $this->assertNotNull($this->mintScope(''), 'Token once the user joins a client group');
+        } finally {
+            $this->groupMapper->deleteByClientId($client->getId());
         }
     }
 }

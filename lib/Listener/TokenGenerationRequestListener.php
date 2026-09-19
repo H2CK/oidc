@@ -12,14 +12,18 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IGroupManager;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 
@@ -37,6 +41,10 @@ class TokenGenerationRequestListener implements IEventListener {
         private JwtGenerator $jwtGenerator,
         private ClientMapper $clientMapper,
         private IUrlGenerator $urlGenerator,
+        private GroupMapper $groupMapper,
+        private IGroupManager $groupManager,
+        private IUserManager $userManager,
+        private ScopeCeilingService $scopeCeiling,
     ) {
     }
 
@@ -67,6 +75,18 @@ class TokenGenerationRequestListener implements IEventListener {
         if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('[TokenGenerationRequestListener] Client ' . $client->getId() . ' has expired');
             return;
+        }
+
+        // Apply the same limits as the authorize endpoint: client group gate,
+        // client allowed_scopes, then the per-group scope ceiling.
+        if (!$this->isUserAllowedForClient($userId, $client->getId())) {
+            $this->logger->notice('[TokenGenerationRequestListener] User ' . $userId . ' is not a member of the groups defined for client ' . $clientIdentifier);
+            return;
+        }
+        $scopes = $this->filterByAllowedScopes($scopes, $client->getAllowedScopes() ?? '');
+        $scopes = $this->scopeCeiling->clamp($userId, $scopes, $clientIdentifier);
+        if ($scopes === '') {
+            $scopes = Application::DEFAULT_SCOPE;
         }
 
         $instanceUrl = $this->urlGenerator->getBaseUrl();
@@ -115,5 +135,39 @@ class TokenGenerationRequestListener implements IEventListener {
         if ($refreshExpireTime !== 'never') {
             $event->setRefreshExpiresIn((int)$refreshExpireTime);
         }
+    }
+
+    private function isUserAllowedForClient(string $userId, int $clientId): bool {
+        $clientGroups = $this->groupMapper->getGroupsByClientId($clientId);
+        if ($clientGroups === []) {
+            return true;
+        }
+        $user = $this->userManager->get($userId);
+        if ($user === null) {
+            return false;
+        }
+        $userGroupIds = $this->groupManager->getUserGroupIds($user);
+        foreach ($clientGroups as $clientGroup) {
+            if (in_array($clientGroup->getGroupId(), $userGroupIds, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Same rule as LoginRedirectorController::authorize(): empty allowed_scopes
+     * means no limit, and an empty result falls back to DEFAULT_SCOPE.
+     */
+    private function filterByAllowedScopes(string $scopes, string $allowedScopes): string {
+        $allowed = array_filter(array_map('trim', explode(' ', strtolower(trim($allowedScopes)))));
+        if ($allowed === []) {
+            return $scopes;
+        }
+        $kept = array_filter(
+            array_map('trim', explode(' ', trim($scopes))),
+            fn ($s) => $s !== '' && in_array(strtolower($s), $allowed, true),
+        );
+        return $kept === [] ? Application::DEFAULT_SCOPE : implode(' ', $kept);
     }
 }

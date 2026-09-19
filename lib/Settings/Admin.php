@@ -16,6 +16,7 @@ use OCA\OIDCIdentityProvider\Db\RedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
@@ -171,6 +172,7 @@ class Admin implements ISettings {
         );
         $this->initialState->provideInitialState('publicKey', $this->appConfig->getAppValueString('public_key'));
         $this->initialState->provideInitialState('groups', $availableGroups);
+        $this->initialState->provideInitialState('groupScopes', Server::get(GroupScopeMapper::class)->findAll());
         $this->initialState->provideInitialState('logoutRedirectUris', $logoutRedirectUrisResult);
         $this->initialState->provideInitialState(
                 'overwriteEmailVerified', $this->appConfig->getAppValueString(Application::APP_CONFIG_OVERWRITE_EMAIL_VERIFIED));
