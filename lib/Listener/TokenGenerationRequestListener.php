@@ -92,6 +92,13 @@ class TokenGenerationRequestListener implements IEventListener {
         $instanceUrl = $this->urlGenerator->getBaseUrl();
         $protocol = parse_url($instanceUrl, PHP_URL_SCHEME);
         $host = parse_url($instanceUrl, PHP_URL_HOST);
+        // Keep a non-default port: the HTTP endpoints issue with
+        // IRequest::getServerHost(), which includes it, so dropping it here
+        // gives event-minted tokens a different `iss` than every other token.
+        $port = parse_url($instanceUrl, PHP_URL_PORT);
+        if ($port !== null && $port !== false) {
+            $host .= ':' . $port;
+        }
 
         // generate a new access token for the client
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
