@@ -89,7 +89,11 @@ class TokenGenerationRequestListener implements IEventListener {
             $scopes = Application::DEFAULT_SCOPE;
         }
 
-        $instanceUrl = $this->urlGenerator->getBaseUrl();
+        // getAbsoluteURL() rather than getBaseUrl(): the event is also dispatched
+        // from occ and background workers, where there is no request and only
+        // getAbsoluteURL() honours overwrite.cli.url (getBaseUrl() yields
+        // http://localhost there, so `iss` would not match the instance).
+        $instanceUrl = $this->urlGenerator->getAbsoluteURL('/');
         $protocol = parse_url($instanceUrl, PHP_URL_SCHEME);
         $host = parse_url($instanceUrl, PHP_URL_HOST);
         // Keep a non-default port: the HTTP endpoints issue with
