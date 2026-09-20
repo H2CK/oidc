@@ -203,6 +203,8 @@
     "The device request could not be completed. Please try again." : "Die Geräteanfrage konnte nicht abgeschlossen werden. Bitte später erneut versuchen.",
     "Connect a device" : "Ein Gerät verbinden",
     "Enter the code displayed on your device." : "Den auf deinem Gerät angezeigten Code eingeben.",
+    "Device code" : "Geräte-Code",
+    "Eight characters. The dash is added for you, and pasting the whole link works too." : "Acht Zeichen. Der Bindestrich wird automatisch hinzugefügt. Einfügen des gesamten Links funktioniert ebenfalls.",
     "Continue" : "Fortsetzen",
     "The device request is complete. You can close this page." : "Die Geräteanfrage ist abgeschlossen. Du kannst diese Seite schließen.",
     "OpenID Connect Redirect" : "OpenID Connect Weiterleitung",

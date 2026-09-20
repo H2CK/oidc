@@ -205,6 +205,8 @@ OC.L10N.register(
     "The device request could not be completed. Please try again." : "無法完成裝置要求。請再試一次。",
     "Connect a device" : "連接裝置",
     "Enter the code displayed on your device." : "輸入裝置上顯示的代碼。",
+    "Device code" : "裝置代碼",
+    "Eight characters. The dash is added for you, and pasting the whole link works too." : "八個字元。連字號會自動加入，你亦可直接貼上整條連結。",
     "Continue" : "繼續",
     "The device request is complete. You can close this page." : "裝置要求已完成。你可以關閉此頁面。",
     "OpenID Connect Redirect" : "OpenID 連接重定向",

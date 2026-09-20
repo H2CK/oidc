@@ -205,6 +205,8 @@ OC.L10N.register(
     "The device request could not be completed. Please try again." : "La demande d’autorisation de l’appareil n’a pas pu aboutir. Veuillez réessayer.",
     "Connect a device" : "Connecter un appareil",
     "Enter the code displayed on your device." : "Entrez le code affiché sur votre appareil.",
+    "Device code" : "Code de l'appareil",
+    "Eight characters. The dash is added for you, and pasting the whole link works too." : "Huit caractères. Le tiret est ajouté à votre place, et coller le lien entier fonctionne également.",
     "Continue" : "Continuer",
     "The device request is complete. You can close this page." : "La demande d’autorisation de l’appareil est terminée. Vous pouvez fermer cette page.",
     "OpenID Connect Redirect" : "Redirection d’OpenID Connect",
