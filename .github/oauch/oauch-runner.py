@@ -212,8 +212,13 @@ def main() -> int:
             submit = browser.find_elements(By.CSS_SELECTOR, "button[type='submit'],input[type='submit']")
             if submit:
                 submit[0].click()
-        time.sleep(2)
-        click_text(browser, ("run tests", "start test", "start", "test now"))
+        WebDriverWait(browser, 15).until(
+            lambda current: current.find_elements(By.ID, "startButton")
+            or "/Dashboard/Results/" in current.current_url
+        )
+        start_button = browser.find_elements(By.ID, "startButton")
+        if start_button:
+            start_button[0].click()
 
         deadline = time.time() + int(os.environ.get("OAUCH_RUN_TIMEOUT", "1500"))
         last_url = ""
@@ -231,6 +236,15 @@ def main() -> int:
                     login_nextcloud_if_needed(browser)
                     click_text(browser, ("allow", "authorize", "grant", "continue", "yes"))
                     continue
+
+                if "/Dashboard/Results/" in current:
+                    save(browser, "99-complete")
+                    (RESULTS / "summary.txt").write_text(
+                        browser.find_element(By.TAG_NAME, "body").text,
+                        encoding="utf-8",
+                    )
+                    complete = True
+                    break
 
                 if "oauch.io" in current:
                     body = browser.find_element(By.TAG_NAME, "body").text.lower()
