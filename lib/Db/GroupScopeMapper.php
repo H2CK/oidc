@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Db;
 
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -56,11 +57,24 @@ class GroupScopeMapper extends QBMapper {
      * Create or replace the scope ceiling of a group.
      */
     public function upsert(string $groupId, string $scopes): void {
-        $this->db->insertOrUpdate(
-            $this->tableName,
-            ['group_id' => $groupId, 'scopes' => $scopes],
-            ['group_id'],
-        );
+        // Not IDBConnection::insertOrUpdate(): it is absent from the
+        // ConnectionAdapter this mapper is given.
+        $qb = $this->db->getQueryBuilder();
+        $qb
+            ->select('*')
+            ->from($this->tableName)
+            ->where($qb->expr()->eq('group_id', $qb->createNamedParameter($groupId)));
+
+        try {
+            $entity = $this->findEntity($qb);
+            $entity->setScopes($scopes);
+            $this->update($entity);
+        } catch (DoesNotExistException) {
+            $entity = new GroupScope();
+            $entity->setGroupId($groupId);
+            $entity->setScopes($scopes);
+            $this->insert($entity);
+        }
     }
 
     /**
