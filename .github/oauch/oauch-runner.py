@@ -214,18 +214,17 @@ def main() -> int:
         submit = settings_forms[0].find_elements(By.CSS_SELECTOR, "button[type='submit'],input[type='submit']")
         if not submit:
             raise RuntimeError("could not identify the OAuch settings submit button")
+        settings_action = settings_forms[0].get_attribute("action")
+        if not settings_action:
+            raise RuntimeError("could not determine the OAuch site URL")
+        site_id = settings_action.rstrip("/").rsplit("/", 1)[-1]
         submit[0].click()
+        WebDriverWait(browser, 15).until(lambda current: "/Dashboard/Overview/" in current.current_url)
+        browser.get(f"{OAUCH_URL.rstrip('/')}/Dashboard/RunTest/{site_id}")
         WebDriverWait(browser, 15).until(
-            lambda current: current.find_elements(By.CSS_SELECTOR, "a[href^='/Dashboard/RunTest/']")
+            lambda current: current.find_elements(By.ID, "startButton")
             or "/Dashboard/Results/" in current.current_url
         )
-        run_test_links = browser.find_elements(By.CSS_SELECTOR, "a[href^='/Dashboard/RunTest/']")
-        if run_test_links:
-            run_test_links[0].click()
-            WebDriverWait(browser, 15).until(
-                lambda current: current.find_elements(By.ID, "startButton")
-                or "/Dashboard/Results/" in current.current_url
-            )
         start_button = browser.find_elements(By.ID, "startButton")
         if start_button:
             start_button[0].click()
