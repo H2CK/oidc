@@ -123,7 +123,9 @@ jobs:
       - name: Run OAuch browser-driven test
         id: oauch_run
         continue-on-error: true
-        run: python3 .github/oauch/oauch-runner.py
+        run: |
+          set -o pipefail
+          python3 .github/oauch/oauch-runner.py 2>&1 | tee oauch-results/runner.log
 
       - name: Collect OAuch logs
         if: always()

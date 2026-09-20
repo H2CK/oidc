@@ -208,10 +208,13 @@ def main() -> int:
                     try: box.click()
                     except WebDriverException: pass
 
-        if not click_text(browser, ("save", "create", "continue", "start")):
-            submit = browser.find_elements(By.CSS_SELECTOR, "button[type='submit'],input[type='submit']")
-            if submit:
-                submit[0].click()
+        settings_forms = browser.find_elements(By.CSS_SELECTOR, "form[action^='/Dashboard/Settings/']")
+        if not settings_forms:
+            raise RuntimeError("could not identify the OAuch settings form")
+        submit = settings_forms[0].find_elements(By.CSS_SELECTOR, "button[type='submit'],input[type='submit']")
+        if not submit:
+            raise RuntimeError("could not identify the OAuch settings submit button")
+        submit[0].click()
         WebDriverWait(browser, 15).until(
             lambda current: current.find_elements(By.ID, "startButton")
             or "/Dashboard/Results/" in current.current_url
