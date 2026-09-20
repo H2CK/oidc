@@ -60,7 +60,10 @@ class CleanupGroupsTest extends TestCase
         $this->groupMapper->expects($this->once())->method('cleanUp');
         $this->groupScopeMapper->expects($this->once())->method('cleanUp');
 
-        $this->job->start($this->createMock(IJobList::class));
+        // run() directly: start() skips the job until the interval is due.
+        $run = new \ReflectionMethod($this->job, 'run');
+        $run->setAccessible(true);
+        $run->invoke($this->job, []);
     }
 
     public function testConstructorSetsInterval() {
