@@ -530,6 +530,9 @@
 						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
 							{{ t('oidc', 'Members of a listed group can only be issued the scopes configured for their groups (the union across all of their listed groups). openid, profile, email and roles are always allowed. Users in no listed group are not limited. Applies to every client, including dynamically registered ones.') }}
 						</p>
+						<p class="hint" style="margin-top: 0.25em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
+							{{ t('oidc', 'Suggestions are the scopes the configured clients allow. A scope no client requests simply never applies, so a typo silently narrows the limit rather than widening it; type a scope to add one a dynamically registered client will request.') }}
+						</p>
 						<ul>
 							<li v-for="row in localGroupScopes" :key="row.groupId" style="display: flex; align-items: center; gap: 8px;">
 								<span><strong>{{ row.groupId }}</strong>: {{ row.scopes }}</span>
@@ -549,9 +552,14 @@
 									{{ group }}
 								</option>
 							</select>
-							<NcTextField v-model="newGroupScopes.scopes"
-								:label="t('oidc', 'Maximum scopes')"
-								placeholder="notes.read files.read"
+							<NcSelect v-model="newGroupScopes.scopes"
+								:options="knownScopes"
+								:multiple="true"
+								:taggable="true"
+								:close-on-select="false"
+								:no-wrap="false"
+								:input-label="t('oidc', 'Maximum scopes')"
+								:placeholder="t('oidc', 'Select scopes, or type to add one')"
 								style="flex: 1 1 auto;" />
 							<NcButton :disabled="newGroupScopes.groupId === ''"
 								style="flex: 0 0 auto;"
@@ -838,7 +846,7 @@ export default {
 			localGroupScopes: this.groupScopes,
 			newGroupScopes: {
 				groupId: '',
-				scopes: '',
+				scopes: [],
 			},
 			error: false,
 			errorMsg: '',
@@ -1016,6 +1024,30 @@ export default {
 		},
 		isPublic() {
 			return this.editClient.type === 'public'
+		},
+		/**
+		 * Scope suggestions: everything the configured clients allow, plus the
+		 * always-allowed defaults and whatever limits are already configured.
+		 * Not a whitelist -- the field stays taggable, because a dynamically
+		 * registered client can request a scope no configured client lists.
+		 */
+		knownScopes() {
+			const scopes = new Set(['openid', 'profile', 'email', 'roles', 'offline_access'])
+			for (const client of this.localClients) {
+				for (const scope of (client.allowedScopes ?? '').split(/\s+/)) {
+					if (scope) {
+						scopes.add(scope.toLowerCase())
+					}
+				}
+			}
+			for (const row of this.localGroupScopes) {
+				for (const scope of (row.scopes ?? '').split(/\s+/)) {
+					if (scope) {
+						scopes.add(scope.toLowerCase())
+					}
+				}
+			}
+			return [...scopes].sort()
 		},
 		texSubjectClientOptions() {
 			return this.localClients
@@ -1668,10 +1700,10 @@ export default {
 				generateUrl('apps/oidc/api/v2/groupScopes'),
 				{
 					groupId: this.newGroupScopes.groupId,
-					scopes: this.newGroupScopes.scopes,
+					scopes: this.newGroupScopes.scopes.join(' '),
 				}).then((response) => {
 				this.localGroupScopes = response.data
-				this.newGroupScopes = { groupId: '', scopes: '' }
+				this.newGroupScopes = { groupId: '', scopes: [] }
 			}).catch((reason) => {
 				this.error = true
 				this.errorMsg = reason.response?.data?.message ?? reason.message

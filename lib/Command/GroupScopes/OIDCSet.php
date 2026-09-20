@@ -8,6 +8,8 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Command\GroupScopes;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 use OCP\IGroupManager;
 use Symfony\Component\Console\Command\Command;
@@ -20,6 +22,7 @@ class OIDCSet extends Command {
     public function __construct(
         private GroupScopeMapper $groupScopeMapper,
         private IGroupManager $groupManager,
+        private ClientMapper $clientMapper,
     ) {
         parent::__construct();
     }
@@ -45,6 +48,30 @@ class OIDCSet extends Command {
         }
         $this->groupScopeMapper->upsert($groupId, $scopes);
         $output->writeln("<info>Maximum scopes for group `{$groupId}` set to `{$scopes}`.</info>");
+        $this->warnAboutUnknownScopes($output, $scopes);
         return Command::SUCCESS;
+    }
+
+    /**
+     * A limit only ever subtracts, so a scope no client asks for is inert --
+     * which is exactly what a typo looks like. Warn rather than reject: a
+     * dynamically registered client may request a scope no configured client
+     * lists.
+     */
+    private function warnAboutUnknownScopes(OutputInterface $output, string $scopes): void {
+        $known = preg_split('/\s+/', strtolower(Application::DEFAULT_SCOPE), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $known[] = 'offline_access';
+        foreach ($this->clientMapper->getClients() as $client) {
+            $known = array_merge($known, preg_split('/\s+/', strtolower((string)$client->getAllowedScopes()), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        }
+
+        $unknown = array_diff(
+            preg_split('/\s+/', strtolower($scopes), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+            $known,
+        );
+        if ($unknown !== []) {
+            $output->writeln('<comment>Note: no configured client allows ' . implode(', ', $unknown)
+                . '. That is fine for a scope only dynamically registered clients request, but check for typos.</comment>');
+        }
     }
 }
