@@ -83,7 +83,7 @@ class TokenGenerationRequestListener implements IEventListener {
             $this->logger->notice('[TokenGenerationRequestListener] User ' . $userId . ' is not a member of the groups defined for client ' . $clientIdentifier);
             return;
         }
-        $scopes = $this->filterByAllowedScopes($scopes, $client->getAllowedScopes() ?? '');
+        $scopes = $this->scopeCeiling->filterByAllowedScopes($scopes, $client->getAllowedScopes() ?? '');
         $scopes = $this->scopeCeiling->clamp($userId, $scopes, $clientIdentifier);
         if ($scopes === '') {
             $scopes = Application::DEFAULT_SCOPE;
@@ -164,21 +164,5 @@ class TokenGenerationRequestListener implements IEventListener {
             }
         }
         return false;
-    }
-
-    /**
-     * Same rule as LoginRedirectorController::authorize(): empty allowed_scopes
-     * means no limit, and an empty result falls back to DEFAULT_SCOPE.
-     */
-    private function filterByAllowedScopes(string $scopes, string $allowedScopes): string {
-        $allowed = array_filter(array_map('trim', explode(' ', strtolower(trim($allowedScopes)))));
-        if ($allowed === []) {
-            return $scopes;
-        }
-        $kept = array_filter(
-            array_map('trim', explode(' ', trim($scopes))),
-            fn ($s) => $s !== '' && in_array(strtolower($s), $allowed, true),
-        );
-        return $kept === [] ? Application::DEFAULT_SCOPE : implode(' ', $kept);
     }
 }

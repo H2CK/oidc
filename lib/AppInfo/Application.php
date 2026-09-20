@@ -12,7 +12,6 @@ use OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent;
 use OCA\OIDCIdentityProvider\Http\WellKnown\WebFingerHandler;
 use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
 use OCA\OIDCIdentityProvider\Http\BasicAuthRequestSanitizer;
-use OCA\OIDCIdentityProvider\Listener\GroupDeletedListener;
 use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\BackChannelLogoutListener;
@@ -25,7 +24,6 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\User\Events\BeforeUserLoggedOutEvent;
 use OCP\User\Events\UserLoggedInEvent;
 use OCP\User\Events\UserLoggedInWithCookieEvent;
-use OCP\Group\Events\GroupDeletedEvent;
 
 class Application extends App implements IBootstrap
 {
@@ -99,7 +97,6 @@ class Application extends App implements IBootstrap
         // marked the current request as a real logout. No internal OC\\Core
         // controller class is used for logout detection.
         $context->registerMiddleware(LogoutMiddleware::class, true);
-        $context->registerEventListener(GroupDeletedEvent::class, GroupDeletedListener::class);
     }
 
     public function boot(IBootContext $context): void

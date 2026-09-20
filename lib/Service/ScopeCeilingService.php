@@ -79,9 +79,23 @@ class ScopeCeilingService {
     }
 
     /**
+     * Narrow a scope string to a client's allowed_scopes. An empty
+     * allowed_scopes means no limit, and an empty result falls back to
+     * DEFAULT_SCOPE. Shared by the authorize endpoint and the token
+     * generation event so the rule exists once.
+     */
+    public function filterByAllowedScopes(string $scopes, string $allowedScopes): string {
+        $allowed = self::split(strtolower($allowedScopes));
+        $requested = array_unique(self::split(strtolower($scopes)));
+        $kept = $allowed === [] ? $requested : array_intersect($requested, $allowed);
+
+        return $kept === [] ? Application::DEFAULT_SCOPE : implode(' ', $kept);
+    }
+
+    /**
      * @return string[]
      */
     private static function split(string $scopes): array {
-        return array_values(array_filter(preg_split('/\s+/', trim($scopes)) ?: [], fn ($s) => $s !== ''));
+        return preg_split('/\s+/', trim($scopes), -1, PREG_SPLIT_NO_EMPTY) ?: [];
     }
 }

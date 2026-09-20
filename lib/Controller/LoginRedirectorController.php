@@ -434,19 +434,7 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
         $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
 
-        $newScope = '';
-        $allowedScopesArr = array_values(array_unique(array_filter(array_map('trim', explode(' ', strtolower(trim($allowedScopes)))))));
-        $scopesArr = array_values(array_unique(array_filter(array_map('trim', explode(' ', strtolower(trim($scope)))))));
-        foreach ($scopesArr as $scopeEntry) {
-            if (in_array($scopeEntry, $allowedScopesArr) || empty($allowedScopesArr)) {
-                $newScope = $newScope . $scopeEntry . ' ';
-            }
-        }
-        $newScope = trim($newScope);
-        if ($newScope === '') {
-            $newScope = Application::DEFAULT_SCOPE;
-        }
-        $scope = $newScope;
+        $scope = $this->scopeCeiling->filterByAllowedScopes($scope, $allowedScopes ?? '');
         $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);

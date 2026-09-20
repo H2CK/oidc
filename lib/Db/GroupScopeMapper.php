@@ -8,17 +8,17 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Db;
 
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCP\IGroupManager;
 
 /**
  * @template-extends QBMapper<GroupScope>
  */
 class GroupScopeMapper extends QBMapper {
 
-    public function __construct(IDBConnection $db) {
+    public function __construct(IDBConnection $db, private IGroupManager $groupManager) {
         parent::__construct($db, 'oidc_group_scopes', GroupScope::class);
     }
 
@@ -55,22 +55,24 @@ class GroupScopeMapper extends QBMapper {
     /**
      * Create or replace the scope ceiling of a group.
      */
-    public function upsert(string $groupId, string $scopes): GroupScope {
-        $qb = $this->db->getQueryBuilder();
-        $qb
-            ->select('*')
-            ->from($this->tableName)
-            ->where($qb->expr()->eq('group_id', $qb->createNamedParameter($groupId)));
+    public function upsert(string $groupId, string $scopes): void {
+        $this->db->insertOrUpdate(
+            $this->tableName,
+            ['group_id' => $groupId, 'scopes' => $scopes],
+            ['group_id'],
+        );
+    }
 
-        try {
-            $entity = $this->findEntity($qb);
-            $entity->setScopes($scopes);
-            return $this->update($entity);
-        } catch (DoesNotExistException) {
-            $entity = new GroupScope();
-            $entity->setGroupId($groupId);
-            $entity->setScopes($scopes);
-            return $this->insert($entity);
+    /**
+     * Drop the ceilings of groups that no longer exist, so a group re-created
+     * under the same gid does not inherit one. Same shape as
+     * GroupMapper::cleanUp(); both run from the daily CleanupGroups job.
+     */
+    public function cleanUp(): void {
+        foreach ($this->findAll() as $row) {
+            if (!$this->groupManager->groupExists($row->getGroupId())) {
+                $this->deleteByGroupId($row->getGroupId());
+            }
         }
     }
 
