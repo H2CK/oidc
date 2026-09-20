@@ -551,8 +551,10 @@
 							</select>
 							<NcTextField v-model="newGroupScopes.scopes"
 								:label="t('oidc', 'Maximum scopes')"
-								placeholder="notes.read files.read" />
+								placeholder="notes.read files.read"
+								style="flex: 1 1 auto;" />
 							<NcButton :disabled="newGroupScopes.groupId === ''"
+								style="flex: 0 0 auto;"
 								@click="setGroupScopes">
 								{{ t('oidc', 'Save') }}
 							</NcButton>
