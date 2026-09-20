@@ -1182,6 +1182,15 @@ class OIDCCodeFlowTest extends \Test\TestCase
             static fn ($key, $default = '') => $key === Application::APP_CONFIG_ALLOW_USER_SETTINGS ? 'no' : $default
         );
 
+        $backChannelLogoutService = $this->createMock(BackChannelLogoutService::class);
+        $backChannelLogoutService
+            ->method('registerClientSession')
+            ->willReturn('integration-session-id');
+        $sessionManagementService = $this->createMock(SessionManagementService::class);
+        $sessionManagementService
+            ->method('isSupported')
+            ->willReturn(false);
+
         $controller = new LoginRedirectorController(
             'oidc',
             $request,
