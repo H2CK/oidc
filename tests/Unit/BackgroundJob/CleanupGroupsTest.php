@@ -8,6 +8,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IConfig;
 
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 
 use OCA\OIDCIdentityProvider\BackgroundJob\CleanupGroups;
 
@@ -30,17 +31,21 @@ class CleanupGroupsTest extends TestCase
     private $config;
     /** @var \PHPUnit\Framework\MockObject\MockObject|GroupMapper */
     private $groupMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|GroupScopeMapper */
+    private $groupScopeMapper;
 
     public function setUp(): void
     {
         $this->config = $this->createMock(IConfig::class);
         $this->time = $this->createMock(ITimeFactory::class);
         $this->groupMapper = $this->createMock(GroupMapper::class);
+        $this->groupScopeMapper = $this->createMock(GroupScopeMapper::class);
 
         $this->job = new CleanupGroups(
             $this->time,
             $this->groupMapper,
-            $this->config
+            $this->config,
+            $this->groupScopeMapper
         );
     }
 
@@ -49,6 +54,13 @@ class CleanupGroupsTest extends TestCase
         $this->job->start($jobList);
 
         $this->assertTrue(true);
+    }
+
+    public function testJobCleansUpBothGroupTables() {
+        $this->groupMapper->expects($this->once())->method('cleanUp');
+        $this->groupScopeMapper->expects($this->once())->method('cleanUp');
+
+        $this->job->start($this->createMock(IJobList::class));
     }
 
     public function testConstructorSetsInterval() {
