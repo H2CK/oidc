@@ -216,9 +216,16 @@ def main() -> int:
             raise RuntimeError("could not identify the OAuch settings submit button")
         submit[0].click()
         WebDriverWait(browser, 15).until(
-            lambda current: current.find_elements(By.ID, "startButton")
+            lambda current: current.find_elements(By.CSS_SELECTOR, "a[href^='/Dashboard/RunTest/']")
             or "/Dashboard/Results/" in current.current_url
         )
+        run_test_links = browser.find_elements(By.CSS_SELECTOR, "a[href^='/Dashboard/RunTest/']")
+        if run_test_links:
+            run_test_links[0].click()
+            WebDriverWait(browser, 15).until(
+                lambda current: current.find_elements(By.ID, "startButton")
+                or "/Dashboard/Results/" in current.current_url
+            )
         start_button = browser.find_elements(By.ID, "startButton")
         if start_button:
             start_button[0].click()
