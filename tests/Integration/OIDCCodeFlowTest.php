@@ -1267,4 +1267,41 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $stored = $this->accessTokenMapper->getByAccessToken($response->getData()['access_token']);
         $this->assertSame('openid offline_access notes.read', $stored->getScope());
     }
+
+    /**
+     * Narrowing a client's allowed_scopes also takes effect at the next refresh,
+     * matched the way authorize matches it (case-insensitively).
+     */
+    public function testRefreshNarrowsScopeToClientAllowedScopes(): void
+    {
+        $client = $this->createTestClient();
+        $user = $this->createTestUser();
+
+        $tokenResult = $this->createAccessToken($client, $user, 'openid offline_access notes.read notes.write', false);
+
+        $consent = new \OCA\OIDCIdentityProvider\Db\UserConsent();
+        $consent->setUserId($user->getUID());
+        $consent->setClientId($client->getId());
+        $consent->setScopesGranted('openid offline_access notes.read notes.write');
+        $consent->setCreatedAt($this->time->getTime());
+        $consent->setUpdatedAt($this->time->getTime());
+        $consent->setExpiresAt($this->time->getTime() + 7776000);
+        $this->userConsentMapper->insert($consent);
+
+        $client->setAllowedScopes('openid offline_access Notes.Read');
+        $this->clientMapper->update($client);
+
+        $response = $this->oidcApiController->getToken(
+            'refresh_token',
+            null,
+            $tokenResult['rawCode'],
+            $this->testClientId,
+            $this->testClientSecret,
+            null
+        );
+
+        $this->assertEquals(200, $response->getStatus(), 'Refresh should succeed');
+        $stored = $this->accessTokenMapper->getByAccessToken($response->getData()['access_token']);
+        $this->assertSame('openid offline_access notes.read', $stored->getScope());
+    }
 }

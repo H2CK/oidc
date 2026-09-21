@@ -434,7 +434,11 @@ class LoginRedirectorController extends ApiController
         $this->logger->debug('[SCOPE DEBUG] Client allowed scopes: ' . ($allowedScopes ?: 'empty/not configured'));
         $this->logger->debug('[SCOPE DEBUG] Requested scope before filtering: ' . $scope);
 
-        $scope = $this->scopeCeiling->filterByAllowedScopes($scope, $allowedScopes ?? '');
+        // authorize has always lowercased the requested and allowed scopes; kept as is.
+        $scope = $this->scopeCeiling->filterByAllowedScopes(strtolower($scope), strtolower($allowedScopes ?? ''));
+        if ($scope === '') {
+            $scope = Application::DEFAULT_SCOPE;
+        }
         $this->logger->debug('[SCOPE DEBUG] Scope after filtering: ' . $scope);
 
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);

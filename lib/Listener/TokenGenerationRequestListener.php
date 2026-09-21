@@ -83,8 +83,7 @@ class TokenGenerationRequestListener implements IEventListener {
             $this->logger->notice('[TokenGenerationRequestListener] User ' . $userId . ' is not a member of the groups defined for client ' . $clientIdentifier);
             return;
         }
-        $scopes = $this->scopeCeiling->filterByAllowedScopes($scopes, $client->getAllowedScopes() ?? '');
-        $scopes = $this->scopeCeiling->clamp($userId, $scopes, $clientIdentifier);
+        $scopes = $this->scopeCeiling->narrow($userId, $scopes, $client->getAllowedScopes() ?? '', $clientIdentifier);
         if ($scopes === '') {
             $scopes = Application::DEFAULT_SCOPE;
         }

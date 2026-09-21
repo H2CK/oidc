@@ -17,6 +17,7 @@ use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -44,6 +45,8 @@ class DeviceAuthorizationControllerTest extends TestCase {
 	private IURLGenerator $urlGenerator;
 	private FormUrlencodedParameterParser $formParser;
 	private IAppConfig $appConfig;
+	/** Scope the mocked group ceiling narrows to; null passes the scope through. */
+	private ?string $ceilingScope = null;
 	/** @var array<string,string> */
 	private array $appConfigValues = [];
 	private DeviceAuthorizationController $controller;
@@ -78,6 +81,9 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		});
 		$this->formParser->method('readSelectedParameters')->willReturnCallback(fn (): ?array => $this->rawParameters);
 
+		$scopeCeiling = $this->createMock(ScopeCeilingService::class);
+		$scopeCeiling->method('clamp')->willReturnCallback(fn (string $uid, string $scope): string => $this->ceilingScope ?? $scope);
+
 		$this->controller = new DeviceAuthorizationController(
 			'oidc',
 			$this->request,
@@ -94,6 +100,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
 			$this->createMock(LoggerInterface::class),
 			$this->formParser,
 			$this->appConfig,
+			$scopeCeiling,
 		);
 	}
 
@@ -245,6 +252,31 @@ class DeviceAuthorizationControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertTrue($response->getData()['success']);
+	}
+
+	public function testApprovalStoresConsentNarrowedByGroupCeiling(): void {
+		$deviceCode = new DeviceCode();
+		$deviceCode->setId(7);
+		$deviceCode->setClientId(1);
+		$deviceCode->setScope('openid profile notes.write');
+		$deviceCode->setExpiresAt(1_600);
+		$deviceCode->setStatus(DeviceCode::STATUS_PENDING);
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->ceilingScope = 'openid profile';
+
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn($deviceCode);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
+		$this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+		$this->deviceCodeMapper->method('markApproved')->willReturn(true);
+		$this->userConsentMapper->method('findByUserAndClient')->willReturn(null);
+		$this->userConsentMapper->expects($this->once())
+			->method('createOrUpdate')
+			->with($this->callback(fn (UserConsent $consent): bool => $consent->getScopesGranted() === 'openid profile'));
+
+		$this->assertSame(Http::STATUS_OK, $this->controller->approve('ABCD-2345')->getStatus());
 	}
 
 	public function testDeviceApprovalPreservesTimeLimitedConsentSemantics(): void {

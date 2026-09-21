@@ -18,6 +18,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -64,6 +65,7 @@ class DeviceAuthorizationController extends Controller {
 		private LoggerInterface $logger,
 		private FormUrlencodedParameterParser $formUrlencodedParameterParser,
 		private IAppConfig $appConfig,
+		private ScopeCeilingService $scopeCeiling,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -194,7 +196,9 @@ class DeviceAuthorizationController extends Controller {
 			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The requesting application no longer exists.'));
 		}
 
-		return $this->devicePage('approve', $normalizedUserCode, $client, null, $deviceCode->getScope());
+		// Show only the scopes the user's group ceiling lets them receive, as authorize does.
+		$scope = $this->scopeCeiling->clamp($this->userSession->getUser()->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		return $this->devicePage('approve', $normalizedUserCode, $client, null, $scope);
 	}
 
 	#[NoAdminRequired]
@@ -224,7 +228,7 @@ class DeviceAuthorizationController extends Controller {
 		if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID())) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
 		}
-		$this->storeConsent($user->getUID(), $client, $deviceCode->getScope());
+		$this->storeConsent($user->getUID(), $client, $this->scopeCeiling->clamp($user->getUID(), $deviceCode->getScope(), $client->getClientIdentifier()));
 		$this->logger->info('User approved an OAuth device authorization request.', ['client_id' => $client->getClientIdentifier()]);
 		return new JSONResponse(['success' => true]);
 	}

@@ -16,7 +16,7 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Per-group maximum scopes. Every code path that issues scopes (authorize,
- * consent update, token generation event, refresh, token exchange) routes
+ * token generation event, refresh, device grant, token exchange) routes
  * through clamp(), so the policy lives in exactly one place.
  *
  * ceiling(uid) = union of the scopes of the user's groups that have a row;
@@ -52,12 +52,13 @@ class ScopeCeilingService {
         foreach ($rows as $row) {
             $allowed = array_merge($allowed, self::split($row->getScopes() ?? ''));
         }
-        $allowed = array_flip(array_map('strtolower', $allowed));
+        // Exact match: OAuth scope values are case-sensitive (RFC 6749 3.3).
+        $allowed = array_flip($allowed);
 
         $kept = [];
         $removed = [];
         foreach (self::split($scopes) as $scope) {
-            if (isset($allowed[strtolower($scope)])) {
+            if (isset($allowed[$scope])) {
                 $kept[] = $scope;
             } else {
                 $removed[] = $scope;
@@ -79,17 +80,31 @@ class ScopeCeilingService {
     }
 
     /**
-     * Narrow a scope string to a client's allowed_scopes. An empty
-     * allowed_scopes means no limit, and an empty result falls back to
-     * DEFAULT_SCOPE. Shared by the authorize endpoint and the token
-     * generation event so the rule exists once.
+     * Narrow a scope string to a client's allowed_scopes (empty = no limit).
+     * Returns '' when nothing remains. Scope names are passed through
+     * unchanged, but matched case-insensitively: that is how authorize and
+     * the device flow have always checked allowed_scopes (they lowercase the
+     * request), so a later re-check must not drop what they granted.
      */
     public function filterByAllowedScopes(string $scopes, string $allowedScopes): string {
-        $allowed = self::split(strtolower($allowedScopes));
-        $requested = array_unique(self::split(strtolower($scopes)));
-        $kept = $allowed === [] ? $requested : array_intersect($requested, $allowed);
+        $allowed = array_flip(self::split(strtolower($allowedScopes)));
+        $kept = [];
+        foreach (array_unique(self::split($scopes)) as $scope) {
+            if ($allowed === [] || isset($allowed[strtolower($scope)])) {
+                $kept[] = $scope;
+            }
+        }
 
-        return $kept === [] ? Application::DEFAULT_SCOPE : implode(' ', $kept);
+        return implode(' ', $kept);
+    }
+
+    /**
+     * The client's allowed_scopes, then the user's group ceiling. For paths
+     * that (re)issue a stored or supplied scope: the token generation event,
+     * refresh and the device grant. May return '' -- the caller decides.
+     */
+    public function narrow(string $uid, string $scopes, string $allowedScopes, string $clientIdentifier = ''): string {
+        return $this->clamp($uid, $this->filterByAllowedScopes($scopes, $allowedScopes), $clientIdentifier);
     }
 
     /**

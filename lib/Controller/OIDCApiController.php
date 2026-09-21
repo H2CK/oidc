@@ -553,9 +553,16 @@ class OIDCApiController extends ApiController {
         }
 
         if ($grant_type === 'refresh_token') {
-            // Refresh reuses the token row, so re-apply the group scope ceiling:
-            // removing a user from a group narrows their scope at the next refresh.
-            $accessToken->setScope($this->scopeCeiling->clamp($uid, $accessToken->getScope(), $client_id));
+            // Refresh reuses the token row, so re-apply the client's allowed_scopes
+            // and the group scope ceiling: narrowing either takes effect at the
+            // next refresh.
+            $scope = $this->scopeCeiling->narrow($uid, $accessToken->getScope(), $client->getAllowedScopes() ?? '', $client_id);
+            if ($scope === '') {
+                $this->accessTokenMapper->delete($accessToken);
+                $this->logger->info('No permitted scopes remain for refresh token grant. Client id was ' . $client_id . '.');
+                return $this->invalidGrantResponse('No permitted scopes remain.');
+            }
+            $accessToken->setScope($scope);
         }
 
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
@@ -716,6 +723,12 @@ class OIDCApiController extends ApiController {
         if (!$groupAllowed) {
             return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
         }
+        // Re-check at issuance, like refresh: allowed_scopes or the user's group
+        // ceiling may have narrowed since the user approved the request.
+        $scope = $this->scopeCeiling->narrow($authorization->getUserId(), $authorization->getScope(), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
+        if ($scope === '') {
+            return $this->deviceGrantError('access_denied', 'No permitted scopes remain for this user.');
+        }
         if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
             return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
         }
@@ -727,7 +740,7 @@ class OIDCApiController extends ApiController {
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($authorization->getUserId());
-        $accessToken->setScope($authorization->getScope());
+        $accessToken->setScope($scope);
         $accessToken->setHashedCode(hash('sha512', $refreshCode));
         $accessToken->setCreated($now);
         $accessToken->setRefreshed($now);

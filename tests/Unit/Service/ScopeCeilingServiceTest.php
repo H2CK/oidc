@@ -98,9 +98,21 @@ class ScopeCeilingServiceTest extends TestCase {
         $this->assertSame('', $this->service->clamp('alice', 'notes.write files.write'));
     }
 
-    public function testMatchIsCaseInsensitive(): void {
-        $this->givenUser(['readers'], ['readers' => 'Notes.Read']);
+    public function testMatchIsCaseSensitive(): void {
+        $this->givenUser(['readers'], ['readers' => 'Files.Read']);
 
-        $this->assertSame('openid notes.read', $this->service->clamp('alice', 'openid notes.read'));
+        $this->assertSame('openid Files.Read', $this->service->clamp('alice', 'openid Files.Read files.read'));
+    }
+
+    public function testFilterByAllowedScopesKeepsNamesAndMatchesLikeAuthorize(): void {
+        $this->assertSame('openid Files.Read', $this->service->filterByAllowedScopes('openid Files.Read notes.write', 'openid files.read'));
+        $this->assertSame('openid notes.write', $this->service->filterByAllowedScopes('openid notes.write', ''));
+        $this->assertSame('', $this->service->filterByAllowedScopes('notes.write', 'openid'));
+    }
+
+    public function testNarrowAppliesAllowedScopesThenCeiling(): void {
+        $this->givenUser(['readers'], ['readers' => 'notes.read notes.write']);
+
+        $this->assertSame('openid notes.read', $this->service->narrow('alice', 'openid notes.read notes.write files.read', 'openid notes.read files.read'));
     }
 }

@@ -37,6 +37,9 @@ use OCA\OIDCIdentityProvider\Db\TexTargets;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCode;
+use OCA\OIDCIdentityProvider\Db\GroupScope;
+use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -65,6 +68,8 @@ class OIDCApiControllerTest extends TestCase {
     protected $texSubjectClientMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|DeviceCodeMapper */
     protected $deviceCodeMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|GroupScopeMapper */
+    protected $groupScopeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
@@ -147,6 +152,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->texTargetMapper = $this->createMock(TexTargetMapper::class);
         $this->texSubjectClientMapper = $this->createMock(TexSubjectClientMapper::class);
         $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
+        $this->groupScopeMapper = $this->createMock(GroupScopeMapper::class);
 
         $throttler = $this->createMock(Throttler::class);
 
@@ -173,7 +179,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->deviceCodeMapper,
             $this->texTargetMapper,
             $this->formUrlencodedParameterParser,
-            $this->texSubjectClientMapper
+            $this->texSubjectClientMapper,
+            new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger)
         );
 
         // Default configuration
@@ -406,6 +413,44 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame('id-token', $data['id_token']);
         $this->assertSame('refresh-code', $data['refresh_token']);
         $this->assertSame('openid profile email offline_access', $data['scope']);
+    }
+
+    /**
+     * allowed_scopes and the group ceiling are re-applied when the device code
+     * is redeemed, not only when it was requested.
+     */
+    public function testDeviceGrantNarrowsScopeToAllowedScopesAndGroupCeiling(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $client->setAllowedScopes('openid profile offline_access notes.read notes.write');
+        $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
+        $authorization->setScope('openid profile email offline_access notes.read notes.write');
+        $user = $this->createMock(IUser::class);
+        $ceiling = new GroupScope();
+        $ceiling->setGroupId('readers');
+        $ceiling->setScopes('offline_access notes.read');
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
+        $this->deviceCodeMapper->method('markConsumed')->willReturn(true);
+        $this->userManager->method('get')->with('alice')->willReturn($user);
+        $this->groupManager->method('getUserGroups')->willReturn([]);
+        $this->groupManager->method('getUserGroupIds')->willReturn(['readers']);
+        $this->groupScopeMapper->method('findByGroupIds')->with(['readers'])->willReturn([$ceiling]);
+        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+        $this->secureRandom->method('generate')->willReturn('refresh-code');
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('access-token');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('id-token');
+        $this->accessTokenMapper->method('insert')->willReturnArgument(0);
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+        );
+
+        $this->assertSame(Http::STATUS_OK, $response->getStatus());
+        $this->assertSame('openid profile offline_access notes.read', $response->getData()['scope']);
     }
 
     private function createTexTarget(string $resource = 'https://resource.example/api'): TexTargets {
