@@ -1,8 +1,8 @@
 name: OAuch OAuth security conformance
 
 on:
-  schedule:
-    - cron: "43 3 * * *"
+  #schedule:
+  #  - cron: "43 3 * * *"
   workflow_dispatch:
 
 permissions:
