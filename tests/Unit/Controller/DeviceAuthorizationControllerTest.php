@@ -279,6 +279,32 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $this->controller->approve('ABCD-2345')->getStatus());
 	}
 
+	public function testApprovalIsDeniedWhenGroupCeilingLeavesNoScope(): void {
+		$deviceCode = new DeviceCode();
+		$deviceCode->setId(7);
+		$deviceCode->setClientId(1);
+		$deviceCode->setScope('notes.write');
+		$deviceCode->setExpiresAt(1_600);
+		$deviceCode->setStatus(DeviceCode::STATUS_PENDING);
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->ceilingScope = '';
+
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn($deviceCode);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
+		$this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+		$this->deviceCodeMapper->expects($this->once())->method('markDenied')->with($deviceCode)->willReturn(true);
+		$this->deviceCodeMapper->expects($this->never())->method('markApproved');
+		$this->userConsentMapper->expects($this->never())->method('createOrUpdate');
+
+		$response = $this->controller->approve('ABCD-2345');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame('access_denied', $response->getData()['error']);
+	}
+
 	public function testDeviceApprovalPreservesTimeLimitedConsentSemantics(): void {
 		$deviceCode = new DeviceCode();
 		$deviceCode->setId(8);

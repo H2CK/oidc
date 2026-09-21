@@ -198,6 +198,9 @@ class DeviceAuthorizationController extends Controller {
 
 		// Show only the scopes the user's group ceiling lets them receive, as authorize does.
 		$scope = $this->scopeCeiling->clamp($this->userSession->getUser()->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		if ($scope === '') {
+			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('You are not permitted any of the access this application requested.'));
+		}
 		return $this->devicePage('approve', $normalizedUserCode, $client, null, $scope);
 	}
 
@@ -225,10 +228,18 @@ class DeviceAuthorizationController extends Controller {
 			return new JSONResponse(['error' => 'access_denied'], Http::STATUS_FORBIDDEN);
 		}
 
+		$scope = $this->scopeCeiling->clamp($user->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		if ($scope === '') {
+			// Nothing the user may receive: deny now, so the polling device gets
+			// access_denied instead of waiting for the code to expire.
+			$this->deviceCodeMapper->markDenied($deviceCode);
+			return new JSONResponse(['error' => 'access_denied', 'error_description' => 'None of the requested scopes are permitted for this user.'], Http::STATUS_FORBIDDEN);
+		}
+
 		if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID())) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
 		}
-		$this->storeConsent($user->getUID(), $client, $this->scopeCeiling->clamp($user->getUID(), $deviceCode->getScope(), $client->getClientIdentifier()));
+		$this->storeConsent($user->getUID(), $client, $scope);
 		$this->logger->info('User approved an OAuth device authorization request.', ['client_id' => $client->getClientIdentifier()]);
 		return new JSONResponse(['success' => true]);
 	}
