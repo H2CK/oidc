@@ -1239,6 +1239,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
     public function testRefreshNarrowsScopeToGroupCeiling(): void
     {
         $client = $this->createTestClient();
+        // No allowed_scopes limit, so only the group ceiling narrows.
+        $client->setAllowedScopes('');
+        $this->clientMapper->update($client);
         $user = $this->createTestUser();
 
         $tokenResult = $this->createAccessToken($client, $user, 'openid offline_access notes.read notes.write', false);
