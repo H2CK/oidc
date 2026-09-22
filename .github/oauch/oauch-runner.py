@@ -218,7 +218,17 @@ def main() -> int:
         if not settings_action:
             raise RuntimeError("could not determine the OAuch site URL")
         site_id = settings_action.rstrip("/").rsplit("/", 1)[-1]
-        submit[0].click()
+        # In Chromium's narrow CI viewport OAuch renders its responsive
+        # sidebar overlay above the button at the end of this long form. A
+        # WebDriver pointer click is therefore intercepted before it reaches
+        # "Save changes". requestSubmit keeps OAuch's onsubmit validation,
+        # unlike form.submit(), without depending on that button being
+        # pointer-clickable.
+        browser.execute_script(
+            "arguments[0].requestSubmit(arguments[1]);",
+            settings_forms[0],
+            submit[0],
+        )
         WebDriverWait(browser, 15).until(lambda current: "/Dashboard/Overview/" in current.current_url)
         browser.get(f"{OAUCH_URL.rstrip('/')}/Dashboard/RunTest/{site_id}")
         WebDriverWait(browser, 15).until(
