@@ -81,6 +81,11 @@ jobs:
           cp .github/oauth-tests/certs/ca.crt .github/oauch/nextcloud-test-ca.crt
           echo "127.0.0.1 nextcloud-proxy" | sudo tee -a /etc/hosts
 
+      - name: Generate OAuch client secret
+        run: |
+          secret="$(openssl rand -hex 32)"
+          echo "OAUCH_CLIENT_SECRET=${secret}" >> "$GITHUB_ENV"
+
       - name: Set up Nextcloud and OIDC provider
         run: .github/oauth-tests/setup-nextcloud.sh
 
@@ -135,6 +140,14 @@ jobs:
             cp "$NEXTCLOUD_DIR/data/nextcloud.log" oauch-results/nextcloud.log
           fi
           cp oauth-results/nextcloud-server.log oauch-results/nextcloud-server.log 2>/dev/null || true
+
+      - name: Generate OAuch report
+        if: always()
+        run: |
+          python3 .github/oauch/generate-report.py \
+            --input oauch-results/99-complete.html \
+            --output oauch-results/OAUCH-CONFORMANCE.md
+          cat oauch-results/OAUCH-CONFORMANCE.md
 
       - name: Upload OAuch artifacts
         if: always()

@@ -181,19 +181,25 @@ def main() -> int:
 
         fill_by_id(browser, "Settings_AuthorizationUri", metadata["authorization_endpoint"])
         fill_by_id(browser, "Settings_TokenUri", metadata["token_endpoint"])
+        fill_by_id(browser, "Settings_OpenIdIssuer", metadata["issuer"])
+        fill_by_id(browser, "Settings_JwksUri", metadata["jwks_uri"])
         browser.find_element(By.ID, "label-client").click()
         WebDriverWait(browser, 5).until(
             lambda current: current.find_element(By.ID, "Settings_DefaultClient_ClientId").is_displayed()
         )
         fill_by_id(browser, "Settings_DefaultClient_ClientId", CLIENT_ID)
         fill_by_id(browser, "Settings_DefaultClient_ClientSecret", CLIENT_SECRET)
+        fill_by_id(browser, "Settings_DefaultClient_Scope", "openid")
         if not all(
             browser.find_element(By.ID, element_id).get_attribute("value") == value
             for element_id, value in (
                 ("Settings_AuthorizationUri", metadata["authorization_endpoint"]),
                 ("Settings_TokenUri", metadata["token_endpoint"]),
+                ("Settings_OpenIdIssuer", metadata["issuer"]),
+                ("Settings_JwksUri", metadata["jwks_uri"]),
                 ("Settings_DefaultClient_ClientId", CLIENT_ID),
                 ("Settings_DefaultClient_ClientSecret", CLIENT_SECRET),
+                ("Settings_DefaultClient_Scope", "openid"),
             )
         ):
             save(browser, "error-profile-fields")
@@ -244,6 +250,7 @@ def main() -> int:
 
         deadline = time.time() + int(os.environ.get("OAUCH_RUN_TIMEOUT", "1500"))
         last_url = ""
+        page_loaded_at = time.monotonic()
         while time.time() < deadline:
             handles = list(browser.window_handles)
             complete = False
@@ -252,6 +259,7 @@ def main() -> int:
                 current = browser.current_url
                 if current != last_url:
                     last_url = current
+                    page_loaded_at = time.monotonic()
                     print(f"OAuch browser: {current}", flush=True)
 
                 if "nextcloud-proxy" in current:
@@ -278,7 +286,11 @@ def main() -> int:
 
                     # OAuch explicitly needs the user to signal tests that
                     # intentionally fail without a callback.
-                    click_text(browser, ("stalled", "no callback", "continue test", "skip", "next test"))
+                    # A POST authorization request first visits an OAuch
+                    # relay page. Do not mark it stalled before that relay had
+                    # time to submit the request to the authorization server.
+                    if time.monotonic() - page_loaded_at >= 15:
+                        click_text(browser, ("stalled", "no callback", "continue test", "skip", "next test"))
 
             if complete:
                 return 0
