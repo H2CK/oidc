@@ -13,6 +13,7 @@ use Throwable;
 final class BasicAuthRequestSanitizer
 {
     private const TOKEN_ENDPOINT = '/apps/oidc/token';
+    private const DEVICE_AUTHORIZATION_ENDPOINT = '/apps/oidc/device_authorization';
     private const INTROSPECTION_ENDPOINT = '/apps/oidc/introspect';
 
     public function __construct(
@@ -70,6 +71,7 @@ final class BasicAuthRequestSanitizer
          * /nextcloud/index.php/apps/oidc/token
          */
         return str_ends_with($path, self::TOKEN_ENDPOINT)
+            || str_ends_with($path, self::DEVICE_AUTHORIZATION_ENDPOINT)
             || str_ends_with($path, self::INTROSPECTION_ENDPOINT);
     }
 

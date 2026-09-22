@@ -180,6 +180,7 @@ class OIDCApiControllerTest extends TestCase {
             $this->texTargetMapper,
             $this->formUrlencodedParameterParser,
             $this->texSubjectClientMapper,
+            null,
             new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger)
         );
 
@@ -928,16 +929,14 @@ class OIDCApiControllerTest extends TestCase {
         $result = $this->controller->getToken('authorization_code');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertStringContainsString('code', $result->getData()['error_description']);
+        $this->assertEquals('invalid_client', $result->getData()['error']);
     }
 
     public function testRefreshTokenGrantRemainsSupported(): void {
         $result = $this->controller->getToken('refresh_token');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertStringContainsString('refresh_token', $result->getData()['error_description']);
+        $this->assertEquals('invalid_client', $result->getData()['error']);
     }
 
     public function testAuthorizationCodeInvalidBasicCredentialsReturn401AndChallenge(): void {

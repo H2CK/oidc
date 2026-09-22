@@ -1,8 +1,8 @@
 name: OAuch OAuth security conformance
 
 on:
-  #schedule:
-  #  - cron: "43 3 * * *"
+  schedule:
+    - cron: "43 3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,8 @@ env:
   SELENIUM_REMOTE_URL: http://127.0.0.1:4444/wd/hub
   OAUCH_URL: https://oauch.io/
   OAUCH_HEALTH_URL: https://127.0.0.1:9443/
-  OAUCH_IMAGE: pieterphilippaerts/oauch-image:latest
+  OAUCH_SOURCE_REPOSITORY: https://github.com/DistriNet/OAuch.git
+  OAUCH_SOURCE_COMMIT: 4f18c30f58517915eff6cd72fd399ab1a1cf035e
 
 jobs:
   oauch:
@@ -80,26 +81,56 @@ jobs:
           cp .github/oauth-tests/certs/ca.crt .github/oauch/nextcloud-test-ca.crt
           echo "127.0.0.1 nextcloud-proxy" | sudo tee -a /etc/hosts
 
+      - name: Generate OAuch client secret
+        run: |
+          secret="$(openssl rand -hex 32)"
+          echo "OAUCH_CLIENT_SECRET=${secret}" >> "$GITHUB_ENV"
+
       - name: Set up Nextcloud and OIDC provider
         run: .github/oauth-tests/setup-nextcloud.sh
+
+      - name: Fetch pinned OAuch source
+        run: |
+          git clone --filter=blob:none --no-checkout "$OAUCH_SOURCE_REPOSITORY" .github/oauch/source
+          git -C .github/oauch/source checkout --detach "$OAUCH_SOURCE_COMMIT"
 
       - name: Start self-hosted OAuch, proxy and Chromium
         run: |
           docker compose -f .github/oauch/docker-compose.yml up -d --build
+          oauch_ready=false
           for i in {1..90}; do
-            curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null && break || true
+            if curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null; then
+              oauch_ready=true
+              break
+            fi
             sleep 1
           done
-          curl -kfsS "$OAUCH_HEALTH_URL" >/dev/null
+          if [ "$oauch_ready" != true ]; then
+            docker compose -f .github/oauch/docker-compose.yml ps
+            docker compose -f .github/oauch/docker-compose.yml logs --no-color oauch
+            exit 1
+          fi
+
+          chrome_ready=false
           for i in {1..60}; do
-            curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true' && break || true
+            if curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true'; then
+              chrome_ready=true
+              break
+            fi
             sleep 1
           done
+          if [ "$chrome_ready" != true ]; then
+            docker compose -f .github/oauch/docker-compose.yml ps
+            docker compose -f .github/oauch/docker-compose.yml logs --no-color chrome
+            exit 1
+          fi
 
       - name: Run OAuch browser-driven test
         id: oauch_run
         continue-on-error: true
-        run: python3 .github/oauch/oauch-runner.py
+        run: |
+          set -o pipefail
+          python3 .github/oauch/oauch-runner.py 2>&1 | tee oauch-results/runner.log
 
       - name: Collect OAuch logs
         if: always()
@@ -109,6 +140,14 @@ jobs:
             cp "$NEXTCLOUD_DIR/data/nextcloud.log" oauch-results/nextcloud.log
           fi
           cp oauth-results/nextcloud-server.log oauch-results/nextcloud-server.log 2>/dev/null || true
+
+      - name: Generate OAuch report
+        if: always()
+        run: |
+          python3 .github/oauch/generate-report.py \
+            --input oauch-results/99-complete.html \
+            --output oauch-results/OAUCH-CONFORMANCE.md
+          cat oauch-results/OAUCH-CONFORMANCE.md
 
       - name: Upload OAuch artifacts
         if: always()

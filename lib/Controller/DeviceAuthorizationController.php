@@ -72,6 +72,7 @@ class DeviceAuthorizationController extends Controller {
 
 	#[AnonRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_authorization')]
+	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[PublicPage]
 	public function authorize(

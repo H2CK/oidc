@@ -1,0 +1,27 @@
+services:
+  nextcloud-proxy:
+    image: nginx:1.27-alpine
+    ports:
+      - "8443:8443"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+
+  oauth-callback:
+    image: python:3.13-slim
+    command: ["python", "/app/callback_server.py"]
+    volumes:
+      - ./callback_server.py:/app/callback_server.py:ro
+      - ./certs:/certs:ro
+      - ${OAUTH_RESULTS_DIR:-../../oauth-results}:/results
+
+  chrome:
+    image: selenium/standalone-chromium:latest
+    shm_size: 2gb
+    ports:
+      - "4444:4444"
+    depends_on:
+      - nextcloud-proxy
+      - oauth-callback

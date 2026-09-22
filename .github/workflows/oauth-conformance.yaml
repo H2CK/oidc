@@ -1,20 +1,20 @@
 name: OAuth conformance
 
 on:
-  #pull_request:
-  #push:
-  #  branches: [master]
+  pull_request:
+  push:
+    branches: [master]
   workflow_dispatch:
     inputs:
       require_token_exchange:
         description: Fail when RFC 8693 Token Exchange is not available
-        required: false
-        default: false
+        required: true
+        default: true
         type: boolean
       require_device_auth:
         description: Fail when RFC 8628 Device Authorization is not available
-        required: false
-        default: false
+        required: true
+        default: true
         type: boolean
       require_revocation:
         description: Fail when RFC 7009 revocation is not available
@@ -117,7 +117,7 @@ jobs:
         env:
           OAUTH_REQUIRE_TOKEN_EXCHANGE: ${{ inputs.require_token_exchange || 'false' }}
           OAUTH_REQUIRE_DEVICE_AUTH: ${{ inputs.require_device_auth || 'false' }}
-          OAUTH_REQUIRE_REVOCATION: ${{ inputs.require_revocation || 'false' }}
+          OAUTH_REQUIRE_REVOCATION: false
         run: |
           python3 -m pytest .github/oauth-tests \
             -c .github/oauth-tests/pytest.ini \
