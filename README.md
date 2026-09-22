@@ -184,11 +184,7 @@ The End-User opens the verification URI, signs in to Nextcloud, and approves or 
 
 Request `offline_access` when the device needs a refresh token. Device clients can be registered as public clients when they cannot protect a client secret. Existing per-client scope and group restrictions are enforced when the request is created and again before tokens are issued.
 
-By default `verification_uri` also carries the `user_code`, so clients that render a QR code from it produce a code the End-User can scan straight through to the approval page. Ubuntu authd works this way. Set `device_code_in_verification_uri` to `false` to return the short form RFC 8628 section 3.2 recommends; `verification_uri_complete` contains the user code either way.
-
-The discovery and web finger endpoint should be made available at the URL: `<Issuer>/.well-known/openid-configuration`. You may have to configure your web server to redirect this url to the discovery endpoint at `<Issuer>/index.php/apps/oidc/openid-configuration` (or `<Issuer>/index.php/.well-known/openid-configuration`). For web finger there should be a redirect to `<Issuer>/index.php/.well-known/webfinger`.
-
-When using pretty URLs without `index.php`, make sure that the web server rewrite configuration preserves the complete query string when redirecting to the canonical `index.php` URL. The OIDC authorization request parameters, including `client_id`, `redirect_uri`, `response_type`, `scope`, and `state`, are required after the redirect. If the web server cannot preserve them, use the `index.php`-prefixed authorization endpoint directly, for example `<Issuer>/index.php/apps/oidc/authorize`.
+By default `verification_uri` also carries the `user_code`, so clients that render a QR code from it produce a code the End-User can scan straight through to the approval page. Set `device_code_in_verification_uri` to `false` to return the short form RFC 8628 section 3.2 recommends; `verification_uri_complete` contains the user code either way.
 
 ### Logout Details
 
@@ -233,7 +229,7 @@ The provider supports [OpenID Connect Front-Channel Logout 1.0](https://openid.n
 
 When an actual OP logout is performed through the OIDC logout endpoint, the provider takes a snapshot of all RPs participating in the current browser session before the Nextcloud session is destroyed. It then renders the configured Front-Channel Logout URIs in hidden iframes and continues to the normal post-logout destination. When a Front-Channel Logout URI is called, the provider includes both `iss` and `sid`; this is also done when `frontchannel_logout_session_required` is `false`, because this OP supports session-specific logout.
 
-The same browser notification is also applied to normal Nextcloud logouts. The app detects the logout through Nextcloud's public `BeforeUserLoggedOutEvent`, snapshots the RP sessions before they are cleared, and passes the Front-Channel targets through a request-local context to a global response middleware. The middleware only replaces an existing post-logout redirect when browser fan-out is required; it does not depend on an internal `OC\\Core` controller class. OIDC reauthentication caused by `prompt=login` or `max_age` is explicitly excluded from this logout context and therefore does not trigger Front-Channel Logout.
+The same browser notification is also applied to normal Nextcloud logouts. The app detects the logout through Nextcloud's public `BeforeUserLoggedOutEvent`, snapshots the RP sessions before they are cleared, and passes the Front-Channel targets through a request-local context to a global response middleware. OIDC reauthentication caused by `prompt=login` or `max_age` is explicitly excluded from this logout context and therefore does not trigger Front-Channel Logout.
 
 #### Configure Front-Channel Logout in the Admin UI
 
