@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\BackgroundJob;
 
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use OCP\IConfig;
@@ -26,7 +27,8 @@ class CleanupGroups extends TimedJob {
      */
     public function __construct(ITimeFactory $time,
                                 GroupMapper $groupMapper,
-                                IConfig $settings) {
+                                IConfig $settings,
+                                private GroupScopeMapper $groupScopeMapper) {
         parent::__construct($time);
         $this->groupMapper = $groupMapper;
         $this->settings = $settings;
@@ -40,5 +42,6 @@ class CleanupGroups extends TimedJob {
         // Don't run CleanUpJob when backgroundjobs_mode is ajax or webcron
         // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
         $this->groupMapper->cleanUp();
+        $this->groupScopeMapper->cleanUp();
     }
 }

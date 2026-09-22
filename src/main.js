@@ -21,6 +21,7 @@ const restrictUserInformation = loadState('oidc', 'restrictUserInformation')
 const defaultTokenType = loadState('oidc', 'defaultTokenType')
 const provideRefreshTokenAlways = loadState('oidc', 'provideRefreshTokenAlways')
 const alwaysIncludeScopeClaims = loadState('oidc', 'alwaysIncludeScopeClaims')
+const groupScopes = loadState('oidc', 'groupScopes')
 
 const app = createApp(App, {
 	clients,
@@ -36,6 +37,7 @@ const app = createApp(App, {
 	defaultTokenType,
 	provideRefreshTokenAlways,
 	alwaysIncludeScopeClaims,
+	groupScopes,
 })
 
 app.config.globalProperties.$OC = window.OC

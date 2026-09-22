@@ -118,6 +118,18 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setGroupScopes',
+            'url' => '/api/v2/groupScopes',
+            'verb' => 'POST',
+            'postfix' => 'v2',
+        ],
+        [
+            'name' => 'Settings#deleteGroupScopes',
+            'url' => '/api/v2/groupScopes/{groupId}',
+            'verb' => 'DELETE',
+            'postfix' => 'v2',
+        ],
+        [
             'name' => 'Settings#setAlwaysIncludeScopeClaims',
             'url' => '/api/v2/alwaysIncludeScopeClaims',
             'verb' => 'POST',

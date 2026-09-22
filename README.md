@@ -472,6 +472,26 @@ Further scopes are passed transparently. Also namescaped scopes are supported. E
 | roles | Adds the groups of the user in the claim `roles`. For further details see the scope `groups`. In general the claim contains a list of group ids. If you want to explicitly set if GID or displayname is used, you can set this by: `occ config:app:set oidc role_claim_type --value "gid"` or  `occ config:app:set oidc role_claim_type --value "displayname"`. |
 | offline_access | **Required for refresh tokens** (OpenID Connect Core 1.0 Section 11). When this scope is requested and granted, a refresh token will be issued that allows obtaining new access tokens even when the user is not present. If this scope is not requested, no refresh token will be issued in OIDC-compliant mode. Administrators can enable "Legacy mode" in settings to always issue refresh tokens for backward compatibility with non-compliant clients. |
 
+### Group scope limits
+
+Administrators can cap the scopes that members of a group may be issued, independent of the client. This also covers dynamically registered clients, whose `allowed_scopes` is whatever the client asked for at registration.
+
+- A user whose groups have a limit configured is issued only requested scopes that appear in the **union** of those groups' limits.
+- `openid profile email roles` are always allowed. Include `offline_access` in a limit if its members need refresh tokens.
+- Users in no limited group are not restricted, so nothing changes until a limit is configured.
+- The limit applies wherever a token is issued: the authorization endpoint (before consent, so users are only asked about scopes they can receive), the `TokenGenerationRequestEvent`, refresh token grants and token exchange. Removing a user from a group therefore narrows their scopes at the next refresh.
+- Each removed scope is logged at `info` level with the user and client.
+
+Configure limits in the admin settings ("Group Scope Limits") or via `occ`:
+
+```bash
+occ oidc:group-scopes:set <group_id> "offline_access notes.read files.read"
+occ oidc:group-scopes:list
+occ oidc:group-scopes:delete <group_id>
+```
+
+A group's limit is removed when the group is deleted.
+
 ### Requesting claims in the ID token
 
 OpenID Connect scopes like `profile` and `email` request user claims for the userinfo endpoint when the authorization code flow is used. If a relying party needs specific user claims in the ID token, it must request them explicitly with the `claims` authorization request parameter. This app supports the `id_token` and `userinfo` members of the `claims` parameter.
@@ -515,7 +535,7 @@ The app provides the events [TokenValidationRequestEvent](https://github.com/H2C
 
 ### Generate an Access Token and ID Token
 
-To get a token from the oidc app, the TokenGenerationRequestEvent can be emitted. A client must have been created in advance in the settings of the oidc app.
+To get a token from the oidc app, the TokenGenerationRequestEvent can be emitted. A client must have been created in advance in the settings of the oidc app. The same limits as the authorization endpoint apply: the requested extra scopes are filtered by the client's allowed scopes and the user's [group scope limits](#group-scope-limits), and no token is issued if the client is restricted to groups the user is not a member of.
 
 ```php
 if (class_exists(OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent::class)) {
