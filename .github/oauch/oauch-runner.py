@@ -253,17 +253,17 @@ def main() -> int:
             browser.execute_script("arguments[0].click();", start_button[0])
 
         deadline = time.time() + int(os.environ.get("OAUCH_RUN_TIMEOUT", "1500"))
-        last_url = ""
-        page_loaded_at = time.monotonic()
+        last_urls: dict[str, str] = {}
+        page_loaded_at: dict[str, float] = {}
         while time.time() < deadline:
             handles = list(browser.window_handles)
             complete = False
             for handle in handles:
                 browser.switch_to.window(handle)
                 current = browser.current_url
-                if current != last_url:
-                    last_url = current
-                    page_loaded_at = time.monotonic()
+                if current != last_urls.get(handle):
+                    last_urls[handle] = current
+                    page_loaded_at[handle] = time.monotonic()
                     print(f"OAuch browser: {current}", flush=True)
 
                 if "nextcloud-proxy" in current:
@@ -293,7 +293,7 @@ def main() -> int:
                     # A POST authorization request first visits an OAuch
                     # relay page. Do not mark it stalled before that relay had
                     # time to submit the request to the authorization server.
-                    if time.monotonic() - page_loaded_at >= 15:
+                    if time.monotonic() - page_loaded_at.get(handle, time.monotonic()) >= 15:
                         click_text(browser, ("stalled", "no callback", "continue test", "skip", "next test"))
 
             if complete:
