@@ -158,8 +158,8 @@ class OIDCApiController extends ApiController {
                     ?TexTargetMapper $texTargetMapper = null,
                     ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null,
                     ?TexSubjectClientMapper $texSubjectClientMapper = null,
-                    ?RedirectUriMapper $redirectUriMapper = null
-                    ?ScopeCeilingService $scopeCeiling = null
+                    ?RedirectUriMapper $redirectUriMapper = null,
+                    ?ScopeCeilingService $scopeCeiling = null,
                     )
     {
         parent::__construct($appName, $request);

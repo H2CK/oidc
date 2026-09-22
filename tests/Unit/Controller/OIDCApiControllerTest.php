@@ -180,6 +180,7 @@ class OIDCApiControllerTest extends TestCase {
             $this->texTargetMapper,
             $this->formUrlencodedParameterParser,
             $this->texSubjectClientMapper,
+            null,
             new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger)
         );
 
