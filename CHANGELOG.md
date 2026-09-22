@@ -2,15 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.4.0-alpha1] - 2026-09-22
 
 ### Added
 
-- Group scope limits: cap the scopes members of a group may be issued, for every client including dynamically registered ones (admin settings and `occ oidc:group-scopes:*`)
+- Group scope limits: cap the scopes members of a group may be issued, for every client including dynamically registered ones (admin settings and `occ oidc:group-scopes:*`) ([#723](https://github.com/H2CK/oidc/pull/723))
 
 ### Changed
 
 - Tokens requested via `TokenGenerationRequestEvent` now honour the client's allowed scopes and group restriction, like the authorization endpoint
+- Updated dependencies ([#719](https://github.com/H2CK/oidc/pull/719), [#720](https://github.com/H2CK/oidc/pull/720), [#722](https://github.com/H2CK/oidc/pull/722))
+
 ## [2.3.1] - 2026-09-18
 
 ### Added
