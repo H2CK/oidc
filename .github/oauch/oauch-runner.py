@@ -181,13 +181,17 @@ def main() -> int:
 
         fill_by_id(browser, "Settings_AuthorizationUri", metadata["authorization_endpoint"])
         fill_by_id(browser, "Settings_TokenUri", metadata["token_endpoint"])
-        browser.find_element(By.ID, "label-oidc").click()
+        browser.execute_script(
+            "arguments[0].click();", browser.find_element(By.ID, "label-oidc")
+        )
         WebDriverWait(browser, 5).until(
             lambda current: current.find_element(By.ID, "Settings_OpenIdIssuer").is_displayed()
         )
         fill_by_id(browser, "Settings_OpenIdIssuer", metadata["issuer"])
         fill_by_id(browser, "Settings_JwksUri", metadata["jwks_uri"])
-        browser.find_element(By.ID, "label-client").click()
+        browser.execute_script(
+            "arguments[0].click();", browser.find_element(By.ID, "label-client")
+        )
         WebDriverWait(browser, 5).until(
             lambda current: current.find_element(By.ID, "Settings_DefaultClient_ClientId").is_displayed()
         )
