@@ -18,6 +18,7 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -31,6 +32,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IGroupManager;
 use OCP\IL10N;
@@ -42,7 +44,6 @@ use Psr\Log\LoggerInterface;
 
 class DeviceAuthorizationController extends Controller {
 	private const DEVICE_CODE_LIFETIME = 600;
-	private const INITIAL_POLL_INTERVAL = 5;
 	/** Consent lifetime matches ConsentController (90 days). */
 	private const CONSENT_LIFETIME = 7776000;
 	private const USER_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -63,6 +64,8 @@ class DeviceAuthorizationController extends Controller {
 		private IL10N $l,
 		private LoggerInterface $logger,
 		private FormUrlencodedParameterParser $formUrlencodedParameterParser,
+		private IAppConfig $appConfig,
+		private ScopeCeilingService $scopeCeiling,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -131,7 +134,7 @@ class DeviceAuthorizationController extends Controller {
 		$entity->setScope($scopeOrResponse);
 		$entity->setCreatedAt($now);
 		$entity->setExpiresAt($now + self::DEVICE_CODE_LIFETIME);
-		$entity->setIntervalSeconds(self::INITIAL_POLL_INTERVAL);
+		$entity->setIntervalSeconds(DeviceCodeMapper::INITIAL_INTERVAL_SECONDS);
 		$entity->setLastPolledAt(0);
 		$entity->setStatus(DeviceCode::STATUS_PENDING);
 		$entity->setUserId(null);
@@ -139,13 +142,18 @@ class DeviceAuthorizationController extends Controller {
 		$this->deviceCodeMapper->insert($entity);
 
 		$verificationUri = $this->urlGenerator->linkToRouteAbsolute('oidc.DeviceAuthorization.verify', []);
+		$verificationUriComplete = $verificationUri . '?user_code=' . rawurlencode($displayUserCode);
+		$inlineUserCode = $this->appConfig->getAppValueString(
+			Application::APP_CONFIG_DEVICE_CODE_IN_VERIFICATION_URI,
+			Application::DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI,
+		) === 'true';
 		$response = new JSONResponse([
 			'device_code' => $deviceCode,
 			'user_code' => $displayUserCode,
-			'verification_uri' => $verificationUri,
-			'verification_uri_complete' => $verificationUri . '?user_code=' . rawurlencode($displayUserCode),
+			'verification_uri' => $inlineUserCode ? $verificationUriComplete : $verificationUri,
+			'verification_uri_complete' => $verificationUriComplete,
 			'expires_in' => self::DEVICE_CODE_LIFETIME,
-			'interval' => self::INITIAL_POLL_INTERVAL,
+			'interval' => DeviceCodeMapper::INITIAL_INTERVAL_SECONDS,
 		]);
 		$response->addHeader('Cache-Control', 'no-store');
 		$response->addHeader('Pragma', 'no-cache');
@@ -189,7 +197,12 @@ class DeviceAuthorizationController extends Controller {
 			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The requesting application no longer exists.'));
 		}
 
-		return $this->devicePage('approve', $normalizedUserCode, $client, null, $deviceCode->getScope());
+		// Show only the scopes the user's group ceiling lets them receive, as authorize does.
+		$scope = $this->scopeCeiling->clamp($this->userSession->getUser()->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		if ($scope === '') {
+			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('You are not permitted any of the access this application requested.'));
+		}
+		return $this->devicePage('approve', $normalizedUserCode, $client, null, $scope);
 	}
 
 	#[NoAdminRequired]
@@ -216,10 +229,18 @@ class DeviceAuthorizationController extends Controller {
 			return new JSONResponse(['error' => 'access_denied'], Http::STATUS_FORBIDDEN);
 		}
 
+		$scope = $this->scopeCeiling->clamp($user->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		if ($scope === '') {
+			// Nothing the user may receive: deny now, so the polling device gets
+			// access_denied instead of waiting for the code to expire.
+			$this->deviceCodeMapper->markDenied($deviceCode);
+			return new JSONResponse(['error' => 'access_denied', 'error_description' => 'None of the requested scopes are permitted for this user.'], Http::STATUS_FORBIDDEN);
+		}
+
 		if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID())) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
 		}
-		$this->storeConsent($user->getUID(), $client, $deviceCode->getScope());
+		$this->storeConsent($user->getUID(), $client, $scope);
 		$this->logger->info('User approved an OAuth device authorization request.', ['client_id' => $client->getClientIdentifier()]);
 		return new JSONResponse(['success' => true]);
 	}

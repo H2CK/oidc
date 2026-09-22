@@ -22,12 +22,14 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUri;
 use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
+use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 use OCA\OIDCIdentityProvider\Service\RedirectUriService;
 use OCA\OIDCIdentityProvider\Service\CredentialService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
 use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCP\AppFramework\Controller;
+use OCP\Server;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IL10N;
@@ -1071,6 +1073,30 @@ class SettingsController extends Controller
         }
 
         return preg_match('/^[A-Za-z][A-Za-z0-9+.-]*$/', (string)$parts['scheme']) === 1;
+    }
+
+    public function setGroupScopes(
+                    string $groupId,
+                    string $scopes
+                    ): JSONResponse
+    {
+        if (!$this->groupManager->groupExists($groupId)) {
+            return new JSONResponse(['message' => 'Group does not exist'], Http::STATUS_BAD_REQUEST);
+        }
+        $scopes = implode(' ', preg_split('/\s+/', trim($scopes), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        if (strlen($scopes) > 512) {
+            return new JSONResponse(['message' => 'Scopes must not exceed 512 characters'], Http::STATUS_BAD_REQUEST);
+        }
+        $mapper = Server::get(GroupScopeMapper::class);
+        $mapper->upsert($groupId, $scopes);
+        return new JSONResponse($mapper->findAll());
+    }
+
+    public function deleteGroupScopes(string $groupId): JSONResponse
+    {
+        $mapper = Server::get(GroupScopeMapper::class);
+        $mapper->deleteByGroupId($groupId);
+        return new JSONResponse($mapper->findAll());
     }
 
 }

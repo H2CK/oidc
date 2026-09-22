@@ -67,6 +67,20 @@ class DeviceCodeMapper extends QBMapper {
 		);
 	}
 
+	/**
+	 * Return a consumed code to approved when the tokens it was consumed for
+	 * could not be issued, so the client can retry instead of being told the
+	 * code was already used.
+	 */
+	public function revertConsumed(DeviceCode $deviceCode): bool {
+		return $this->updateStatus(
+			$deviceCode,
+			DeviceCode::STATUS_CONSUMED,
+			DeviceCode::STATUS_APPROVED,
+			['consumed_at' => 0]
+		);
+	}
+
 	/** @param array<string,int|string> $extraValues */
 	private function updateStatus(
 		DeviceCode $deviceCode,
@@ -89,18 +103,44 @@ class DeviceCodeMapper extends QBMapper {
 	}
 
 	/**
+	 * Interval advertised to the client, and the value the interval returns to
+	 * once a client is polling acceptably again.
+	 */
+	public const INITIAL_INTERVAL_SECONDS = 5;
+
+	/**
 	 * Seconds added to the polling interval for each RFC 8628 slow_down.
 	 */
 	public const SLOW_DOWN_INCREMENT_SECONDS = 5;
 
 	/**
-	 * Record a compliant poll. False means the client polled before its current
-	 * interval elapsed; in that case RFC 8628 requires a slow_down response and
-	 * the persisted interval is increased by 5 seconds for subsequent polls.
+	 * Upper bound for interval escalation, so the window cannot recede as fast as
+	 * a polling client advances.
+	 */
+	public const MAX_INTERVAL_SECONDS = 15;
+
+	/**
+	 * Absorbs jitter between polls. The timestamp is taken when the request is
+	 * processed, so two polls a full interval apart on the wire can be recorded
+	 * fractionally closer together.
+	 */
+	private const POLL_TOLERANCE_SECONDS = 1;
+
+	/**
+	 * Record a compliant poll. False means the client polled before its interval
+	 * elapsed and RFC 8628 requires a slow_down response.
+	 *
+	 * A rejected poll leaves last_polled_at on the last accepted poll, so a
+	 * client that backs off is guaranteed to get back in, and the escalation is
+	 * capped and undone once the client polls acceptably again. Advancing the
+	 * anchor on a rejected poll while also raising the interval would move the
+	 * window away exactly as fast as a client polling at a fixed cadence
+	 * approaches it, leaving the code unusable until it expired.
 	 */
 	public function recordPoll(DeviceCode $deviceCode, int $now): bool {
+		$interval = max(1, $deviceCode->getIntervalSeconds());
 		$qb = $this->db->getQueryBuilder();
-		$earliestAllowed = $now - max(1, $deviceCode->getIntervalSeconds());
+		$earliestAllowed = $now - $interval + self::POLL_TOLERANCE_SECONDS;
 		$updated = $qb->update($this->getTableName())
 			->set('last_polled_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT))
 			->where($qb->expr()->eq('id', $qb->createNamedParameter($deviceCode->getId(), IQueryBuilder::PARAM_INT)))
@@ -112,18 +152,26 @@ class DeviceCodeMapper extends QBMapper {
 
 		if ($updated === 1) {
 			$deviceCode->setLastPolledAt($now);
+			if ($deviceCode->getIntervalSeconds() > self::INITIAL_INTERVAL_SECONDS) {
+				$reset = $this->db->getQueryBuilder();
+				$reset->update($this->getTableName())
+					->set('interval_seconds', $reset->createNamedParameter(self::INITIAL_INTERVAL_SECONDS, IQueryBuilder::PARAM_INT))
+					->where($reset->expr()->eq('id', $reset->createNamedParameter($deviceCode->getId(), IQueryBuilder::PARAM_INT)))
+					->executeStatement();
+				$deviceCode->setIntervalSeconds(self::INITIAL_INTERVAL_SECONDS);
+			}
 			return true;
 		}
 
-		$newInterval = $deviceCode->getIntervalSeconds() + self::SLOW_DOWN_INCREMENT_SECONDS;
-		$tooEarly = $this->db->getQueryBuilder();
-		$tooEarly->update($this->getTableName())
-			->set('last_polled_at', $tooEarly->createNamedParameter($now, IQueryBuilder::PARAM_INT))
-			->set('interval_seconds', $tooEarly->createNamedParameter($newInterval, IQueryBuilder::PARAM_INT))
-			->where($tooEarly->expr()->eq('id', $tooEarly->createNamedParameter($deviceCode->getId(), IQueryBuilder::PARAM_INT)))
-			->executeStatement();
-		$deviceCode->setLastPolledAt($now);
-		$deviceCode->setIntervalSeconds($newInterval);
+		$newInterval = min($interval + self::SLOW_DOWN_INCREMENT_SECONDS, self::MAX_INTERVAL_SECONDS);
+		if ($newInterval !== $deviceCode->getIntervalSeconds()) {
+			$tooEarly = $this->db->getQueryBuilder();
+			$tooEarly->update($this->getTableName())
+				->set('interval_seconds', $tooEarly->createNamedParameter($newInterval, IQueryBuilder::PARAM_INT))
+				->where($tooEarly->expr()->eq('id', $tooEarly->createNamedParameter($deviceCode->getId(), IQueryBuilder::PARAM_INT)))
+				->executeStatement();
+			$deviceCode->setIntervalSeconds($newInterval);
+		}
 		return false;
 	}
 

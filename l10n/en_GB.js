@@ -205,6 +205,8 @@ OC.L10N.register(
     "The device request could not be completed. Please try again." : "The device request could not be completed. Please try again.",
     "Connect a device" : "Connect a device",
     "Enter the code displayed on your device." : "Enter the code displayed on your device.",
+    "Device code" : "Device code",
+    "Eight characters. The dash is added for you, and pasting the whole link works too." : "Eight characters. The dash is added for you, and pasting the whole link works too.",
     "Continue" : "Continue",
     "The device request is complete. You can close this page." : "The device request is complete. You can close this page.",
     "OpenID Connect Redirect" : "OpenID Connect Redirect",

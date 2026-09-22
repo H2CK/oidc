@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0-alpha1] - 2026-09-22
+
+### Added
+
+- Group scope limits: cap the scopes members of a group may be issued, for every client including dynamically registered ones (admin settings and `occ oidc:group-scopes:*`) ([#723](https://github.com/H2CK/oidc/pull/723))
+
+### Changed
+
+- Tokens requested via `TokenGenerationRequestEvent` now honour the client's allowed scopes and group restriction, like the authorization endpoint
+- Updated dependencies ([#719](https://github.com/H2CK/oidc/pull/719), [#720](https://github.com/H2CK/oidc/pull/720), [#722](https://github.com/H2CK/oidc/pull/722))
+
+## [2.3.1] - 2026-09-18
+
+### Added
+
+- Added `device_code_in_verification_uri` to include the user code in `verification_uri` for device clients that build their QR code from it. Enabled by default. ([#716](https://github.com/H2CK/oidc/pull/716))
+
+### Fixed
+
+- Fixed device authorization grant recovery and QR handling ([#716](https://github.com/H2CK/oidc/pull/716))
+- Fixed access-token cleanup when refresh-token expiration is set to `never` ([#715](https://github.com/H2CK/oidc/pull/715))
+- Use the configured default for `token_type` when the parameter is omitted during DCR ([#718](https://github.com/H2CK/oidc/pull/718))
+- Fixed the device authorization poll throttle moving its own window out of reach.
+- Stopped applying the poll throttle to a device code the user has already approved.
+- A device code is no longer left unusable when the tokens it was consumed for could not be issued.
+
 ## [2.3.0] - 2026-09-15
 
 ### Added

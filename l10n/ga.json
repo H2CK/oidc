@@ -203,6 +203,8 @@
     "The device request could not be completed. Please try again." : "Níorbh fhéidir an t-iarratas ar an bhfeiste a chomhlíonadh. Déan iarracht arís, le do thoil.",
     "Connect a device" : "Ceangail gléas",
     "Enter the code displayed on your device." : "Cuir isteach an cód atá ar taispeáint ar do ghléas.",
+    "Device code" : "Cód gléis",
+    "Eight characters. The dash is added for you, and pasting the whole link works too." : "Ocht gcarachtar. Cuirtear an fleiscín isteach duit, agus oibríonn sé má ghreamúíonn tú an nasc iomlán freisin.",
     "Continue" : "Lean ar aghaidh",
     "The device request is complete. You can close this page." : "Tá an t-iarratas ar an bhfeiste críochnaithe. Is féidir leat an leathanach seo a dhúnadh.",
     "OpenID Connect Redirect" : "OpenID Connect Atreorú",

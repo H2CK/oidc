@@ -17,9 +17,11 @@ use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
@@ -42,6 +44,11 @@ class DeviceAuthorizationControllerTest extends TestCase {
 	private ITimeFactory $time;
 	private IURLGenerator $urlGenerator;
 	private FormUrlencodedParameterParser $formParser;
+	private IAppConfig $appConfig;
+	/** Scope the mocked group ceiling narrows to; null passes the scope through. */
+	private ?string $ceilingScope = null;
+	/** @var array<string,string> */
+	private array $appConfigValues = [];
 	private DeviceAuthorizationController $controller;
 	private string $contentType = 'application/x-www-form-urlencoded';
 	private string $authorizationHeader = '';
@@ -62,6 +69,10 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->time = $this->createMock(ITimeFactory::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->formParser = $this->createMock(FormUrlencodedParameterParser::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->appConfig->method('getAppValueString')->willReturnCallback(
+			fn (string $key, string $default = '') => $this->appConfigValues[$key] ?? $default,
+		);
 
 		$this->request->method('getHeader')->willReturnCallback(fn (string $name): string => match ($name) {
 			'Content-Type' => $this->contentType,
@@ -69,6 +80,9 @@ class DeviceAuthorizationControllerTest extends TestCase {
 			default => '',
 		});
 		$this->formParser->method('readSelectedParameters')->willReturnCallback(fn (): ?array => $this->rawParameters);
+
+		$scopeCeiling = $this->createMock(ScopeCeilingService::class);
+		$scopeCeiling->method('clamp')->willReturnCallback(fn (string $uid, string $scope): string => $this->ceilingScope ?? $scope);
 
 		$this->controller = new DeviceAuthorizationController(
 			'oidc',
@@ -85,6 +99,8 @@ class DeviceAuthorizationControllerTest extends TestCase {
 			$this->createMock(IL10N::class),
 			$this->createMock(LoggerInterface::class),
 			$this->formParser,
+			$this->appConfig,
+			$scopeCeiling,
 		);
 	}
 
@@ -128,11 +144,35 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertSame('device-code', $response->getData()['device_code']);
 		$this->assertSame('ABCD-2345', $response->getData()['user_code']);
-		$this->assertSame('https://cloud.example/apps/oidc/device', $response->getData()['verification_uri']);
+		// verification_uri carries the code by default; see
+		// Application::DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI.
+		$this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri']);
 		$this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri_complete']);
 		$this->assertSame(600, $response->getData()['expires_in']);
 		$this->assertSame(5, $response->getData()['interval']);
 		$this->assertSame('no-store', $response->getHeaders()['Cache-Control']);
+	}
+
+	public function testUserCodeCanBeKeptOutOfVerificationUri(): void {
+		$this->appConfigValues['device_code_in_verification_uri'] = 'false';
+		$this->rawParameters = [
+			'client_id' => ['device-client'],
+			'client_secret' => [],
+			'scope' => ['openid profile email'],
+		];
+		$this->clientMapper->method('getByIdentifier')->willReturn($this->createClient('public'));
+		$this->secureRandom->method('generate')->willReturnOnConsecutiveCalls('device-code', 'ABCD2345');
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn(null);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example/apps/oidc/device');
+
+		$response = $this->controller->authorize('device-client', 'openid profile email');
+
+		// Opting out restores the short RFC 8628 section 3.2 form. Clients that read
+		// verification_uri_complete keep working either way.
+		$this->assertSame('https://cloud.example/apps/oidc/device', $response->getData()['verification_uri']);
+		$this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri_complete']);
+		$this->assertSame('ABCD-2345', $response->getData()['user_code']);
 	}
 
 	public function testConfidentialClientRequiresCorrectSecret(): void {
@@ -212,6 +252,57 @@ class DeviceAuthorizationControllerTest extends TestCase {
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 		$this->assertTrue($response->getData()['success']);
+	}
+
+	public function testApprovalStoresConsentNarrowedByGroupCeiling(): void {
+		$deviceCode = new DeviceCode();
+		$deviceCode->setId(7);
+		$deviceCode->setClientId(1);
+		$deviceCode->setScope('openid profile notes.write');
+		$deviceCode->setExpiresAt(1_600);
+		$deviceCode->setStatus(DeviceCode::STATUS_PENDING);
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->ceilingScope = 'openid profile';
+
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn($deviceCode);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
+		$this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+		$this->deviceCodeMapper->method('markApproved')->willReturn(true);
+		$this->userConsentMapper->method('findByUserAndClient')->willReturn(null);
+		$this->userConsentMapper->expects($this->once())
+			->method('createOrUpdate')
+			->with($this->callback(fn (UserConsent $consent): bool => $consent->getScopesGranted() === 'openid profile'));
+
+		$this->assertSame(Http::STATUS_OK, $this->controller->approve('ABCD-2345')->getStatus());
+	}
+
+	public function testApprovalIsDeniedWhenGroupCeilingLeavesNoScope(): void {
+		$deviceCode = new DeviceCode();
+		$deviceCode->setId(7);
+		$deviceCode->setClientId(1);
+		$deviceCode->setScope('notes.write');
+		$deviceCode->setExpiresAt(1_600);
+		$deviceCode->setStatus(DeviceCode::STATUS_PENDING);
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->ceilingScope = '';
+
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn($deviceCode);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
+		$this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+		$this->deviceCodeMapper->expects($this->once())->method('markDenied')->with($deviceCode)->willReturn(true);
+		$this->deviceCodeMapper->expects($this->never())->method('markApproved');
+		$this->userConsentMapper->expects($this->never())->method('createOrUpdate');
+
+		$response = $this->controller->approve('ABCD-2345');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame('access_denied', $response->getData()['error']);
 	}
 
 	public function testDeviceApprovalPreservesTimeLimitedConsentSemantics(): void {

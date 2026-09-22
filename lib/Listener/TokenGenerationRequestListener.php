@@ -12,14 +12,18 @@ use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IGroupManager;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\Security\ISecureRandom;
 use Psr\Log\LoggerInterface;
 
@@ -37,6 +41,10 @@ class TokenGenerationRequestListener implements IEventListener {
         private JwtGenerator $jwtGenerator,
         private ClientMapper $clientMapper,
         private IUrlGenerator $urlGenerator,
+        private GroupMapper $groupMapper,
+        private IGroupManager $groupManager,
+        private IUserManager $userManager,
+        private ScopeCeilingService $scopeCeiling,
     ) {
     }
 
@@ -69,9 +77,31 @@ class TokenGenerationRequestListener implements IEventListener {
             return;
         }
 
-        $instanceUrl = $this->urlGenerator->getBaseUrl();
+        // Apply the same limits as the authorize endpoint: client group gate,
+        // client allowed_scopes, then the per-group scope ceiling.
+        if (!$this->isUserAllowedForClient($userId, $client->getId())) {
+            $this->logger->notice('[TokenGenerationRequestListener] User ' . $userId . ' is not a member of the groups defined for client ' . $clientIdentifier);
+            return;
+        }
+        $scopes = $this->scopeCeiling->narrow($userId, $scopes, $client->getAllowedScopes() ?? '', $clientIdentifier);
+        if ($scopes === '') {
+            $scopes = Application::DEFAULT_SCOPE;
+        }
+
+        // getAbsoluteURL() rather than getBaseUrl(): the event is also dispatched
+        // from occ and background workers, where there is no request and only
+        // getAbsoluteURL() honours overwrite.cli.url (getBaseUrl() yields
+        // http://localhost there, so `iss` would not match the instance).
+        $instanceUrl = $this->urlGenerator->getAbsoluteURL('/');
         $protocol = parse_url($instanceUrl, PHP_URL_SCHEME);
         $host = parse_url($instanceUrl, PHP_URL_HOST);
+        // Keep a non-default port: the HTTP endpoints issue with
+        // IRequest::getServerHost(), which includes it, so dropping it here
+        // gives event-minted tokens a different `iss` than every other token.
+        $port = parse_url($instanceUrl, PHP_URL_PORT);
+        if ($port !== null && $port !== false) {
+            $host .= ':' . $port;
+        }
 
         // generate a new access token for the client
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
@@ -115,5 +145,23 @@ class TokenGenerationRequestListener implements IEventListener {
         if ($refreshExpireTime !== 'never') {
             $event->setRefreshExpiresIn((int)$refreshExpireTime);
         }
+    }
+
+    private function isUserAllowedForClient(string $userId, int $clientId): bool {
+        $clientGroups = $this->groupMapper->getGroupsByClientId($clientId);
+        if ($clientGroups === []) {
+            return true;
+        }
+        $user = $this->userManager->get($userId);
+        if ($user === null) {
+            return false;
+        }
+        $userGroupIds = $this->groupManager->getUserGroupIds($user);
+        foreach ($clientGroups as $clientGroup) {
+            if (in_array($clientGroup->getGroupId(), $userGroupIds, true)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

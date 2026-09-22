@@ -39,6 +39,13 @@ class Application extends App implements IBootstrap
     public const DEFAULT_TOKEN_TYPE = 'opaque';
     public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
     public const DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS = 'false';
+    /**
+     * Also return the pre-filled URL in verification_uri. Enabled by default for
+     * clients that build their QR code from verification_uri and ignore
+     * verification_uri_complete, such as Ubuntu authd. Set to 'false' for the
+     * short form RFC 8628 section 3.2 recommends.
+     */
+    public const DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI = 'true';
 
     public const DEFAULT_DISABLE_AUTH_CLIENT_SECRET_BASIC = false;
     public const DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS = false;
@@ -59,6 +66,7 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_DEFAULT_TOKEN_TYPE = 'default_token_type';
     public const APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS = 'provide_refresh_token_always';
     public const APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS = 'allow_subdomain_wildcards';
+    public const APP_CONFIG_DEVICE_CODE_IN_VERIFICATION_URI = 'device_code_in_verification_uri';
     public const APP_CONFIG_ALWAYS_INCLUDE_SCOPE_CLAIMS = 'always_include_scope_claims';
     public const APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC = 'disable_auth_client_secret_basic';
 

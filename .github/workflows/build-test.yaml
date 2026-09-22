@@ -212,7 +212,10 @@ jobs:
           echo "${{ secrets.APP_PRIVATE_KEY }}" > ${{ env.APP_NAME }}.key
           wget --quiet "https://github.com/nextcloud/app-certificate-requests/raw/master/${{ env.APP_NAME }}/${{ env.APP_NAME }}.crt"
           # Signing
-          php nextcloud/occ integrity:sign-app --privateKey=../${{ env.APP_NAME }}.key --certificate=../${{ env.APP_NAME }}.crt --path=apps/${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}
+          php nextcloud/occ integrity:sign-app \
+            --privateKey="$GITHUB_WORKSPACE/${{ env.APP_NAME }}.key" \
+            --certificate="$GITHUB_WORKSPACE/${{ env.APP_NAME }}.crt" \
+            --path="$GITHUB_WORKSPACE/nextcloud/apps/${{ env.APP_NAME }}/build/artifacts/${{ env.APP_NAME }}"
           # Building archive
           cd nextcloud/apps/${{ env.APP_NAME }}/build/artifacts
           tar -zcvf ${{ env.APP_NAME }}.tar.gz ${{ env.APP_NAME }}

@@ -205,6 +205,8 @@ OC.L10N.register(
     "The device request could not be completed. Please try again." : "Aygıt isteği tamamlanamadı. Lütfen yeniden deneyin.",
     "Connect a device" : "Bir aygıt bağlayın",
     "Enter the code displayed on your device." : "Aygıtınızda görüntülenen kodu yazın.",
+    "Device code" : "Aygıt kodu",
+    "Eight characters. The dash is added for you, and pasting the whole link works too." : "Sekiz karakter. Tire sizin için eklenir ve tüm bağlantıyı yapıştırmak da işe yarar.",
     "Continue" : "İlerle",
     "The device request is complete. You can close this page." : "Aygıt isteği tamamlandı. Bu sayfayı kapatabilirsiniz.",
     "OpenID Connect Redirect" : "OpenID Connect yönlendirmesi",

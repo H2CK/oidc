@@ -30,6 +30,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\ApiController;
@@ -49,6 +50,7 @@ use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\IURLGenerator;
+use OCP\Server;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -73,6 +75,8 @@ class OIDCApiController extends ApiController {
     private $texTargetMapper;
     /** @var TexSubjectClientMapper */
     private $texSubjectClientMapper;
+    /** @var ScopeCeilingService */
+    private $scopeCeiling;
     /** @var ICrypto */
     private $crypto;
     /** @var TokenProvider */
@@ -128,6 +132,7 @@ class OIDCApiController extends ApiController {
      * @param FormUrlencodedParameterParser|null $formUrlencodedParameterParser
      * @param TexSubjectClientMapper|null $texSubjectClientMapper
      * @param DeviceCodeMapper $deviceCodeMapper
+     * @param ScopeCeilingService|null $scopeCeiling
      */
     public function __construct(
                     string $appName,
@@ -154,6 +159,7 @@ class OIDCApiController extends ApiController {
                     ?FormUrlencodedParameterParser $formUrlencodedParameterParser = null,
                     ?TexSubjectClientMapper $texSubjectClientMapper = null,
                     ?RedirectUriMapper $redirectUriMapper = null
+                    ?ScopeCeilingService $scopeCeiling = null
                     )
     {
         parent::__construct($appName, $request);
@@ -179,6 +185,7 @@ class OIDCApiController extends ApiController {
         $this->texSubjectClientMapper = $texSubjectClientMapper;
         $this->deviceCodeMapper = $deviceCodeMapper;
         $this->redirectUriMapper = $redirectUriMapper;
+        $this->scopeCeiling = $scopeCeiling ?? Server::get(ScopeCeilingService::class);
     }
 
     /**
@@ -571,6 +578,19 @@ class OIDCApiController extends ApiController {
             }
         }
 
+        if ($grant_type === 'refresh_token') {
+            // Refresh reuses the token row, so re-apply the client's allowed_scopes
+            // and the group scope ceiling: narrowing either takes effect at the
+            // next refresh.
+            $scope = $this->scopeCeiling->narrow($uid, $accessToken->getScope(), $client->getAllowedScopes() ?? '', $client_id);
+            if ($scope === '') {
+                $this->accessTokenMapper->delete($accessToken);
+                $this->logger->info('No permitted scopes remain for refresh token grant. Client id was ' . $client_id . '.');
+                return $this->invalidGrantResponse('No permitted scopes remain.');
+            }
+            $accessToken->setScope($scope);
+        }
+
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken->setHashedCode(hash('sha512', $newCode));
         $now = $this->time->getTime();
@@ -706,10 +726,10 @@ class OIDCApiController extends ApiController {
             || ($authorization->getStatus() === DeviceCode::STATUS_APPROVED && $authorization->getUserId() === null)) {
             return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
         }
-        if (!$this->deviceCodeMapper->recordPoll($authorization, $now)) {
-            return $this->deviceGrantError('slow_down', 'Polling is faster than the permitted interval.');
-        }
         if ($authorization->getStatus() === DeviceCode::STATUS_PENDING) {
+            if (!$this->deviceCodeMapper->recordPoll($authorization, $now)) {
+                return $this->deviceGrantError('slow_down', 'Polling is faster than the permitted interval.');
+            }
             return $this->deviceGrantError('authorization_pending', 'The user has not completed authorization.');
         }
 
@@ -731,6 +751,12 @@ class OIDCApiController extends ApiController {
         if (!$groupAllowed) {
             return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
         }
+        // Re-check at issuance, like refresh: allowed_scopes or the user's group
+        // ceiling may have narrowed since the user approved the request.
+        $scope = $this->scopeCeiling->narrow($authorization->getUserId(), $authorization->getScope(), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
+        if ($scope === '') {
+            return $this->deviceGrantError('access_denied', 'No permitted scopes remain for this user.');
+        }
         if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
             return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
         }
@@ -742,7 +768,7 @@ class OIDCApiController extends ApiController {
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
         $accessToken->setUserId($authorization->getUserId());
-        $accessToken->setScope($authorization->getScope());
+        $accessToken->setScope($scope);
         $accessToken->setHashedCode(hash('sha512', $refreshCode));
         $accessToken->setCreated($now);
         $accessToken->setRefreshed($now);
@@ -772,7 +798,11 @@ class OIDCApiController extends ApiController {
                 false
             );
         } catch (JwtCreationErrorException $e) {
+            $this->deviceCodeMapper->revertConsumed($authorization);
             return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
+        } catch (\Throwable $e) {
+            $this->deviceCodeMapper->revertConsumed($authorization);
+            throw $e;
         }
 
         $responseData = [
@@ -1193,6 +1223,15 @@ class OIDCApiController extends ApiController {
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Subject token is not acceptable.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        // A subject token issued before the user's group ceiling changed must
+        // not carry the old scopes into the exchanged token.
+        $effectiveScope = $this->scopeCeiling->clamp($uid, $effectiveScope, $client_id);
+        if ($effectiveScope === '') {
+            return new JSONResponse([
+                'error' => 'invalid_scope',
+                'error_description' => 'No permitted Token Exchange scopes remain for this subject token.',
             ], Http::STATUS_BAD_REQUEST);
         }
 
