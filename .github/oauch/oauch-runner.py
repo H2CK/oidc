@@ -237,7 +237,10 @@ def main() -> int:
         )
         start_button = browser.find_elements(By.ID, "startButton")
         if start_button:
-            start_button[0].click()
+            # The same responsive sidebar overlay also covers this button in
+            # the CI viewport. Activating the element through the DOM invokes
+            # OAuch's onRun() handler without relying on a pointer click.
+            browser.execute_script("arguments[0].click();", start_button[0])
 
         deadline = time.time() + int(os.environ.get("OAUCH_RUN_TIMEOUT", "1500"))
         last_url = ""
