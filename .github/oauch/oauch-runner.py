@@ -281,7 +281,14 @@ def main() -> int:
                     break
 
                 if "oauch.io" in current:
-                    body = browser.find_element(By.TAG_NAME, "body").text.lower()
+                    # Callback pages can navigate while their result is being
+                    # rendered. In that case Selenium invalidates the body
+                    # element between lookup and text extraction; retry on
+                    # the next poll instead of aborting the whole test run.
+                    try:
+                        body = browser.find_element(By.TAG_NAME, "body").text.lower()
+                    except WebDriverException:
+                        continue
                     if any(term in body for term in ("test run completed", "testing completed", "final report", "unmitigated threats")):
                         save(browser, "99-complete")
                         (RESULTS / "summary.txt").write_text(browser.find_element(By.TAG_NAME, "body").text, encoding="utf-8")
