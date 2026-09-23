@@ -22,6 +22,7 @@ OC.L10N.register(
     "Never" : "Hech qachon",
     "Disable" : "Oʻchirish",
     "Enable" : "Enable",
+    "Remove" : "O'chirish",
     "Email address" : "E-pochta manzili",
     "Deny" : "Rad etish",
     "Continue" : "Davom etish"

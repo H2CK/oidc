@@ -116,6 +116,8 @@ OC.L10N.register(
     "This setting enables also the user consent management." : "Selle seadistuse alusel toimub ka kasutajate nõusoleku haldus.",
     "Restrict User Information" : "Piira kasutajateavet",
     "Select information to be omitted" : "Vali vahelejäetav teave",
+    "Remove" : "Eemalda",
+    "Select group" : "Vali grupp",
     "Regenerate Keys" : "Loo võtmed uuesti",
     "Scope" : "Kehtivusala",
     "Parameters" : "Parameetrid",

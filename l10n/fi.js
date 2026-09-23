@@ -82,6 +82,8 @@ OC.L10N.register(
     "Restrict User Information" : "Rajoita käyttäjän tietoja",
     "Removed information from ID token and userinfo endpoint" : "Poistettiin tiedot ID-tokenista ja userinfo-päätepisteestä.",
     "Select information to be omitted" : "Valitse pois jätettävät tiedot",
+    "Remove" : "Poista",
+    "Select group" : "Valitse ryhmä",
     "Regenerate Keys" : "Uudelleen avaimet",
     "Scope" : "Näkyvyysalue",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connectin avulla voit kirjautua ulkoisiin palveluihin {instanceName}-käyttäjätililläsi.",

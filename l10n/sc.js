@@ -30,6 +30,8 @@ OC.L10N.register(
     "Never" : "Mai",
     "Disable" : "Disativa",
     "Enable" : "Ativa",
+    "Remove" : "Boga",
+    "Select group" : "Seletziona grupos",
     "Scope" : "Àmbitu",
     "Email address" : "Indiritzu de posta eletrònica",
     "Deny" : "Nega",

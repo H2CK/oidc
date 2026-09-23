@@ -169,6 +169,8 @@ OC.L10N.register(
     "Restrict User Information" : "Kullanıcı bilgileri kısıtlansın",
     "Removed information from ID token and userinfo endpoint" : "Bigliler, kimlik kodu ve kullanıcı bilgileri uç noktasından kaldırıldı",
     "Select information to be omitted" : "Atlanacak bilgileri seçin",
+    "Remove" : "Kaldır",
+    "Select group" : "Grubu seçin",
     "Global Accepted Logout Redirect URIs" : "Genel onaylanmış oturumu kapatma adresleri",
     "Regenerate Keys" : "Anahtarları yeniden oluştur",
     "Custom Claim" : "Özel istek",

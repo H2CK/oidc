@@ -58,6 +58,8 @@ OC.L10N.register(
     "Restrict User Information" : "ユーザー情報の制限",
     "Removed information from ID token and userinfo endpoint" : "IDトークンおよびUserinfoエンドポイントから情報を削除",
     "Select information to be omitted" : "省略する情報を選択してください",
+    "Remove" : "削除",
+    "Select group" : "グループを選択",
     "Scope" : "スコープ",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect を使用すると、{instanceName} のユーザーアカウントで外部サービスにログインできます。",
     "All settings for the login at other services are managed by your administrator." : "他のサービスへのログインに関するすべての設定は、管理者によって管理されています。",

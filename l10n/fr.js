@@ -169,6 +169,8 @@ OC.L10N.register(
     "Restrict User Information" : "Restreindre les informations sur les utilisateurs",
     "Removed information from ID token and userinfo endpoint" : "Informations supprimées du jeton d’identité et du point de terminaison userinfo",
     "Select information to be omitted" : "Sélectionner les informations à omettre",
+    "Remove" : "Supprimer",
+    "Select group" : "Sélectionner un groupe",
     "Global Accepted Logout Redirect URIs" : "URI de redirection après déconnexion acceptées globalement",
     "Regenerate Keys" : "Régénérer les clés",
     "Custom Claim" : "Revendication personnalisée",

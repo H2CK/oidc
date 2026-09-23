@@ -12,6 +12,7 @@ OC.L10N.register(
     "30 minutes" : "30 นาที",
     "Never" : "ไม่เคย",
     "Disable" : "ปิดใช้งาน",
+    "Remove" : "ลบออก",
     "Scope" : "ขอบเขต",
     "Email address" : "ที่อยู่อีเมล",
     "Continue" : "ดำเนินการต่อ"

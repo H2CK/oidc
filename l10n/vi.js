@@ -26,6 +26,7 @@ OC.L10N.register(
     "Never" : "Không bao giờ",
     "Disable" : "Tắt",
     "Enable" : "Bật",
+    "Remove" : "Xoá",
     "Profile information" : "Thông tin cá nhân",
     "Email address" : "Địa chỉ thư điện tử",
     "Deny" : "Từ chối",

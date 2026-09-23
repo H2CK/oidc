@@ -33,6 +33,8 @@ OC.L10N.register(
     "Never" : "nikoli",
     "Disable" : "Onemogoči",
     "Enable" : "Omogoči",
+    "Remove" : "Odstrani",
+    "Select group" : "Izbor skupine",
     "Scope" : "Obseg",
     "Profile information" : "Podrobnosti profila",
     "Email address" : "Elektronski naslov",

@@ -28,6 +28,8 @@ OC.L10N.register(
     "1 day" : "יום",
     "Never" : "מעולם לא",
     "Disable" : "השבתה",
+    "Remove" : "הסרה",
+    "Select group" : "בחירת קבוצה",
     "Scope" : "היקף",
     "Email address" : "כתובת דוא״ל",
     "Deny" : "לדחות",

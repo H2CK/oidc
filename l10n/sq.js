@@ -28,6 +28,7 @@ OC.L10N.register(
     "Never" : "Kurrë",
     "Disable" : "Çaktivizoje",
     "Enable" : "Aktivizoje",
+    "Remove" : "Hiqe",
     "Scope" : "Shtrirje",
     "Deny" : "Refuzo",
     "Allow" : "Lejo",

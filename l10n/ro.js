@@ -22,6 +22,8 @@ OC.L10N.register(
     "Never" : "Niciodată",
     "Disable" : "Dezactivează",
     "Enable" : "Activare",
+    "Remove" : "Elimină",
+    "Select group" : "Selectați grupul",
     "Scope" : "Scop",
     "Profile information" : "Informații de profil",
     "Email address" : "Email",

@@ -25,6 +25,7 @@ OC.L10N.register(
     "Never" : "Weṛǧin",
     "Disable" : "Désactiver",
     "Enable" : "Sermed",
+    "Remove" : "Kkes",
     "Email address" : "Tansa imayl",
     "Deny" : "Agwi",
     "Allow" : "Sireg",

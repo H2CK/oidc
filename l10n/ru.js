@@ -53,6 +53,8 @@ OC.L10N.register(
     "Disable" : "Отключить",
     "Enable" : "Включить",
     "Use Nextcloud account information" : "Используйте информацию об учетной записи Nextcloud",
+    "Remove" : "Удалить",
+    "Select group" : "Выбрать группу",
     "Regenerate Keys" : "Пересоздать ключи",
     "Scope" : "Объем",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect позволяет вам входить во внешние сервисы с вашей {instanceName} учётной записью.",

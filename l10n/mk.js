@@ -30,6 +30,7 @@ OC.L10N.register(
     "Never" : "Никогаш",
     "Disable" : "Оневозможи",
     "Enable" : "Овозможи",
+    "Remove" : "Отстрани ",
     "Scope" : "Опсег",
     "Profile information" : "Информации за профилот",
     "Email address" : "Е-пошта адреса",

@@ -29,6 +29,8 @@ OC.L10N.register(
     "Never" : "하지 않음",
     "Disable" : "사용 안함",
     "Enable" : "활성화",
+    "Remove" : "삭제",
+    "Select group" : "그룹 선택",
     "Scope" : "범위",
     "Profile information" : "프로필 정보",
     "Email address" : "이메일 주소",

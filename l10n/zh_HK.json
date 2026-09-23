@@ -167,6 +167,8 @@
     "Restrict User Information" : "限制用戶資訊",
     "Removed information from ID token and userinfo endpoint" : "已從 ID 權杖和用戶信息端點移除資訊。",
     "Select information to be omitted" : "選擇要省略的資訊",
+    "Remove" : "移除",
+    "Select group" : "選擇群組",
     "Global Accepted Logout Redirect URIs" : "全域接受的登出重新導向 URI",
     "Regenerate Keys" : "重新生成密鑰",
     "Custom Claim" : "自訂聲明",

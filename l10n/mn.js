@@ -30,6 +30,7 @@ OC.L10N.register(
     "Never" : "хэзээч",
     "Disable" : "Идэвхгүй болгох",
     "Enable" : "Идэвхжүүлэх",
+    "Remove" : "–£—Å—Ç–≥–∞—Ö",
     "Scope" : "Хамрах хүрээ",
     "Profile information" : "Профайлын мэдээлэл",
     "Email address" : "Имэйл хаяг",

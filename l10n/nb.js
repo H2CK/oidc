@@ -59,6 +59,8 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "Velg atferd for å angi bekreftet flagg for e-post",
     "Use Nextcloud account information" : "Bruk Nextcloud-kontoinformasjon",
     "Set to always verified" : "Sett til alltid verifisert",
+    "Remove" : "Fjern",
+    "Select group" : "Velg gruppe",
     "Regenerate Keys" : "Generer nøkler på nytt",
     "Scope" : "Omfang",
     "Profile information" : "Profil-informasjon",

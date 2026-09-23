@@ -122,6 +122,8 @@ OC.L10N.register(
     "Restrict User Information" : "Omezit informace o uživateli",
     "Removed information from ID token and userinfo endpoint" : "Odebrány informace z ID tokenu a koncového bodu userinfo",
     "Select information to be omitted" : "Vyberte informace, které vynechat",
+    "Remove" : "Odebrat",
+    "Select group" : "Vybrat skupinu",
     "Regenerate Keys" : "Znovu vytvořit klíče",
     "Custom Claim" : "Uživatelsky určené tvrzení",
     "Edit Custom Claim" : "Upravit uživatelsky určené tvrzení",

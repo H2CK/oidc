@@ -30,6 +30,7 @@ OC.L10N.register(
     "Never" : "Jamai",
     "Disable" : "Desactivar",
     "Enable" : "Activar",
+    "Remove" : "Suprimir",
     "Email address" : "Adreça mail",
     "Continue" : "Contunhar"
 },

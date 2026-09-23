@@ -32,6 +32,8 @@ OC.L10N.register(
     "Never" : "Nikad",
     "Disable" : "Onemogući",
     "Enable" : "Omogućite",
+    "Remove" : "Ukloni",
+    "Select group" : "Označi grupu",
     "Scope" : "Opseg",
     "Profile information" : "Podaci profila",
     "Email address" : "Adresa e-pošte",

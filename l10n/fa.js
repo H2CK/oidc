@@ -129,6 +129,8 @@ OC.L10N.register(
     "Restrict User Information" : "محدود کردن اطلاعات کاربر",
     "Removed information from ID token and userinfo endpoint" : "اطلاعات حذف‌شده از توکن ID و نقطه پایانی userinfo",
     "Select information to be omitted" : "اطلاعاتی را که باید حذف شوند انتخاب کنید",
+    "Remove" : "حذف",
+    "Select group" : "انتخاب گروه",
     "Regenerate Keys" : "بازتولید کلیدها",
     "Custom Claim" : "ادعای سفارشی",
     "Edit Custom Claim" : "ویرایش ادعای سفارشی",

@@ -29,6 +29,7 @@ OC.L10N.register(
     "7 days" : "7 dagar",
     "Never" : "Aldrei",
     "Disable" : "Gera óvirkt",
+    "Remove" : "Fjarlægja",
     "Scope" : "Umfang",
     "Profile information" : "Persónuupplýsingar",
     "Email address" : "Tölvupóstfang",

@@ -141,6 +141,8 @@ OC.L10N.register(
     "Restrict User Information" : "Restringir informações do utilizador",
     "Removed information from ID token and userinfo endpoint" : "Informações removidas do token de ID e do ponto de extremidade userinfo",
     "Select information to be omitted" : "Selecionar a informação a omitir",
+    "Remove" : "Remover",
+    "Select group" : "Selecionar grupo",
     "Regenerate Keys" : "Regenerar Chaves",
     "Custom Claim" : "Declaração personalizada",
     "Edit Custom Claim" : "Editar declaração personalizada",

@@ -145,6 +145,8 @@ OC.L10N.register(
     "Restrict User Information" : "Περιορισμός των πληροφοριών χρήστη",
     "Removed information from ID token and userinfo endpoint" : "Αφαιρέθηκαν πληροφορίες από το ID token και το τελικό σημείο userinfo",
     "Select information to be omitted" : "Επιλέξτε τις πληροφορίες που θα παραλειφθούν",
+    "Remove" : "Αφαίρεση",
+    "Select group" : "Επιλογή ομάδας",
     "Regenerate Keys" : "Αναγέννηση κλειδιών",
     "Custom Claim" : "Προσαρμοσμένη αξίωση",
     "Edit Custom Claim" : "Επεξεργασία προσαρμοσμένης αξίωσης",

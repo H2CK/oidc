@@ -14,6 +14,7 @@ OC.L10N.register(
     "Never" : "Ni",
     "Disable" : "Ofschalten",
     "Enable" : "Aktivéieren",
+    "Remove" : "Ewechhuelen",
     "Scope" : "Uwendungsberäich",
     "Continue" : "Weider"
 },

@@ -32,6 +32,7 @@ OC.L10N.register(
     "Never" : "Never",
     "Disable" : "ປິດ",
     "Enable" : "Enable",
+    "Remove" : "ລຶບອອກ",
     "Scope" : "Scope",
     "Profile information" : "Profile information",
     "Email address" : "ທີ່ຢູ່ອີເມວ",

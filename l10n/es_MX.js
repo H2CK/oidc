@@ -27,6 +27,8 @@ OC.L10N.register(
     "1 day" : "1 día",
     "Disable" : "Deshabilitar",
     "Enable" : "Activar",
+    "Remove" : "Borrar",
+    "Select group" : "Seleccionar grupos",
     "Scope" : "Ámbito",
     "Profile information" : "Información del perfil",
     "Email address" : "Dirección de correo electrónico",

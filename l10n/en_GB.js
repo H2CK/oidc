@@ -169,6 +169,8 @@ OC.L10N.register(
     "Restrict User Information" : "Restrict User Information",
     "Removed information from ID token and userinfo endpoint" : "Removed information from ID token and userinfo endpoint",
     "Select information to be omitted" : "Select information to be omitted",
+    "Remove" : "Remove",
+    "Select group" : "Select group",
     "Global Accepted Logout Redirect URIs" : "Global Accepted Logout Redirect URIs",
     "Regenerate Keys" : "Regenerate Keys",
     "Custom Claim" : "Custom Claim",

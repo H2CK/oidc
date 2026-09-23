@@ -15,6 +15,7 @@ OC.L10N.register(
     "Never" : "Aldri",
     "Disable" : "Slå av",
     "Enable" : "SLå på",
+    "Remove" : "Fjern",
     "Continue" : "Gå vidare"
 },
 "nplurals=2; plural=(n != 1);");

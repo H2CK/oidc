@@ -93,6 +93,8 @@
     "Restrict User Information" : "Ограничи податке о кориснику",
     "Removed information from ID token and userinfo endpoint" : "Информације из ID жетона и userinfo крајње тачке су уклоњене",
     "Select information to be omitted" : "Изаберите информације које желите да се изоставе",
+    "Remove" : "Уклони",
+    "Select group" : "Изаберите групу",
     "Regenerate Keys" : "Регенериши кључеве",
     "Scope" : "Опсег",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect омогућава пријаву на спољне сервисе помоћу вашег налога на {instanceName}.",

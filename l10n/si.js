@@ -21,6 +21,7 @@ OC.L10N.register(
     "15 minutes" : "විනාඩි 15 යි",
     "30 minutes" : "විනාඩි 30 යි",
     "12 hours" : "හෝරා 12 යි",
-    "Disable" : "අබල කරන්න"
+    "Disable" : "අබල කරන්න",
+    "Remove" : "ඉවත් කරන්න"
 },
 "nplurals=2; plural=(n != 1);");

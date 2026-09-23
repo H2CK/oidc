@@ -52,6 +52,8 @@ OC.L10N.register(
     "Never" : "Soha",
     "Disable" : "Letiltás",
     "Enable" : "Engedélyezés",
+    "Remove" : "Eltávolítás",
+    "Select group" : "Válasszon csoportot",
     "Regenerate Keys" : "Kulcsok újbóli előállítása",
     "Scope" : "Hatókör",
     "Profile information" : "Profilinformációk",

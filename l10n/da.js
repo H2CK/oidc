@@ -145,6 +145,8 @@ OC.L10N.register(
     "Restrict User Information" : "Begræns brugerinformation",
     "Removed information from ID token and userinfo endpoint" : "Fjernet information fra ID token og brugerinfo endpoint",
     "Select information to be omitted" : "Vælg information der skal udelades",
+    "Remove" : "Fjern",
+    "Select group" : "Vælg grupper",
     "Regenerate Keys" : "Regenerer Nøgler",
     "Custom Claim" : "Brugerdefineret krav",
     "Edit Custom Claim" : "Redigér brugerdefinerede krav",

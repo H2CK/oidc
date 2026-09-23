@@ -51,6 +51,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
     "Enable" : "Habilitar",
+    "Select group" : "Seleccionar grupo",
     "Regenerate Keys" : "Regenerar Claves",
     "Scope" : "Alcance",
     "Profile information" : "Información del perfil",

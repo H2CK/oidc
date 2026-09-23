@@ -96,6 +96,8 @@
     "Restrict User Information" : "ئىشلەتكۈچى ئۇچۇرلىرىنى چەكلە",
     "Removed information from ID token and userinfo endpoint" : "ID بەلگىسى ھەمدە userinfo چىقىش ئېغىزىدىن ئۇچۇرلارنى چىقىرۋەت",
     "Select information to be omitted" : "چىقىرۋېتىلدىغان ئۇچۇرلارنى تاللا",
+    "Remove" : "ئۆچۈرۈڭ",
+    "Select group" : "گۇرۇپپا تاللاڭ",
     "Regenerate Keys" : "ئاچقۇچنى قايتا ھاسىل قىلىڭ",
     "Scope" : "دائىرىسى",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID ئۇلىنىش سىزنىڭ {instanceName} ئىشلەتكۈچى ھېساباتىڭىز ئارقىلىق تاشقىي مۇلازىمەتلەرگە كىرىشىڭىزگە يول قويىدۇ",

@@ -14,6 +14,7 @@ OC.L10N.register(
     "Delete" : "Sguab às",
     "30 minutes" : "Leth-uair a thìde",
     "Disable" : "Cuir à comas",
+    "Remove" : "Thoir air falbh",
     "Deny" : "Diùlt",
     "Allow" : "Ceadaich"
 },

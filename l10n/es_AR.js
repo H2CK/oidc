@@ -24,6 +24,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
     "Enable" : "Activar",
+    "Remove" : "Eliminar",
     "Scope" : "Alcance",
     "Deny" : "Rechazar",
     "Allow" : "Permitir",

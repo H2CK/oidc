@@ -80,6 +80,8 @@
     "Restrict User Information" : "Zuia Taarifa za Mtumiaji",
     "Removed information from ID token and userinfo endpoint" : "Imeondoa maelezo kutoka kwa tokeni ya kitambulisho na sehemu ya mwisho ya maelezo ya mtumiaji",
     "Select information to be omitted" : "Chagua maelezo ya kuachwa",
+    "Remove" : "Ondoa",
+    "Select group" : "Chagua kundi",
     "Regenerate Keys" : "Tengeneza Vifunguo Upya",
     "Scope" : "Upeo",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect hukuruhusu kuingia katika huduma za nje ukitumia akaunti yako ya mtumiaji ya {instanceName}.",

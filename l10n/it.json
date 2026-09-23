@@ -80,6 +80,8 @@
     "Restrict User Information" : "Limitare le informazioni dell'utente",
     "Removed information from ID token and userinfo endpoint" : "Rimosse le informazioni dal token ID e dall'endpoint userinfo",
     "Select information to be omitted" : "Selezionare le informazioni da omettere",
+    "Remove" : "Rimuovi",
+    "Select group" : "Seleziona gruppo",
     "Regenerate Keys" : "Rigenera le chiavi",
     "Scope" : "Ambito",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect consente di accedere a servizi esterni con il proprio account utente {instanceName}.",

@@ -46,6 +46,8 @@ OC.L10N.register(
     "Never" : "Nigdy",
     "Disable" : "Wyłącz",
     "Enable" : "Włącz",
+    "Remove" : "Usuń",
+    "Select group" : "Wybierz grupę",
     "Regenerate Keys" : "Wygeneruj ponownie klucze",
     "Scope" : "Zakres",
     "Profile information" : "Informacje o profilu",

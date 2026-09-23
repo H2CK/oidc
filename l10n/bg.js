@@ -52,6 +52,8 @@ OC.L10N.register(
     "Never" : "Никога",
     "Disable" : "Изключване",
     "Enable" : "Включена",
+    "Remove" : "Премахване",
+    "Select group" : "Избеор на група",
     "Regenerate Keys" : "Регенериране на ключове",
     "Scope" : "Обхват",
     "Profile information" : "Информация за профила",

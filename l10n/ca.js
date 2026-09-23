@@ -32,6 +32,8 @@ OC.L10N.register(
     "Never" : "Mai",
     "Disable" : "Inhabilitar",
     "Enable" : "Habilitar",
+    "Remove" : "Suprimir",
+    "Select group" : "Selecciona un grup",
     "Scope" : "Abast",
     "Profile information" : "Informació del perfil",
     "Email address" : "Adreça electrònica",

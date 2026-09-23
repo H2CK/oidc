@@ -12,6 +12,7 @@ OC.L10N.register(
     "Save" : "சேமிக்க ",
     "Delete" : "நீக்குக",
     "Disable" : "இயலுமைப்ப",
-    "Enable" : "இயலுமைப்படுத்துக"
+    "Enable" : "இயலுமைப்படுத்துக",
+    "Remove" : "அகற்றுக"
 },
 "nplurals=2; plural=(n != 1);");

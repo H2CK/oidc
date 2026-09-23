@@ -13,6 +13,7 @@ OC.L10N.register(
     "Delete" : "Pozmak",
     "30 minutes" : "30 minut",
     "Disable" : "Öçürmek",
+    "Remove" : "Aýyrmak",
     "Deny" : "inkär et",
     "Allow" : "Rugsat ber"
 },

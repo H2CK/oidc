@@ -145,6 +145,8 @@ OC.L10N.register(
     "Restrict User Information" : "Vartotojo informacijos apribojimas",
     "Removed information from ID token and userinfo endpoint" : "Pašalinta informacija iš ID žymens ir „userinfo“ galinio taško",
     "Select information to be omitted" : "Pasirinkite informaciją, kurią norite praleisti",
+    "Remove" : "Šalinti",
+    "Select group" : "Pasirinkite grupę",
     "Regenerate Keys" : "Iš naujo sugeneruoti raktus",
     "Custom Claim" : "Pasirinktinis teiginys",
     "Edit Custom Claim" : "Redaguoti pasirinktinį teiginį",

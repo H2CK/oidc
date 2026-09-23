@@ -167,6 +167,8 @@
     "Restrict User Information" : "Srian a chur ar Fhaisnéis Úsáideora",
     "Removed information from ID token and userinfo endpoint" : "Baineadh faisnéis as an gcomhartha aitheantais agus as an gcríochphointe faisnéise úsáideora",
     "Select information to be omitted" : "Roghnaigh faisnéis le fágáil ar lár",
+    "Remove" : "Bain",
+    "Select group" : "Roghnaigh grúpa",
     "Global Accepted Logout Redirect URIs" : "URIanna Athsheolta Logála Amach Glactha go Domhanda",
     "Regenerate Keys" : "Eochracha a Athghiniúint",
     "Custom Claim" : "Éileamh Saincheaptha",

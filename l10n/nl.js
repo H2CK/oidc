@@ -89,6 +89,8 @@ OC.L10N.register(
     "Restrict User Information" : "Gebruikersinformatie beperken",
     "Removed information from ID token and userinfo endpoint" : "Informatie verwijderd uit ID token en userinfo eindpunt",
     "Select information to be omitted" : "Selecteer informatie die moet worden weggelaten",
+    "Remove" : "Verwijderen",
+    "Select group" : "Selecteer groep",
     "Regenerate Keys" : "Sleutels regenereren",
     "Scope" : "Toepassingsgebied",
     "Function" : "Functie",

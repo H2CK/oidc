@@ -29,6 +29,7 @@ OC.L10N.register(
     "Never" : "Never",
     "Disable" : "Disable",
     "Enable" : "Enable",
+    "Remove" : "Remove",
     "Scope" : "Scope",
     "Profile information" : "Profile information",
     "Email address" : "Email address",

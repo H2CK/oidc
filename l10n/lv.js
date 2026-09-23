@@ -26,6 +26,7 @@ OC.L10N.register(
     "Never" : "Nekad",
     "Disable" : "Deaktivēt",
     "Enable" : "Iespējot",
+    "Remove" : "Noņemt",
     "Scope" : "Darbības joma",
     "Email address" : "E-pasta adrese",
     "Deny" : "Noraidīt",

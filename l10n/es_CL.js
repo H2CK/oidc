@@ -23,6 +23,7 @@ OC.L10N.register(
     "12 hours" : "12 horas",
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
+    "Remove" : "Remover",
     "Scope" : "Alcance",
     "Loading..." : "Cargando..."
 },

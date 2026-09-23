@@ -164,6 +164,8 @@
     "Restrict User Information" : "Batasi Informasi Pengguna",
     "Removed information from ID token and userinfo endpoint" : "Informasi yang dihapus dari token ID dan endpoint userinfo",
     "Select information to be omitted" : "Pilih informasi yang akan dihilangkan",
+    "Remove" : "Hapus",
+    "Select group" : "Pilih grup",
     "Global Accepted Logout Redirect URIs" : "URI Pengalihan Keluar Global yang Diterima",
     "Regenerate Keys" : "Buat ulang kunci",
     "Custom Claim" : "Custom Claim",

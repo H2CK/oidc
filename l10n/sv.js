@@ -163,6 +163,8 @@ OC.L10N.register(
     "Restrict User Information" : "Begränsa användarinformation",
     "Removed information from ID token and userinfo endpoint" : "Information som tas bort från ID-token och userinfo-slutpunkten",
     "Select information to be omitted" : "Välj information som ska utelämnas",
+    "Remove" : "Ta bort",
+    "Select group" : "Välj grupp",
     "Global Accepted Logout Redirect URIs" : "Globalt godkända omdirigerings-URI:er för utloggning",
     "Regenerate Keys" : "Återskapa nycklar",
     "Custom Claim" : "Anpassat anspråk",

@@ -46,6 +46,8 @@ OC.L10N.register(
     "Never" : "Inoiz ez",
     "Disable" : "Desaktibatu",
     "Enable" : "Aktibatu",
+    "Remove" : "Kendu",
+    "Select group" : "Hautatu taldea",
     "Regenerate Keys" : "Berriro sortu gakoak",
     "Scope" : "Esparrua",
     "Profile information" : "Profilaren informazioa",
