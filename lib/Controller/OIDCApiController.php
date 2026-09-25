@@ -8,8 +8,6 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
-use OC\Authentication\Exceptions\ExpiredTokenException;
-use OC\Authentication\Exceptions\InvalidTokenException;
 use OC\Authentication\Token\IProvider as TokenProvider;
 use OC\Security\Bruteforce\Throttler;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
@@ -28,6 +26,7 @@ use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
+use OCA\OIDCIdentityProvider\Http\BasicAuthRequestSanitizer;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
@@ -207,7 +206,22 @@ class OIDCApiController extends ApiController {
 
     private function hasBasicAuthorizationHeader(): bool
     {
-        return stripos(trim($this->request->getHeader('Authorization')), 'Basic ') === 0;
+        return stripos(trim($this->getAuthorizationHeader()), 'Basic ') === 0;
+    }
+
+    /**
+     * Authorization header for this request.
+     *
+     * Must be used instead of $this->request->getHeader('Authorization')
+     * on the token/device_authorization/introspect endpoints: the
+     * BasicAuthRequestSanitizer strips the standard HTTP_AUTHORIZATION /
+     * PHP_AUTH_* fields on those endpoints (to stop Nextcloud Core from
+     * treating client_secret_basic credentials as a user login) and
+     * preserves the original value only under its own internal key.
+     */
+    private function getAuthorizationHeader(): string
+    {
+        return BasicAuthRequestSanitizer::getPreservedAuthorizationHeader($this->request);
     }
 
     private function invalidClientResponse(string $description, bool $basicAuthenticationAttempted = false): JSONResponse
@@ -226,7 +240,7 @@ class OIDCApiController extends ApiController {
 
     private function getBasicClientCredentials(): ?array
     {
-        $authorization = $this->request->getHeader('Authorization');
+        $authorization = $this->getAuthorizationHeader();
 
         if ($authorization === '') {
             return null;

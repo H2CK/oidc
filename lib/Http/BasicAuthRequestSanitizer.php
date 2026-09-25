@@ -16,6 +16,16 @@ final class BasicAuthRequestSanitizer
     private const DEVICE_AUTHORIZATION_ENDPOINT = '/apps/oidc/device_authorization';
     private const INTROSPECTION_ENDPOINT = '/apps/oidc/introspect';
 
+    /**
+     * Custom, non-standard field name used to smuggle the original
+     * Authorization header past Nextcloud Core.
+     *
+     * Only getPreservedAuthorizationHeader() is meant to read this. It must
+     * never be a name Nextcloud Core or any other app/middleware recognizes
+     * as an authentication credential.
+     */
+    private const PRESERVED_AUTHORIZATION_KEY = 'OIDC_PRESERVED_AUTHORIZATION';
+
     public function __construct(
         private IRequest $request,
         private LoggerInterface $logger,
@@ -45,6 +55,24 @@ final class BasicAuthRequestSanitizer
          * accesses it directly.
          */
         $this->sanitizeServerArray($_SERVER);
+    }
+
+    /**
+     * Retrieve the original Authorization header for a request previously
+     * processed by sanitize(), even though it has been scrubbed from all
+     * standard PHP/Nextcloud fields.
+     *
+     * Falls back to the normal Authorization header for requests that were
+     * never sanitized (e.g. in tests, or if sanitize() was a no-op).
+     */
+    public static function getPreservedAuthorizationHeader(IRequest $request): string
+    {
+        $preserved = $request->server[self::PRESERVED_AUTHORIZATION_KEY] ?? null;
+        if (is_string($preserved) && $preserved !== '') {
+            return $preserved;
+        }
+
+        return $request->getHeader('Authorization');
     }
 
     private function isOidcClientAuthenticationRequest(): bool
@@ -122,32 +150,52 @@ final class BasicAuthRequestSanitizer
     private function sanitizeServerArray(array &$server): void
     {
         /*
-         * Apache/mod_php sometimes exposes Basic auth only through
-         * PHP_AUTH_USER/PHP_AUTH_PW and does not retain HTTP_AUTHORIZATION.
+         * Determine the original Authorization value, regardless of which
+         * of the possible SAPI-specific fields it currently lives in:
+         * - HTTP_AUTHORIZATION            (most common; nginx/php-fpm etc.)
+         * - REDIRECT_HTTP_AUTHORIZATION   (apache+php-cgi work around)
+         * - PHP_AUTH_USER / PHP_AUTH_PW   (apache+mod_php, or already
+         *                                  decoded by Nextcloud Core's own
+         *                                  OC::handleAuthHeaders())
          *
-         * Preserve an Authorization header before removing the PHP_AUTH_*
-         * fields, otherwise the OIDC controller could lose the credentials.
+         * Nextcloud Core decodes HTTP_AUTHORIZATION/REDIRECT_HTTP_AUTHORIZATION
+         * into PHP_AUTH_USER/PHP_AUTH_PW itself (see OC::handleAuthHeaders()),
+         * *before* any app is loaded. So by the time this method runs,
+         * PHP_AUTH_USER may already be populated even if the client only
+         * ever sent a raw Authorization header.
          */
-        if (
-            empty($server['HTTP_AUTHORIZATION'])
-            && isset($server['PHP_AUTH_USER'])
-        ) {
+        $authorization = null;
+
+        if (!empty($server['HTTP_AUTHORIZATION'])) {
+            $authorization = (string)$server['HTTP_AUTHORIZATION'];
+        } elseif (!empty($server['REDIRECT_HTTP_AUTHORIZATION'])) {
+            $authorization = (string)$server['REDIRECT_HTTP_AUTHORIZATION'];
+        } elseif (isset($server['PHP_AUTH_USER'])) {
             $username = (string)$server['PHP_AUTH_USER'];
             $password = (string)($server['PHP_AUTH_PW'] ?? '');
+            $authorization = 'Basic ' . base64_encode($username . ':' . $password);
+        }
 
-            $server['HTTP_AUTHORIZATION']
-                = 'Basic ' . base64_encode($username . ':' . $password);
+        if ($authorization !== null) {
+            $server[self::PRESERVED_AUTHORIZATION_KEY] = $authorization;
         }
 
         /*
-         * These are the values that must disappear.
-         *
-         * Nextcloud's HTTP Basic user authentication consumes these values.
+         * These are ALL the values that must disappear, in every one of
+         * their possible forms. It is not enough to remove PHP_AUTH_USER/
+         * PHP_AUTH_PW: leaving HTTP_AUTHORIZATION (or its REDIRECT_ variant)
+         * in place means any other code path in Nextcloud Core, in other
+         * apps, or introduced in a future Nextcloud release that inspects
+         * the raw Authorization header directly - rather than exclusively
+         * relying on PHP_AUTH_USER/PHP_AUTH_PW - would still see and act on
+         * the OAuth client credentials as if they were Nextcloud user
+         * credentials.
          */
         unset(
             $server['PHP_AUTH_USER'],
-            $server['PHP_AUTH_PW']
+            $server['PHP_AUTH_PW'],
+            $server['HTTP_AUTHORIZATION'],
+            $server['REDIRECT_HTTP_AUTHORIZATION']
         );
     }
 }
-
