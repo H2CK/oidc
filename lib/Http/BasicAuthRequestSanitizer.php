@@ -78,6 +78,7 @@ final class BasicAuthRequestSanitizer
     private function isOidcClientAuthenticationRequest(): bool
     {
         if (strtoupper($this->request->getMethod()) !== 'POST') {
+            $this->logger->debug('OIDC:BasicAuthRequestSanitizer: No matching method (' . $this->request->getMethod() . ').');
             return false;
         }
 
@@ -85,10 +86,12 @@ final class BasicAuthRequestSanitizer
         $path = parse_url($requestUri, PHP_URL_PATH);
 
         if (!is_string($path)) {
+            $this->logger->debug('OIDC:BasicAuthRequestSanitizer: Invalid request URI.');
             return false;
         }
 
         $path = rtrim($path, '/');
+        $this->logger->debug('OIDC:BasicAuthRequestSanitizer: Checking url: ' . $path );
 
         /*
          * Do not compare the complete URI because Nextcloud may be installed
