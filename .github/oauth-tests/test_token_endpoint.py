@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 import pytest
 
 from oauth_testlib import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SECOND_CLIENT_ID, SECOND_CLIENT_SECRET
@@ -82,3 +84,49 @@ def test_redirect_uri_mismatch_is_rejected(oauth):
     response = oauth.exchange_code(code, redirect_uri="https://oauth-callback:9444/other")
     assert response.status_code == 400
     assert response.json().get("error") in {"invalid_grant", "invalid_request"}
+
+
+@pytest.mark.rfc("RFC 6749", section="3.2")
+def test_repeated_token_request_parameter_is_rejected(oauth):
+    endpoint = oauth.metadata["token_endpoint"]
+    response = oauth.http.post(
+        endpoint,
+        content=urlencode([("grant_type", "refresh_token"),
+                           ("grant_type", "authorization_code"),
+                           ("refresh_token", "unused")]),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        auth=(CLIENT_ID, CLIENT_SECRET),
+    )
+    assert response.status_code == 400
+    assert response.json().get("error") == "invalid_request"
+
+
+@pytest.mark.rfc("RFC 6749", section="2.3.1")
+def test_client_cannot_use_basic_and_post_authentication_together(oauth):
+    response = oauth.http.post(
+        oauth.metadata["token_endpoint"],
+        data={"grant_type": "authorization_code", "code": "unused",
+              "client_id": CLIENT_ID, "client_secret": CLIENT_SECRET},
+        auth=(CLIENT_ID, CLIENT_SECRET),
+    )
+    assert response.status_code == 400
+    assert response.json().get("error") == "invalid_request"
+
+
+@pytest.mark.rfc("RFC 6749", section="3.2")
+def test_token_endpoint_rejects_json_request_body(oauth):
+    response = oauth.http.post(
+        oauth.metadata["token_endpoint"],
+        json={"grant_type": "authorization_code", "code": "unused"},
+        auth=(CLIENT_ID, CLIENT_SECRET),
+    )
+    assert response.status_code == 400
+    assert response.json().get("error") in {"invalid_request", "unsupported_grant_type"}
+
+
+@pytest.mark.rfc("RFC 6749", section="5.1")
+def test_successful_token_response_has_json_content_type(oauth):
+    code = oauth.authorization_code()
+    response = oauth.exchange_code(code)
+    assert response.status_code == 200, response.text
+    assert response.headers.get("content-type", "").lower().startswith("application/json")

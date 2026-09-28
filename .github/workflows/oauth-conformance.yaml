@@ -16,6 +16,11 @@ on:
         required: true
         default: true
         type: boolean
+      require_dcr:
+        description: Fail when RFC 7591/7592 Dynamic Client Registration is not available
+        required: true
+        default: true
+        type: boolean
       require_revocation:
         description: Fail when RFC 7009 revocation is not available
         required: false
@@ -32,6 +37,11 @@ env:
   OAUTH_CALLBACK_URI: https://oauth-callback:9444/callback
   OAUTH_CLIENT_ID: oauth-conformance-client-000000000001
   OAUTH_CLIENT_SECRET: oauth-conformance-secret-0000000001
+  OAUTH_PUBLIC_CLIENT_ID: oauth-conformance-public-client-000000001
+  OAUTH_JWT_CLIENT_ID: oauth-conformance-jwt-client-000000001
+  OAUTH_JWT_CLIENT_SECRET: oauth-conformance-jwt-secret-000000001
+  OAUTH_SCOPE_LIMITED_CLIENT_ID: oauth-conformance-scope-client-00000001
+  OAUTH_SCOPE_LIMITED_CLIENT_SECRET: oauth-conformance-scope-secret-00000001
   OAUTH_SECOND_CLIENT_ID: oauth-conformance-client-000000000002
   OAUTH_SECOND_CLIENT_SECRET: oauth-conformance-secret-0000000002
   OIDC_TEST_USER: oidc-test-user
@@ -115,9 +125,14 @@ jobs:
         id: oauth_tests
         continue-on-error: true
         env:
-          OAUTH_REQUIRE_TOKEN_EXCHANGE: ${{ inputs.require_token_exchange || 'false' }}
-          OAUTH_REQUIRE_DEVICE_AUTH: ${{ inputs.require_device_auth || 'false' }}
-          OAUTH_REQUIRE_REVOCATION: false
+          # These capabilities are part of this app's advertised feature set,
+          # so pull requests and pushes must not silently skip their tests.
+          # Manual runs can still opt out where a deployment intentionally
+          # disables an optional feature.
+          OAUTH_REQUIRE_TOKEN_EXCHANGE: ${{ github.event_name != 'workflow_dispatch' || inputs.require_token_exchange }}
+          OAUTH_REQUIRE_DEVICE_AUTH: ${{ github.event_name != 'workflow_dispatch' || inputs.require_device_auth }}
+          OAUTH_REQUIRE_DCR: ${{ github.event_name != 'workflow_dispatch' || inputs.require_dcr }}
+          OAUTH_REQUIRE_REVOCATION: ${{ github.event_name == 'workflow_dispatch' && inputs.require_revocation }}
         run: |
           python3 -m pytest .github/oauth-tests \
             -c .github/oauth-tests/pytest.ini \

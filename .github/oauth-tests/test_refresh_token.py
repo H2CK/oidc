@@ -46,6 +46,29 @@ def test_refresh_cannot_escalate_scope(oauth):
 
 
 @pytest.mark.rfc("RFC 6749", section="6")
+def test_refresh_scope_reduction_is_reported(oauth):
+    tokens = oauth.issue_tokens("openid profile offline_access")
+    response = oauth.token({
+        "grant_type": "refresh_token",
+        "refresh_token": tokens["refresh_token"],
+        "scope": "openid offline_access",
+    })
+    assert response.status_code == 200, response.text
+    assert response.json().get("scope") == "openid offline_access"
+
+
+@pytest.mark.rfc("RFC 6749", section="6")
+def test_confidential_refresh_request_requires_client_authentication(oauth):
+    tokens = oauth.issue_tokens("openid profile offline_access")
+    response = oauth.token({
+        "grant_type": "refresh_token",
+        "refresh_token": tokens["refresh_token"],
+    }, auth_method="none")
+    assert response.status_code in (400, 401)
+    assert response.json().get("error") in {"invalid_client", "invalid_grant"}
+
+
+@pytest.mark.rfc("RFC 6749", section="6")
 def test_unknown_refresh_token_is_rejected(oauth):
     response = oauth.token({"grant_type": "refresh_token", "refresh_token": "unknown-refresh-token-000000000000"})
     assert response.status_code == 400
