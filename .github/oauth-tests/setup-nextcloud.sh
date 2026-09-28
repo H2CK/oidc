@@ -11,6 +11,11 @@ OAUTH_CALLBACK_URI="${OAUTH_CALLBACK_URI:-https://oauth-callback:9444/callback}"
 OAUTH_BASE_URL="${OAUTH_BASE_URL:-https://nextcloud-proxy:8443}"
 OAUTH_CLIENT_ID="${OAUTH_CLIENT_ID:-oauth-conformance-client-000000000001}"
 OAUTH_CLIENT_SECRET="${OAUTH_CLIENT_SECRET:-oauth-conformance-secret-0000000001}"
+OAUTH_PUBLIC_CLIENT_ID="${OAUTH_PUBLIC_CLIENT_ID:-oauth-conformance-public-client-000000001}"
+OAUTH_JWT_CLIENT_ID="${OAUTH_JWT_CLIENT_ID:-oauth-conformance-jwt-client-000000001}"
+OAUTH_JWT_CLIENT_SECRET="${OAUTH_JWT_CLIENT_SECRET:-oauth-conformance-jwt-secret-000000001}"
+OAUTH_SCOPE_LIMITED_CLIENT_ID="${OAUTH_SCOPE_LIMITED_CLIENT_ID:-oauth-conformance-scope-client-00000001}"
+OAUTH_SCOPE_LIMITED_CLIENT_SECRET="${OAUTH_SCOPE_LIMITED_CLIENT_SECRET:-oauth-conformance-scope-secret-00000001}"
 OAUTH_SECOND_CLIENT_ID="${OAUTH_SECOND_CLIENT_ID:-oauth-conformance-client-000000000002}"
 OAUTH_SECOND_CLIENT_SECRET="${OAUTH_SECOND_CLIENT_SECRET:-oauth-conformance-secret-0000000002}"
 OAUCH_CLIENT_ID="${OAUCH_CLIENT_ID:-oauch-conformance-client-00000000001}"
@@ -86,6 +91,27 @@ rsync -a --delete \
     --type confidential \
     --flow code \
     --allowed_scopes "openid profile email roles groups offline_access"
+
+  php occ oidc:create "OAuth conformance public client" "$OAUTH_CALLBACK_URI" \
+    --client_id "$OAUTH_PUBLIC_CLIENT_ID" \
+    --type public \
+    --flow code \
+    --allowed_scopes "openid profile email offline_access"
+
+  php occ oidc:create "OAuth conformance JWT access token client" "$OAUTH_CALLBACK_URI" \
+    --client_id "$OAUTH_JWT_CLIENT_ID" \
+    --client_secret "$OAUTH_JWT_CLIENT_SECRET" \
+    --type confidential \
+    --flow code \
+    --token_type jwt \
+    --allowed_scopes "openid profile email offline_access"
+
+  php occ oidc:create "OAuth conformance scope limited client" "$OAUTH_CALLBACK_URI" \
+    --client_id "$OAUTH_SCOPE_LIMITED_CLIENT_ID" \
+    --client_secret "$OAUTH_SCOPE_LIMITED_CLIENT_SECRET" \
+    --type confidential \
+    --flow code \
+    --allowed_scopes "openid profile"
 
   # OAuch always acts as its own client. Creating this client here keeps the
   # OAuch workflow independent from the deterministic pytest client.

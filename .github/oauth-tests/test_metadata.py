@@ -12,8 +12,21 @@ def test_metadata_has_core_endpoints(oauth):
     assert "code" in md.get("response_types_supported", [])
 
 
+@pytest.mark.rfc("RFC 8414", section="2")
+def test_metadata_identifies_issuer_and_token_authentication_methods(oauth):
+    md = oauth.metadata
+    issuer = urlsplit(md["issuer"])
+    assert issuer.scheme == "https"
+    assert not issuer.query and not issuer.fragment
+    methods = md.get("token_endpoint_auth_methods_supported", [])
+    # This provider supports both methods and must make that interoperable
+    # contract visible to clients.
+    assert "client_secret_basic" in methods
+    assert "client_secret_post" in methods
+
+
 @pytest.mark.rfc("RFC 7636", section="4.2")
 def test_pkce_metadata_does_not_advertise_weak_only_support(oauth):
     methods = oauth.metadata.get("code_challenge_methods_supported")
-    if methods is not None:
-        assert "S256" in methods
+    assert methods is not None, "PKCE support must be discoverable in metadata"
+    assert "S256" in methods

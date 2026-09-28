@@ -1,3 +1,4 @@
 httpx>=0.28,<1
+PyJWT[crypto]>=2.10,<3
 pytest>=8.3,<9
 selenium>=4.27,<5

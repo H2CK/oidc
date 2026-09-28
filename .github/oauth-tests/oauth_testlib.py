@@ -24,6 +24,11 @@ DISCOVERY_URL = os.environ.get(
 )
 CLIENT_ID = os.environ.get("OAUTH_CLIENT_ID", "oauth-conformance-client-000000000001")
 CLIENT_SECRET = os.environ.get("OAUTH_CLIENT_SECRET", "oauth-conformance-secret-0000000001")
+PUBLIC_CLIENT_ID = os.environ.get("OAUTH_PUBLIC_CLIENT_ID", "oauth-conformance-public-client-000000001")
+JWT_CLIENT_ID = os.environ.get("OAUTH_JWT_CLIENT_ID", "oauth-conformance-jwt-client-000000001")
+JWT_CLIENT_SECRET = os.environ.get("OAUTH_JWT_CLIENT_SECRET", "oauth-conformance-jwt-secret-000000001")
+SCOPE_LIMITED_CLIENT_ID = os.environ.get("OAUTH_SCOPE_LIMITED_CLIENT_ID", "oauth-conformance-scope-client-00000001")
+SCOPE_LIMITED_CLIENT_SECRET = os.environ.get("OAUTH_SCOPE_LIMITED_CLIENT_SECRET", "oauth-conformance-scope-secret-00000001")
 SECOND_CLIENT_ID = os.environ.get("OAUTH_SECOND_CLIENT_ID", "oauth-conformance-client-000000000002")
 SECOND_CLIENT_SECRET = os.environ.get("OAUTH_SECOND_CLIENT_SECRET", "oauth-conformance-secret-0000000002")
 REDIRECT_URI = os.environ.get("OAUTH_CALLBACK_URI", "https://oauth-callback:9444/callback")
@@ -165,6 +170,7 @@ class OAuthHarness:
             form.update({"client_id": client_id, "client_secret": client_secret})
             return self.http.post(endpoint, data=form)
         if auth_method == "none":
+            form.update({"client_id": client_id})
             return self.http.post(endpoint, data=form)
         raise ValueError(auth_method)
 
@@ -186,6 +192,27 @@ class OAuthHarness:
         assert query.get("code"), query
         return query["code"]
 
+    def authorization_attempt(self, *, response_type: str = "code",
+                               redirect_uri: str = REDIRECT_URI) -> str:
+        """Drive an authorization request and return the final browser URL."""
+        # Keep the session authenticated so protocol validation, rather than
+        # the Nextcloud login page, determines the result.
+        self.issue_tokens()
+        CALLBACK_FILE.unlink(missing_ok=True)
+        params = {
+            "response_type": response_type,
+            "client_id": CLIENT_ID,
+            "redirect_uri": redirect_uri,
+            "scope": "openid profile",
+            "state": secrets.token_urlsafe(20),
+            "nonce": secrets.token_urlsafe(20),
+        }
+        browser = self._browser()
+        browser.get(f"{self.metadata['authorization_endpoint']}?{urlencode(params)}")
+        self._login_if_needed(browser)
+        self._approve_if_needed(browser)
+        return browser.current_url
+
     def exchange_code(
         self,
         code: str,
@@ -205,9 +232,34 @@ class OAuthHarness:
             data["code_verifier"] = verifier
         return self.token(data, client_id=client_id, client_secret=client_secret, auth_method=auth_method)
 
-    def issue_tokens(self, scopes: str = "openid profile") -> dict[str, Any]:
-        code = self.authorization_code(scopes=scopes)
-        response = self.exchange_code(code)
+    def device_verification_action(self, response_data: dict[str, Any], action: str) -> None:
+        """Complete or deny a device request in the authenticated browser session."""
+        if action not in {"approve", "deny"}:
+            raise ValueError(action)
+        # Establish the user session in the same browser used for device approval.
+        self.issue_tokens()
+        browser = self._browser()
+        verification_uri = response_data.get("verification_uri_complete") or response_data["verification_uri"]
+        if not response_data.get("verification_uri_complete"):
+            separator = "&" if "?" in verification_uri else "?"
+            verification_uri += separator + urlencode({"user_code": response_data["user_code"]})
+        browser.get(verification_uri)
+        self._login_if_needed(browser)
+        selector = ".actions button"
+        WebDriverWait(browser, 15).until(lambda driver: len(driver.find_elements(By.CSS_SELECTOR, selector)) >= 2)
+        buttons = browser.find_elements(By.CSS_SELECTOR, selector)
+        label = "allow" if action == "approve" else "deny"
+        target = next((button for button in buttons if label in button.text.strip().lower()), None)
+        if target is None:
+            raise AssertionError(f"device verification action {action!r} is not available")
+        target.click()
+        WebDriverWait(browser, 15).until(lambda driver: "complete" in driver.page_source.lower())
+
+    def issue_tokens(self, scopes: str = "openid profile", *,
+                     client_id: str = CLIENT_ID,
+                     client_secret: str = CLIENT_SECRET) -> dict[str, Any]:
+        code = self.authorization_code(scopes=scopes, client_id=client_id)
+        response = self.exchange_code(code, client_id=client_id, client_secret=client_secret)
         assert response.status_code == 200, response.text
         return response.json()
 
