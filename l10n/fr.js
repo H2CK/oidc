@@ -9,6 +9,7 @@ OC.L10N.register(
     "The device code is invalid or has expired." : "Le code de l'appareil est invalide ou a expiré.",
     "This device request was denied." : "Cette demande d’autorisation de l’appareil a été refusée.",
     "The requesting application no longer exists." : "L'application qui faisait la demande n'existe plus.",
+    "You are not permitted any of the access this application requested." : "Vous n'avez les autorisations pour aucun des accès demandés par cette application.",
     "Authorization session expired. Please try again." : "La session d'autorisation a expiré. Veuillez réessayer.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "L'utilisateur n'est pas membre des groupes définis pour le client. Vous n'êtes pas autorisé à récupérer un jeton de connexion.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Un échec s'est produit lors de la création d'un JWT. Veuillez en informer l'administrateur de votre client.",
