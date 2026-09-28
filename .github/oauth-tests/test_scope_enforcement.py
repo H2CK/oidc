@@ -10,7 +10,9 @@ def test_authorization_never_issues_scopes_outside_client_allowlist(oauth):
                                 client_secret=SCOPE_LIMITED_CLIENT_SECRET)
     assert tokens.get("scope") == "openid profile"
 
-    introspection = oauth.introspect(tokens["access_token"])
+    introspection = oauth.introspect(tokens["access_token"],
+                                     client_id=SCOPE_LIMITED_CLIENT_ID,
+                                     client_secret=SCOPE_LIMITED_CLIENT_SECRET)
     assert introspection.status_code == 200, introspection.text
     assert introspection.json().get("active") is True
     assert introspection.json().get("scope") == "openid profile"

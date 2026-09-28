@@ -1,6 +1,17 @@
+from urllib.parse import urlencode
+
 import pytest
 
-from oauth_testlib import ACCESS_TOKEN_TYPE, TOKEN_EXCHANGE_GRANT, TOKEN_EXCHANGE_RESOURCE, env_true
+from oauth_testlib import (
+    ACCESS_TOKEN_TYPE,
+    CLIENT_ID,
+    CLIENT_SECRET,
+    SECOND_CLIENT_ID,
+    SECOND_CLIENT_SECRET,
+    TOKEN_EXCHANGE_GRANT,
+    TOKEN_EXCHANGE_RESOURCE,
+    env_true,
+)
 
 
 def _supported_or_required(oauth) -> bool:
@@ -162,12 +173,13 @@ def test_token_exchange_rejects_duplicate_resource_parameters(oauth):
     subject = oauth.issue_tokens("openid profile")["access_token"]
     response = oauth.http.post(
         oauth.metadata["token_endpoint"],
-        data=[("grant_type", TOKEN_EXCHANGE_GRANT),
-              ("subject_token", subject),
-              ("subject_token_type", ACCESS_TOKEN_TYPE),
-              ("requested_token_type", ACCESS_TOKEN_TYPE),
-              ("resource", TOKEN_EXCHANGE_RESOURCE),
-              ("resource", "https://other.example/api")],
+        content=urlencode([("grant_type", TOKEN_EXCHANGE_GRANT),
+                           ("subject_token", subject),
+                           ("subject_token_type", ACCESS_TOKEN_TYPE),
+                           ("requested_token_type", ACCESS_TOKEN_TYPE),
+                           ("resource", TOKEN_EXCHANGE_RESOURCE),
+                           ("resource", "https://other.example/api")]),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
         auth=(CLIENT_ID, CLIENT_SECRET),
     )
     if response.status_code == 400 and response.json().get("error") == "unsupported_grant_type" and not _supported_or_required(oauth):

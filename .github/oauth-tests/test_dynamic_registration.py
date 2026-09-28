@@ -43,7 +43,8 @@ def test_dynamic_registration_and_rfc7592_management(oauth):
     unauthenticated_update = oauth.http.put(data["registration_client_uri"], json=payload)
     assert unauthenticated_update.status_code in (400, 401, 403)
 
-    updated_payload = {**payload, "client_name": "OAuth conformance updated client"}
+    updated_payload = {**payload, "client_id": data["client_id"],
+                       "client_name": "OAuth conformance updated client"}
     updated = oauth.http.put(data["registration_client_uri"], json=updated_payload, headers=headers)
     assert updated.status_code == 200, updated.text
     assert updated.json().get("client_name") == updated_payload["client_name"]

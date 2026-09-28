@@ -193,7 +193,8 @@ class OAuthHarness:
         return query["code"]
 
     def authorization_attempt(self, *, response_type: str = "code",
-                               redirect_uri: str = REDIRECT_URI) -> str:
+                               redirect_uri: str = REDIRECT_URI,
+                               client_id: str = CLIENT_ID) -> str:
         """Drive an authorization request and return the final browser URL."""
         # Keep the session authenticated so protocol validation, rather than
         # the Nextcloud login page, determines the result.
@@ -201,7 +202,7 @@ class OAuthHarness:
         CALLBACK_FILE.unlink(missing_ok=True)
         params = {
             "response_type": response_type,
-            "client_id": CLIENT_ID,
+            "client_id": client_id,
             "redirect_uri": redirect_uri,
             "scope": "openid profile",
             "state": secrets.token_urlsafe(20),

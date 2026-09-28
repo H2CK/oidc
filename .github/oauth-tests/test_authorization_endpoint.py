@@ -22,5 +22,7 @@ def test_implicit_access_token_response_type_is_not_issued(oauth):
     final_url = oauth.authorization_attempt(response_type="token")
 
     assert "access_token" not in final_url.lower(), final_url
-    assert not final_url.startswith("https://oauth-callback:9444/callback"), final_url
-    assert not CALLBACK_FILE.exists()
+    # An OAuth error may be redirected to the registered callback. It must not
+    # contain an access token; the provider currently reports this request as
+    # unsupported because the implicit token response is disabled.
+    assert "error=request_not_supported" in final_url.lower(), final_url

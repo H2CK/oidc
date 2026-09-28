@@ -246,6 +246,9 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Create request mock for controllers
         $this->request = $this->createMock(IRequest::class);
+        $this->request->method('getHeader')->willReturnCallback(static function (string $name): string {
+            return $name === 'Content-Type' ? 'application/x-www-form-urlencoded' : '';
+        });
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('nextcloud.local');
 

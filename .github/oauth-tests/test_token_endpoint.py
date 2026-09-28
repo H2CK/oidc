@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 import pytest
 
 from oauth_testlib import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI, SECOND_CLIENT_ID, SECOND_CLIENT_SECRET
@@ -89,8 +91,10 @@ def test_repeated_token_request_parameter_is_rejected(oauth):
     endpoint = oauth.metadata["token_endpoint"]
     response = oauth.http.post(
         endpoint,
-        data=[("grant_type", "refresh_token"), ("grant_type", "authorization_code"),
-              ("refresh_token", "unused")],
+        content=urlencode([("grant_type", "refresh_token"),
+                           ("grant_type", "authorization_code"),
+                           ("refresh_token", "unused")]),
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
         auth=(CLIENT_ID, CLIENT_SECRET),
     )
     assert response.status_code == 400

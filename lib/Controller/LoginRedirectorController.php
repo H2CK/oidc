@@ -484,6 +484,20 @@ class LoginRedirectorController extends ApiController
         if (in_array('token', $responseTypeEntries) || in_array('id_token', $responseTypeEntries)) {
             $implicitFlow = true;
         }
+        // RFC 9700 requires PKCE for public clients. Require the strongest
+        // supported method so a public code flow cannot be downgraded by
+        // omitting the challenge (or selecting the non-hashing plain method).
+        if ($codeFlow && $client->getType() === 'public'
+            && (empty($code_challenge) || $code_challenge_method !== 'S256')) {
+            return $this->createAuthorizationErrorRedirect(
+                (string)$redirect_uri,
+                'invalid_request',
+                'Public clients must use PKCE with S256.',
+                $state,
+                $response_type,
+                $response_mode
+            );
+        }
         if (!$this->isSupportedAuthorizationResponseMode($responseMode, $responseTypeEntries)) {
             $this->logger->notice('Unsupported response_mode in request for client ' . $client_id . ': ' . var_export($response_mode, true));
             return $this->createAuthorizationErrorRedirect(

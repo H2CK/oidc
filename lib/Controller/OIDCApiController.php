@@ -344,6 +344,43 @@ class OIDCApiController extends ApiController {
         string|null $scope = null,
         string|null $redirect_uri = null): JSONResponse
     {
+        // RFC 6749 section 3.2 requires token endpoint requests to use
+        // application/x-www-form-urlencoded. Do this before grant dispatch so
+        // every supported grant follows the same rule.
+        if (!$this->isFormUrlencodedRequest()) {
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Token requests must use application/x-www-form-urlencoded.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // A client must use exactly one authentication method. In particular,
+        // client_secret_basic cannot be combined with credentials in the body.
+        if ($this->hasBasicAuthorizationHeader() && ($client_id !== null || $client_secret !== null)) {
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Use exactly one client authentication method.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        // PHP/Nextcloud's parsed parameter map collapses repeated form fields.
+        // Check the raw form body first so duplicates cannot change grant
+        // dispatch or make a malformed request appear valid.
+        $requestParameters = $this->formUrlencodedParameterParser->readSelectedParameters([
+            'grant_type', 'code', 'redirect_uri', 'refresh_token', 'client_id',
+            'client_secret', 'code_verifier', 'scope', 'device_code',
+        ]);
+        if ($requestParameters !== null) {
+            foreach ($requestParameters as $name => $values) {
+                if (count($values) > 1) {
+                    return new JSONResponse([
+                        'error' => 'invalid_request',
+                        'error_description' => 'Parameter ' . $name . ' must not occur more than once.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+            }
+        }
+
         $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         // Handle token exchange (RFC 8693). If Nextcloud/PHP collapsed a repeated
@@ -528,6 +565,10 @@ class OIDCApiController extends ApiController {
                 }
 
                 $this->logger->debug('PKCE verification successful for client ' . $client_id);
+            } elseif (!empty($code_verifier)) {
+                // A verifier without a challenge is not a PKCE exchange and
+                // must not be silently accepted as if the verifier were valid.
+                return $this->invalidGrantResponse('code_verifier supplied for an authorization code that was not protected by PKCE.');
             }
         } elseif ($refreshExpireTime !== 'never') {
             // The refresh token must not be expired
@@ -617,6 +658,9 @@ class OIDCApiController extends ApiController {
             'token_type' => 'Bearer',
             'expires_in' => $expireTime,
             'id_token' => $jwt,
+            // Always report the effective scope. This is required when policy
+            // (for example allowed_scopes or a group ceiling) narrowed it.
+            'scope' => $accessToken->getScope(),
         ];
 
         // Check if refresh token should be issued (OIDC Core 1.0 Section 11)
