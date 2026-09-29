@@ -63,6 +63,8 @@ OC.L10N.register(
     "Select behaviour for setting email verified flag" : "تحديد السلوك لتعيين حقل التحقق من البريد الإلكتروني email verified flag",
     "Use Nextcloud account information" : "إستعمِل معلومات حساب نكست كلاود",
     "Set to always verified" : "إضبِط على التحقق دوماً",
+    "Remove" : "حذف",
+    "Select group" : "إختر مجموعةً",
     "Regenerate Keys" : "إعادة توليد المفاتيح",
     "Scope" : "النطاق",
     "Profile information" : "معلومات الملف الشخصي",

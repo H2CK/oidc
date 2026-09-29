@@ -34,6 +34,7 @@ OC.L10N.register(
     "Never" : "Enxamás",
     "Disable" : "Desactivar",
     "Enable" : "Activar",
+    "Remove" : "Quitar",
     "Scope" : "Ámbitu",
     "Profile information" : "Información del perfil",
     "Email address" : "Direición de corréu electrónicu",

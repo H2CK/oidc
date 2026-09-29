@@ -40,6 +40,7 @@ OC.L10N.register(
     "Enable" : "Уключыць",
     "Source for email verified flag in token" : "Крыніца для сцяжка спраўджання адраса электроннай пошты ў токене",
     "Removed information from ID token and userinfo endpoint" : "Выдалена інфармацыя з токена ідэнтыфікацыі і канцавой кропкі userinfo",
+    "Remove" : "Выдаліць",
     "Profile information" : "Звесткі профілю",
     "Email address" : "Адрас электроннай пошты",
     "Deny" : "Забараніць",
