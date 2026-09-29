@@ -93,6 +93,7 @@ class ConsentControllerTest extends TestCase {
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
         $this->assertEquals('403', $response->getTemplateName());
+        $this->assertSame(403, $response->getStatus());
         $this->assertEquals('error', $response->getRenderAs());
     }
 
@@ -103,8 +104,13 @@ class ConsentControllerTest extends TestCase {
         $response = $this->controller->show();
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
-        $this->assertEquals('400', $response->getTemplateName());
-        $this->assertEquals('error', $response->getRenderAs());
+        $this->assertSame('error', $response->getTemplateName());
+        $this->assertSame(400, $response->getStatus());
+        $this->assertSame('error', $response->getRenderAs());
+        $this->assertSame(
+            'No consent request pending.',
+            $response->getParams()['errors'][0]['error']
+        );
     }
 
     public function testShowSuccess() {

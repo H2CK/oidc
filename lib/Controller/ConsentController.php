@@ -96,14 +96,22 @@ class ConsentController extends Controller {
         if (!$this->userSession->isLoggedIn()) {
             return new TemplateResponse('core', '403', [
                 'message' => $this->l->t('You must be logged in to view this page.')
-            ], 'error');
+            ], TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
         }
 
         // Check if consent is pending
         if (!$this->session->get('oidc_consent_pending')) {
-            return new TemplateResponse('core', '400', [
-                'message' => $this->l->t('No consent request pending.')
-            ], 'error');
+            return new TemplateResponse(
+                'core',
+                'error',
+                [
+                    'errors' => [
+                        ['error' => $this->l->t('No consent request pending.')],
+                    ],
+                ],
+                TemplateResponse::RENDER_AS_ERROR,
+                Http::STATUS_BAD_REQUEST
+            );
         }
 
         // Get stored parameters from session

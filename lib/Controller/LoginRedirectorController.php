@@ -401,9 +401,10 @@ class LoginRedirectorController extends ApiController
             $this->logger->error('Missing critical OAuth params after session fallback: '
                 . 'response_type=' . var_export($response_type, true) . ', '
                 . 'redirect_uri=' . var_export($redirect_uri, true));
-            return new TemplateResponse('core', '400', [
-                'message' => $this->l->t('Authorization session expired. Please try again.'),
-            ], 'error');
+            return $this->createHtmlErrorResponse(
+                $this->l->t('Authorization session expired. Please try again.'),
+                Http::STATUS_BAD_REQUEST
+            );
         }
 
         // Set default scope if scope is not set at all
@@ -624,7 +625,7 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token.'),
             ];
             $this->logger->notice('User ' . $this->userSession->getUser()->getUID() . ' is not accepted for client ' . $client_id . ' due to missing group assignment.');
-            return new TemplateResponse('core', '403', $params, 'error');
+            return new TemplateResponse('core', '403', $params, TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
         }
 
         $uid = $this->userSession->getUser()->getUID();
@@ -813,7 +814,10 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('A failure during JWT creation occured. Please inform the administrator of your client.'),
             ];
             $this->logger->notice('Client ' . $client_id . ' is not authorized to connect, due to failure during JWT creation.');
-            return new TemplateResponse('core', '500', $params, 'error');
+            return $this->createHtmlErrorResponse(
+                $params['message'],
+                Http::STATUS_INTERNAL_SERVER_ERROR
+            );
         }
 
         if (empty($state) || !isset($state)) {
@@ -906,9 +910,10 @@ class LoginRedirectorController extends ApiController
 
         if (!$this->hasNonEmptyRequestParameter($redirectUri)) {
             $this->logger->notice('Unsupported request parameter received without a redirect URI.');
-            return new TemplateResponse('core', '400', [
-                'message' => $this->l->t('Authorization request is missing a redirect URI.'),
-            ], 'error');
+            return $this->createHtmlErrorResponse(
+                $this->l->t('Authorization request is missing a redirect URI.'),
+                Http::STATUS_BAD_REQUEST
+            );
         }
 
         $clientOrResponse = $this->loadAuthorizationClient($clientId);
@@ -955,7 +960,7 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
             ];
             $this->logger->notice('Client ' . var_export($clientId, true) . ' is not authorized to connect.');
-            return new TemplateResponse('core', '403', $params, 'error');
+            return new TemplateResponse('core', '403', $params, TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
         }
 
         $this->clientMapper->cleanUp();
@@ -967,7 +972,7 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
             ];
             $this->logger->notice('Client ' . $clientId . ' is not authorized to connect.');
-            return new TemplateResponse('core', '403', $params, 'error');
+            return new TemplateResponse('core', '403', $params, TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
         }
 
         if ($client === null) {
@@ -975,7 +980,7 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('Your client is not authorized to connect. Please inform the administrator of your client.'),
             ];
             $this->logger->notice('Client ' . $clientId . ' is not authorized to connect.');
-            return new TemplateResponse('core', '403', $params, 'error');
+            return new TemplateResponse('core', '403', $params, TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
         }
 
         // The client must not be expired
@@ -984,7 +989,7 @@ class LoginRedirectorController extends ApiController
             $params = [
                 'message' => $this->l->t('Your client is expired. Please inform the administrator of your client.'),
             ];
-            return new TemplateResponse('core', '400', $params, 'error');
+            return $this->createHtmlErrorResponse($params['message'], Http::STATUS_BAD_REQUEST);
         }
 
         return $client;
@@ -1000,7 +1005,7 @@ class LoginRedirectorController extends ApiController
                 'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
             ];
             $this->logger->notice('Redirect URI ' . var_export($redirectUri, true) . ' is not accepted for client ' . $clientId . '.');
-            return new TemplateResponse('core', '403', $params, 'error');
+            return new TemplateResponse('core', '403', $params, TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
         }
 
         // Check if redirect URI is configured for client
@@ -1015,7 +1020,7 @@ class LoginRedirectorController extends ApiController
             'message' => $this->l->t('The received redirect URI is not accepted to connect. Please inform the administrator of your client.'),
         ];
         $this->logger->notice('Redirect URI ' . $redirectUri . ' is not accepted for client ' . $clientId . '.');
-        return new TemplateResponse('core', '403', $params, 'error');
+        return new TemplateResponse('core', '403', $params, TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
     }
 
     private function hasNonEmptyRequestParameter(mixed $value): bool
@@ -1025,6 +1030,27 @@ class LoginRedirectorController extends ApiController
         }
 
         return !empty($value);
+    }
+
+    /**
+     * Build a core error page while keeping the template name separate from
+     * the HTTP status. Numeric status codes are not core template names.
+     */
+    private function createHtmlErrorResponse(string $message, int $status): TemplateResponse
+    {
+        return new TemplateResponse(
+            'core',
+            'error',
+            [
+                'errors' => [
+                    [
+                        'error' => $message,
+                    ],
+                ],
+            ],
+            TemplateResponse::RENDER_AS_ERROR,
+            $status
+        );
     }
 
     private function redirectToLoginAfterOidcAuthentication(

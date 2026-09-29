@@ -23,6 +23,7 @@ use OCP\AppFramework\Utility\ITimeFactory;
 use OC\AppFramework\Utility\TimeFactory;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
+use OCP\AppFramework\Http\TemplateResponse;
 use OCP\Security\ISecureRandom;
 use OCP\Security\ICrypto;
 use OCP\Security\ICredentialsManager;
@@ -1778,6 +1779,19 @@ class LoginRedirectorControllerTest extends TestCase {
             $redirectUri . '#error=invalid_request&error_description=Missing%20nonce&state=state-1',
             $result->getRedirectURL()
         );
+    }
+
+    public function testHtmlErrorResponseUsesExistingTemplateAndExplicitStatus(): void {
+        $method = new \ReflectionMethod(LoginRedirectorController::class, 'createHtmlErrorResponse');
+
+        foreach ([Http::STATUS_BAD_REQUEST, Http::STATUS_INTERNAL_SERVER_ERROR] as $status) {
+            $response = $method->invoke($this->controller, 'Authorization failed.', $status);
+
+            $this->assertSame('error', $response->getTemplateName());
+            $this->assertSame(TemplateResponse::RENDER_AS_ERROR, $response->getRenderAs());
+            $this->assertSame($status, $response->getStatus());
+            $this->assertSame('Authorization failed.', $response->getParams()['errors'][0]['error']);
+        }
     }
 
 }
