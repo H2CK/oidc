@@ -14,15 +14,14 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCode;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
-use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
+use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\AppFramework\Services\IAppConfig;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -36,10 +35,9 @@ class DeviceAuthorizationControllerTest extends TestCase {
 	private IRequest $request;
 	private ClientMapper $clientMapper;
 	private DeviceCodeMapper $deviceCodeMapper;
-	private GroupMapper $groupMapper;
+	private ClientAuthorizationService $clientAuthorizationService;
 	private UserConsentMapper $userConsentMapper;
 	private IUserSession $userSession;
-	private IGroupManager $groupManager;
 	private ISecureRandom $secureRandom;
 	private ITimeFactory $time;
 	private IURLGenerator $urlGenerator;
@@ -61,10 +59,10 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->request = $this->createMock(IRequest::class);
 		$this->clientMapper = $this->createMock(ClientMapper::class);
 		$this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
-		$this->groupMapper = $this->createMock(GroupMapper::class);
+		$this->clientAuthorizationService = $this->createMock(ClientAuthorizationService::class);
+		$this->clientAuthorizationService->method('isUserAllowedForClient')->willReturn(true);
 		$this->userConsentMapper = $this->createMock(UserConsentMapper::class);
 		$this->userSession = $this->createMock(IUserSession::class);
-		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->secureRandom = $this->createMock(ISecureRandom::class);
 		$this->time = $this->createMock(ITimeFactory::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
@@ -89,10 +87,9 @@ class DeviceAuthorizationControllerTest extends TestCase {
 			$this->request,
 			$this->clientMapper,
 			$this->deviceCodeMapper,
-			$this->groupMapper,
 			$this->userConsentMapper,
 			$this->userSession,
-			$this->groupManager,
+			$this->clientAuthorizationService,
 			$this->secureRandom,
 			$this->time,
 			$this->urlGenerator,
@@ -232,7 +229,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->time->method('getTime')->willReturn(1_000);
 		$this->userSession->method('getUser')->willReturn($user);
 		$this->clientMapper->method('getByUid')->with(1)->willReturn($this->createClient('public'));
-		$this->groupMapper->method('getGroupsByClientId')->with(1)->willReturn([]);
+		$this->clientAuthorizationService->expects($this->once())->method('isUserAllowedForClient')->with($user, $this->isInstanceOf(Client::class))->willReturn(true);
 		$this->deviceCodeMapper->expects($this->once())
 			->method('markApproved')
 			->with($deviceCode, 'alice')
@@ -254,6 +251,29 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->assertTrue($response->getData()['success']);
 	}
 
+	public function testApprovalUsesClientAuthorizationService(): void {
+		$deviceCode = new DeviceCode();
+		$deviceCode->setId(7);
+		$deviceCode->setClientId(1);
+		$deviceCode->setScope('openid profile email');
+		$deviceCode->setExpiresAt(1_600);
+		$deviceCode->setStatus(DeviceCode::STATUS_PENDING);
+		$user = $this->createMock(IUser::class);
+		$client = $this->createClient('public');
+		$this->deviceCodeMapper->method('findByUserCode')->willReturn($deviceCode);
+		$this->time->method('getTime')->willReturn(1_000);
+		$this->userSession->method('getUser')->willReturn($user);
+		$this->clientMapper->method('getByUid')->willReturn($client);
+		$this->clientAuthorizationService->expects($this->once())
+			->method('isUserAllowedForClient')->with($user, $client)->willReturn(false);
+		$this->deviceCodeMapper->expects($this->never())->method('markApproved');
+
+		$response = $this->controller->approve('ABCD-2345');
+
+		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+		$this->assertSame('access_denied', $response->getData()['error']);
+	}
+
 	public function testApprovalStoresConsentNarrowedByGroupCeiling(): void {
 		$deviceCode = new DeviceCode();
 		$deviceCode->setId(7);
@@ -269,7 +289,6 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->time->method('getTime')->willReturn(1_000);
 		$this->userSession->method('getUser')->willReturn($user);
 		$this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
-		$this->groupMapper->method('getGroupsByClientId')->willReturn([]);
 		$this->deviceCodeMapper->method('markApproved')->willReturn(true);
 		$this->userConsentMapper->method('findByUserAndClient')->willReturn(null);
 		$this->userConsentMapper->expects($this->once())
@@ -294,7 +313,6 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->time->method('getTime')->willReturn(1_000);
 		$this->userSession->method('getUser')->willReturn($user);
 		$this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
-		$this->groupMapper->method('getGroupsByClientId')->willReturn([]);
 		$this->deviceCodeMapper->expects($this->once())->method('markDenied')->with($deviceCode)->willReturn(true);
 		$this->deviceCodeMapper->expects($this->never())->method('markApproved');
 		$this->userConsentMapper->expects($this->never())->method('createOrUpdate');
@@ -328,7 +346,6 @@ class DeviceAuthorizationControllerTest extends TestCase {
 		$this->time->method('getTime')->willReturn(1_200);
 		$this->userSession->method('getUser')->willReturn($user);
 		$this->clientMapper->method('getByUid')->with(1)->willReturn($this->createClient('public'));
-		$this->groupMapper->method('getGroupsByClientId')->with(1)->willReturn([]);
 		$this->deviceCodeMapper->method('markApproved')->willReturn(true);
 		$this->userConsentMapper->method('findByUserAndClient')->with('alice', 1)->willReturn($existingConsent);
 		$this->userConsentMapper->expects($this->once())

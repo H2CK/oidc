@@ -14,11 +14,11 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCode;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
-use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
+use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -34,7 +34,6 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IURLGenerator;
@@ -54,10 +53,9 @@ class DeviceAuthorizationController extends Controller {
 		IRequest $request,
 		private ClientMapper $clientMapper,
 		private DeviceCodeMapper $deviceCodeMapper,
-		private GroupMapper $groupMapper,
 		private UserConsentMapper $userConsentMapper,
 		private IUserSession $userSession,
-		private IGroupManager $groupManager,
+		private ClientAuthorizationService $clientAuthorizationService,
 		private ISecureRandom $secureRandom,
 		private ITimeFactory $time,
 		private IURLGenerator $urlGenerator,
@@ -225,7 +223,7 @@ class DeviceAuthorizationController extends Controller {
 		} catch (ClientNotFoundException $e) {
 			return new JSONResponse(['error' => 'invalid_request'], Http::STATUS_BAD_REQUEST);
 		}
-		if (!$this->isUserAllowedForClient($user, $client)) {
+		if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
 			return new JSONResponse(['error' => 'access_denied'], Http::STATUS_FORBIDDEN);
 		}
 
@@ -339,21 +337,6 @@ class DeviceAuthorizationController extends Controller {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
 		}
 		return $deviceCode;
-	}
-
-	private function isUserAllowedForClient($user, Client $client): bool {
-		$requiredGroups = $this->groupMapper->getGroupsByClientId($client->getId());
-		if ($requiredGroups === []) {
-			return true;
-		}
-		foreach ($requiredGroups as $requiredGroup) {
-			foreach ($this->groupManager->getUserGroups($user) as $userGroup) {
-				if ($requiredGroup->getGroupId() === $userGroup->getGID()) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 
 	private function storeConsent(string $userId, Client $client, string $scope): void {
