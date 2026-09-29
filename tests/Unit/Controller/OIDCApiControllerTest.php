@@ -73,6 +73,7 @@ class OIDCApiControllerTest extends TestCase {
     protected $groupScopeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|ClientAuthorizationService */
     protected $clientAuthorizationService;
+    protected bool $clientAuthorizationAllowed = true;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
@@ -157,7 +158,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
         $this->groupScopeMapper = $this->createMock(GroupScopeMapper::class);
         $this->clientAuthorizationService = $this->createMock(ClientAuthorizationService::class);
-        $this->clientAuthorizationService->method('isUserAllowedForClient')->willReturn(true);
+        $this->clientAuthorizationService->method('isUserAllowedForClient')->willReturnCallback(fn (): bool => $this->clientAuthorizationAllowed);
 
         $throttler = $this->createMock(Throttler::class);
 
@@ -434,10 +435,10 @@ class OIDCApiControllerTest extends TestCase {
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
         $this->userManager->method('get')->with('alice')->willReturn($user);
+        $this->clientAuthorizationAllowed = false;
         $this->clientAuthorizationService->expects($this->once())
             ->method('isUserAllowedForClient')
-            ->with($user, $client)
-            ->willReturn(false);
+            ->with($user, $client);
         $this->deviceCodeMapper->expects($this->never())->method('markConsumed');
         $this->accessTokenMapper->expects($this->never())->method('insert');
 

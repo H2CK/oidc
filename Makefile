@@ -7,7 +7,7 @@ build_dir=$(CURDIR)/build/artifacts
 cert_dir=$(HOME)/.nextcloud/certificates
 composer=$(shell which composer 2> /dev/null)
 
-.PHONY: composer composer-autoload test-unit
+.PHONY: composer
 
 all: dev-setup lint build-js-production assemble
 
@@ -110,7 +110,7 @@ stylelint-fix:
 # Tests
 test: test-unit test-integration
 
-test-unit: composer-autoload
+test-unit:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 
 test-integration:
