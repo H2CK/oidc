@@ -41,14 +41,19 @@ class AuthorizationTransactionServiceIntegrationTest extends \Test\TestCase {
         $id = $this->transactions->create($parameters, 'prompt_login');
         $this->assertMatchesRegularExpression('/\A[a-f0-9]{64}\z/', $id);
         $otherNode = new AuthorizationTransactionService(Server::get(IDBConnection::class), $this->clock);
+        $this->assertTrue($otherNode->isPending($id));
         $this->assertSame(['parameters' => $parameters, 'reason' => 'prompt_login'], $otherNode->consume($id));
+        $this->assertFalse($this->transactions->isPending($id));
         $this->assertNull($this->transactions->consume($id));
+        $this->assertFalse($this->transactions->isPending('not-a-valid-identifier'));
         $this->assertNull($this->transactions->consume('not-a-valid-identifier'));
     }
 
     public function testExpiredTransactionFailsAndIsDeletedByCleanup(): void {
         $id = $this->transactions->create(['client_id' => 'client-1'], 'not_authenticated');
+        $this->assertTrue($this->transactions->isPending($id));
         $this->now += AuthorizationTransactionService::TTL;
+        $this->assertFalse($this->transactions->isPending($id));
         $this->assertNull($this->transactions->consume($id));
         $this->now++;
         $this->transactions->cleanup();

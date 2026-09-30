@@ -20,6 +20,7 @@ use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IL10N;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 
 class AuthorizationResumeController extends Controller {
@@ -28,6 +29,7 @@ class AuthorizationResumeController extends Controller {
         IRequest $request,
         private IUserSession $userSession,
         private IL10N $l,
+        private IURLGenerator $urlGenerator,
         private AuthorizationTransactionService $transactions,
         private AuthorizationService $authorizationService,
     ) {
@@ -42,13 +44,41 @@ class AuthorizationResumeController extends Controller {
         if (!$this->userSession->isLoggedIn() || $this->userSession->getUser() === null) {
             return $this->error($this->l->t('You must be logged in to continue authorization.'), Http::STATUS_FORBIDDEN);
         }
+        if (!$this->transactions->isPending($t ?? '')) {
+            return $this->error($this->l->t('Authorization session expired. Please try again.'), Http::STATUS_BAD_REQUEST);
+        }
+
+        // A redirect straight from the login POST through /resume to an
+        // external RP can be blocked by the login page's CSP form-action.
+        // Finish that form navigation on this page, then start a new GET
+        // navigation to the server-side authorization continuation.
+        $response = new TemplateResponse('oidc', 'authorization-handoff', [
+            'continueUrl' => $this->urlGenerator->linkToRoute('oidc.AuthorizationResume.complete', ['t' => $t]),
+            'continueLabel' => $this->l->t('Continue authorization'),
+        ], TemplateResponse::RENDER_AS_GUEST);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Referrer-Policy', 'no-referrer');
+        return $response;
+    }
+
+    #[BruteForceProtection(action: 'oidc_login')]
+    #[NoAdminRequired]
+    #[NoCSRFRequired]
+    #[UseSession]
+    public function complete(?string $t = null): Response {
+        if (!$this->userSession->isLoggedIn() || $this->userSession->getUser() === null) {
+            return $this->error($this->l->t('You must be logged in to continue authorization.'), Http::STATUS_FORBIDDEN);
+        }
 
         $transaction = $this->transactions->consume($t ?? '');
         if ($transaction === null) {
             return $this->error($this->l->t('Authorization session expired. Please try again.'), Http::STATUS_BAD_REQUEST);
         }
 
-        return $this->authorizationService->process($transaction['parameters'], true);
+        $response = $this->authorizationService->process($transaction['parameters'], true);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Referrer-Policy', 'no-referrer');
+        return $response;
     }
 
     private function error(string $message, int $status): TemplateResponse {

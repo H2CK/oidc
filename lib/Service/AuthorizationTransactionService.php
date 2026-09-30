@@ -39,6 +39,21 @@ class AuthorizationTransactionService {
         return $id;
     }
 
+    /** Check that a handoff is still valid without consuming its one-time token. */
+    public function isPending(string $id): bool {
+        if (!preg_match('/\A[a-f0-9]{64}\z/D', $id)) {
+            return false;
+        }
+
+        $qb = $this->db->getQueryBuilder();
+        $qb->select('id')->from(self::TABLE)
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter(hash('sha256', $id))))
+            ->andWhere($qb->expr()->isNull('consumed_at'))
+            ->andWhere($qb->expr()->gt('expires_at', $qb->createNamedParameter($this->time->getTime(), IQueryBuilder::PARAM_INT)));
+
+        return $qb->executeQuery()->fetchOne() !== false;
+    }
+
     /** @return array{parameters:array<string, mixed>, reason:string}|null */
     public function consume(string $id): ?array {
         if (!preg_match('/\A[a-f0-9]{64}\z/D', $id)) {
@@ -51,12 +66,7 @@ class AuthorizationTransactionService {
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($hash)))
             ->andWhere($qb->expr()->isNull('consumed_at'))
             ->andWhere($qb->expr()->gt('expires_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT)));
-        $result = $qb->executeQuery();
-        try {
-            $row = $result->fetch();
-        } finally {
-            $result->closeCursor();
-        }
+        $row = $qb->executeQuery()->fetchAssociative();
         if ($row === false) {
             return null;
         }

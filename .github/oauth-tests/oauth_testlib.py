@@ -8,7 +8,7 @@ import secrets
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import httpx
 from selenium import webdriver
@@ -207,24 +207,45 @@ class OAuthHarness:
     def authorization_attempt(self, *, response_type: str = "code",
                                redirect_uri: str = REDIRECT_URI,
                                client_id: str = CLIENT_ID) -> str:
-        """Drive an authorization request and return the final browser URL."""
+        """Drive an authorization request and wait for the matching RP callback."""
         # Keep the session authenticated so protocol validation, rather than
         # the Nextcloud login page, determines the result.
         self.issue_tokens()
         CALLBACK_FILE.unlink(missing_ok=True)
+        state = secrets.token_urlsafe(20)
         params = {
             "response_type": response_type,
             "client_id": client_id,
             "redirect_uri": redirect_uri,
             "scope": "openid profile",
-            "state": secrets.token_urlsafe(20),
+            "state": state,
             "nonce": secrets.token_urlsafe(20),
         }
         browser = self._browser()
         browser.get(f"{self.metadata['authorization_endpoint']}?{urlencode(params)}")
         self._login_if_needed(browser)
         self._approve_if_needed(browser)
-        return browser.current_url
+
+        # /resume now ends the login form's redirect chain on a same-origin
+        # page before continuing to the RP. A URL read immediately after the
+        # login may still point at that page instead of the final callback.
+        expected = urlsplit(redirect_uri)
+
+        def matching_callback(driver: webdriver.Remote) -> str | bool:
+            current = driver.current_url
+            parts = urlsplit(current)
+            if (parts.scheme, parts.netloc, parts.path) != (expected.scheme, expected.netloc, expected.path):
+                return False
+            params = parse_qs(parts.query)
+            params.update(parse_qs(parts.fragment))
+            return current if params.get("state") == [state] else False
+
+        try:
+            return WebDriverWait(browser, 35).until(matching_callback)
+        except TimeoutException as exc:
+            raise AssertionError(
+                f"authorization did not reach the expected callback; current browser path={urlsplit(browser.current_url).path!r}"
+            ) from exc
 
     def exchange_code(
         self,
