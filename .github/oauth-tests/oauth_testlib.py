@@ -8,11 +8,11 @@ import secrets
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 import httpx
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, WebDriverException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
@@ -127,7 +127,7 @@ class OAuthHarness:
             time.sleep(0.25)
 
         raise AssertionError(
-            f"authorization did not reach callback; current browser URL={browser.current_url!r}"
+            f"authorization did not reach callback; current browser path={urlsplit(browser.current_url).path!r}"
         )
 
     def _login_if_needed(self, browser: webdriver.Remote) -> None:
@@ -143,8 +143,20 @@ class OAuthHarness:
         password = browser.find_element(By.ID, "password")
         password.clear()
         password.send_keys(PASSWORD)
+        login_host = urlsplit(browser.current_url).netloc
         browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-        WebDriverWait(browser, 15).until(lambda d: "login" not in d.current_url.lower())
+        # Initial navigation can cross /login -> /resume -> an external RP.
+        # Inspect the path, not the whole URL: query parameters may contain
+        # "login" even when authentication has completed.
+        try:
+            WebDriverWait(browser, 30).until(
+                lambda d: urlsplit(d.current_url).netloc != login_host
+                or "/login" not in urlsplit(d.current_url).path.lower()
+            )
+        except TimeoutException as exc:
+            raise AssertionError(
+                f"login did not complete; current browser path={urlsplit(browser.current_url).path!r}"
+            ) from exc
 
     def _approve_if_needed(self, browser: webdriver.Remote) -> None:
         # Normally disabled by allow_user_settings=no. Keep a small fallback for

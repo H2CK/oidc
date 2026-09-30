@@ -1,20 +1,27 @@
-import json
+import secrets
 
 import pytest
 
-from oauth_testlib import CALLBACK_FILE
+from oauth_testlib import CLIENT_ID
 
 
 @pytest.mark.rfc("RFC 6749", section="4.1.1")
 @pytest.mark.rfc("RFC 9700", section="2.1")
 def test_unregistered_redirect_uri_is_not_used(oauth):
     attacker_uri = "https://oauth-callback:9444/other"
-    final_url = oauth.authorization_attempt(redirect_uri=attacker_uri)
+    # Redirect URI validation precedes login. A protocol test for this case
+    # must not first run an unrelated interactive login/code exchange.
+    response = oauth.http.get(oauth.metadata["authorization_endpoint"], params={
+        "client_id": CLIENT_ID,
+        "response_type": "code",
+        "redirect_uri": attacker_uri,
+        "scope": "openid",
+        "state": secrets.token_urlsafe(20),
+        "nonce": secrets.token_urlsafe(20),
+    })
 
-    assert not final_url.startswith(attacker_uri), final_url
-    if CALLBACK_FILE.exists():
-        callback = json.loads(CALLBACK_FILE.read_text(encoding="utf-8"))
-        assert callback.get("path") != "/other", callback
+    assert response.status_code == 403
+    assert not response.headers.get("location", "").startswith(attacker_uri)
 
 
 @pytest.mark.rfc("RFC 9700", section="2.1.2")

@@ -120,6 +120,16 @@ jobs:
             curl --fail --silent http://127.0.0.1:4444/status | grep -q '"ready": true' && break || true
             sleep 1
           done
+          # Docker Compose starts the callback container before Chrome, but
+          # that alone does not mean its HTTPS listener accepts connections.
+          for i in {1..60}; do
+            docker compose -f .github/oauth-tests/docker-compose.yml exec -T oauth-callback \
+              python -c 'import socket; socket.create_connection(("127.0.0.1", 9444), timeout=1).close()' \
+              >/dev/null 2>&1 && break
+            sleep 1
+          done
+          docker compose -f .github/oauth-tests/docker-compose.yml exec -T oauth-callback \
+            python -c 'import socket; socket.create_connection(("127.0.0.1", 9444), timeout=1).close()'
 
       - name: Run OAuth protocol tests
         id: oauth_tests

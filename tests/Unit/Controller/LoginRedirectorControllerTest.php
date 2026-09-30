@@ -322,6 +322,30 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertSame($redirect_uri, $this->createdTransactions[0][0]['redirect_uri']);
     }
 
+    public function testUnregisteredRedirectUriIsRejectedBeforeLoginWithoutTransaction(): void {
+        $clientId = 'client1';
+        $registeredUri = 'https://client.example.com/callback';
+        $unregisteredUri = 'https://client.example.com/other';
+        $client = new Client();
+        $client->id = 1;
+        $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+
+        $uri = new RedirectUri();
+        $uri->setRedirectUri($registeredUri);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([$uri]);
+        $this->userSession->method('isLoggedIn')->willReturn(false);
+        $this->transactions->expects($this->never())->method('create');
+        $this->urlGenerator->expects($this->never())->method('linkToRoute');
+
+        $response = $this->controller->authorize(
+            $clientId, 'state-1', 'code', $unregisteredUri, 'openid', 'nonce-1'
+        );
+
+        $this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+        $this->assertInstanceOf(TemplateResponse::class, $response);
+        $this->assertSame([], $this->createdTransactions);
+    }
+
     public function testAuthorizePromptNoneNotLoggedInReturnsLoginRequired() {
         $clientId = 'client1';
         $state = 'state-1';
