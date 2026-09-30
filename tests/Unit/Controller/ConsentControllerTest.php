@@ -4,6 +4,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 
 use PHPUnit\Framework\TestCase;
 use OCA\OIDCIdentityProvider\Controller\ConsentController;
+use OCA\OIDCIdentityProvider\Service\AuthorizationService;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
@@ -49,6 +50,7 @@ class ConsentControllerTest extends TestCase {
     protected $logger;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUser */
     protected $user;
+    private AuthorizationService $authorizationService;
 
     public function setUp(): void {
         parent::setUp();
@@ -65,6 +67,7 @@ class ConsentControllerTest extends TestCase {
         $this->appConfig = $this->createMock(IAppConfig::class);
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->user = $this->createMock(IUser::class);
+        $this->authorizationService = $this->createMock(AuthorizationService::class);
 
         $this->l->method('t')->willReturnCallback(function ($text) {
             return $text;
@@ -82,7 +85,8 @@ class ConsentControllerTest extends TestCase {
             $this->time,
             $this->l,
             $this->appConfig,
-            $this->logger
+            $this->logger,
+            $this->authorizationService
         );
     }
 
@@ -196,12 +200,12 @@ class ConsentControllerTest extends TestCase {
                 return $consent->getExpiresAt() === $expectedExpiration;
             }));
 
-        $this->urlGenerator->method('linkToRoute')
-            ->with('oidc.LoginRedirector.authorize', [
-                'client_id' => 'test-client-id',
-                'scope' => 'openid profile',
-            ])
-            ->willReturn('/apps/oidc/authorize');
+        $this->authorizationService->expects($this->once())->method('process')
+            ->with($this->callback(static fn (array $parameters): bool =>
+                $parameters['client_id'] === 'test-client-id'
+                && $parameters['scope'] === 'openid profile'
+            ), false, null)
+            ->willReturn(new RedirectResponse('https://client.example/callback'));
 
         $response = $this->controller->grant();
 

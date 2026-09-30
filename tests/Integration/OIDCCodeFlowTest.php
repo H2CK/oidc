@@ -20,6 +20,8 @@ use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Controller\LoginRedirectorController;
+use OCA\OIDCIdentityProvider\Service\AuthorizationService;
+use OCA\OIDCIdentityProvider\Service\AuthorizationTransactionService;
 use OCA\OIDCIdentityProvider\Controller\OIDCApiController;
 use OCA\OIDCIdentityProvider\Controller\UserInfoController;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
@@ -528,7 +530,6 @@ class OIDCCodeFlowTest extends \Test\TestCase
             ->willReturnCallback(function ($key) {
                 return match ($key) {
                     'oidc_auth_time' => $this->time->getTime(),
-                    'oidc_login_pending' => false,
                     default => null,
                 };
             });
@@ -579,25 +580,28 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $controller = new LoginRedirectorController(
             'oidc',
             $request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $session,
-            $l10n,
-            $this->time,
-            $userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $appConfig,
-            $this->jwtGenerator,
-            new RedirectUriService($this->logger),
-            $backChannelLogoutService,
-            $sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $session,
+                $l10n,
+                $this->time,
+                $userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $appConfig,
+                $this->jwtGenerator,
+                new RedirectUriService($this->logger),
+                $backChannelLogoutService,
+                $sessionManagementService,
+                $this->logger
+            )
         );
 
         $response = $controller->authorize(
@@ -1169,7 +1173,6 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $session = $this->createMock(ISession::class);
         $session->method('get')->willReturnCallback(fn ($key) => match ($key) {
             'oidc_auth_time' => $this->time->getTime(),
-            'oidc_login_pending' => false,
             default => null,
         });
 
@@ -1197,25 +1200,28 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $controller = new LoginRedirectorController(
             'oidc',
             $request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $session,
-            $l10n,
-            $this->time,
-            $userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $appConfig,
-            $this->jwtGenerator,
-            new RedirectUriService($this->logger),
-            $backChannelLogoutService,
-            $sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $session,
+                $l10n,
+                $this->time,
+                $userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $appConfig,
+                $this->jwtGenerator,
+                new RedirectUriService($this->logger),
+                $backChannelLogoutService,
+                $sessionManagementService,
+                $this->logger
+            )
         );
 
         $response = $controller->authorize(
