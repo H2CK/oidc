@@ -66,7 +66,12 @@ class AuthorizationTransactionService {
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($hash)))
             ->andWhere($qb->expr()->isNull('consumed_at'))
             ->andWhere($qb->expr()->gt('expires_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT)));
-        $row = $qb->executeQuery()->fetchAssociative();
+        $result = $qb->executeQuery();
+        try {
+            $row = $result->fetch();
+        } finally {
+            $result->closeCursor();
+        }
         if ($row === false) {
             return null;
         }
