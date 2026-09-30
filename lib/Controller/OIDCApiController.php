@@ -31,6 +31,7 @@ use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
+use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCP\AppFramework\ApiController;
@@ -77,6 +78,8 @@ class OIDCApiController extends ApiController {
     private $texSubjectClientMapper;
     /** @var ScopeCeilingService */
     private $scopeCeiling;
+    /** @var ClientAuthorizationService */
+    private $clientAuthorizationService;
     /** @var ICrypto */
     private $crypto;
     /** @var TokenProvider */
@@ -133,6 +136,7 @@ class OIDCApiController extends ApiController {
      * @param TexSubjectClientMapper|null $texSubjectClientMapper
      * @param DeviceCodeMapper $deviceCodeMapper
      * @param ScopeCeilingService|null $scopeCeiling
+     * @param ClientAuthorizationService|null $clientAuthorizationService
      */
     public function __construct(
                     string $appName,
@@ -160,6 +164,7 @@ class OIDCApiController extends ApiController {
                     ?TexSubjectClientMapper $texSubjectClientMapper = null,
                     ?RedirectUriMapper $redirectUriMapper = null,
                     ?ScopeCeilingService $scopeCeiling = null,
+                    ?ClientAuthorizationService $clientAuthorizationService = null,
                     )
     {
         parent::__construct($appName, $request);
@@ -186,6 +191,7 @@ class OIDCApiController extends ApiController {
         $this->deviceCodeMapper = $deviceCodeMapper;
         $this->redirectUriMapper = $redirectUriMapper;
         $this->scopeCeiling = $scopeCeiling ?? Server::get(ScopeCeilingService::class);
+        $this->clientAuthorizationService = $clientAuthorizationService ?? new ClientAuthorizationService($groupMapper, $groupManager);
     }
 
     /**
@@ -781,18 +787,7 @@ class OIDCApiController extends ApiController {
         if ($user === null) {
             return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
         }
-        $groups = $this->groupManager->getUserGroups($user);
-        $requiredGroups = $this->groupMapper->getGroupsByClientId($client->getId());
-        $groupAllowed = $requiredGroups === [];
-        foreach ($requiredGroups as $requiredGroup) {
-            foreach ($groups as $group) {
-                if ($requiredGroup->getGroupId() === $group->getGID()) {
-                    $groupAllowed = true;
-                    break 2;
-                }
-            }
-        }
-        if (!$groupAllowed) {
+        if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
             return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
         }
         // Re-check at issuance, like refresh: allowed_scopes or the user's group

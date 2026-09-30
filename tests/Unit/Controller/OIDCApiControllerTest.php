@@ -40,6 +40,7 @@ use OCA\OIDCIdentityProvider\Db\DeviceCode;
 use OCA\OIDCIdentityProvider\Db\GroupScope;
 use OCA\OIDCIdentityProvider\Db\GroupScopeMapper;
 use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
+use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
 use OCA\OIDCIdentityProvider\Util\JwtGenerator;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -70,6 +71,9 @@ class OIDCApiControllerTest extends TestCase {
     protected $deviceCodeMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|GroupScopeMapper */
     protected $groupScopeMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|ClientAuthorizationService */
+    protected $clientAuthorizationService;
+    protected bool $clientAuthorizationAllowed = true;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
@@ -153,6 +157,8 @@ class OIDCApiControllerTest extends TestCase {
         $this->texSubjectClientMapper = $this->createMock(TexSubjectClientMapper::class);
         $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
         $this->groupScopeMapper = $this->createMock(GroupScopeMapper::class);
+        $this->clientAuthorizationService = $this->createMock(ClientAuthorizationService::class);
+        $this->clientAuthorizationService->method('isUserAllowedForClient')->willReturnCallback(fn (): bool => $this->clientAuthorizationAllowed);
 
         $throttler = $this->createMock(Throttler::class);
 
@@ -181,7 +187,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->formUrlencodedParameterParser,
             $this->texSubjectClientMapper,
             null,
-            new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger)
+            new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger),
+            $this->clientAuthorizationService
         );
 
         // Default configuration
@@ -390,8 +397,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->deviceCodeMapper->expects($this->never())->method('recordPoll');
         $this->deviceCodeMapper->expects($this->once())->method('markConsumed')->with($authorization, 1000)->willReturn(true);
         $this->userManager->method('get')->with('alice')->willReturn($user);
-        $this->groupManager->method('getUserGroups')->with($user)->willReturn([]);
-        $this->groupMapper->method('getGroupsByClientId')->with(1)->willReturn([]);
+        $this->clientAuthorizationService->expects($this->once())->method('isUserAllowedForClient')->with($user, $client)->willReturn(true);
         $this->secureRandom->method('generate')->willReturn('refresh-code');
         $this->request->method('getServerProtocol')->willReturn('https');
         $this->request->method('getServerHost')->willReturn('idp.example.com');
@@ -414,6 +420,37 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame('id-token', $data['id_token']);
         $this->assertSame('refresh-code', $data['refresh_token']);
         $this->assertSame('openid profile email offline_access', $data['scope']);
+    }
+
+    /**
+     * The device grant must re-check current group membership after approval.
+     * If membership changed in the meantime, no token may be issued.
+     */
+    public function testDeviceGrantRechecksGroupAuthorizationAtTokenRequest(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
+        $user = $this->createMock(IUser::class);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
+        $this->userManager->method('get')->with('alice')->willReturn($user);
+        $this->clientAuthorizationAllowed = false;
+        $this->clientAuthorizationService->expects($this->once())
+            ->method('isUserAllowedForClient')
+            ->with($user, $client);
+        $this->deviceCodeMapper->expects($this->never())->method('markConsumed');
+        $this->accessTokenMapper->expects($this->never())->method('insert');
+
+        $response = $this->controller->getToken(
+            'urn:ietf:params:oauth:grant-type:device_code',
+            device_code: 'device-code',
+            client_id: 'device-client',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('access_denied', $response->getData()['error']);
+        $this->assertSame('The user is no longer allowed to use this client.', $response->getData()['error_description']);
     }
 
     /**
