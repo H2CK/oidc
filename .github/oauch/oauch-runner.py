@@ -12,13 +12,18 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import time
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import httpx
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, WebDriverException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    NoSuchWindowException,
+    StaleElementReferenceException,
+    WebDriverException,
+)
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
@@ -35,6 +40,16 @@ CLIENT_SECRET = os.environ["OAUCH_CLIENT_SECRET"]
 USER = os.environ.get("OIDC_TEST_USER", "oidc-test-user")
 PASSWORD = os.environ.get("OIDC_TEST_PASSWORD", "oidc-test-password")
 SELENIUM = os.environ.get("SELENIUM_REMOTE_URL", "http://127.0.0.1:4444/wd/hub")
+NEXTCLOUD_HOST = urlsplit(DISCOVERY).hostname
+OAUCH_HOST = urlsplit(OAUCH_URL).hostname
+
+
+def safe_browser_location(url: str) -> str:
+    """Keep query parameters and run identifiers out of CI logs."""
+    parsed = urlsplit(url)
+    host = parsed.hostname if parsed.hostname in (NEXTCLOUD_HOST, OAUCH_HOST) else "external"
+    segments = [part for part in parsed.path.split("/") if part]
+    return f"{host} /{'/'.join(segments[:2])}"
 
 
 def save(browser, name: str) -> None:
@@ -57,12 +72,14 @@ def click_text(browser, patterns: tuple[str, ...]) -> bool:
         )
         matches = browser.find_elements(By.XPATH, xpath)
         for item in matches:
-            if item.is_displayed() and item.is_enabled():
-                try:
+            try:
+                if item.is_displayed() and item.is_enabled():
                     item.click()
                     return True
-                except WebDriverException:
-                    continue
+            except WebDriverException:
+                # JavaScript-driven pages may replace a button between lookup
+                # and the visibility check or click.
+                continue
     return False
 
 
@@ -116,15 +133,35 @@ def fill_by_id(browser, element_id: str, value: str) -> None:
 
 
 def login_nextcloud_if_needed(browser) -> bool:
-    try:
-        user = browser.find_element(By.ID, "user")
-        password = browser.find_element(By.ID, "password")
-    except NoSuchElementException:
-        return False
-    user.clear(); user.send_keys(USER)
-    password.clear(); password.send_keys(PASSWORD)
-    browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-    return True
+    # Nextcloud can replace the login form while OAuch opens the provider in a
+    # new tab. Never reuse an element from a previous render or page.
+    for _ in range(6):
+        try:
+            if urlsplit(browser.current_url).hostname != NEXTCLOUD_HOST:
+                return False
+            user = browser.find_element(By.ID, "user")
+            password = browser.find_element(By.ID, "password")
+            if not user.is_displayed() or not password.is_displayed():
+                return False
+            user.clear()
+            user.send_keys(USER)
+            password = browser.find_element(By.ID, "password")
+            password.clear()
+            password.send_keys(PASSWORD)
+            browser.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
+            return True
+        except NoSuchElementException:
+            # The login form is not currently displayed (e.g. consent page).
+            return False
+        except StaleElementReferenceException:
+            # The browser may already have reached the OAuch callback. Check
+            # the current page again before attempting to enter credentials.
+            time.sleep(0.2)
+
+    location = urlsplit(browser.current_url)
+    if location.hostname == NEXTCLOUD_HOST and location.path.endswith("/login"):
+        raise RuntimeError("Nextcloud login form kept changing during authentication")
+    return False
 
 
 def main() -> int:
@@ -263,16 +300,20 @@ def main() -> int:
             handles = list(browser.window_handles)
             complete = False
             for handle in handles:
-                browser.switch_to.window(handle)
-                current = browser.current_url
+                try:
+                    browser.switch_to.window(handle)
+                    current = browser.current_url
+                except NoSuchWindowException:
+                    continue
                 if current != last_urls.get(handle):
                     last_urls[handle] = current
                     page_loaded_at[handle] = time.monotonic()
-                    print(f"OAuch browser: {current}", flush=True)
+                    print(f"OAuch browser: {safe_browser_location(current)}", flush=True)
 
-                if "nextcloud-proxy" in current:
+                if urlsplit(current).hostname == NEXTCLOUD_HOST:
                     login_nextcloud_if_needed(browser)
-                    click_text(browser, ("allow", "authorize", "grant", "continue", "yes"))
+                    if urlsplit(browser.current_url).hostname == NEXTCLOUD_HOST:
+                        click_text(browser, ("allow", "authorize", "grant", "continue", "yes"))
                     continue
 
                 if "/Dashboard/Results/" in current:
@@ -284,7 +325,7 @@ def main() -> int:
                     complete = True
                     break
 
-                if "oauch.io" in current:
+                if urlsplit(current).hostname == OAUCH_HOST:
                     # Callback pages can navigate while their result is being
                     # rendered. In that case Selenium invalidates the body
                     # element between lookup and text extraction; retry on
