@@ -358,6 +358,9 @@ jobs:
       - name: Install conformance runner dependencies
         run: python3 -m pip install --user httpx pyparsing selenium
 
+      - name: Check conformance browser runner
+        run: python3 -m unittest discover -s nextcloud/apps/${{ env.APP_NAME }}/.github/conformance -p 'test_browser_runner.py' -v
+
       - name: Write conformance plan config
         run: |
           mkdir -p conformance-results conformance-config
@@ -409,6 +412,7 @@ jobs:
           # state as third-party content and report "changed" before logout.
           CONFORMANCE_ALLOW_THIRD_PARTY_COOKIES: 1
           CONFORMANCE_BROWSER_VISIT_TIMEOUT: 90
+          CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT: 60
         run: |
           cd conformance-suite
           : > ../conformance-runner.log
