@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.1] - 2026-09-30
+
+### Added
+
+- Added a shared group membership check service ([#732](https://github.com/H2CK/oidc/pull/732))
+
+### Changed
+
+- Extended OAuth 2.0 conformance and updated the implementation and tests ([#730](https://github.com/H2CK/oidc/pull/730))
+- Standardized error response creation ([#731](https://github.com/H2CK/oidc/pull/731))
+- Updated dependencies ([#726](https://github.com/H2CK/oidc/pull/726), [#727](https://github.com/H2CK/oidc/pull/727), [#728](https://github.com/H2CK/oidc/pull/728), [#733](https://github.com/H2CK/oidc/pull/733), [#734](https://github.com/H2CK/oidc/pull/734))
+- Updated translations
+
 ## [2.4.0] - 2026-09-25
 
 ### Added
