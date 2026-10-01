@@ -29,14 +29,30 @@ OIDC_TEST_USER = os.environ["OIDC_TEST_USER"]
 OIDC_TEST_PASSWORD = os.environ["OIDC_TEST_PASSWORD"]
 POLL_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_POLL_SECONDS", "1"))
 VISIT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_VISIT_TIMEOUT", "90"))
-LOGIN_REDIRECT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT", "15"))
+LOGIN_REDIRECT_TIMEOUT_SECONDS = int(os.environ.get("CONFORMANCE_BROWSER_LOGIN_REDIRECT_TIMEOUT", "60"))
 PLACEHOLDER_CHECK_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_PLACEHOLDER_CHECK_SECONDS", "2"))
 SCREENSHOT_STABILITY_SECONDS = float(os.environ.get("CONFORMANCE_BROWSER_SCREENSHOT_STABILITY_SECONDS", "2"))
 ALLOW_THIRD_PARTY_COOKIES = os.environ.get("CONFORMANCE_ALLOW_THIRD_PARTY_COOKIES", "1").lower() not in ("0", "false", "no")
+OP_HOST = urllib.parse.urlsplit(os.environ.get("NEXTCLOUD_BASE_URL", "https://nextcloud-proxy:8443")).hostname
+SUITE_HOST = urllib.parse.urlsplit(CONFORMANCE_SERVER).hostname
 
 
 def log(message):
     print(f"[conformance-browser] {message}", flush=True)
+
+
+def describe_url(url):
+    """Identify the page without logging OAuth parameters or run identifiers."""
+    parsed = urllib.parse.urlsplit(url)
+    origin = "op" if parsed.hostname == OP_HOST else "suite" if parsed.hostname == SUITE_HOST else "other"
+    parts = [part for part in parsed.path.split("/") if part]
+    if origin == "op":
+        parts = parts[:4]
+    elif origin == "suite":
+        parts = parts[:2]
+    else:
+        parts = []
+    return f"{origin} /{'/'.join(parts)}"
 
 
 def new_driver():
@@ -182,46 +198,58 @@ def html_escape(value):
 
 
 def is_login_page(driver):
-    current_url = driver.current_url
-    if "/index.php/login" in current_url:
-        return True
-    try:
-        return bool(driver.find_elements(By.ID, "login"))
-    except StaleElementReferenceException:
-        return False
+    parsed = urllib.parse.urlsplit(driver.current_url)
+    return parsed.hostname == OP_HOST and parsed.path.rstrip("/") in ("/index.php/login", "/login")
 
 
 def login(driver):
-    login_url = driver.current_url
-    log(f"Logging in at {driver.current_url}")
-    user = first_present(driver, ((By.ID, "user"), (By.NAME, "user")), timeout=30)
-    password = first_present(driver, ((By.ID, "password"), (By.NAME, "password")), timeout=30)
-    user.clear()
-    user.send_keys(OIDC_TEST_USER)
-    password.clear()
-    password.send_keys(OIDC_TEST_PASSWORD)
-    submit = first_clickable(
-        driver,
-        (
-            (By.ID, "submit-form"),
-            (By.CSS_SELECTOR, "button[type='submit']"),
-            (By.CSS_SELECTOR, "input[type='submit']"),
-        ),
-        timeout=10,
-    )
-    submit.click()
-    wait_for_login_redirect(driver, login_url)
+    log(f"Logging in at {describe_url(driver.current_url)}")
+    for _ in range(4):
+        if not is_login_page(driver):
+            return False
+        submit_attempted = False
+        try:
+            user = first_present(driver, ((By.ID, "user"), (By.NAME, "user")), timeout=10)
+            user.clear()
+            user.send_keys(OIDC_TEST_USER)
+            password = first_present(driver, ((By.ID, "password"), (By.NAME, "password")), timeout=10)
+            password.clear()
+            password.send_keys(OIDC_TEST_PASSWORD)
+            submit = first_clickable(
+                driver,
+                (
+                    (By.ID, "submit-form"),
+                    (By.CSS_SELECTOR, "button[type='submit']"),
+                    (By.CSS_SELECTOR, "input[type='submit']"),
+                ),
+                timeout=10,
+            )
+            submit_attempted = True
+            submit.click()
+            break
+        except (StaleElementReferenceException, NoSuchElementException):
+            if not is_login_page(driver):
+                return False
+            # A newly rendered form can replace an element during typing.
+            # Do not submit again if the first click already started login.
+            if submit_attempted:
+                break
+            time.sleep(0.2)
+    else:
+        raise RuntimeError("Nextcloud login form did not stabilize")
+
+    if not wait_for_login_redirect(driver):
+        raise RuntimeError("Login was submitted, but the browser remained on the login page")
+    return True
 
 
-def wait_for_login_redirect(driver, login_url):
+def wait_for_login_redirect(driver):
     deadline = time.monotonic() + LOGIN_REDIRECT_TIMEOUT_SECONDS
     while time.monotonic() < deadline:
-        current_url = driver.current_url
-        if current_url != login_url:
-            return
         if not is_login_page(driver):
-            return
+            return True
         time.sleep(0.2)
+    return False
 
 
 def grant_consent_if_present(driver):
@@ -379,7 +407,7 @@ def maybe_upload_pending_review_screenshot(client, test_id, uploaded_placeholder
         return None
 
     placeholder = entry.get("upload")
-    log(f"Review placeholder {placeholder} is pending at {driver.current_url}")
+    log(f"Review placeholder {placeholder} is pending at {describe_url(driver.current_url)}")
     if upload_review_screenshot(client, test_id, placeholder, driver):
         uploaded_placeholders.add((test_id, placeholder))
         return True
@@ -388,7 +416,7 @@ def maybe_upload_pending_review_screenshot(client, test_id, uploaded_placeholder
 
 
 def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
-    log(f"Visiting {method} {url}")
+    log(f"Visiting {method} {describe_url(url)}")
     if method.upper() == "POST":
         submit_post(driver, url)
     else:
@@ -404,14 +432,14 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
         if current_url != last_seen_url:
             last_seen_url = current_url
             last_url_changed_at = now
-            log(f"Browser at {current_url}")
+            log(f"Browser at {describe_url(current_url)}")
 
         if is_conformance_callback(current_url):
             if "session_state=" in current_url:
                 log_op_browser_state_cookie(driver, "authentication callback")
             elif "/session_verify" in urllib.parse.urlsplit(current_url).path:
                 log_op_browser_state_cookie(driver, "session verification page")
-            log(f"Reached conformance callback {current_url}")
+            log(f"Reached conformance callback {describe_url(current_url)}")
             return current_url
 
         if is_login_page(driver):
@@ -445,11 +473,11 @@ def drive_url(driver, client, test_id, uploaded_placeholders, method, url):
 
         time.sleep(0.5)
 
-    log(f"Timed out waiting for callback; current URL is {driver.current_url}")
+    log(f"Timed out waiting for callback; current page is {describe_url(driver.current_url)}")
     diag = page_diagnostics(driver)
-    log(f"Timeout page title: {diag['title']}")
+    log(f"Timeout page has a title: {bool(diag['title'])}")
     log(f"Timeout page readyState: {diag['ready_state']}")
-    log(f"Timeout page body: {diag['body']}")
+    log(f"Timeout page contains visible text: {bool(diag['body'])}")
     return driver.current_url
 
 
@@ -482,6 +510,18 @@ def close_driver(drivers, test_id):
         driver.quit()
     except Exception as exc:
         log(f"Unable to close browser session for {test_id}: {exc}")
+
+
+def visit_and_acknowledge(driver, client, test_id, uploaded_placeholders, method, url):
+    # A failed browser interaction must not be reported to the conformance
+    # suite as a completed browser visit. Its test would otherwise just wait
+    # for a callback that the runner never reached.
+    drive_url(driver, client, test_id, uploaded_placeholders, method, url)
+    response = client.post(
+        f"{CONFORMANCE_SERVER}/api/runner/browser/{test_id}/visit",
+        params={"url": url},
+    )
+    response.raise_for_status()
 
 
 def main():
@@ -520,20 +560,20 @@ def main():
 
                     active_test_id = test_id
                     driver = get_driver(drivers, test_id)
-                    processed.add(key)
-
                     try:
-                        drive_url(driver, client, test_id, uploaded_placeholders, method, url)
+                        visit_and_acknowledge(driver, client, test_id, uploaded_placeholders, method, url)
+                        processed.add(key)
                     except Exception as exc:
-                        log(f"Browser visit failed for {test_id}: {exc}")
-                    finally:
+                        reason = str(exc) if isinstance(exc, RuntimeError) and str(exc) in (
+                            "Nextcloud login form did not stabilize",
+                            "Login was submitted, but the browser remained on the login page",
+                        ) else type(exc).__name__
                         try:
-                            client.post(
-                                f"{CONFORMANCE_SERVER}/api/runner/browser/{test_id}/visit",
-                                params={"url": url},
-                            )
-                        except Exception as exc:
-                            log(f"Unable to mark URL visited for {test_id}: {exc}")
+                            location = describe_url(driver.current_url)
+                        except Exception:
+                            location = "unavailable"
+                        log(f"Browser visit failed: {reason}; current page {location}")
+                        close_driver(drivers, test_id)
 
             time.sleep(POLL_SECONDS)
 

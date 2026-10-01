@@ -219,8 +219,13 @@ return [
             'verb' => 'OPTIONS',
         ],
         [
-            'name' => 'Page#index',
-            'url' => '/redirect',
+            'name' => 'AuthorizationResume#resume',
+            'url' => '/resume',
+            'verb' => 'GET',
+        ],
+        [
+            'name' => 'AuthorizationResume#complete',
+            'url' => '/resume/complete',
             'verb' => 'GET',
         ],
         [

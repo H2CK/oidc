@@ -37,6 +37,8 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCode;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Controller\LoginRedirectorController;
+use OCA\OIDCIdentityProvider\Service\AuthorizationService;
+use OCA\OIDCIdentityProvider\Service\AuthorizationTransactionService;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
@@ -125,6 +127,8 @@ class LoginRedirectorControllerTest extends TestCase {
     private $credentialService;
 
     private $client;
+    private AuthorizationTransactionService $transactions;
+    private array $createdTransactions = [];
 
     public function setUp(): void {
         $this->db = $this->createMock(IDBConnection::class);
@@ -225,28 +229,39 @@ class LoginRedirectorControllerTest extends TestCase {
                 return $this->sessionStateToReturn;
             });
 
+        $this->transactions = $this->createMock(AuthorizationTransactionService::class);
+        $this->transactions->method('create')->willReturnCallback(function (array $parameters, string $reason): string {
+            $this->createdTransactions[] = [$parameters, $reason];
+            return str_repeat('a', 64);
+        });
+
         $this->controller = new LoginRedirectorController(
             'oidc',
             $this->request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $this->session,
-            $this->l,
-            $this->time,
-            $this->userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $this->appConfig,
-            $this->jwtGenerator,
-            $this->redirectUriService,
-            $this->backChannelLogoutService,
-            $this->sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $this->request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $this->session,
+                $this->l,
+                $this->time,
+                $this->userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $this->appConfig,
+                $this->jwtGenerator,
+                $this->redirectUriService,
+                $this->backChannelLogoutService,
+                $this->sessionManagementService,
+                $this->logger,
+                null,
+                $this->transactions
+            )
         );
     }
 
@@ -258,6 +273,12 @@ class LoginRedirectorControllerTest extends TestCase {
         $scope = 'openid';
         $nonce = 'hdksio';
         $resource = null;
+        $client = new Client();
+        $client->id = 1;
+        $this->clientMapper->method('getByIdentifier')->with($client_id)->willReturn($client);
+        $uri = new RedirectUri();
+        $uri->setRedirectUri($redirect_uri);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([$uri]);
 
         // Simulate that user is not logged in
         $this->userSession
@@ -273,7 +294,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallBack (
                 function ($arg1, $arg2) {
                     switch ($arg1) {
-                        case 'oidc.Page.index':
+                        case 'oidc.AuthorizationResume.resume':
+                            $this->assertSame(['t' => str_repeat('a', 64)], $arg2);
                             return 'http://oidc.local/index-page';
                             break;
                         default:
@@ -295,6 +317,33 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals('http://oidc.local/login-form', $result->getRedirectURL());
+        $this->assertSame('not_authenticated', $this->createdTransactions[0][1]);
+        $this->assertSame($client_id, $this->createdTransactions[0][0]['client_id']);
+        $this->assertSame($redirect_uri, $this->createdTransactions[0][0]['redirect_uri']);
+    }
+
+    public function testUnregisteredRedirectUriIsRejectedBeforeLoginWithoutTransaction(): void {
+        $clientId = 'client1';
+        $registeredUri = 'https://client.example.com/callback';
+        $unregisteredUri = 'https://client.example.com/other';
+        $client = new Client();
+        $client->id = 1;
+        $this->clientMapper->method('getByIdentifier')->with($clientId)->willReturn($client);
+
+        $uri = new RedirectUri();
+        $uri->setRedirectUri($registeredUri);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([$uri]);
+        $this->userSession->method('isLoggedIn')->willReturn(false);
+        $this->transactions->expects($this->never())->method('create');
+        $this->urlGenerator->expects($this->never())->method('linkToRoute');
+
+        $response = $this->controller->authorize(
+            $clientId, 'state-1', 'code', $unregisteredUri, 'openid', 'nonce-1'
+        );
+
+        $this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+        $this->assertInstanceOf(TemplateResponse::class, $response);
+        $this->assertSame([], $this->createdTransactions);
     }
 
     public function testAuthorizePromptNoneNotLoggedInReturnsLoginRequired() {
@@ -471,25 +520,30 @@ class LoginRedirectorControllerTest extends TestCase {
         $controller = new LoginRedirectorController(
             'oidc',
             $this->request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $this->session,
-            $this->l,
-            $this->time,
-            $this->userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $this->appConfig,
-            $jwtGenerator,
-            $this->redirectUriService,
-            $this->backChannelLogoutService,
-            $this->sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $this->request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $this->session,
+                $this->l,
+                $this->time,
+                $this->userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $this->appConfig,
+                $jwtGenerator,
+                $this->redirectUriService,
+                $this->backChannelLogoutService,
+                $this->sessionManagementService,
+                $this->logger,
+                null,
+                $this->transactions
+            )
         );
 
         $this->userSession
@@ -503,7 +557,6 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) use ($authTime) {
                 $values = [
                     'oidc_auth_time' => $authTime,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
@@ -621,25 +674,30 @@ class LoginRedirectorControllerTest extends TestCase {
         $controller = new LoginRedirectorController(
             'oidc',
             $this->request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $this->session,
-            $this->l,
-            $this->time,
-            $this->userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $this->appConfig,
-            $jwtGenerator,
-            $this->redirectUriService,
-            $this->backChannelLogoutService,
-            $this->sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $this->request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $this->session,
+                $this->l,
+                $this->time,
+                $this->userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $this->appConfig,
+                $jwtGenerator,
+                $this->redirectUriService,
+                $this->backChannelLogoutService,
+                $this->sessionManagementService,
+                $this->logger,
+                null,
+                $this->transactions
+            )
         );
 
         $this->request
@@ -664,7 +722,6 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 1234567890,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
@@ -852,7 +909,6 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 1234567890,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
@@ -936,25 +992,30 @@ class LoginRedirectorControllerTest extends TestCase {
         $controller = new LoginRedirectorController(
             'oidc',
             $this->request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $this->session,
-            $this->l,
-            $this->time,
-            $this->userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $this->appConfig,
-            $jwtGenerator,
-            $this->redirectUriService,
-            $this->backChannelLogoutService,
-            $this->sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $this->request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $this->session,
+                $this->l,
+                $this->time,
+                $this->userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $this->appConfig,
+                $jwtGenerator,
+                $this->redirectUriService,
+                $this->backChannelLogoutService,
+                $this->sessionManagementService,
+                $this->logger,
+                null,
+                $this->transactions
+            )
         );
 
         $this->request
@@ -974,7 +1035,6 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 1234567890,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1087,25 +1147,30 @@ class LoginRedirectorControllerTest extends TestCase {
         $controller = new LoginRedirectorController(
             'oidc',
             $this->request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $this->session,
-            $this->l,
-            $this->time,
-            $this->userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $this->appConfig,
-            $jwtGenerator,
-            $this->redirectUriService,
-            $this->backChannelLogoutService,
-            $this->sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $this->request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $this->session,
+                $this->l,
+                $this->time,
+                $this->userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $this->appConfig,
+                $jwtGenerator,
+                $this->redirectUriService,
+                $this->backChannelLogoutService,
+                $this->sessionManagementService,
+                $this->logger,
+                null,
+                $this->transactions
+            )
         );
 
         $this->request
@@ -1130,7 +1195,6 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 1234567890,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1244,25 +1308,30 @@ class LoginRedirectorControllerTest extends TestCase {
         $controller = new LoginRedirectorController(
             'oidc',
             $this->request,
-            $this->urlGenerator,
-            $this->clientMapper,
-            $this->groupMapper,
-            $this->secureRandom,
-            $this->session,
-            $this->l,
-            $time,
-            $this->userSession,
-            $this->groupManager,
-            $this->accessTokenMapper,
-            $this->authorizationCodeMapper,
-            $this->redirectUriMapper,
-            $this->userConsentMapper,
-            $this->appConfig,
-            $this->jwtGenerator,
-            $this->redirectUriService,
-            $this->backChannelLogoutService,
-            $this->sessionManagementService,
-            $this->logger
+            new AuthorizationService(
+                $this->request,
+                $this->urlGenerator,
+                $this->clientMapper,
+                $this->groupMapper,
+                $this->secureRandom,
+                $this->session,
+                $this->l,
+                $time,
+                $this->userSession,
+                $this->groupManager,
+                $this->accessTokenMapper,
+                $this->authorizationCodeMapper,
+                $this->redirectUriMapper,
+                $this->userConsentMapper,
+                $this->appConfig,
+                $this->jwtGenerator,
+                $this->redirectUriService,
+                $this->backChannelLogoutService,
+                $this->sessionManagementService,
+                $this->logger,
+                null,
+                $this->transactions
+            )
         );
 
         $this->userSession
@@ -1292,13 +1361,10 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 1000,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
-        $this->session
-            ->expects($this->atLeastOnce())
-            ->method('set');
+        $this->session->expects($this->never())->method('set');
         $this->clientMapper
             ->method('getByIdentifier')
             ->with($clientId)
@@ -1310,11 +1376,11 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->urlGenerator
             ->method('linkToRoute')
             ->willReturnCallback(function ($route) {
-                if ($route === 'oidc.Page.index') {
-                    return '/index.php/apps/oidc/redirect?client_id=client1';
+                if ($route === 'oidc.AuthorizationResume.resume') {
+                    return '/index.php/apps/oidc/resume?t=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
                 }
                 if ($route === 'core.login.showLoginForm') {
-                    return '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1';
+                    return '/index.php/login?redirect_url=/index.php/apps/oidc/resume?t=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
                 }
                 return '/unexpected';
             });
@@ -1338,9 +1404,10 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1',
+            '/index.php/login?redirect_url=/index.php/apps/oidc/resume?t=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             $result->getRedirectURL()
         );
+        $this->assertSame('max_age', $this->createdTransactions[0][1]);
     }
 
     public function testAuthorizePromptLoginForcesReauthentication() {
@@ -1393,13 +1460,10 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 2000,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
-        $this->session
-            ->expects($this->atLeastOnce())
-            ->method('set');
+        $this->session->expects($this->never())->method('set');
         $this->clientMapper
             ->method('getByIdentifier')
             ->with($clientId)
@@ -1411,11 +1475,11 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->urlGenerator
             ->method('linkToRoute')
             ->willReturnCallback(function ($route) {
-                if ($route === 'oidc.Page.index') {
-                    return '/index.php/apps/oidc/redirect?client_id=client1&prompt=login';
+                if ($route === 'oidc.AuthorizationResume.resume') {
+                    return '/index.php/apps/oidc/resume?t=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
                 }
                 if ($route === 'core.login.showLoginForm') {
-                    return '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1&prompt=login';
+                    return '/index.php/login?redirect_url=/index.php/apps/oidc/resume?t=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
                 }
                 return '/unexpected';
             });
@@ -1438,9 +1502,10 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            '/index.php/login?redirect_url=/index.php/apps/oidc/redirect?client_id=client1&prompt=login',
+            '/index.php/login?redirect_url=/index.php/apps/oidc/resume?t=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
             $result->getRedirectURL()
         );
+        $this->assertSame('prompt_login', $this->createdTransactions[0][1]);
     }
 
     public function testAuthorizeRejectsUnsupportedRequestObject() {
@@ -1702,10 +1767,10 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->sessionManagementService->expects($this->once())
             ->method('applyBrowserStateCookie');
 
-        $method = new \ReflectionMethod(LoginRedirectorController::class, 'createAuthorizationErrorRedirect');
+        $method = new \ReflectionMethod(AuthorizationService::class, 'createAuthorizationErrorRedirect');
         $method->setAccessible(true);
         $response = $method->invoke(
-            $this->controller,
+            (new \ReflectionProperty(LoginRedirectorController::class, 'authorizationService'))->getValue($this->controller),
             'https://rp.example/callback',
             'invalid_request',
             'bad request',
@@ -1749,7 +1814,6 @@ class LoginRedirectorControllerTest extends TestCase {
             ->willReturnCallback(function ($key) {
                 $values = [
                     'oidc_auth_time' => 1234567890,
-                    'oidc_login_pending' => false,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1782,10 +1846,10 @@ class LoginRedirectorControllerTest extends TestCase {
     }
 
     public function testHtmlErrorResponseUsesExistingTemplateAndExplicitStatus(): void {
-        $method = new \ReflectionMethod(LoginRedirectorController::class, 'createHtmlErrorResponse');
+        $method = new \ReflectionMethod(AuthorizationService::class, 'createHtmlErrorResponse');
 
         foreach ([Http::STATUS_BAD_REQUEST, Http::STATUS_INTERNAL_SERVER_ERROR] as $status) {
-            $response = $method->invoke($this->controller, 'Authorization failed.', $status);
+            $response =  $method->invoke((new \ReflectionProperty(LoginRedirectorController::class, 'authorizationService'))->getValue($this->controller), 'Authorization failed.', $status);
 
             $this->assertSame('error', $response->getTemplateName());
             $this->assertSame(TemplateResponse::RENDER_AS_ERROR, $response->getRenderAs());

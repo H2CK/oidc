@@ -14,6 +14,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
+use OCA\OIDCIdentityProvider\Service\AuthorizationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -66,7 +67,8 @@ class ConsentController extends Controller {
         ITimeFactory $time,
         IL10N $l,
         IAppConfig $appConfig,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        private AuthorizationService $authorizationService
     ) {
         parent::__construct($appName, $request);
         $this->session = $session;
@@ -141,7 +143,7 @@ class ConsentController extends Controller {
      */
     #[NoAdminRequired]
     #[UseSession]
-    public function grant(): RedirectResponse {
+    public function grant(): Response {
         // Check if user is logged in
         if (!$this->userSession->isLoggedIn()) {
             $this->logger->warning('Consent grant attempt without being logged in');
@@ -210,18 +212,13 @@ class ConsentController extends Controller {
 
         $this->logger->info('User ' . $uid . ' granted consent to client ' . $clientId . ' with scopes: ' . $grantedScopes);
 
-        // Clear consent pending flag (but keep OIDC params for authorize to continue)
+        // Consent uses the authenticated session; the original login request was
+        // already resumed from its single-use database transaction.
+        $freshLogin = $this->session->get('oidc_consent_fresh_login') === true;
         $this->session->set('oidc_consent_pending', false);
+        $this->session->remove('oidc_consent_fresh_login');
 
-        // Update the scope in session to use granted scopes instead of requested
-        $this->session->set('oidc_scope', $grantedScopes);
-
-        // Build authorize URL with ALL OAuth params to avoid session dependency.
-        // Previously only client_id and scope were passed, relying on session
-        // fallback in LoginRedirectorController. This caused intermittent 500
-        // errors when session values were lost between the redirect and the
-        // subsequent GET request (race condition with session->close()).
-        $authorizeUrl = $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', array_filter([
+        return $this->authorizationService->process([
             'client_id' => $this->session->get('oidc_client_id'),
             'scope' => $grantedScopes,
             'state' => $this->session->get('oidc_state'),
@@ -235,17 +232,7 @@ class ConsentController extends Controller {
             'max_age' => $this->session->get('oidc_max_age'),
             'response_mode' => $this->session->get('oidc_response_mode'),
             'claims' => $this->session->get('oidc_claims'),
-        ], static function ($value): bool {
-            return $value !== null && $value !== '';
-        }));
-
-        // IMPORTANT: Close the session to commit changes before redirecting
-        // Without this, the authorize endpoint won't see the updated session values
-        $this->session->close();
-
-        // Redirect back to authorize endpoint to complete the flow
-        // LoginRedirectorController will read all parameters from session (fallback mechanism)
-        return new RedirectResponse($authorizeUrl);
+        ], $freshLogin, $freshLogin ? (int)$this->session->get('oidc_auth_time') : null);
     }
 
     /**
@@ -447,6 +434,7 @@ class ConsentController extends Controller {
 
         // Clear session
         $this->session->remove('oidc_consent_pending');
+        $this->session->remove('oidc_consent_fresh_login');
         $this->session->remove('oidc_client_id');
         $this->session->remove('oidc_client_name');
         $this->session->remove('oidc_state');
