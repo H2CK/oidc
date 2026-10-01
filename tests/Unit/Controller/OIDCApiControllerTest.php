@@ -30,6 +30,7 @@ use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCode;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
@@ -59,6 +60,8 @@ class OIDCApiControllerTest extends TestCase {
     protected $accessTokenMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|AuthorizationCodeMapper */
     protected $authorizationCodeMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RefreshTokenMapper */
+    protected $refreshTokenMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|GroupMapper */
     protected $groupMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper */
@@ -150,6 +153,7 @@ class OIDCApiControllerTest extends TestCase {
         $constructor->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
 
         $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
+        $this->refreshTokenMapper = $this->createMock(RefreshTokenMapper::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->groupMapper = $this->createMock(GroupMapper::class);
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
@@ -188,7 +192,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->texSubjectClientMapper,
             null,
             new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger),
-            $this->clientAuthorizationService
+            $this->clientAuthorizationService,
+            $this->refreshTokenMapper
         );
 
         // Default configuration
@@ -479,7 +484,10 @@ class OIDCApiControllerTest extends TestCase {
         $this->secureRandom->method('generate')->willReturn('refresh-code');
         $this->jwtGenerator->method('generateAccessToken')->willReturn('access-token');
         $this->jwtGenerator->method('generateIdToken')->willReturn('id-token');
-        $this->accessTokenMapper->method('insert')->willReturnArgument(0);
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $accessToken): AccessToken {
+            $accessToken->id = 23;
+            return $accessToken;
+        });
 
         $response = $this->controller->getToken(
             'urn:ietf:params:oauth:grant-type:device_code',
@@ -962,6 +970,117 @@ class OIDCApiControllerTest extends TestCase {
 
     // ==================== Authorization Code Flow Tests ====================
 
+    public function testTokenEndpointRejectsRepeatedSingletonParameter(): void {
+        $this->tokenExchangeRawParameters = [
+            'grant_type' => ['authorization_code'],
+            'code' => ['first-code', 'second-code'],
+        ];
+        $this->clientMapper->expects($this->never())->method('getByIdentifier');
+
+        $response = $this->controller->getToken('authorization_code');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_request', $response->getData()['error']);
+        $this->assertStringContainsString('code', $response->getData()['error_description']);
+    }
+
+    public function testAuthorizationCodeGrantRequiresDedicatedCodeRecord(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->authorizationCodeMapper->method('findByCode')->with('credential')->willReturn(null);
+        $this->accessTokenMapper->expects($this->never())->method('getByCode');
+
+        $response = $this->controller->getToken(
+            'authorization_code',
+            code: 'credential',
+            client_id: 'public-client',
+            redirect_uri: 'https://client.example/callback',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testAuthorizationCodeCannotBePresentedAsRefreshToken(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $authorizationCode = new AuthorizationCode();
+        $authorizationCode->setAccessTokenId(10);
+        $authorizationCode->setHashedCode(hash('sha512', 'credential'));
+        $authorizationCode->setUsedAt(0);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->refreshTokenMapper->method('findByToken')->with('credential')->willReturn(null);
+        $this->authorizationCodeMapper->method('findByCode')->with('credential')->willReturn($authorizationCode);
+        $this->accessTokenMapper->expects($this->never())->method('getByCode');
+
+        $response = $this->controller->getToken(
+            'refresh_token',
+            refresh_token: 'credential',
+            client_id: 'public-client',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testNewCredentialWithoutCodeRecordIsNotTreatedAsLegacyRefreshToken(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $accessToken = new AccessToken();
+        $accessToken->setId(10);
+        $accessToken->setClientId(1);
+        $accessToken->setLegacyRefreshToken(false);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->refreshTokenMapper->method('findByToken')->with('credential')->willReturn(null);
+        $this->authorizationCodeMapper->method('findByCode')->with('credential')->willReturn(null);
+        $this->accessTokenMapper->method('getByCode')->with('credential')->willReturn($accessToken);
+
+        $response = $this->controller->getToken(
+            'refresh_token',
+            refresh_token: 'credential',
+            client_id: 'public-client',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testAuthorizationCodeGrantRequiresExactBoundRedirectUri(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $authorizationCode = new AuthorizationCode();
+        $authorizationCode->setAccessTokenId(10);
+        $authorizationCode->setUsedAt(0);
+        $authorizationCode->setRedirectUri('https://client.example/callback');
+        $accessToken = new AccessToken();
+        $accessToken->setId(10);
+        $accessToken->setClientId(1);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->authorizationCodeMapper->method('findByCode')->willReturn($authorizationCode);
+        $this->accessTokenMapper->method('getById')->with(10)->willReturn($accessToken);
+
+        foreach ([null, 'https://client.example/other'] as $redirectUri) {
+            $response = $this->controller->getToken(
+                'authorization_code',
+                code: 'credential',
+                client_id: 'public-client',
+                redirect_uri: $redirectUri,
+            );
+
+            $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+            $this->assertSame('invalid_grant', $response->getData()['error']);
+            $this->assertStringContainsString('Redirect URI', $response->getData()['error_description']);
+        }
+    }
+
     public function testAuthorizationCodeGrantRemainsSupported(): void {
         $result = $this->controller->getToken('authorization_code');
 
@@ -998,6 +1117,22 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertSame('invalid_client', $result->getData()['error']);
         $this->assertSame('Basic realm="token"', $result->getHeaders()['WWW-Authenticate'] ?? null);
+    }
+
+    public function testLegacyPublicClientRejectsBasicAuthentication(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setClientIdentifier('public-client');
+        $client->setSecret('unused-secret');
+        $client->setId(1);
+
+        $this->useBasicClient('public-client', 'unused-secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->authorizationCodeMapper->expects($this->never())->method('findByCode');
+
+        $response = $this->controller->getToken('authorization_code', code: 'credential');
+
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+        $this->assertSame('invalid_client', $response->getData()['error']);
     }
 
     public function testGetTokenWithInvalidGrantType() {

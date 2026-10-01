@@ -209,6 +209,7 @@ class DiscoveryGeneratorTest extends TestCase {
 
         $this->assertContains('client_secret_post', $methods);
         $this->assertContains('client_secret_basic', $methods);
+        $this->assertContains('none', $methods);
     }
 
     public function testGenerateDiscoveryHasClaimsSupported() {
@@ -383,9 +384,12 @@ class DiscoveryGeneratorTest extends TestCase {
 
         $scopes = $data['scopes_supported'];
 
-        // Should deduplicate case-insensitive
-        $this->assertEquals(1, count(array_filter($scopes, function($s) { return strtolower($s) === 'profile'; })));
-        $this->assertEquals(1, count(array_filter($scopes, function($s) { return strtolower($s) === 'email'; })));
+        // Scope names are case-sensitive; exact duplicates are removed while
+        // differently-cased scope names remain distinct values.
+        $this->assertContains('profile', $scopes);
+        $this->assertContains('PROFILE', $scopes);
+        $this->assertContains('email', $scopes);
+        $this->assertContains('EMAIL', $scopes);
     }
 
     public function testGenerateDiscoveryHasSubjectTypesSupported() {

@@ -104,8 +104,8 @@ class ScopeCeilingServiceTest extends TestCase {
         $this->assertSame('openid Files.Read', $this->service->clamp('alice', 'openid Files.Read files.read'));
     }
 
-    public function testFilterByAllowedScopesKeepsNamesAndMatchesLikeAuthorize(): void {
-        $this->assertSame('openid Files.Read', $this->service->filterByAllowedScopes('openid Files.Read notes.write', 'openid files.read'));
+    public function testFilterByAllowedScopesUsesCaseSensitiveScopeNames(): void {
+        $this->assertSame('openid', $this->service->filterByAllowedScopes('openid Files.Read notes.write', 'openid files.read'));
         $this->assertSame('openid notes.write', $this->service->filterByAllowedScopes('openid notes.write', ''));
         $this->assertSame('', $this->service->filterByAllowedScopes('notes.write', 'openid'));
     }

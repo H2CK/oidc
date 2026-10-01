@@ -161,6 +161,26 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('no_redirect_uris_provided', $result->getData()['error']);
     }
 
+    /** @dataProvider dynamicRedirectWildcardProvider */
+    public function testDynamicRegistrationRejectsEveryRedirectUriWildcard(string $redirectUri): void {
+        $this->appConfig->method('getAppValueString')->willReturn('true');
+        $this->clientMapper->method('getNumDcrClients')->willReturn(0);
+        $this->clientMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->registerClient(redirect_uris: [$redirectUri]);
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_redirect_uri', $result->getData()['error']);
+    }
+
+    public static function dynamicRedirectWildcardProvider(): array {
+        return [
+            'subdomain wildcard' => ['https://*.example.test/callback'],
+            'path wildcard' => ['https://example.test/callback/*'],
+            'localhost port wildcard' => ['http://localhost:*/callback'],
+        ];
+    }
+
     /** @dataProvider blockedDynamicBackChannelUriProvider */
     public function testDynamicRegistrationRejectsUnsafeBackChannelLogoutUri(string $uri): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
@@ -693,11 +713,10 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
 
         $client = $result->getData();
-        var_dump($client);
 
         $this->assertEquals('TEST-CLIENT', $client['client_name']);
         $this->assertEquals('https://test.org/redirect', $client['redirect_uris'][0]);
-        $this->assertEquals('client_secret_post', $client['token_endpoint_auth_method']);
+        $this->assertEquals('client_secret_basic', $client['token_endpoint_auth_method']);
         $this->assertEquals('code', $client['response_types'][0]);
         $this->assertEquals('authorization_code', $client['grant_types'][0]);
         $this->assertEquals('web', $client['application_type']);
@@ -816,7 +835,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             'RS256',
             ['code'],
             'web',
-            'openid profile email@invalid scope#bad'
+            'openid profile bad"scope'
         );
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());

@@ -91,18 +91,27 @@ class DeviceAuthorizationController extends Controller {
 			return $this->oauthError('invalid_request', 'Could not parse the form body.');
 		}
 		foreach ($parameters as $name => $values) {
-			$nonEmpty = array_values(array_filter($values, static fn (string $value): bool => $value !== ''));
-			if (count($nonEmpty) > 1) {
+			if (count($values) > 1) {
 				return $this->oauthError('invalid_request', 'Parameter ' . $name . ' must not occur more than once.');
 			}
+			$nonEmpty = array_values(array_filter($values, static fn (string $value): bool => $value !== ''));
+			$parameters[$name] = $nonEmpty;
 		}
+		$client_id = $parameters['client_id'][0] ?? $client_id;
+		$client_secret = $parameters['client_secret'][0] ?? $client_secret;
+		$scope = $parameters['scope'][0] ?? $scope;
 
 		$basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
+		if ($basicAuthenticationAttempted
+			&& $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+			return $this->invalidClient('client_secret_basic is disabled.', true);
+		}
 		$basicCredentials = $this->getBasicClientCredentials();
 		if ($basicAuthenticationAttempted && $basicCredentials === null) {
 			return $this->invalidClient('Malformed client credentials.', true);
 		}
-		if ($basicCredentials !== null && ($client_id !== null || $client_secret !== null)) {
+		if ($basicCredentials !== null
+			&& ($parameters['client_id'] !== [] || $parameters['client_secret'] !== [])) {
 			return $this->oauthError('invalid_request', 'Use exactly one client authentication method.');
 		}
 		if ($basicCredentials !== null) {
@@ -296,7 +305,23 @@ class DeviceAuthorizationController extends Controller {
 		if ($client === null) {
 			return $this->invalidClient('Client not found.', $basicAuthenticationAttempted);
 		}
-		if ($client->getType() !== 'public' && (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret))) {
+		$registeredAuthMethod = $client->getTokenEndpointAuthMethod();
+		if ($registeredAuthMethod === null && $client->getType() === 'public') {
+			$registeredAuthMethod = 'none';
+		}
+		if ($registeredAuthMethod === 'client_secret_basic' && !$basicAuthenticationAttempted) {
+			return $this->invalidClient('This client must use client_secret_basic.', false);
+		}
+		if ($registeredAuthMethod === 'client_secret_post' && $basicAuthenticationAttempted) {
+			return $this->invalidClient('This client must use client_secret_post.', true);
+		}
+		if ($registeredAuthMethod === 'none'
+			&& ($basicAuthenticationAttempted || $clientSecret !== null)) {
+			return $this->invalidClient('Public clients must not send a client secret.', $basicAuthenticationAttempted);
+		}
+		if ($registeredAuthMethod !== 'none'
+			&& $client->getType() !== 'public'
+			&& (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret))) {
 			return $this->invalidClient('Client authentication failed.', $basicAuthenticationAttempted);
 		}
 		return $client;
@@ -309,9 +334,9 @@ class DeviceAuthorizationController extends Controller {
 		$scopeValue = ($scope === null || trim($scope) === '')
 			? Application::DEFAULT_SCOPE
 			: $scope;
-		$requested = preg_split('/\s+/', strtolower(trim($scopeValue)), -1, PREG_SPLIT_NO_EMPTY);
+		$requested = preg_split('/\s+/', trim($scopeValue), -1, PREG_SPLIT_NO_EMPTY);
 		$requested = array_values(array_unique($requested));
-		$allowed = preg_split('/\s+/', strtolower(trim($client->getAllowedScopes())), -1, PREG_SPLIT_NO_EMPTY);
+		$allowed = preg_split('/\s+/', trim($client->getAllowedScopes()), -1, PREG_SPLIT_NO_EMPTY);
 		if ($allowed !== [] && array_diff($requested, $allowed) !== []) {
 			return $this->oauthError('invalid_scope', 'One or more requested scopes are not allowed for this client.');
 		}

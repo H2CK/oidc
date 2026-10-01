@@ -344,7 +344,8 @@ class SettingsController extends Controller
                         $this->appConfig->getAppValueString(
                             Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS,
                             Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS
-                        ) === 'true'
+                        ) === 'true',
+                        !$client->isDcr()
                     )) {
                         return new JSONResponse(['error' => 'Invalid redirect URI.'], Http::STATUS_BAD_REQUEST);
                     }
@@ -657,7 +658,19 @@ class SettingsController extends Controller
     {
         $this->logger->debug("Adding Redirect URI " . $redirectUri . " for client " . $id);
         try {
-            if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
+            $client = $this->clientMapper->getByUid($id);
+        } catch (\Exception $e) {
+            return new JSONResponse(['message' => $this->l->t('Unknown client.')], Http::STATUS_BAD_REQUEST);
+        }
+        try {
+            if ($this->redirectUriService->isValidRedirectUri(
+                $redirectUri,
+                $this->appConfig->getAppValueString(
+                    Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS,
+                    Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS
+                ) === 'true',
+                !$client->isDcr()
+            ) === false) {
                 return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
             }
         } catch (RedirectUriValidationException $e) {
@@ -819,26 +832,28 @@ class SettingsController extends Controller
         $redirectUri = trim($redirectUri);
         $this->logger->debug('Adding Logout Redirect URI ' . $redirectUri . ($clientId === null ? ' globally' : ' for client ' . $clientId));
 
+        $client = null;
+        if ($clientId !== null) {
+            try {
+                $client = $this->clientMapper->getByUid($clientId);
+            } catch (\Exception $e) {
+                return new JSONResponse(['error' => 'Unknown client.'], Http::STATUS_BAD_REQUEST);
+            }
+        }
+
         try {
             if (!$this->redirectUriService->isValidRedirectUri(
                 $redirectUri,
                 $this->appConfig->getAppValueString(
                     Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS,
                     Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS
-                ) === 'true'
+                ) === 'true',
+                $client === null || !$client->isDcr()
             )) {
                 return new JSONResponse(['error' => 'Invalid post logout redirect URI.'], Http::STATUS_BAD_REQUEST);
             }
         } catch (RedirectUriValidationException $e) {
             return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
-        }
-
-        if ($clientId !== null) {
-            try {
-                $this->clientMapper->getByUid($clientId);
-            } catch (\Exception $e) {
-                return new JSONResponse(['error' => 'Unknown client.'], Http::STATUS_BAD_REQUEST);
-            }
         }
 
         $entry = new LogoutRedirectUri();

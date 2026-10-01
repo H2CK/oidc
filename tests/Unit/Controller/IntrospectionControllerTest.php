@@ -13,6 +13,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
+use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 use OCP\AppFramework\Services\IAppConfig;
@@ -37,10 +38,22 @@ class IntrospectionControllerTest extends TestCase {
     protected $db;
     /** @var LoggerInterface */
     protected $logger;
+    /** @var FormUrlencodedParameterParser|\PHPUnit\Framework\MockObject\MockObject */
+    protected $parameterParser;
+    private string $authorizationHeader = '';
+    /** @var array<string, string> */
+    private array $bodyParameters = [];
 
     public function setUp(): void {
         parent::setUp();
         $this->request = $this->createMock(IRequest::class);
+        $this->request->method('getHeader')->willReturnCallback(function (string $name): string {
+            return match (strtolower($name)) {
+                'content-type' => 'application/x-www-form-urlencoded',
+                'authorization' => $this->authorizationHeader,
+                default => '',
+            };
+        });
         $this->db = $this->createMock(IDBConnection::class);
         $this->time = $this->createMock(ITimeFactory::class);
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -54,6 +67,16 @@ class IntrospectionControllerTest extends TestCase {
         $constructor->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
         
         $this->clientMapper = $this->createMock(ClientMapper::class);
+        $this->parameterParser = $this->createMock(FormUrlencodedParameterParser::class);
+        $this->parameterParser->method('readSelectedParameters')->willReturnCallback(function (): array {
+            $result = [];
+            foreach (['token', 'token_type_hint', 'client_id', 'client_secret'] as $name) {
+                $result[$name] = array_key_exists($name, $this->bodyParameters)
+                    ? [$this->bodyParameters[$name]]
+                    : [];
+            }
+            return $result;
+        });
 
         $this->controller = new IntrospectionController(
             'oidc',
@@ -63,15 +86,14 @@ class IntrospectionControllerTest extends TestCase {
             $this->userManager,
             $this->time,
             $this->appConfig,
-            $this->logger
+            $this->logger,
+            $this->parameterParser
         );
     }
 
     public function testInvalidClientCredentials() {
         // No credentials provided
-        $this->request
-            ->method('getHeader')
-            ->willReturn('');
+        $this->authorizationHeader = '';
 
         $this->request
             ->method('getParam')
@@ -88,9 +110,7 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -107,9 +127,7 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -130,9 +148,7 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -169,9 +185,7 @@ class IntrospectionControllerTest extends TestCase {
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -233,9 +247,7 @@ class IntrospectionControllerTest extends TestCase {
         $resourceClient->setSecret('resource-secret');
         $resourceClient->setClientIdentifier('resource-server-id');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('resource-server:resource-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('resource-server:resource-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -291,9 +303,7 @@ class IntrospectionControllerTest extends TestCase {
         $unauthorizedClient->setSecret('evil-secret');
         $unauthorizedClient->setClientIdentifier('evil-client-id');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('unauthorized-client:evil-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('unauthorized-client:evil-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -351,9 +361,7 @@ class IntrospectionControllerTest extends TestCase {
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -412,7 +420,7 @@ class IntrospectionControllerTest extends TestCase {
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
 
-        $this->request->method('getHeader')->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
 
         $accessToken = new AccessToken();
@@ -445,9 +453,12 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('');
+        $this->authorizationHeader = '';
+        $this->bodyParameters = [
+            'client_id' => 'test-client',
+            'client_secret' => 'test-secret',
+            'token' => 'some_token',
+        ];
 
         $this->request
             ->method('getParam')

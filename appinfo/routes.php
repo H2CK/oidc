@@ -229,6 +229,11 @@ return [
             'verb' => 'GET',
         ],
         [
+            'name' => 'AuthorizationResume#completePost',
+            'url' => '/authorize/post/complete',
+            'verb' => 'GET',
+        ],
+        [
             'name' => 'Consent#show',
             'url' => '/consent',
             'verb' => 'GET',

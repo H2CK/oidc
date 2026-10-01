@@ -116,54 +116,33 @@ export default {
 				description: scopeDescriptions[scope]?.description || '',
 			}))
 		},
-		async handleGrant() {
-			const selectedScopesString = this.selectedScopes.join(' ')
+		submitConsent(path, fields = {}) {
+			const form = document.createElement('form')
+			form.method = 'POST'
+			form.action = generateUrl(path)
+			form.acceptCharset = 'UTF-8'
 
-			try {
-				const response = await fetch(generateUrl('/apps/oidc/consent/grant'), {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/x-www-form-urlencoded',
-						requesttoken: OC.requestToken,
-					},
-					body: 'scopes=' + encodeURIComponent(selectedScopesString),
-					redirect: 'follow',
-				})
-
-				// Follow redirect
-				if (response.redirected) {
-					window.location.href = response.url
-				} else {
-					// Manually redirect to authorize endpoint
-					window.location.href = generateUrl('/apps/oidc/authorize')
-				}
-			} catch (error) {
-				console.error('Error granting consent:', error)
-				// Fallback: redirect to authorize endpoint
-				window.location.href = generateUrl('/apps/oidc/authorize')
+			const parameters = {
+				requesttoken: OC.requestToken,
+				...fields,
 			}
+			Object.entries(parameters).forEach(([name, value]) => {
+				const input = document.createElement('input')
+				input.type = 'hidden'
+				input.name = name
+				input.value = value
+				form.appendChild(input)
+			})
+
+			document.body.appendChild(form)
+			form.submit()
 		},
-		async handleDeny() {
-			try {
-				const response = await fetch(generateUrl('/apps/oidc/consent/deny'), {
-					method: 'POST',
-					headers: {
-						requesttoken: OC.requestToken,
-					},
-					redirect: 'follow',
-				})
-
-				// Follow redirect
-				if (response.redirected) {
-					window.location.href = response.url
-				} else {
-					// Fallback: redirect to base URL
-					window.location.href = generateUrl('/')
-				}
-			} catch (error) {
-				console.error('Error denying consent:', error)
-				window.location.href = generateUrl('/')
-			}
+		handleGrant() {
+			const selectedScopesString = this.selectedScopes.join(' ')
+			this.submitConsent('/apps/oidc/consent/grant', { scopes: selectedScopesString })
+		},
+		handleDeny() {
+			this.submitConsent('/apps/oidc/consent/deny')
 		},
 	},
 }

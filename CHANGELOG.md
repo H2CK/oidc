@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0-alpha2] - 2026-09-30
+
+### Fixed
+
+- Added standards-compliant POST authorization handling, ignored unknown OAuth parameters, and rejected repeated singleton parameters.
+- Bound authorization codes to the concrete redirect URI and separated authorization-code credentials from rotating refresh tokens.
+- Hardened response-type, PKCE, scope, consent, UserInfo, introspection, browser form-post, and client-authentication handling.
+- Rejected every wildcard form for dynamically registered redirect URIs while retaining wildcard support for static clients.
+
 ## [2.4.1] - 2026-09-30
 
 ### Added

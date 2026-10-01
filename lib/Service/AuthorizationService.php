@@ -692,7 +692,8 @@ class AuthorizationService
                 $this->authorizationCodeMapper->createForAccessToken(
                     $accessToken->getId(),
                     $code,
-                    $this->time->getTime()
+                    $this->time->getTime(),
+                    (string)$redirect_uri
                 );
             }
         } catch (JwtCreationErrorException $e) {

@@ -202,6 +202,21 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $this->assertSame('Basic realm="device_authorization"', $response->getHeaders()['WWW-Authenticate']);
     }
 
+    public function testLegacyPublicClientRejectsBasicAuthentication(): void {
+        $this->authorizationHeader = 'Basic ' . base64_encode('device-client:secret');
+        $this->rawParameters = [
+            'client_id' => [],
+            'client_secret' => [],
+            'scope' => ['openid'],
+        ];
+        $this->clientMapper->method('getByIdentifier')->willReturn($this->createClient('public'));
+
+        $response = $this->controller->authorize(null, 'openid');
+
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+        $this->assertSame('invalid_client', $response->getData()['error']);
+    }
+
     public function testDisallowedScopeIsRejected(): void {
         $this->rawParameters = [
             'client_id' => ['device-client'],

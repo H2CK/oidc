@@ -60,6 +60,24 @@ class AccessTokenMapper extends QBMapper {
     }
 
     /**
+     * Atomically reserve rotation of a refresh token issued before the
+     * dedicated refresh-token table existed.
+     */
+    public function rotateLegacyRefreshToken(int $id, string $presentedToken, string $replacementToken): bool {
+        $qb = $this->db->getQueryBuilder();
+        $updated = $qb->update($this->tableName)
+            ->set('hashed_code', $qb->createNamedParameter(hash('sha512', $replacementToken)))
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq(
+                'hashed_code',
+                $qb->createNamedParameter(hash('sha512', $presentedToken))
+            ))
+            ->executeStatement();
+
+        return $updated === 1;
+    }
+
+    /**
      * @param string $code
      * @return AccessToken
      * @throws AccessTokenNotFoundException
@@ -172,6 +190,7 @@ class AccessTokenMapper extends QBMapper {
         if ($entity instanceof AccessToken && (int)$entity->getId() > 0) {
             $visited = [];
             $this->deleteDescendants((int)$entity->getId(), $visited);
+            $this->deleteRefreshTokens((int)$entity->getId());
         }
         return parent::delete($entity);
     }
@@ -186,9 +205,20 @@ class AccessTokenMapper extends QBMapper {
             $childId = (int)$child->getId();
             if ($childId > 0) {
                 $this->deleteDescendants($childId, $visited);
+                $this->deleteRefreshTokens($childId);
             }
             parent::delete($child);
         }
+    }
+
+    private function deleteRefreshTokens(int $accessTokenId): void {
+        $qb = $this->db->getQueryBuilder();
+        $qb->delete('oidc_refresh_tokens')
+            ->where($qb->expr()->eq(
+                'access_token_id',
+                $qb->createNamedParameter($accessTokenId, IQueryBuilder::PARAM_INT)
+            ))
+            ->executeStatement();
     }
 
     private function deleteEntitiesWithDescendants(IQueryBuilder $qb): void {

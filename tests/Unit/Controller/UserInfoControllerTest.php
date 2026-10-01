@@ -161,8 +161,8 @@ class UserInfoControllerTest extends TestCase {
         $_SERVER = $originalServer;
 
         $this->assertInstanceOf(JSONResponse::class, $result);
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertEquals('invalid_token', $result->getData()['error']);
         $this->assertEquals('No bearer token found in request.', $result->getData()['error_description']);
     }
 
@@ -182,9 +182,9 @@ class UserInfoControllerTest extends TestCase {
         $_SERVER = $originalServer;
 
         $this->assertInstanceOf(JSONResponse::class, $result);
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertEquals('Could not find provided bearer token.', $result->getData()['error_description']);
+        $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertEquals('The bearer token is invalid or expired.', $result->getData()['error_description']);
     }
 
     public function testGetInfoClientNotFound() {
@@ -211,9 +211,9 @@ class UserInfoControllerTest extends TestCase {
         $_SERVER = $originalServer;
 
         $this->assertInstanceOf(JSONResponse::class, $result);
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_request', $result->getData()['error']);
-        $this->assertEquals('Could not find client for access token.', $result->getData()['error_description']);
+        $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertEquals('The bearer token is invalid.', $result->getData()['error_description']);
     }
 
     public function testGetInfoClientExpired() {
@@ -260,9 +260,9 @@ class UserInfoControllerTest extends TestCase {
         $_SERVER = $originalServer;
 
         $this->assertInstanceOf(JSONResponse::class, $result);
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('expired_client', $result->getData()['error']);
-        $this->assertEquals('Client expired.', $result->getData()['error_description']);
+        $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertEquals('The bearer token is no longer valid.', $result->getData()['error_description']);
     }
 
     public function testGetInfoAccessTokenExpired() {
@@ -307,9 +307,9 @@ class UserInfoControllerTest extends TestCase {
         $_SERVER = $originalServer;
 
         $this->assertInstanceOf(JSONResponse::class, $result);
-        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('invalid_grant', $result->getData()['error']);
-        $this->assertEquals('Access token already expired.', $result->getData()['error_description']);
+        $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
+        $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertEquals('Access token has expired.', $result->getData()['error_description']);
     }
 
     public function testGetInfoSuccessForRegularResourceBoundToken() {

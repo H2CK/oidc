@@ -253,48 +253,33 @@ class UserInfoController extends ApiController
 
         if ($accessTokenCode == null) {
             $this->logger->notice('No bearer token found in request.');
-            return new JSONResponse([
-                'error' => 'invalid_request',
-                'error_description' => 'No bearer token found in request.'
-            ], Http::STATUS_BAD_REQUEST);
+            return $this->invalidTokenResponse('No bearer token found in request.');
         }
 
         try {
             $accessToken = $this->accessTokenMapper->getByAccessToken($accessTokenCode);
         } catch (AccessTokenNotFoundException $e) {
             $this->logger->notice('Could not find provided bearer token.');
-            return new JSONResponse([
-                'error' => 'invalid_request',
-                'error_description' => 'Could not find provided bearer token.',
-            ], Http::STATUS_BAD_REQUEST);
+            return $this->invalidTokenResponse('The bearer token is invalid or expired.');
         }
 
         try {
             $client = $this->clientMapper->getByUid($accessToken->getClientId());
         } catch (ClientNotFoundException $e) {
             $this->logger->error('Could not find client for access token.');
-            return new JSONResponse([
-                'error' => 'invalid_request',
-                'error_description' => 'Could not find client for access token.',
-            ], Http::STATUS_BAD_REQUEST);
+            return $this->invalidTokenResponse('The bearer token is invalid.');
         }
 
         // The client must not be expired
         if ($client->isDcr() && $this->time->getTime() > ($client->getIssuedAt() + $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME))) {
             $this->logger->warning('Client expired. Client id was ' . $client->getId() . '.');
-            return new JSONResponse([
-                'error' => 'expired_client',
-                'error_description' => 'Client expired.',
-            ], Http::STATUS_BAD_REQUEST);
+            return $this->invalidTokenResponse('The bearer token is no longer valid.');
         }
 
         // The accessToken must not be expired
         if ($this->time->getTime() >= $accessToken->getEffectiveExpiresAt((int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME)) ) {
             $this->logger->notice('Access token already expired.');
-            return new JSONResponse([
-                'error' => 'invalid_grant',
-                'error_description' => 'Access token already expired.',
-            ], Http::STATUS_BAD_REQUEST);
+            return $this->invalidTokenResponse('Access token has expired.');
         }
 
         // Only RFC 8693 exchanged tokens are target-bound at UserInfo. Normal
@@ -317,6 +302,8 @@ class UserInfoController extends ApiController
                         'error_description' => 'The access token is not valid for the UserInfo resource.',
                     ], Http::STATUS_UNAUTHORIZED);
                     $response->addHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
+                    $response->addHeader('Cache-Control', 'no-store');
+                    $response->addHeader('Pragma', 'no-cache');
                     return $response;
                 }
             }
@@ -325,6 +312,9 @@ class UserInfoController extends ApiController
         $issuer =  $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
+        if ($user === null) {
+            return $this->invalidTokenResponse('The resource owner is no longer available.');
+        }
         $groups = $this->groupManager->getUserGroups($user);
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
@@ -484,6 +474,8 @@ class UserInfoController extends ApiController
         $response = new JSONResponse($userInfoPayload);
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
 
         return $response;
     }
@@ -493,6 +485,10 @@ class UserInfoController extends ApiController
      */
     private function getAuthorizationHeader()
     {
+        $headers = trim($this->request->getHeader('Authorization'));
+        if ($headers !== '') {
+            return $headers;
+        }
         $headers = null;
         if (isset($_SERVER['Authorization'])) {
             $headers = trim($_SERVER["Authorization"]);
@@ -518,9 +514,23 @@ class UserInfoController extends ApiController
     {
         $headers = $this->getAuthorizationHeader();
         // HEADER: Get the access token from the header
-        if (!empty($headers) && preg_match('/Bearer\s+(\S+)/', $headers, $matches)) {
+        if (!empty($headers) && preg_match('/\ABearer[\x20\x09]+([^\s,]+)[\x20\x09]*\z/iD', $headers, $matches)) {
                 return $matches[1];
         }
         return null;
+    }
+
+    private function invalidTokenResponse(string $description): JSONResponse {
+        $response = new JSONResponse([
+            'error' => 'invalid_token',
+            'error_description' => $description,
+        ], Http::STATUS_UNAUTHORIZED);
+        $response->addHeader(
+            'WWW-Authenticate',
+            'Bearer error="invalid_token", error_description="' . addcslashes($description, "\\\"") . '"'
+        );
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        return $response;
     }
 }

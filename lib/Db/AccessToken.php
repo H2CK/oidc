@@ -6,6 +6,7 @@
 namespace OCA\OIDCIdentityProvider\Db;
 
 use OCP\AppFramework\Db\Entity;
+use OCP\DB\Types;
 
 /**
  * @method int getId()
@@ -19,6 +20,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setScope(string $scope)
  * @method string getHashedCode()
  * @method void setHashedCode(string $hashedCode)
+ * @method bool getLegacyRefreshToken()
+ * @method void setLegacyRefreshToken(bool $legacyRefreshToken)
  * @method string getAccessToken()
  * @method void setAccessToken(string $accessToken)
  * @method int getCreated()
@@ -56,6 +59,8 @@ class AccessToken extends Entity
     protected $scope;
     /** @var string */
     protected $hashedCode;
+    /** @var bool Whether hashedCode may be used as a pre-migration refresh token. */
+    protected $legacyRefreshToken = false;
     /** @var string */
     protected $accessToken;
     /** @var int */
@@ -86,6 +91,7 @@ class AccessToken extends Entity
         $this->addType('userId', 'string');
         $this->addType('scope', 'string');
         $this->addType('hashedCode', 'string');
+        $this->addType('legacyRefreshToken', Types::BOOLEAN);
         $this->addType('accessToken', 'string');
         $this->addType('created', 'int');
         $this->addType('refreshed', 'int');
