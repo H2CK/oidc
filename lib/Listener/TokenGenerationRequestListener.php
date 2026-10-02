@@ -153,13 +153,13 @@ class TokenGenerationRequestListener implements IEventListener {
     }
 
     private function isUserAllowedForClient(string $userId, int $clientId): bool {
+        $user = $this->userManager->get($userId);
+        if ($user === null || !$user->isEnabled()) {
+            return false;
+        }
         $clientGroups = $this->groupMapper->getGroupsByClientId($clientId);
         if ($clientGroups === []) {
             return true;
-        }
-        $user = $this->userManager->get($userId);
-        if ($user === null) {
-            return false;
         }
         $userGroupIds = $this->groupManager->getUserGroupIds($user);
         foreach ($clientGroups as $clientGroup) {

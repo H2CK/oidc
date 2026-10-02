@@ -266,7 +266,7 @@ class JwtGenerator
             'acr' => '0',
             'azp' => $client->getClientIdentifier(),
             'nbf' => $this->time->getTime(),
-            'jti' => strval($accessToken->getId()),
+            'jti' => $this->secureRandom->generate(32, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
         ];
 
         $sid = $accessToken->getSid();
@@ -654,7 +654,7 @@ class JwtGenerator
             'azp' => $client->getClientIdentifier(),
             'preferred_username' => $uid,
             'scope' => $accessToken->getScope(),
-            'jti' => strval($accessToken->getId()),
+            'jti' => $this->secureRandom->generate(32, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
         ];
 
         if ($includeAuthTime) {

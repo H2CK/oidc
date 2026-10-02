@@ -2,10 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.5.0-alpha3] - 2026-10-02
+## [2.5.0-alpha4] - 2026-10-02
 
 ### Fixed
 
+- Added standards-compliant POST authorization handling, ignored unknown OAuth parameters, and rejected repeated singleton parameters.
+- Bound authorization codes to the concrete redirect URI and separated authorization-code credentials from rotating refresh tokens.
+- Hardened response-type, PKCE, scope, consent, UserInfo, introspection, browser form-post, and client-authentication handling.
+- Rejected every wildcard form for dynamically registered redirect URIs while retaining wildcard support for static clients.
 - Store and rotate refresh tokens issued by TokenGenerationRequestEvent, retaining the trusted event grant's refresh lifecycle.
 - Preserve case-sensitive scopes during authorization and refresh.
 - Complete the authorization POST handoff with single-use transactions and duplicate-parameter validation across query and body.
@@ -16,20 +20,24 @@ All notable changes to this project will be documented in this file.
 - Correct authorization error codes, omitted PKCE method handling and state presence; include RFC 9207 issuer identification in authorization responses.
 - Signal authentication and token failures to Nextcloud brute-force protection at token, UserInfo, introspection and revocation endpoints.
 - Generate JWTs before consuming grants and persist rotation atomically, so failed issuance can be retried.
+- Do not count normal UserInfo token failures or inactive introspection results as brute-force attempts. Introspection throttles only failed client authentication.
+- Honour administrator-disabled consent even when a relying party requests prompt=consent.
+- Apply explicit authenticated-user rate limits to device-code verification, approval and denial, and record invalid code attempts in brute-force protection.
+- Restore consent buttons on pageshow, display revocation feedback through NcNoteCard, and prevent stale loads from restoring removed consent rows.
+- Reject revocation of a token owned by another client with invalid_grant, while keeping unknown-token revocation idempotent.
+- Reject duplicate refresh requests without revoking the token family for a bounded five-second window; never redeem a consumed refresh token twice. A zero-second configuration restores strict replay revocation.
+- Reject disabled or deleted users in authorization, token issuance, UserInfo, introspection and event validation/generation. Remove their grants, codes, consents and approved device requests on UserDeletedEvent.
+- Generate independent random jti values for each ID/access JWT. Introspection reports bearer issuance time, issuer and the persisted JWT identifier (or an opaque-token fingerprint).
+- Remove the shadowed /genKeys route; retain /api/v2/genKeys.
 
 ### Added
 
 - RFC 7009 access/refresh token revocation endpoint, discovery metadata and CORS handling.
 - Regression tests for authorization parsing, consent, event refresh redemption, refresh retention, migration, revocation and failed issuance.
 
-## [2.5.0-alpha2] - 2026-09-30
+### Upgrade notes
 
-### Fixed
-
-- Added standards-compliant POST authorization handling, ignored unknown OAuth parameters, and rejected repeated singleton parameters.
-- Bound authorization codes to the concrete redirect URI and separated authorization-code credentials from rotating refresh tokens.
-- Hardened response-type, PKCE, scope, consent, UserInfo, introspection, browser form-post, and client-authentication handling.
-- Rejected every wildcard form for dynamically registered redirect URIs while retaining wildcard support for static clients.
+- Event refresh tokens issued before event_generated was recorded cannot be identified reliably after upgrading. Without a corresponding consent they still fail with invalid_grant / "Consent has been revoked". Issue a new trusted event grant; do not infer the flag from missing consent.
 
 ## [2.4.1] - 2026-09-30
 

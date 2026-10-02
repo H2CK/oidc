@@ -147,11 +147,6 @@ return [
         ],
         [
             'name' => 'Settings#regenerateKeys',
-            'url' => '/genKeys',
-            'verb' => 'POST',
-        ],
-        [
-            'name' => 'Settings#regenerateKeys',
             'url' => '/api/v2/genKeys',
             'verb' => 'POST',
         ],

@@ -31,6 +31,7 @@ class ClientAuthorizationServiceTest extends TestCase {
 
 	public function testClientWithoutRequiredGroupsAllowsUser(): void {
 		$user = $this->createMock(IUser::class);
+		$user->method('isEnabled')->willReturn(true);
 		$client = $this->createClient();
 		$this->groupMapper->expects(self::once())->method('getGroupsByClientId')->with(23)->willReturn([]);
 		$this->groupManager->expects(self::never())->method('getUserGroups');
@@ -40,6 +41,7 @@ class ClientAuthorizationServiceTest extends TestCase {
 
 	public function testMembershipInAnyConfiguredGroupAllowsUser(): void {
 		$user = $this->createMock(IUser::class);
+		$user->method('isEnabled')->willReturn(true);
 		$client = $this->createClient();
 		$this->groupMapper->method('getGroupsByClientId')->with(23)->willReturn([
 			$this->createClientGroup('iot-users'),
@@ -55,6 +57,7 @@ class ClientAuthorizationServiceTest extends TestCase {
 
 	public function testUserWithoutMatchingGroupIsDenied(): void {
 		$user = $this->createMock(IUser::class);
+		$user->method('isEnabled')->willReturn(true);
 		$client = $this->createClient();
 		$this->groupMapper->method('getGroupsByClientId')->willReturn([
 			$this->createClientGroup('iot-users'),
@@ -69,6 +72,7 @@ class ClientAuthorizationServiceTest extends TestCase {
 
 	public function testMatchingGroupCanAppearAfterOtherUserGroups(): void {
 		$user = $this->createMock(IUser::class);
+		$user->method('isEnabled')->willReturn(true);
 		$client = $this->createClient();
 		$this->groupMapper->method('getGroupsByClientId')->willReturn([$this->createClientGroup('group-a')]);
 		$this->groupManager->method('getUserGroups')->with($user)->willReturn([
@@ -97,4 +101,11 @@ class ClientAuthorizationServiceTest extends TestCase {
 		$group->method('getGID')->willReturn($groupId);
 		return $group;
 	}
+    public function testDisabledUserIsDeniedWithoutGroupLookup(): void {
+        $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(false);
+        $this->groupMapper->expects(self::never())->method('getGroupsByClientId');
+        $this->assertFalse($this->service->isUserAllowedForClient($user, new Client()));
+    }
+
 }

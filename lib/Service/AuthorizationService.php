@@ -551,9 +551,10 @@ class AuthorizationService
         }
 
         $reauthenticatedUser = $this->userSession->getUser();
-        if ($reauthenticatedUser !== null) {
-            $this->backChannelLogoutService->resumeAfterReauthentication($reauthenticatedUser->getUID());
+        if ($reauthenticatedUser === null || !$reauthenticatedUser->isEnabled()) {
+            return $this->authorizationError($parameters, 'access_denied', 'The resource owner is no longer available.');
         }
+        $this->backChannelLogoutService->resumeAfterReauthentication($reauthenticatedUser->getUID());
 
         // Check if user is in allowed groups for client
         $clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
@@ -592,7 +593,7 @@ class AuthorizationService
             Application::DEFAULT_ALLOW_USER_SETTINGS
         );
 
-        if ($allowUserSettings === 'no' && !$this->promptContains($prompt, 'consent')) {
+        if ($allowUserSettings === 'no') {
             // Administrator has disabled user consent - auto-grant all scopes
             $this->logger->debug('User consent disabled by admin for user ' . $uid . ' and client ' . $client_id . ' - auto-granting all scopes');
 

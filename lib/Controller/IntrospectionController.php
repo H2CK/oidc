@@ -13,6 +13,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\AppFramework\Services\IAppConfig;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
@@ -50,6 +51,7 @@ class IntrospectionController extends ApiController
         ITimeFactory $time,
         IAppConfig $appConfig,
         LoggerInterface $logger,
+        private IURLGenerator $urlGenerator,
         ?FormUrlencodedParameterParser $parameterParser = null
     ) {
         parent::__construct($appName, $request);
@@ -238,7 +240,7 @@ class IntrospectionController extends ApiController
 
         // Get user information
         $user = $this->userManager->get($accessToken->getUserId());
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             $this->logger->debug('User not found for token during introspection');
             return $this->jsonResponse(['active' => false]);
         }
@@ -317,6 +319,12 @@ class IntrospectionController extends ApiController
             return $this->jsonResponse(['active' => false]);
         }
 
+        // The exact bearer value has already been resolved from our token store.
+        // Read metadata only from that persisted JWT, never from an unchecked input.
+        $jwtClaims = $this->storedJwtClaims((string)$accessToken->getAccessToken());
+        $issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost()
+            . $this->urlGenerator->getWebroot();
+
         // Build successful response
         $response = [
             'active' => true,
@@ -325,7 +333,9 @@ class IntrospectionController extends ApiController
             'username' => $user->getUID(),
             'token_type' => 'Bearer',
             'exp' => $tokenExpiryTime,
-            'iat' => $accessToken->getCreated(),
+            'iat' => $jwtClaims['iat'] ?? $accessToken->getRefreshed(),
+            'iss' => $jwtClaims['iss'] ?? $issuer,
+            'jti' => $jwtClaims['jti'] ?? hash('sha256', $token),
             'sub' => $accessToken->getUserId(),
             'aud' => !empty($tokenResource) ? $tokenResource : $tokenClient->getClientIdentifier()
         ];
@@ -344,6 +354,32 @@ class IntrospectionController extends ApiController
         return $jsonResponse;
     }
 
+    /** @return array{iat?: int, iss?: string, jti?: string} */
+    private function storedJwtClaims(string $storedToken): array {
+        $parts = explode('.', $storedToken);
+        if (count($parts) !== 3) {
+            return [];
+        }
+        $payload = base64_decode(strtr($parts[1], '-_', '+/'), true);
+        if ($payload === false) {
+            return [];
+        }
+        $claims = json_decode($payload, true);
+        if (!is_array($claims)) {
+            return [];
+        }
+        $metadata = [];
+        if (isset($claims['iat']) && is_int($claims['iat'])) {
+            $metadata['iat'] = $claims['iat'];
+        }
+        foreach (['iss', 'jti'] as $name) {
+            if (isset($claims[$name]) && is_string($claims[$name]) && $claims[$name] !== '') {
+                $metadata[$name] = $claims[$name];
+            }
+        }
+        return $metadata;
+    }
+
     /** @param array<string, mixed> $data */
     private function jsonResponse(
         array $data,
@@ -351,7 +387,7 @@ class IntrospectionController extends ApiController
         bool $basicChallenge = false
     ): JSONResponse {
         $response = new JSONResponse($data, $status);
-        if (($status >= 400 && $status < 500) || (($data['active'] ?? null) === false)) {
+        if (($data['error'] ?? null) === 'invalid_client') {
             $response->throttle();
         }
         $response->addHeader('Cache-Control', 'no-store');

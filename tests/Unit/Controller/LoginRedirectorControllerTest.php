@@ -508,6 +508,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -663,6 +665,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -969,6 +973,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -1138,6 +1144,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -1342,6 +1350,7 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('isLoggedIn')
             ->willReturn(true);
         $reauthUser = $this->createMock(\OCP\IUser::class);
+        $reauthUser->method('isEnabled')->willReturn(true);
         $reauthUser->method('getUID')->willReturn('user1');
         $this->userSession->method('getUser')->willReturn($reauthUser);
         $this->userSession
@@ -1441,6 +1450,7 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('isLoggedIn')
             ->willReturn(true);
         $reauthUser = $this->createMock(\OCP\IUser::class);
+        $reauthUser->method('isEnabled')->willReturn(true);
         $reauthUser->method('getUID')->willReturn('user1');
         $this->userSession->method('getUser')->willReturn($reauthUser);
         $this->userSession

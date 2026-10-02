@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use OCP\AppFramework\Http;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUser;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -47,6 +48,8 @@ class IntrospectionControllerTest extends TestCase {
     public function setUp(): void {
         parent::setUp();
         $this->request = $this->createMock(IRequest::class);
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('op.example');
         $this->request->method('getHeader')->willReturnCallback(function (string $name): string {
             return match (strtolower($name)) {
                 'content-type' => 'application/x-www-form-urlencoded',
@@ -87,6 +90,7 @@ class IntrospectionControllerTest extends TestCase {
             $this->time,
             $this->appConfig,
             $this->logger,
+            $this->createMock(IURLGenerator::class),
             $this->parameterParser
         );
     }
@@ -121,6 +125,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testTokenNotFound() {
@@ -142,6 +147,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testExpiredToken() {
@@ -178,6 +184,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testValidTokenIntrospection() {
@@ -215,6 +222,7 @@ class IntrospectionControllerTest extends TestCase {
 
         // Mock user
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -277,6 +285,7 @@ class IntrospectionControllerTest extends TestCase {
 
         // Mock user
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -333,6 +342,7 @@ class IntrospectionControllerTest extends TestCase {
 
         // Mock user
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -352,6 +362,7 @@ class IntrospectionControllerTest extends TestCase {
         // Should return inactive to not reveal token exists
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testRefreshedTokenIsActiveAfterOriginalLifetime() {
@@ -393,6 +404,8 @@ class IntrospectionControllerTest extends TestCase {
             ->willReturn(1005500);
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -414,6 +427,8 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertTrue($data['active']);
         // exp must reflect the stored absolute expiry.
         $this->assertEquals(1005900, $data['exp']);
+        $this->assertSame(1005000, $data['iat']);
+        $this->assertSame(hash('sha256', 'refreshed_token'), $data['jti']);
     }
 
     public function testLegacyTokenWithoutExpiresAtUsesRefreshedFallback(): void {
@@ -437,6 +452,8 @@ class IntrospectionControllerTest extends TestCase {
         $this->time->method('getTime')->willReturn(1005500);
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $this->userManager->method('get')->willReturn($user);
         $tokenClient = new Client('token-client', ['https://app.org'], 'RS256');
@@ -482,6 +499,70 @@ class IntrospectionControllerTest extends TestCase {
         // Should succeed with authentication and return inactive token
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
+    }
+
+    private function prepareActiveIntrospection(?bool $enabled = true): AccessToken {
+        $client = new Client('test', [], 'RS256');
+        $client->setId(1);
+        $client->setClientIdentifier('client');
+        $client->setSecret('secret');
+        $this->authorizationHeader = 'Basic ' . base64_encode('client:secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->clientMapper->method('getByUid')->willReturn($client);
+        $token = new AccessToken();
+        $token->setClientId(1);
+        $token->setUserId('alice');
+        $token->setCreated(100);
+        $token->setRefreshed(900);
+        $token->setExpiresAt(1800);
+        $token->setScope('openid');
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($token);
+        $this->time->method('getTime')->willReturn(1000);
+        $user = $enabled === null ? null : $this->createMock(IUser::class);
+        if ($user !== null) {
+            $user->method('isEnabled')->willReturn($enabled);
+            $user->method('getUID')->willReturn('alice');
+        }
+        $this->userManager->method('get')->willReturn($user);
+        return $token;
+    }
+
+    public function testDisabledUserTokenIsInactiveWithoutThrottle(): void {
+        $this->prepareActiveIntrospection(false);
+        $response = $this->controller->introspectToken('opaque');
+        $this->assertSame(['active' => false], $response->getData());
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testDeletedUserTokenIsInactiveWithoutThrottle(): void {
+        $this->prepareActiveIntrospection(null);
+        $response = $this->controller->introspectToken('opaque');
+        $this->assertSame(['active' => false], $response->getData());
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testOpaqueIntrospectionReportsIssuanceIssuerAndIdentifier(): void {
+        $this->prepareActiveIntrospection();
+        $response = $this->controller->introspectToken('opaque');
+        $data = $response->getData();
+        $this->assertTrue($data['active']);
+        $this->assertSame(900, $data['iat']);
+        $this->assertSame('https://op.example', $data['iss']);
+        $this->assertSame(hash('sha256', 'opaque'), $data['jti']);
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testJwtIntrospectionUsesPersistedJwtMetadata(): void {
+        $token = $this->prepareActiveIntrospection();
+        $claims = ['iat' => 901, 'iss' => 'https://op.example/nextcloud', 'jti' => 'issued-identifier'];
+        $jwt = 'header.' . rtrim(strtr(base64_encode(json_encode($claims)), '+/', '-_'), '=') . '.signature';
+        $token->setAccessToken($jwt);
+        $data = $this->controller->introspectToken($jwt)->getData();
+        $this->assertTrue($data['active']);
+        $this->assertSame($claims['iat'], $data['iat']);
+        $this->assertSame($claims['iss'], $data['iss']);
+        $this->assertSame($claims['jti'], $data['jti']);
     }
 
 }

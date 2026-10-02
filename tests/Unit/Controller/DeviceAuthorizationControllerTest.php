@@ -239,6 +239,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $deviceCode->setExpiresAt(1_600);
         $deviceCode->setStatus(DeviceCode::STATUS_PENDING);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('alice');
 
         $this->deviceCodeMapper->method('findByUserCode')->with('ABCD-2345')->willReturn($deviceCode);
@@ -275,6 +276,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $deviceCode->setExpiresAt(1_600);
         $deviceCode->setStatus(DeviceCode::STATUS_PENDING);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $client = $this->createClient('public');
         $this->deviceCodeMapper->method('findByUserCode')->willReturn($deviceCode);
         $this->time->method('getTime')->willReturn(1_000);
@@ -299,6 +301,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $deviceCode->setExpiresAt(1_600);
         $deviceCode->setStatus(DeviceCode::STATUS_PENDING);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('alice');
         $this->ceilingScope = 'openid profile';
 
@@ -323,6 +326,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $deviceCode->setExpiresAt(1_600);
         $deviceCode->setStatus(DeviceCode::STATUS_PENDING);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('alice');
         $this->ceilingScope = '';
 
@@ -357,6 +361,8 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $existingConsent->setExpiresAt(1_500);
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('alice');
 
         $this->deviceCodeMapper->method('findByUserCode')->with('WXYZ-9876')->willReturn($deviceCode);
@@ -424,4 +430,25 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $client->setSecret('secret');
         return $client;
     }
+    public function testUnknownUserCodeSignalsThrottleOnAllVerificationActions(): void {
+        $this->deviceCodeMapper->method('findByUserCode')->willReturn(null);
+        $this->assertTrue($this->controller->verify('ABCD-2345')->isThrottled());
+        $this->assertTrue($this->controller->approve('ABCD-2345')->isThrottled());
+        $this->assertTrue($this->controller->deny('ABCD-2345')->isThrottled());
+    }
+
+    public function testEmptyVerificationFormDoesNotSignalThrottle(): void {
+        $this->deviceCodeMapper->expects($this->never())->method('findByUserCode');
+        $this->assertFalse($this->controller->verify()->isThrottled());
+    }
+
+    public function testVerificationActionsHaveAuthenticatedRateLimits(): void {
+        foreach (['verify', 'approve', 'deny'] as $method) {
+            $reflection = new \ReflectionMethod(DeviceAuthorizationController::class, $method);
+            $limits = $reflection->getAttributes(\OCP\AppFramework\Http\Attribute\UserRateLimit::class);
+            $this->assertCount(1, $limits);
+            $this->assertSame(['limit' => 30, 'period' => 60], $limits[0]->getArguments());
+        }
+    }
+
 }

@@ -83,8 +83,17 @@ export default {
 		// Pre-select all scopes by default (user can deselect)
 		this.selectedScopes = this.scopes.map(s => s.name)
 	},
+	mounted() {
+		window.addEventListener('pageshow', this.resetSubmitting)
+	},
+	beforeUnmount() {
+		window.removeEventListener('pageshow', this.resetSubmitting)
+	},
 	methods: {
 		t,
+		resetSubmitting() {
+			this.submitting = false
+		},
 		parseScopes(scopeString) {
 			const scopeDescriptions = {
 				openid: {

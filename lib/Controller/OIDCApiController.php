@@ -61,6 +61,8 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
+    /** Reject concurrent duplicates without revoking the successful request's grant. */
+    private const REFRESH_REPLAY_GRACE_SECONDS = 5;
     private const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code';
     private const TOKEN_EXCHANGE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:token-exchange';
     private const TOKEN_TYPE_ACCESS_TOKEN = 'urn:ietf:params:oauth:token-type:access_token';
@@ -582,8 +584,12 @@ class OIDCApiController extends ApiController {
                 if ($refreshTokenRecord->getUsedAt() > 0) {
                     try {
                         $replayedAccessToken = $this->accessTokenMapper->getById($refreshTokenRecord->getAccessTokenId());
-                        if ($replayedAccessToken->getClientId() === $client->getId()) {
-                            $this->accessTokenMapper->delete($replayedAccessToken);
+                        if ($replayedAccessToken->getClientId() === $client->getId()
+                            && $this->shouldRevokeReplayedRefresh($refreshTokenRecord)) {
+                            $response = $this->revokeReplayedRefreshFamily($replayedAccessToken);
+                            if ($response !== null) {
+                                return $response;
+                            }
                         }
                     } catch (AccessTokenNotFoundException $e) {
                         // The token family was already revoked.
@@ -687,7 +693,7 @@ class OIDCApiController extends ApiController {
 
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             $this->accessTokenMapper->delete($accessToken);
             return $this->invalidGrantResponse('The resource owner is no longer available.');
         }
@@ -799,7 +805,7 @@ class OIDCApiController extends ApiController {
             if ($grant_type === 'refresh_token') {
                 $refreshConsumed = false;
                 if ($refreshTokenRecord instanceof RefreshToken) {
-                    $refreshConsumed = $this->refreshTokenMapper->markUsed($refreshTokenRecord, $now);
+                    $refreshConsumed = $this->refreshTokenMapper->markUsed($refreshTokenRecord, $this->time->getTime());
                 } elseif ($legacyRefreshToken) {
                     $refreshConsumed = $this->accessTokenMapper->rotateLegacyRefreshToken(
                         $accessToken->getId(),
@@ -809,7 +815,12 @@ class OIDCApiController extends ApiController {
                 }
 
                 if (!$refreshConsumed) {
-                    $this->accessTokenMapper->delete($accessToken);
+                    // Another request may have rotated while this request waited
+                    // for the family lock. Re-read the committed use timestamp.
+                    $usedRecord = $this->refreshTokenMapper->findByToken($code);
+                    if ($usedRecord !== null && $this->shouldRevokeReplayedRefresh($usedRecord)) {
+                        $this->accessTokenMapper->delete($accessToken);
+                    }
                     $this->accessTokenMapper->commitTokenExchangeTransaction();
                     return $this->invalidGrantResponse('Refresh token has already been used.');
                 }
@@ -938,7 +949,10 @@ class OIDCApiController extends ApiController {
                 // Unknown, expired or already revoked tokens still return 200.
             }
         }
-        if ($accessToken !== null && $accessToken->getClientId() === $client->getId()) {
+        if ($accessToken !== null && $accessToken->getClientId() !== $client->getId()) {
+            return $this->revocationError('invalid_grant', 'The token was not issued to this client.');
+        }
+        if ($accessToken !== null) {
             $transactionStarted = false;
             try {
                 $this->accessTokenMapper->beginTokenExchangeTransaction();
@@ -963,6 +977,37 @@ class OIDCApiController extends ApiController {
         $response->addHeader('Pragma', 'no-cache');
         $response->addHeader('Access-Control-Allow-Origin', '*');
         return $response;
+    }
+
+    private function shouldRevokeReplayedRefresh(RefreshToken $record): bool {
+        $graceSeconds = max(0, min(self::REFRESH_REPLAY_GRACE_SECONDS, (int)$this->appConfig->getAppValueString(
+            Application::APP_CONFIG_REFRESH_REPLAY_GRACE_SECONDS,
+            Application::DEFAULT_REFRESH_REPLAY_GRACE_SECONDS
+        )));
+        return $record->getUsedAt() > 0 && ($graceSeconds === 0
+            || $this->time->getTime() - $record->getUsedAt() > $graceSeconds);
+    }
+
+    private function revokeReplayedRefreshFamily(AccessToken $token): ?JSONResponse {
+        $transactionStarted = false;
+        try {
+            $this->accessTokenMapper->beginTokenExchangeTransaction();
+            $transactionStarted = true;
+            $locked = $this->accessTokenMapper->lockTokenExchangeSubject($token->getId());
+            $this->accessTokenMapper->delete($locked);
+            $this->accessTokenMapper->commitTokenExchangeTransaction();
+        } catch (AccessTokenNotFoundException $e) {
+            if ($transactionStarted) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+        } catch (\Throwable $e) {
+            if ($transactionStarted) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+            $this->logger->error('Could not revoke replayed refresh-token family.', ['exception' => $e]);
+            return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+        return null;
     }
 
     private function revocationError(string $error, string $description, bool $basic = false): JSONResponse {
@@ -1082,7 +1127,7 @@ class OIDCApiController extends ApiController {
         }
 
         $user = $this->userManager->get($authorization->getUserId());
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
         }
         if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
@@ -1567,7 +1612,7 @@ class OIDCApiController extends ApiController {
 
         $uid = $subjectTokenAccessToken->getUserId();
         $user = $this->userManager->get($uid);
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             $this->logger->info('Subject token references a user that no longer exists. Client id: ' . $client_id);
             return new JSONResponse([
                 'error' => 'invalid_request',
@@ -1668,7 +1713,7 @@ class OIDCApiController extends ApiController {
             $exchangeExpireTime = min($expireTime, $subjectExpiresAt - $now);
 
             // A token exchange creates a new, independently stored token. Insert first
-            // so JWT generation sees a stable database ID (jti) and creation time.
+            // so JWT generation sees a stable database row and creation time.
             $newAccessToken = new AccessToken();
             $newAccessToken->setClientId($client->getId());
             $newAccessToken->setParentTokenId($subjectTokenId);

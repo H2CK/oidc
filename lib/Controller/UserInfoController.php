@@ -35,7 +35,6 @@ use OCP\Accounts\IAccount;
 use OCP\Accounts\IAccountProperty;
 use OCP\Accounts\IAccountManager;
 use OCP\AppFramework\Services\IAppConfig;
-use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
@@ -216,11 +215,9 @@ class UserInfoController extends ApiController
     /**
      * @PublicPage
      * @NoCSRFRequired
-     * @BruteForceProtection(action=oidc_userinfo)
      *
      * @return JSONResponse
      */
-    #[BruteForceProtection(action: 'oidc_userinfo')]
     #[PublicPage]
     #[NoCSRFRequired]
     public function getInfoPost(string|null $access_token = null): JSONResponse
@@ -231,11 +228,9 @@ class UserInfoController extends ApiController
     /**
      * @PublicPage
      * @NoCSRFRequired
-     * @BruteForceProtection(action=oidc_userinfo)
      *
      * @return JSONResponse
      */
-    #[BruteForceProtection(action: 'oidc_userinfo')]
     #[PublicPage]
     #[NoCSRFRequired]
     public function getInfo(): JSONResponse
@@ -301,7 +296,6 @@ class UserInfoController extends ApiController
                         'error' => 'invalid_token',
                         'error_description' => 'The access token is not valid for the UserInfo resource.',
                     ], Http::STATUS_UNAUTHORIZED);
-                    $response->throttle();
                     $response->addHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
                     $response->addHeader('Cache-Control', 'no-store');
                     $response->addHeader('Pragma', 'no-cache');
@@ -313,7 +307,7 @@ class UserInfoController extends ApiController
         $issuer =  $this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot();
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             return $this->invalidTokenResponse('The resource owner is no longer available.');
         }
         $groups = $this->groupManager->getUserGroups($user);
@@ -526,7 +520,6 @@ class UserInfoController extends ApiController
             'error' => 'invalid_token',
             'error_description' => $description,
         ], Http::STATUS_UNAUTHORIZED);
-        $response->throttle();
         $response->addHeader(
             'WWW-Authenticate',
             'Bearer error="invalid_token", error_description="' . addcslashes($description, "\\\"") . '"'

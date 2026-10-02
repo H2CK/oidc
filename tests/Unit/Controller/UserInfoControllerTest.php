@@ -163,8 +163,8 @@ class UserInfoControllerTest extends TestCase {
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
         $this->assertEquals('No bearer token found in request.', $result->getData()['error_description']);
-        $this->assertTrue($result->isThrottled());
     }
 
     public function testGetInfoAccessTokenNotFound() {
@@ -185,6 +185,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
         $this->assertEquals('The bearer token is invalid or expired.', $result->getData()['error_description']);
     }
 
@@ -214,6 +215,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
         $this->assertEquals('The bearer token is invalid.', $result->getData()['error_description']);
     }
 
@@ -263,6 +265,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
         $this->assertEquals('The bearer token is no longer valid.', $result->getData()['error_description']);
     }
 
@@ -310,6 +313,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertInstanceOf(JSONResponse::class, $result);
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_token', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
         $this->assertEquals('Access token has expired.', $result->getData()['error_description']);
     }
 
@@ -335,6 +339,8 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setResource('https://backend.example/api');
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
@@ -462,6 +468,8 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setScope('openid profile email');
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
@@ -541,6 +549,8 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setScope('openid profile email');
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
@@ -673,6 +683,8 @@ class UserInfoControllerTest extends TestCase {
         $accessToken->setScope('openid profile email groups roles');
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $user->method('getDisplayName')->willReturn('Test User');
         $user->method('getEMailAddress')->willReturn('test@example.com');
@@ -747,4 +759,38 @@ class UserInfoControllerTest extends TestCase {
         $this->assertContains('group1', $data['roles']);
         $this->assertContains('group2', $data['roles']);
     }
+    private function unavailableUserResponse(?bool $enabled): JSONResponse {
+        $client = new Client();
+        $client->setId(1);
+        $client->setDcr(false);
+        $token = new AccessToken();
+        $token->setClientId(1);
+        $token->setUserId('alice');
+        $token->setRefreshed(900);
+        $token->setExpiresAt(1800);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($token);
+        $this->clientMapper->method('getByUid')->willReturn($client);
+        $user = $enabled === null ? null : $this->createMock(IUser::class);
+        if ($user !== null) {
+            $user->method('isEnabled')->willReturn($enabled);
+        }
+        $this->userManager->method('get')->willReturn($user);
+        $this->groupManager->expects($this->never())->method('getUserGroups');
+        return $this->controller->getInfoPost('opaque');
+    }
+
+    public function testDisabledUserIsRejectedWithoutThrottle(): void {
+        $response = $this->unavailableUserResponse(false);
+        $this->assertSame(401, $response->getStatus());
+        $this->assertSame('invalid_token', $response->getData()['error']);
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testDeletedUserIsRejectedWithoutThrottle(): void {
+        $response = $this->unavailableUserResponse(null);
+        $this->assertSame(401, $response->getStatus());
+        $this->assertFalse($response->isThrottled());
+    }
+
 }

@@ -57,8 +57,9 @@ class TokenValidationRequestListener implements IEventListener {
         // check if it's an access token
         try {
             $accessToken = $this->accessTokenMapper->getByAccessToken($tokenString);
+            $user = $this->userManager->get($accessToken->getUserId());
             $hasExpired = $this->time->getTime() >= $accessToken->getEffectiveExpiresAt($expireTime);
-            if ($hasExpired) {
+            if ($hasExpired || $user === null || !$user->isEnabled()) {
                 $event->setIsValid(false);
             } else {
                 $event->setIsValid(true);
@@ -142,7 +143,7 @@ class TokenValidationRequestListener implements IEventListener {
         // check user ID
         $userId = $decodedJwt['preferred_username'] ?? '';
         $user = $this->userManager->get($userId);
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             $this->logger->error('Provided user in JWT is unknown.');
             $event->setIsValid(false);
             return;

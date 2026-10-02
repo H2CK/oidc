@@ -47,6 +47,7 @@ class AuthorizationServiceRegressionTest extends TestCase {
     private array $sessionValues = [];
     private string $allowConsent = 'yes';
     private bool $loggedIn = true;
+    private bool $userEnabled = true;
     private IUserSession $userSession;
 
     protected function setUp(): void {
@@ -65,6 +66,7 @@ class AuthorizationServiceRegressionTest extends TestCase {
         $groups = $this->createMock(GroupMapper::class);
         $groups->method('getGroupsByClientId')->willReturn([]);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturnCallback(fn (): bool => $this->userEnabled);
         $user->method('getUID')->willReturn('test-user');
         $this->userSession = $this->createMock(IUserSession::class);
         $this->userSession->method('isLoggedIn')->willReturnCallback(fn (): bool => $this->loggedIn);
@@ -218,4 +220,21 @@ class AuthorizationServiceRegressionTest extends TestCase {
         $response = $this->service->process($this->request(['scope' => 'Files:Read', 'prompt' => 'none']));
         $this->assertStringContainsString('error=interaction_required', $response->getRedirectURL());
     }
+    public function testAdminDisabledConsentIgnoresPromptConsent(): void {
+        $this->allowConsent = 'no';
+        $this->consents->expects($this->once())->method('createOrUpdate');
+        $this->tokens->expects($this->once())->method('insert');
+        $response = $this->service->process($this->request(['prompt' => 'consent']));
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('code=', $response->getRedirectURL());
+    }
+
+    public function testDisabledSessionUserCannotAuthorize(): void {
+        $this->userEnabled = false;
+        $this->tokens->expects($this->never())->method('insert');
+        $response = $this->service->process($this->request());
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('error=access_denied', $response->getRedirectURL());
+    }
+
 }

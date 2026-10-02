@@ -28,6 +28,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
@@ -171,16 +172,24 @@ class DeviceAuthorizationController extends Controller {
 	#[PublicPage]
 	#[UseSession]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[UserRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function verify(?string $user_code = null): Response {
 		$normalizedUserCode = DeviceCodeMapper::normalizeUserCode((string)$user_code);
-		if ($normalizedUserCode === '') {
+		if ($user_code === null || trim($user_code) === '') {
 			return $this->devicePage('enter', null, null, null);
+		}
+		if (!preg_match('/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/D', $normalizedUserCode)) {
+			$response = $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The device code is invalid or has expired.'));
+			$response->throttle();
+			return $response;
 		}
 
 		$deviceCode = $this->deviceCodeMapper->findByUserCode($normalizedUserCode);
 		if ($deviceCode === null || $this->time->getTime() >= $deviceCode->getExpiresAt()) {
-			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The device code is invalid or has expired.'));
+			$response = $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The device code is invalid or has expired.'));
+			$response->throttle();
+			return $response;
 		}
 		if ($deviceCode->getStatus() === DeviceCode::STATUS_DENIED) {
 			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('This device request was denied.'));
@@ -196,6 +205,11 @@ class DeviceAuthorizationController extends Controller {
 			return new RedirectResponse($this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $returnUrl,
 			]));
+		}
+
+		$user = $this->userSession->getUser();
+		if ($user === null || !$user->isEnabled()) {
+			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The resource owner is no longer available.'));
 		}
 
 		try {
@@ -215,6 +229,7 @@ class DeviceAuthorizationController extends Controller {
 	#[NoAdminRequired]
 	#[UseSession]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[UserRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function approve(string $user_code): JSONResponse {
 		$deviceCodeOrResponse = $this->loadPendingDeviceCode($user_code);
@@ -223,7 +238,7 @@ class DeviceAuthorizationController extends Controller {
 		}
 		$deviceCode = $deviceCodeOrResponse;
 		$user = $this->userSession->getUser();
-		if ($user === null) {
+		if ($user === null || !$user->isEnabled()) {
 			return new JSONResponse(['error' => 'login_required'], Http::STATUS_UNAUTHORIZED);
 		}
 
@@ -255,11 +270,16 @@ class DeviceAuthorizationController extends Controller {
 	#[NoAdminRequired]
 	#[UseSession]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[UserRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function deny(string $user_code): JSONResponse {
 		$deviceCodeOrResponse = $this->loadPendingDeviceCode($user_code);
 		if ($deviceCodeOrResponse instanceof JSONResponse) {
 			return $deviceCodeOrResponse;
+		}
+		$user = $this->userSession->getUser();
+		if ($user === null || !$user->isEnabled()) {
+			return new JSONResponse(['error' => 'login_required'], Http::STATUS_UNAUTHORIZED);
 		}
 		if (!$this->deviceCodeMapper->markDenied($deviceCodeOrResponse)) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
@@ -356,7 +376,9 @@ class DeviceAuthorizationController extends Controller {
 	private function loadPendingDeviceCode(string $userCode): DeviceCode|JSONResponse {
 		$deviceCode = $this->deviceCodeMapper->findByUserCode($userCode);
 		if ($deviceCode === null || $this->time->getTime() >= $deviceCode->getExpiresAt()) {
-			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The device code is invalid or expired.'], Http::STATUS_BAD_REQUEST);
+			$response = new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The device code is invalid or expired.'], Http::STATUS_BAD_REQUEST);
+			$response->throttle();
+			return $response;
 		}
 		if ($deviceCode->getStatus() !== DeviceCode::STATUS_PENDING) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
@@ -404,6 +426,7 @@ class DeviceAuthorizationController extends Controller {
 			$description,
 			$basicAuthenticationAttempted ? Http::STATUS_UNAUTHORIZED : Http::STATUS_BAD_REQUEST,
 		);
+		$response->throttle();
 		if ($basicAuthenticationAttempted) {
 			$response->addHeader('WWW-Authenticate', 'Basic realm="device_authorization"');
 		}
