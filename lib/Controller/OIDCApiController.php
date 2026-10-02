@@ -360,8 +360,7 @@ class OIDCApiController extends ApiController {
         $response = $this->getTokenResponse($grant_type, $code, $refresh_token, $client_id,
             $client_secret, $code_verifier, $device_code, $scope, $redirect_uri);
         $data = $response->getData();
-        if ($response->getStatus() >= 400 && $response->getStatus() < 500
-            && !in_array($data['error'] ?? '', ['authorization_pending', 'slow_down'], true)) {
+        if (($data['error'] ?? '') === 'invalid_client') {
             $response->throttle();
         }
         $response->addHeader('Cache-Control', 'no-store');
@@ -969,7 +968,9 @@ class OIDCApiController extends ApiController {
     private function revocationError(string $error, string $description, bool $basic = false): JSONResponse {
         $response = new JSONResponse(['error' => $error, 'error_description' => $description],
             $error === 'invalid_client' && $basic ? Http::STATUS_UNAUTHORIZED : Http::STATUS_BAD_REQUEST);
-        $response->throttle();
+        if ($error === 'invalid_client') {
+            $response->throttle();
+        }
         $response->addHeader('Cache-Control', 'no-store');
         $response->addHeader('Pragma', 'no-cache');
         if ($basic && $error === 'invalid_client') {

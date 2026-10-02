@@ -1142,6 +1142,7 @@ class OIDCApiControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('unsupported_grant_type', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
     }
 
     private function prepareEventRefresh(): array {
@@ -1267,12 +1268,12 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame(200, $this->controller->revokeToken()->getStatus());
     }
 
-    public function testRevocationRejectsDuplicateTokenAndSignalsThrottle(): void {
+    public function testRevocationRejectsDuplicateTokenWithoutThrottling(): void {
         $this->tokenExchangeRawParameters = ['token' => ['a', 'b']];
         $this->accessTokenMapper->expects($this->never())->method('getByAccessToken');
         $response = $this->controller->revokeToken();
         $this->assertSame(400, $response->getStatus());
-        $this->assertTrue($response->isThrottled());
+        $this->assertFalse($response->isThrottled());
     }
 
     public function testTokenEndpointAuthenticationFailureSignalsThrottle(): void {
