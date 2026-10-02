@@ -217,7 +217,7 @@ class ConsentController extends Controller {
         $this->session->set('oidc_consent_pending', false);
         $this->session->remove('oidc_consent_fresh_login');
 
-        return $this->authorizationService->process([
+        $response = $this->authorizationService->process([
             'client_id' => $this->session->get('oidc_client_id'),
             'scope' => $grantedScopes,
             'state' => $this->session->get('oidc_state'),
@@ -232,6 +232,8 @@ class ConsentController extends Controller {
             'response_mode' => $this->session->get('oidc_response_mode'),
             'claims' => $this->session->get('oidc_claims'),
         ], $freshLogin, $freshLogin ? (int)$this->session->get('oidc_auth_time') : null, true);
+
+        return $this->handoffAuthorizationRedirect($response);
     }
 
     /**
@@ -450,6 +452,21 @@ class ConsentController extends Controller {
         $this->session->remove('oidc_claims');
         $this->session->remove('oidc_requested_scopes');
 
-        return $this->authorizationService->authorizationError($parameters, 'access_denied', 'User denied consent');
+        $response = $this->authorizationService->authorizationError($parameters, 'access_denied', 'User denied consent');
+        return $this->handoffAuthorizationRedirect($response);
+    }
+
+    private function handoffAuthorizationRedirect(Response $response): Response {
+        if (!$response instanceof RedirectResponse) {
+            return $response;
+        }
+
+        $handoff = new TemplateResponse('oidc', 'authorization-handoff', [
+            'continueUrl' => $response->getRedirectURL(),
+            'continueLabel' => $this->l->t('Continue authorization'),
+        ], TemplateResponse::RENDER_AS_GUEST);
+        $handoff->addHeader('Cache-Control', 'no-store');
+        $handoff->addHeader('Referrer-Policy', 'no-referrer');
+        return $handoff;
     }
 }

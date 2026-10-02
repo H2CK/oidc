@@ -94,6 +94,7 @@ export default {
 			this.loading = true
 			try {
 				const response = await fetch(generateUrl('/apps/oidc/api/consents'), {
+					cache: 'no-store',
 					headers: {
 						requesttoken: OC.requestToken,
 					},
@@ -102,7 +103,7 @@ export default {
 				if (!response.ok) {
 					const text = await response.text()
 					console.error('[loadConsents] API Error:', response.status, text)
-					OC.Notification.showTemporary(t('oidc', 'Failed to load authorized applications') + ': ' + response.status)
+					OC.Notification?.showTemporary?.(t('oidc', 'Failed to load authorized applications') + ': ' + response.status)
 					return
 				}
 
@@ -111,7 +112,7 @@ export default {
 				this.consents = data
 			} catch (error) {
 				console.error('[loadConsents] Exception:', error)
-				OC.Notification.showTemporary(t('oidc', 'Failed to load authorized applications') + ': ' + error.message)
+				OC.Notification?.showTemporary?.(t('oidc', 'Failed to load authorized applications') + ': ' + error.message)
 			} finally {
 				this.loading = false
 			}
@@ -132,14 +133,14 @@ export default {
 				})
 
 				if (response.ok) {
-					OC.Notification.showTemporary(t('oidc', 'Access revoked successfully'))
-					this.loadConsents() // Reload list
+					this.consents = this.consents.filter(consent => consent.clientId !== clientId)
+					OC.Notification?.showTemporary?.(t('oidc', 'Access revoked successfully'))
 				} else {
-					OC.Notification.showTemporary(t('oidc', 'Failed to revoke access'))
+					OC.Notification?.showTemporary?.(t('oidc', 'Failed to revoke access'))
 				}
 			} catch (error) {
 				console.error('Error revoking consent:', error)
-				OC.Notification.showTemporary(t('oidc', 'Failed to revoke access'))
+				OC.Notification?.showTemporary?.(t('oidc', 'Failed to revoke access'))
 			} finally {
 				this.revoking = null
 			}

@@ -32,13 +32,15 @@
 
 			<div class="consent-actions">
 				<button class="button secondary"
+					:disabled="submitting"
 					@click="handleDeny">
 					{{ t('oidc', 'Deny') }}
 				</button>
 				<button class="button primary"
-					:disabled="selectedScopes.length === 0"
+					:disabled="submitting || selectedScopes.length === 0"
+					:aria-busy="submitting"
 					@click="handleGrant">
-					{{ t('oidc', 'Allow') }}
+					{{ submitting ? t('oidc', 'Processing...') : t('oidc', 'Allow') }}
 				</button>
 			</div>
 
@@ -73,6 +75,7 @@ export default {
 		return {
 			scopes: [],
 			selectedScopes: [],
+			submitting: false,
 		}
 	},
 	created() {
@@ -117,9 +120,15 @@ export default {
 			}))
 		},
 		submitConsent(path, fields = {}) {
+			if (this.submitting) {
+				return
+			}
+			this.submitting = true
+
 			const form = document.createElement('form')
 			form.method = 'POST'
 			form.action = generateUrl(path)
+			form.target = '_self'
 			form.acceptCharset = 'UTF-8'
 
 			const parameters = {

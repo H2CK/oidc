@@ -209,7 +209,9 @@ class ConsentControllerTest extends TestCase {
 
         $response = $this->controller->grant();
 
-        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertInstanceOf(TemplateResponse::class, $response);
+        $this->assertSame('authorization-handoff', $response->getTemplateName());
+        $this->assertSame('https://client.example/callback', $response->getParams()['continueUrl']);
     }
 
     public function testDenySuccess() {
@@ -232,8 +234,9 @@ class ConsentControllerTest extends TestCase {
             ->willReturn(new RedirectResponse('https://client.example.com/callback?error=access_denied&state=test-state'));
         $response = $this->controller->deny();
 
-        $this->assertInstanceOf(RedirectResponse::class, $response);
-        $redirectUrl = $response->getRedirectURL();
+        $this->assertInstanceOf(TemplateResponse::class, $response);
+        $this->assertSame('authorization-handoff', $response->getTemplateName());
+        $redirectUrl = $response->getParams()['continueUrl'];
         $this->assertStringContainsString('error=access_denied', $redirectUrl);
         $this->assertStringContainsString('state=test-state', $redirectUrl);
     }
