@@ -294,7 +294,7 @@ The RP endpoint should validate the signature and the Logout Token claims, espec
 1. Open **Administration settings > OIDC** and edit the client.
 2. Expand **Further Settings**.
 3. Set **Back-Channel Logout URI** to the RP endpoint that accepts Back-Channel Logout Tokens.
-4. Enable **Require sid in Back-Channel Logout Tokens** if the RP registers `backchannel_logout_session_required=true`.
+4. Enable **Require session in Back-Channel Logout Tokens** if the RP registers `backchannel_logout_session_required=true`.
 
 Use an absolute HTTPS URI. For statically/admin-configured confidential clients, HTTP remains accepted for backward compatibility with the base Back-Channel Logout policy; dynamically registered clients (DCR and RFC 7592 updates) must always use HTTPS. Fragments and embedded user credentials are rejected. For dynamically registered clients, an additional application-level SSRF policy applies independently of Nextcloud's global `allow_local_remote_servers` setting: loopback, RFC1918/private, link-local, IPv6 ULA, shared-address-space, reserved/non-publicly-routable addresses, and known cloud metadata endpoints are rejected. Hostnames must resolve successfully and every resolved IPv4/IPv6 address must be publicly routable. The policy is checked during DCR/RFC 7592 updates and again immediately before every initial Back-Channel Logout delivery and retry. For DCR callbacks the request also explicitly sets Nextcloud's per-request `allow_local_address` option to `false`, forcing its DNS-pinning/local-address protection even when `allow_local_remote_servers` is globally enabled; this additionally pins the validated DNS result for the actual HTTP connection and reduces DNS-rebinding exposure.
 
