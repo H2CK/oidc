@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Your client is not authorized to connect. Please inform the administrator of your client.",
     "Log out" : "ອອກຈາກລະບົບ",
     "Cancel" : "ຍົກເລີກ",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Your client is not authorized to connect. Please inform the administrator of your client.",
     "Confidential" : "ເປັນຄວາມລັບ",
     "Public" : "Public",
     "Avatar" : "ຮຸບພາບອາວະຕານ",

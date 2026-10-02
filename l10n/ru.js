@@ -1,12 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Пользователь не является членом групп, определенных для клиента. Вам не разрешено извлекать токен входа в систему.",
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш клиент не авторизован для соединения. Пожалуйста, сообщите о вашем клиенте администратору.",
-    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Полученный URI перенаправления не принимается для подключения. Пожалуйста, сообщите администратору о вашем клиенте.",
     "Log out" : "Выйти из системы",
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ваш перенаправляющий URL должен быть полным, например: https://yourdomain.com/path",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Пользователь не является членом групп, определенных для клиента. Вам не разрешено извлекать токен входа в систему.",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш клиент не авторизован для соединения. Пожалуйста, сообщите о вашем клиенте администратору.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Полученный URI перенаправления не принимается для подключения. Пожалуйста, сообщите администратору о вашем клиенте.",
     "Code Authorization Flow" : "Кодовый поток авторизации",
     "Code & Implicit Authorization Flow" : "Кодовый и Неявный потоки авторизации",
     "OIDC Identity Provider" : "OIDC поставщик удостоверений",
@@ -63,7 +63,6 @@ OC.L10N.register(
     "Deny" : "Запретить",
     "Allow" : "Разрешить",
     "Continue" : "Продолжить",
-    "OpenID Connect Redirect" : "OpenID Connect перенаправление",
     "Loading..." : "Загрузка..."
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

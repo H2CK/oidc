@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "ඔබගේ අනුග්‍රාහකය සම්බන්ධ කිරීමට අවසර නැත. කරුණාකර අනුග්‍රාහකයේ පරිපාලක ට දන්වන්න.",
     "Log out" : "නික්මෙන්න",
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "ඔබ සම්පූර්ණ ආපසු හරවා යැවීමේ ඒ.ස.නි.(URL) ක් භාවිතා කළ යුතුය උදා: https://yourdomain.lk/maga",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "ඔබගේ අනුග්‍රාහකය සම්බන්ධ කිරීමට අවසර නැත. කරුණාකර අනුග්‍රාහකයේ පරිපාලක ට දන්වන්න.",
     "Public" : "පොදු",
     "Phone" : "දුරකථනය",
     "Settings" : "සැකසුම්",

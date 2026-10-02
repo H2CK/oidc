@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Nameščen odjemalec ni overjen za vzpostavljanje povezave. Stopite v stik s skrbnikom odjemalca.",
     "Log out" : "Odjava",
     "Cancel" : "Prekliči",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Preusmeritveni naslov URL mora biti zapisan v polni obliki: https://domena.si/celotna-pot",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Nameščen odjemalec ni overjen za vzpostavljanje povezave. Stopite v stik s skrbnikom odjemalca.",
     "Public" : "Javno",
     "Avatar" : "Podoba",
     "Address" : "Naslov",

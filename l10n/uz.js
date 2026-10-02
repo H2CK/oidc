@@ -1,8 +1,8 @@
 OC.L10N.register(
     "oidc",
     {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Mijoz-dasturingizga ulanish uchun ruxsat berilmagan. Mijoz-dasturingiz administratoriga murojaat qiling.",
     "Cancel" : "Bekor qilish",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Mijoz-dasturingizga ulanish uchun ruxsat berilmagan. Mijoz-dasturingiz administratoriga murojaat qiling.",
     "Public" : "Ommaviy",
     "Address" : "Manzil",
     "Website" : "Veb-sayt",

@@ -1,12 +1,12 @@
 { "translations": {
+    "Log out" : "Вийти",
+    "Cancel" : "Скасувати",
+    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ваша URL-адреса переспрямування має бути повною URL-адресою, наприклад: https://yourdomain.com/path",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Користувач не є членом груп, визначених для клієнта. Користувачеві заборонено отримувати токен для входу.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Виникла помилка під час створення JWT. Будь ласка, повідомте про це адміністратора вашого клієнта.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Ваш клієнт не авторизований для підключення. Будь ласка, повідомте адміністратора вашого клієнта.",
     "Your client is expired. Please inform the administrator of your client." : "Термін дії вашого клієнта закінчився. Будь ласка, повідомте про це адміністратора вашого клієнта.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Отриманий редирект URI не приймається для підключення. Будь ласка, повідомте про це адміністратора вашого клієнта.",
-    "Log out" : "Вийти",
-    "Cancel" : "Скасувати",
-    "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Ваша URL-адреса переспрямування має бути повною URL-адресою, наприклад: https://yourdomain.com/path",
     "Code Authorization Flow" : "Потік авторизації коду",
     "Code & Implicit Authorization Flow" : "Код та неявний потік авторизації",
     "OpenID Connect Provider" : "Постачальник послуг OpenID Connect",
@@ -92,7 +92,6 @@
     "Deny" : "Заборонити",
     "Allow" : "Дозволити",
     "Continue" : "Продовжити",
-    "OpenID Connect Redirect" : "OpenID Connect Redirect",
     "Loading..." : "Завантаження..."
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);"
 }

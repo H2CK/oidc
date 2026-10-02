@@ -1,12 +1,12 @@
 OC.L10N.register(
     "oidc",
     {
-    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Потребителят не е член на групите, определени за клиента. Нямате право да изтеглите токен за вход.",
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашият клиент не е упълномощен да се свързва. Моля, информирайте администратора на вашия клиент.",
-    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Полученият URI адрес за пренасочване не се приема за свързване. Моля, информирайте администратора на вашия клиент.",
     "Log out" : "Изход",
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Вашият URL за пренасочване трябва да е пълен URL, например: https://yourdomain.com/path",
+    "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Потребителят не е член на групите, определени за клиента. Нямате право да изтеглите токен за вход.",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Вашият клиент не е упълномощен да се свързва. Моля, информирайте администратора на вашия клиент.",
+    "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Полученият URI адрес за пренасочване не се приема за свързване. Моля, информирайте администратора на вашия клиент.",
     "Code Authorization Flow" : "Поток на кода за упълномощаване",
     "Code & Implicit Authorization Flow" : "Поток на кода и имплицитното упълномощаване",
     "OIDC Identity Provider" : "Доставчик на OIDC самоличност",
@@ -60,7 +60,6 @@ OC.L10N.register(
     "Email address" : "Имейл адрес",
     "Deny" : "Не",
     "Allow" : "Да",
-    "Continue" : "Продължаване",
-    "OpenID Connect Redirect" : "OpenID Connect Пренасочване"
+    "Continue" : "Продължаване"
 },
 "nplurals=2; plural=(n != 1);");

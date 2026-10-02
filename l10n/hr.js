@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Vaš klijent nije ovlašten za povezivanje. Obavijestite administratora svog klijenta.",
     "Log out" : "Odjavite se",
     "Cancel" : "Otkaži",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vaš URL za preusmjeravanje mora biti cjelovit URL, primjerice: https://yourdomain.com/path",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Vaš klijent nije ovlašten za povezivanje. Obavijestite administratora svog klijenta.",
     "Public" : "Javno",
     "Avatar" : "Avatar",
     "Address" : "Adresa",

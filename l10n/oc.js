@@ -1,10 +1,10 @@
 OC.L10N.register(
     "oidc",
     {
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Vòstre client es pas autorizat a se connectar. Mercés d’informar l’administrator de vòstre client.",
     "Log out" : "Se desconnectar",
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Vòstra URL de redireccion deu èsser una URL complèta per exemple : https://vostredomeni.com/path",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Vòstre client es pas autorizat a se connectar. Mercés d’informar l’administrator de vòstre client.",
     "Public" : "Public",
     "Avatar" : "Avatar",
     "Address" : "Adreça",
