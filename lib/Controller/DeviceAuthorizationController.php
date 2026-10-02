@@ -28,6 +28,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\Response;
@@ -91,18 +92,27 @@ class DeviceAuthorizationController extends Controller {
 			return $this->oauthError('invalid_request', 'Could not parse the form body.');
 		}
 		foreach ($parameters as $name => $values) {
-			$nonEmpty = array_values(array_filter($values, static fn (string $value): bool => $value !== ''));
-			if (count($nonEmpty) > 1) {
+			if (count($values) > 1) {
 				return $this->oauthError('invalid_request', 'Parameter ' . $name . ' must not occur more than once.');
 			}
+			$nonEmpty = array_values(array_filter($values, static fn (string $value): bool => $value !== ''));
+			$parameters[$name] = $nonEmpty;
 		}
+		$client_id = $parameters['client_id'][0] ?? $client_id;
+		$client_secret = $parameters['client_secret'][0] ?? $client_secret;
+		$scope = $parameters['scope'][0] ?? $scope;
 
 		$basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
+		if ($basicAuthenticationAttempted
+			&& $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+			return $this->invalidClient('client_secret_basic is disabled.', true);
+		}
 		$basicCredentials = $this->getBasicClientCredentials();
 		if ($basicAuthenticationAttempted && $basicCredentials === null) {
 			return $this->invalidClient('Malformed client credentials.', true);
 		}
-		if ($basicCredentials !== null && ($client_id !== null || $client_secret !== null)) {
+		if ($basicCredentials !== null
+			&& ($parameters['client_id'] !== [] || $parameters['client_secret'] !== [])) {
 			return $this->oauthError('invalid_request', 'Use exactly one client authentication method.');
 		}
 		if ($basicCredentials !== null) {
@@ -162,16 +172,24 @@ class DeviceAuthorizationController extends Controller {
 	#[PublicPage]
 	#[UseSession]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[UserRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function verify(?string $user_code = null): Response {
 		$normalizedUserCode = DeviceCodeMapper::normalizeUserCode((string)$user_code);
-		if ($normalizedUserCode === '') {
+		if ($user_code === null || trim($user_code) === '') {
 			return $this->devicePage('enter', null, null, null);
+		}
+		if (!preg_match('/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{8}$/D', $normalizedUserCode)) {
+			$response = $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The device code is invalid or has expired.'));
+			$response->throttle();
+			return $response;
 		}
 
 		$deviceCode = $this->deviceCodeMapper->findByUserCode($normalizedUserCode);
 		if ($deviceCode === null || $this->time->getTime() >= $deviceCode->getExpiresAt()) {
-			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The device code is invalid or has expired.'));
+			$response = $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The device code is invalid or has expired.'));
+			$response->throttle();
+			return $response;
 		}
 		if ($deviceCode->getStatus() === DeviceCode::STATUS_DENIED) {
 			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('This device request was denied.'));
@@ -187,6 +205,11 @@ class DeviceAuthorizationController extends Controller {
 			return new RedirectResponse($this->urlGenerator->linkToRoute('core.login.showLoginForm', [
 				'redirect_url' => $returnUrl,
 			]));
+		}
+
+		$user = $this->userSession->getUser();
+		if ($user === null || !$user->isEnabled()) {
+			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The resource owner is no longer available.'));
 		}
 
 		try {
@@ -206,6 +229,7 @@ class DeviceAuthorizationController extends Controller {
 	#[NoAdminRequired]
 	#[UseSession]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[UserRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function approve(string $user_code): JSONResponse {
 		$deviceCodeOrResponse = $this->loadPendingDeviceCode($user_code);
@@ -214,7 +238,7 @@ class DeviceAuthorizationController extends Controller {
 		}
 		$deviceCode = $deviceCodeOrResponse;
 		$user = $this->userSession->getUser();
-		if ($user === null) {
+		if ($user === null || !$user->isEnabled()) {
 			return new JSONResponse(['error' => 'login_required'], Http::STATUS_UNAUTHORIZED);
 		}
 
@@ -246,11 +270,16 @@ class DeviceAuthorizationController extends Controller {
 	#[NoAdminRequired]
 	#[UseSession]
 	#[AnonRateLimit(limit: 30, period: 60)]
+	#[UserRateLimit(limit: 30, period: 60)]
 	#[BruteForceProtection(action: 'oidc_device_verification')]
 	public function deny(string $user_code): JSONResponse {
 		$deviceCodeOrResponse = $this->loadPendingDeviceCode($user_code);
 		if ($deviceCodeOrResponse instanceof JSONResponse) {
 			return $deviceCodeOrResponse;
+		}
+		$user = $this->userSession->getUser();
+		if ($user === null || !$user->isEnabled()) {
+			return new JSONResponse(['error' => 'login_required'], Http::STATUS_UNAUTHORIZED);
 		}
 		if (!$this->deviceCodeMapper->markDenied($deviceCodeOrResponse)) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
@@ -296,7 +325,23 @@ class DeviceAuthorizationController extends Controller {
 		if ($client === null) {
 			return $this->invalidClient('Client not found.', $basicAuthenticationAttempted);
 		}
-		if ($client->getType() !== 'public' && (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret))) {
+		$registeredAuthMethod = $client->getTokenEndpointAuthMethod();
+		if ($registeredAuthMethod === null && $client->getType() === 'public') {
+			$registeredAuthMethod = 'none';
+		}
+		if ($registeredAuthMethod === 'client_secret_basic' && !$basicAuthenticationAttempted) {
+			return $this->invalidClient('This client must use client_secret_basic.', false);
+		}
+		if ($registeredAuthMethod === 'client_secret_post' && $basicAuthenticationAttempted) {
+			return $this->invalidClient('This client must use client_secret_post.', true);
+		}
+		if ($registeredAuthMethod === 'none'
+			&& ($basicAuthenticationAttempted || $clientSecret !== null)) {
+			return $this->invalidClient('Public clients must not send a client secret.', $basicAuthenticationAttempted);
+		}
+		if ($registeredAuthMethod !== 'none'
+			&& $client->getType() !== 'public'
+			&& (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret))) {
 			return $this->invalidClient('Client authentication failed.', $basicAuthenticationAttempted);
 		}
 		return $client;
@@ -309,9 +354,9 @@ class DeviceAuthorizationController extends Controller {
 		$scopeValue = ($scope === null || trim($scope) === '')
 			? Application::DEFAULT_SCOPE
 			: $scope;
-		$requested = preg_split('/\s+/', strtolower(trim($scopeValue)), -1, PREG_SPLIT_NO_EMPTY);
+		$requested = preg_split('/\s+/', trim($scopeValue), -1, PREG_SPLIT_NO_EMPTY);
 		$requested = array_values(array_unique($requested));
-		$allowed = preg_split('/\s+/', strtolower(trim($client->getAllowedScopes())), -1, PREG_SPLIT_NO_EMPTY);
+		$allowed = preg_split('/\s+/', trim($client->getAllowedScopes()), -1, PREG_SPLIT_NO_EMPTY);
 		if ($allowed !== [] && array_diff($requested, $allowed) !== []) {
 			return $this->oauthError('invalid_scope', 'One or more requested scopes are not allowed for this client.');
 		}
@@ -331,7 +376,9 @@ class DeviceAuthorizationController extends Controller {
 	private function loadPendingDeviceCode(string $userCode): DeviceCode|JSONResponse {
 		$deviceCode = $this->deviceCodeMapper->findByUserCode($userCode);
 		if ($deviceCode === null || $this->time->getTime() >= $deviceCode->getExpiresAt()) {
-			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The device code is invalid or expired.'], Http::STATUS_BAD_REQUEST);
+			$response = new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The device code is invalid or expired.'], Http::STATUS_BAD_REQUEST);
+			$response->throttle();
+			return $response;
 		}
 		if ($deviceCode->getStatus() !== DeviceCode::STATUS_PENDING) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
@@ -349,6 +396,7 @@ class DeviceAuthorizationController extends Controller {
 			$consent->setCreatedAt($now);
 		}
 		$consent->setScopesGranted($scope);
+		$consent->setScopesRequested($scope);
 		$consent->setUpdatedAt($now);
 		// Keep the same time-limited consent policy as ConsentController (90 days).
 		// Device approval must not convert an existing expiry into permanent consent.
@@ -378,6 +426,7 @@ class DeviceAuthorizationController extends Controller {
 			$description,
 			$basicAuthenticationAttempted ? Http::STATUS_UNAUTHORIZED : Http::STATUS_BAD_REQUEST,
 		);
+		$response->throttle();
 		if ($basicAuthenticationAttempted) {
 			$response->addHeader('WWW-Authenticate', 'Basic realm="device_authorization"');
 		}

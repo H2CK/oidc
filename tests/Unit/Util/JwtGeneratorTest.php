@@ -308,6 +308,10 @@ class JwtGeneratorTest extends TestCase {
         $this->assertArrayHasKey('nonce', $decodedJwt);
         $this->assertEquals('12345678', $decodedJwt['nonce']);
         $this->assertEquals('session-id-123', $decodedJwt['sid']);
+        $reissued = $this->generator->generateIdToken($accessToken, $client, $protocol, $issuer, false);
+        $reissuedClaims = (array)JWT::decode($reissued, JWK::parseKeySet($jwks));
+        $this->assertNotSame($decodedJwt['jti'], $reissuedClaims['jti']);
+        $this->assertMatchesRegularExpression('/^[A-Za-z0-9]{32}$/', $decodedJwt['jti']);
     }
 
     public function testGenerateImplicitIdTokenOmitsUnrequestedExtraClaims() {
@@ -795,6 +799,8 @@ class JwtGeneratorTest extends TestCase {
         );
         $exchangedDecoded = (array) JWT::decode($exchangedResult, JWK::parseKeySet($jwks));
 
+        $this->assertNotSame($decodedJwt['jti'], $exchangedDecoded['jti']);
+        $this->assertMatchesRegularExpression('/^[A-Za-z0-9]{32}$/', $decodedJwt['jti']);
         $this->assertArrayNotHasKey('auth_time', $exchangedDecoded);
         $this->assertEquals(300, $exchangedDecoded['exp'] - $exchangedDecoded['iat']);
     }

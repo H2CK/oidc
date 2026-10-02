@@ -12,6 +12,7 @@ namespace OCA\OIDCIdentityProvider\Tests\Integration\Listener;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
@@ -97,7 +98,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->groupMapper,
             $this->groupManager,
             $this->userManager,
-            Server::get(ScopeCeilingService::class)
+            Server::get(ScopeCeilingService::class),
+            Server::get(RefreshTokenMapper::class)
         );
 
         // Clean up any existing test data
@@ -612,6 +614,50 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->assertNotNull($this->mintScope(''), 'Token once the user joins a client group');
         } finally {
             $this->groupMapper->deleteByClientId($client->getId());
+        }
+    }
+
+    public function testEventRefreshTokenCanBeRedeemedAndRotatedTwice(): void {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('openid profile Files:Read');
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, 'Files:Read', '');
+        $this->listener->handle($event);
+        $presented = $event->getRefreshToken();
+        $this->assertNotNull($presented);
+        $refreshMapper = Server::get(RefreshTokenMapper::class);
+        $firstRecord = $refreshMapper->findByToken($presented);
+        $this->assertNotNull($firstRecord);
+        $this->assertTrue($this->accessTokenMapper->getById($firstRecord->getAccessTokenId())->getEventGenerated());
+
+        $controller = (new \OCP\AppFramework\App('oidc'))->getContainer()->get(\OCA\OIDCIdentityProvider\Controller\OIDCApiController::class);
+        $request = $this->createMock(\OCP\IRequest::class);
+        $request->method('getHeader')->willReturnCallback(static fn (string $name): string => $name === 'Content-Type' ? 'application/x-www-form-urlencoded' : '');
+        $instanceUrl = $this->urlGenerator->getAbsoluteURL('/');
+        $request->method('getServerProtocol')->willReturn(parse_url($instanceUrl, PHP_URL_SCHEME));
+        $host = parse_url($instanceUrl, PHP_URL_HOST);
+        $port = parse_url($instanceUrl, PHP_URL_PORT);
+        if ($port !== null) { $host .= ':' . $port; }
+        $request->method('getServerHost')->willReturn($host);
+        $requestProperty = new \ReflectionProperty(\OCP\AppFramework\Controller::class, 'request');
+        $requestProperty->setValue($controller, $request);
+        $parser = $this->createMock(\OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser::class);
+        $parser->method('readSelectedParameters')->willReturnCallback(function (array $names) use (&$presented): array {
+            $values = ['grant_type' => 'refresh_token', 'refresh_token' => $presented,
+                'client_id' => $this->testClientId, 'client_secret' => $this->testClientSecret];
+            $result = [];
+            foreach ($names as $name) { $result[$name] = isset($values[$name]) ? [$values[$name]] : []; }
+            return $result;
+        });
+        (new \ReflectionProperty($controller, 'formUrlencodedParameterParser'))->setValue($controller, $parser);
+        for ($i = 0; $i < 2; $i++) {
+            $old = $presented;
+            $response = $controller->getToken();
+            $this->assertSame(200, $response->getStatus());
+            $this->assertStringContainsString('Files:Read', $response->getData()['scope']);
+            $presented = $response->getData()['refresh_token'];
+            $this->assertNotSame($old, $presented);
+            $this->assertGreaterThan(0, $refreshMapper->findByToken($old)->getUsedAt());
+            $this->assertSame(0, $refreshMapper->findByToken($presented)->getUsedAt());
         }
     }
 }

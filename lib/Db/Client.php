@@ -50,6 +50,10 @@ use JsonSerializable;
  * @method void setFrontchannelLogoutUri(string|null $frontchannelLogoutUri)
  * @method bool getFrontchannelLogoutSessReq()
  * @method void setFrontchannelLogoutSessReq(bool $frontchannelLogoutSessReq)
+ * @method string|null getApplicationType()
+ * @method void setApplicationType(string|null $applicationType)
+ * @method string|null getTokenEndpointAuthMethod()
+ * @method void setTokenEndpointAuthMethod(string|null $tokenEndpointAuthMethod)
  */
 class Client extends Entity implements JsonSerializable {
     /** @var int */
@@ -92,6 +96,10 @@ class Client extends Entity implements JsonSerializable {
     protected $frontchannelLogoutUri;
     /** @var bool */
     protected $frontchannelLogoutSessReq = false;
+    /** @var string|null */
+    protected $applicationType;
+    /** @var string|null */
+    protected $tokenEndpointAuthMethod;
 
     public function __construct(
         $name = '',
@@ -108,7 +116,9 @@ class Client extends Entity implements JsonSerializable {
         $backchannelLogoutUri = null,
         $backchannelLogoutSessionRequired = false,
         $frontchannelLogoutUri = null,
-        $frontchannelLogoutSessionRequired = false
+        $frontchannelLogoutSessionRequired = false,
+        $applicationType = null,
+        $tokenEndpointAuthMethod = null
     ) {
         $this->addType('id', Types::INTEGER);
         $this->addType('name', Types::STRING);
@@ -129,6 +139,8 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('backchannel_logout_sess_req', Types::BOOLEAN);
         $this->addType('frontchannel_logout_uri', Types::STRING);
         $this->addType('frontchannel_logout_sess_req', Types::BOOLEAN);
+        $this->addType('application_type', Types::STRING);
+        $this->addType('token_endpoint_auth_method', Types::STRING);
 
         $this->setName($name);
         $this->redirectUris = $redirectUris;
@@ -146,6 +158,8 @@ class Client extends Entity implements JsonSerializable {
         $this->setBackchannelLogoutSessionRequired($backchannelLogoutSessionRequired);
         $this->setFrontchannelLogoutUri($frontchannelLogoutUri);
         $this->setFrontchannelLogoutSessionRequired($frontchannelLogoutSessionRequired);
+        $this->setApplicationType($applicationType);
+        $this->setTokenEndpointAuthMethod($tokenEndpointAuthMethod);
 
     }
 
@@ -197,7 +211,9 @@ class Client extends Entity implements JsonSerializable {
             'backchannel_logout_uri' => $this->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $this->getBackchannelLogoutSessionRequired(),
             'frontchannel_logout_uri' => $this->getFrontchannelLogoutUri(),
-            'frontchannel_logout_session_required' => $this->getFrontchannelLogoutSessionRequired()
+            'frontchannel_logout_session_required' => $this->getFrontchannelLogoutSessionRequired(),
+            'application_type' => $this->getApplicationType(),
+            'token_endpoint_auth_method' => $this->getTokenEndpointAuthMethod()
         ];
     }
 }

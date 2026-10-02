@@ -74,23 +74,21 @@ class ScopeCeilingService {
             ]);
         }
 
-        // May be '' — the caller decides (authorize falls back to DEFAULT_SCOPE,
-        // token exchange rejects), so the ceiling itself never widens a scope.
+        // May be '' — callers reject that result, so the ceiling never widens
+        // an explicitly requested scope set.
         return implode(' ', $kept);
     }
 
     /**
      * Narrow a scope string to a client's allowed_scopes (empty = no limit).
      * Returns '' when nothing remains. Scope names are passed through
-     * unchanged, but matched case-insensitively: that is how authorize and
-     * the device flow have always checked allowed_scopes (they lowercase the
-     * request), so a later re-check must not drop what they granted.
+     * unchanged and matched case-sensitively as required by RFC 6749.
      */
     public function filterByAllowedScopes(string $scopes, string $allowedScopes): string {
-        $allowed = array_flip(self::split(strtolower($allowedScopes)));
+        $allowed = array_flip(self::split($allowedScopes));
         $kept = [];
         foreach (array_unique(self::split($scopes)) as $scope) {
-            if ($allowed === [] || isset($allowed[strtolower($scope)])) {
+            if ($allowed === [] || isset($allowed[$scope])) {
                 $kept[] = $scope;
             }
         }

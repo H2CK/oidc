@@ -15,6 +15,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
 use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http\TemplateResponse;
@@ -75,7 +76,28 @@ class AuthorizationResumeController extends Controller {
             return $this->error($this->l->t('Authorization session expired. Please try again.'), Http::STATUS_BAD_REQUEST);
         }
 
+        if ($transaction['reason'] === 'authorization_post') {
+            return $this->error($this->l->t('Invalid authorization continuation.'), Http::STATUS_BAD_REQUEST);
+        }
+
         $response = $this->authorizationService->process($transaction['parameters'], true);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Referrer-Policy', 'no-referrer');
+        return $response;
+    }
+
+    #[BruteForceProtection(action: 'oidc_login')]
+    #[PublicPage]
+    #[NoCSRFRequired]
+    #[UseSession]
+    public function completePost(?string $t = null): Response {
+        $transaction = $this->transactions->consume($t ?? '', 'authorization_post');
+        if ($transaction === null) {
+            return $this->error($this->l->t('Authorization session expired. Please try again.'), Http::STATUS_BAD_REQUEST);
+        }
+        // This continuation does not establish a new authentication time and
+        // must still honor prompt=login/select_account and max_age.
+        $response = $this->authorizationService->process($transaction['parameters']);
         $response->addHeader('Cache-Control', 'no-store');
         $response->addHeader('Referrer-Policy', 'no-referrer');
         return $response;

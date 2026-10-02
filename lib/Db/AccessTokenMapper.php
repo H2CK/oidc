@@ -60,6 +60,24 @@ class AccessTokenMapper extends QBMapper {
     }
 
     /**
+     * Atomically reserve rotation of a refresh token issued before the
+     * dedicated refresh-token table existed.
+     */
+    public function rotateLegacyRefreshToken(int $id, string $presentedToken, string $replacementToken): bool {
+        $qb = $this->db->getQueryBuilder();
+        $updated = $qb->update($this->tableName)
+            ->set('hashed_code', $qb->createNamedParameter(hash('sha512', $replacementToken)))
+            ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->eq(
+                'hashed_code',
+                $qb->createNamedParameter(hash('sha512', $presentedToken))
+            ))
+            ->executeStatement();
+
+        return $updated === 1;
+    }
+
+    /**
      * @param string $code
      * @return AccessToken
      * @throws AccessTokenNotFoundException
@@ -103,7 +121,7 @@ class AccessTokenMapper extends QBMapper {
 
 
     /**
-     * Start the short transaction used to serialize RFC 8693 issuance with
+     * Start the short transaction used to serialize credential issuance with
      * revocation of the subject-token row.
      */
     public function beginTokenExchangeTransaction(): void {
@@ -119,7 +137,7 @@ class AccessTokenMapper extends QBMapper {
     }
 
     /**
-     * Acquire a revocation-blocking lock on a subject-token row for the current
+     * Acquire an issuance/revocation lock on an access-token row for the current
      * transaction.
      *
      * MySQL/MariaDB, PostgreSQL and Oracle use SELECT ... FOR UPDATE so the
@@ -172,6 +190,7 @@ class AccessTokenMapper extends QBMapper {
         if ($entity instanceof AccessToken && (int)$entity->getId() > 0) {
             $visited = [];
             $this->deleteDescendants((int)$entity->getId(), $visited);
+            $this->deleteGrantCredentials((int)$entity->getId());
         }
         return parent::delete($entity);
     }
@@ -186,8 +205,21 @@ class AccessTokenMapper extends QBMapper {
             $childId = (int)$child->getId();
             if ($childId > 0) {
                 $this->deleteDescendants($childId, $visited);
+                $this->deleteGrantCredentials($childId);
             }
             parent::delete($child);
+        }
+    }
+
+    private function deleteGrantCredentials(int $accessTokenId): void {
+        foreach (['oidc_refresh_tokens', 'oidc_authorization_codes'] as $table) {
+            $qb = $this->db->getQueryBuilder();
+            $qb->delete($table)
+                ->where($qb->expr()->eq(
+                    'access_token_id',
+                    $qb->createNamedParameter($accessTokenId, IQueryBuilder::PARAM_INT)
+                ))
+                ->executeStatement();
         }
     }
 
@@ -280,8 +312,9 @@ class AccessTokenMapper extends QBMapper {
         // refreshed < $timeLimit
         $qb = $this->db->getQueryBuilder();
         $qb
-            ->delete($this->tableName)
+            ->select('*')
+            ->from($this->tableName)
             ->where($qb->expr()->lt('refreshed', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)));
-        $qb->executeStatement();
+        $this->deleteEntitiesWithDescendants($qb);
     }
 }

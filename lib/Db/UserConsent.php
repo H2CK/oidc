@@ -15,6 +15,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setClientId(int $clientId)
  * @method string getScopesGranted()
  * @method void setScopesGranted(string $scopesGranted)
+ * @method string|null getScopesRequested()
+ * @method void setScopesRequested(?string $scopesRequested)
  * @method int getCreatedAt()
  * @method void setCreatedAt(int $timestamp)
  * @method int getUpdatedAt()
@@ -32,6 +34,8 @@ class UserConsent extends Entity
     protected $clientId;
     /** @var string */
     protected $scopesGranted;
+    /** @var string|null Scopes explicitly reviewed, including declined scopes. */
+    protected $scopesRequested;
     /** @var int */
     protected $createdAt;
     /** @var int */
@@ -44,6 +48,7 @@ class UserConsent extends Entity
         $this->addType('userId', 'string');
         $this->addType('clientId', 'int');
         $this->addType('scopesGranted', 'string');
+        $this->addType('scopesRequested', 'string');
         $this->addType('createdAt', 'int');
         $this->addType('updatedAt', 'int');
         $this->addType('expiresAt', 'int');

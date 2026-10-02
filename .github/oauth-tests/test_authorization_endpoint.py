@@ -32,4 +32,4 @@ def test_implicit_access_token_response_type_is_not_issued(oauth):
     # An OAuth error may be redirected to the registered callback. It must not
     # contain an access token; the provider currently reports this request as
     # unsupported because the implicit token response is disabled.
-    assert "error=request_not_supported" in final_url.lower(), final_url
+    assert "error=unsupported_response_type" in final_url.lower(), final_url

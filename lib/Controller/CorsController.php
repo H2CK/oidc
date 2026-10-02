@@ -145,6 +145,12 @@ class CorsController extends ApiController
     }
 
 
+    #[NoCSRFRequired]
+    #[PublicPage]
+    public function revocationCorsResponse(): Response {
+        return $this->corsResponse();
+    }
+
     private function corsResponse(): Response {
         $response = new Response();
         $response->addHeader('Access-Control-Allow-Origin', '*');

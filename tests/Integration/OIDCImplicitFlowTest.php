@@ -497,7 +497,7 @@ class OIDCImplicitFlowTest extends \Test\TestCase
         $userInfoResponse = $this->userInfoController->getInfo();
 
         // Should return an error for invalid token
-        $this->assertEquals(400, $userInfoResponse->getStatus());
+        $this->assertEquals(401, $userInfoResponse->getStatus());
 
         $responseData = $userInfoResponse->getData();
         $this->assertArrayHasKey('error', $responseData);

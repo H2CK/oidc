@@ -5,6 +5,9 @@
 <template>
 	<div class="authorized-apps">
 		<h3>{{ t('oidc', 'Authorized Applications') }}</h3>
+		<div v-if="notification" role="status" aria-live="polite">
+			<NcNoteCard :type="notification.type" :text="notification.text" />
+		</div>
 		<p class="description">
 			<span v-if="allowUserSettings === 'no'">
 				{{ t('oidc', 'These applications have access to your account. Access is managed by your administrator.') }}
@@ -68,9 +71,11 @@
 <script>
 import { t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
+import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
 export default {
 	name: 'AuthorizedApps',
+	components: { NcNoteCard },
 	props: {
 		allowUserSettings: {
 			type: String,
@@ -82,6 +87,8 @@ export default {
 			consents: [],
 			loading: true,
 			revoking: null,
+			notification: null,
+			revokedConsentIds: [],
 		}
 	},
 	mounted() {
@@ -90,28 +97,27 @@ export default {
 	methods: {
 		t,
 		async loadConsents() {
-			console.log('[loadConsents] Loading consents...')
 			this.loading = true
 			try {
 				const response = await fetch(generateUrl('/apps/oidc/api/consents'), {
+					cache: 'no-store',
 					headers: {
 						requesttoken: OC.requestToken,
 					},
 				})
 
 				if (!response.ok) {
-					const text = await response.text()
-					console.error('[loadConsents] API Error:', response.status, text)
-					OC.Notification.showTemporary(t('oidc', 'Failed to load authorized applications') + ': ' + response.status)
+					console.error('[loadConsents] API Error:', response.status)
+					this.showNotification('error', t('oidc', 'Failed to load authorized applications'))
 					return
 				}
 
 				const data = await response.json()
-				console.log('[loadConsents] Loaded consents:', data)
-				this.consents = data
+				// A response started before revocation may still contain the old row.
+				this.consents = data.filter(consent => !this.revokedConsentIds.includes(String(consent.id)))
 			} catch (error) {
 				console.error('[loadConsents] Exception:', error)
-				OC.Notification.showTemporary(t('oidc', 'Failed to load authorized applications') + ': ' + error.message)
+				this.showNotification('error', t('oidc', 'Failed to load authorized applications'))
 			} finally {
 				this.loading = false
 			}
@@ -122,6 +128,7 @@ export default {
 				return
 			}
 
+			this.notification = null
 			this.revoking = clientId
 			try {
 				const response = await fetch(generateUrl('/apps/oidc/api/consents/' + clientId), {
@@ -132,17 +139,22 @@ export default {
 				})
 
 				if (response.ok) {
-					OC.Notification.showTemporary(t('oidc', 'Access revoked successfully'))
-					this.loadConsents() // Reload list
+					const revoked = this.consents.filter(consent => String(consent.clientId) === String(clientId))
+					this.revokedConsentIds.push(...revoked.map(consent => String(consent.id)))
+					this.consents = this.consents.filter(consent => String(consent.clientId) !== String(clientId))
+					this.showNotification('success', t('oidc', 'Access revoked successfully'))
 				} else {
-					OC.Notification.showTemporary(t('oidc', 'Failed to revoke access'))
+					this.showNotification('error', t('oidc', 'Failed to revoke access'))
 				}
 			} catch (error) {
 				console.error('Error revoking consent:', error)
-				OC.Notification.showTemporary(t('oidc', 'Failed to revoke access'))
+				this.showNotification('error', t('oidc', 'Failed to revoke access'))
 			} finally {
 				this.revoking = null
 			}
+		},
+		showNotification(type, text) {
+			this.notification = { type, text }
 		},
 		getScopes(scopesString) {
 			return scopesString.split(' ').filter(s => s.trim())

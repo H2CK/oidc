@@ -22,6 +22,9 @@ class ClientAuthorizationService {
     }
 
     public function isUserAllowedForClient(IUser $user, Client $client): bool {
+        if (!$user->isEnabled()) {
+            return false;
+        }
         $clientGroups = $this->groupMapper->getGroupsByClientId($client->getId());
         if ($clientGroups === []) {
             return true;

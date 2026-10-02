@@ -163,7 +163,8 @@ class TokenExchangeHttpIntegrationTest extends TestCase {
         $this->assertSame('profile', $persisted->getScope());
         $this->assertSame((int)$jwt['iat'], $persisted->getRefreshed());
         $this->assertSame((int)$jwt['exp'], $persisted->getExpiresAt());
-        $this->assertSame((string)$persisted->getId(), (string)$jwt['jti']);
+        $this->assertNotSame((string)$persisted->getId(), (string)$jwt['jti']);
+        $this->assertMatchesRegularExpression('/^[A-Za-z0-9]{32}$/', $jwt['jti']);
     }
 
     public function testHttpRepeatedResourceParametersAreRejectedBeforeParameterCollapse(): void {

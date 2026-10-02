@@ -14,6 +14,7 @@ use OCA\OIDCIdentityProvider\Http\WellKnown\OIDCDiscoveryHandler;
 use OCA\OIDCIdentityProvider\Http\BasicAuthRequestSanitizer;
 use OCA\OIDCIdentityProvider\Listener\TokenGenerationRequestListener;
 use OCA\OIDCIdentityProvider\Listener\TokenValidationRequestListener;
+use OCA\OIDCIdentityProvider\Listener\UserDeletedListener;
 use OCA\OIDCIdentityProvider\Listener\BackChannelLogoutListener;
 use OCA\OIDCIdentityProvider\Listener\SessionManagementLoginListener;
 use OCA\OIDCIdentityProvider\Middleware\LogoutMiddleware;
@@ -23,6 +24,7 @@ use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\User\Events\BeforeUserLoggedOutEvent;
 use OCP\User\Events\UserLoggedInEvent;
+use OCP\User\Events\UserDeletedEvent;
 use OCP\User\Events\UserLoggedInWithCookieEvent;
 
 class Application extends App implements IBootstrap
@@ -32,6 +34,7 @@ class Application extends App implements IBootstrap
     public const DEFAULT_SCOPE = 'openid profile email roles';
     public const DEFAULT_EXPIRE_TIME = '900';
     public const DEFAULT_REFRESH_EXPIRE_TIME = '900';
+    public const DEFAULT_REFRESH_REPLAY_GRACE_SECONDS = '5';
     public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
     public const DEFAULT_RESOURCE_IDENTIFIER = 'https://rs.local/';
     public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
@@ -55,6 +58,7 @@ class Application extends App implements IBootstrap
 
     public const APP_CONFIG_DEFAULT_EXPIRE_TIME = 'expire_time';
     public const APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME = 'refresh_expire_time';
+    public const APP_CONFIG_REFRESH_REPLAY_GRACE_SECONDS = 'refresh_replay_grace_seconds';
     public const APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME = 'client_expire_time';
     public const APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER = 'default_resource_identifier';
     public const APP_CONFIG_OVERWRITE_EMAIL_VERIFIED = 'overwrite_email_verified';
@@ -86,6 +90,7 @@ class Application extends App implements IBootstrap
         // Register OIDCDiscoveryHandler
         $context->registerWellKnownHandler(OIDCDiscoveryHandler::class);
 
+        $context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
         $context->registerEventListener(TokenValidationRequestEvent::class, TokenValidationRequestListener::class);
         $context->registerEventListener(TokenGenerationRequestEvent::class, TokenGenerationRequestListener::class);
         $context->registerEventListener(BeforeUserLoggedOutEvent::class, BackChannelLogoutListener::class);
