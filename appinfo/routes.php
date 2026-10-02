@@ -268,6 +268,8 @@ return [
             'url' => '/token',
             'verb' => 'POST'
         ],
+        ['name' => 'OIDCApi#revokeToken', 'url' => '/revoke', 'verb' => 'POST'],
+        ['name' => 'Cors#revocationCorsResponse', 'url' => '/revoke', 'verb' => 'OPTIONS'],
         [
             'name' => 'DeviceAuthorization#authorize',
             'url' => '/device_authorization',

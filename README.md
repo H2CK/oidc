@@ -25,6 +25,7 @@ Provided features:
 - Dynamic Client Registration
 - Client Configuration Management (RFC 7592)
 - Token Introspection (RFC 7662)
+- Access/refresh token revocation (RFC 7009)
 - Support for resource url (RFC 9728) at introspection
 - User Consent Management
 - Support for custom claims
@@ -53,6 +54,20 @@ The OIDC conformance workflow is executed daily and on demand against the OpenID
 More information on the compliance can be found in the [latest test run](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml).
 
 ## Attention - Potential Breaking Change
+
+### Version >2.5.0
+
+#### Redirect URI upgrade
+
+The stricter validator and exact comparison remain enabled. The migration preserves the original URI and adds separate, exact registrations for safe static HTTP(S) variants: lowercase scheme/host spelling and an empty root path versus `/`. Query strings and non-root paths remain unchanged. For example, `https://RP.example.com` can receive the additional registrations `https://rp.example.com`, `https://rp.example.com/` and `https://RP.example.com/`. Dynamically registered clients do not receive aliases. Static path wildcards remain supported; every wildcard form is rejected for DCR clients, including pre-existing DCR records at authorization time.
+
+**Automatic migration is not complete for arbitrary legacy patterns.** A missing scheme, `https://*/cb`, unsafe host/path wildcard positions, dot segments or embedded credentials cannot be converted reliably without knowing the intended RP. These rows are retained for inspection but fail validation. The upgrade prints a warning and writes a persistent review list containing only client IDs, redirect URI row IDs and validation reasons:
+
+```sh
+php occ config:app:get oidc redirect_uri_upgrade_review
+```
+
+Review the indicated clients in the OIDC administration settings, replace their invalid registrations with explicit absolute redirect URIs, and verify that RPs send those exact strings. No migration can infer every capitalization, explicit-default-port or percent-encoding spelling used by existing RPs; register any required spelling explicitly. The review list is an upgrade snapshot, not a live validator; clear it after completing the review. Test normal code flows, PKCE, native-client redirects and any configured static wildcards after upgrading. Unsafe registrations are never grandfathered into looser matching.
 
 ### Version 2.2.0
 
@@ -597,3 +612,4 @@ Several global OIDC app settings can be changed with the Nextcloud `occ config:a
 ## JWT Access Tokens (RFC9068)
 
 It is possible to activate the use of JWT based access tokens according to RFC9068. This can be done in the settings UI or while creating a client in the CLI. If not activated an opaque access token will be generated.
+

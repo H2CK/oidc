@@ -164,6 +164,7 @@ class UserInfoControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_token', $result->getData()['error']);
         $this->assertEquals('No bearer token found in request.', $result->getData()['error_description']);
+        $this->assertTrue($result->isThrottled());
     }
 
     public function testGetInfoAccessTokenNotFound() {

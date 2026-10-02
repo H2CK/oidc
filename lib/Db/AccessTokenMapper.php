@@ -121,7 +121,7 @@ class AccessTokenMapper extends QBMapper {
 
 
     /**
-     * Start the short transaction used to serialize RFC 8693 issuance with
+     * Start the short transaction used to serialize credential issuance with
      * revocation of the subject-token row.
      */
     public function beginTokenExchangeTransaction(): void {
@@ -137,7 +137,7 @@ class AccessTokenMapper extends QBMapper {
     }
 
     /**
-     * Acquire a revocation-blocking lock on a subject-token row for the current
+     * Acquire an issuance/revocation lock on an access-token row for the current
      * transaction.
      *
      * MySQL/MariaDB, PostgreSQL and Oracle use SELECT ... FOR UPDATE so the
@@ -310,8 +310,9 @@ class AccessTokenMapper extends QBMapper {
         // refreshed < $timeLimit
         $qb = $this->db->getQueryBuilder();
         $qb
-            ->delete($this->tableName)
+            ->select('*')
+            ->from($this->tableName)
             ->where($qb->expr()->lt('refreshed', $qb->createNamedParameter($timeLimit, IQueryBuilder::PARAM_INT)));
-        $qb->executeStatement();
+        $this->deleteEntitiesWithDescendants($qb);
     }
 }

@@ -11,6 +11,7 @@ namespace OCA\OIDCIdentityProvider\Listener;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent;
@@ -45,6 +46,7 @@ class TokenGenerationRequestListener implements IEventListener {
         private IGroupManager $groupManager,
         private IUserManager $userManager,
         private ScopeCeilingService $scopeCeiling,
+        private RefreshTokenMapper $refreshTokenMapper,
     ) {
     }
 
@@ -108,6 +110,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
+        $accessToken->setEventGenerated(true);
         $accessToken->setUserId($userId);
         $accessToken->setHashedCode(hash('sha512', $code));
         $accessToken->setScope(substr($scopes, 0, 512));
@@ -136,6 +139,8 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken = $this->accessTokenMapper->insert($accessToken);
 
         $idToken = $this->jwtGenerator->generateIdToken($accessToken, $client, $protocol, $host, false);
+
+        $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $code, $now);
 
         $event->setAccessToken($accessToken->getAccessToken());
         $event->setExpiresIn($expireTime);

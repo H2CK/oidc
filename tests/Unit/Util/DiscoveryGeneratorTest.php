@@ -424,4 +424,12 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->generator->generateDiscovery($this->request);
     }
 
+
+    public function testRevocationAndAuthorizationIssuerSupportAreAdvertised(): void {
+        $this->appConfig->method('getAppValueString')->willReturnCallback(static fn (string $key, string $default): string => $default);
+        $data = $this->generator->generateDiscovery($this->request)->getData();
+        $this->assertSame('https://localhost/oidc/oidc/OIDCApi/revokeToken', $data['revocation_endpoint']);
+        $this->assertTrue($data['authorization_response_iss_parameter_supported']);
+        $this->assertContains('none', $data['revocation_endpoint_auth_methods_supported']);
+    }
 }

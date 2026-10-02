@@ -212,8 +212,17 @@ class AuthorizationService
         );
     }
 
+    /** Validate the redirect/client identity before storing an incoming POST. */
+    public function validateHandoff(array $parameters): ?Response {
+        $client = $this->loadAuthorizationClient($parameters['client_id'] ?? null);
+        if ($client instanceof Response) {
+            return $client;
+        }
+        return $this->validateAuthorizationRedirectUri($client, $parameters['client_id'], $parameters['redirect_uri'] ?? null);
+    }
+
     /** @param array<string, mixed> $parameters */
-    public function process(array $parameters, bool $freshLogin = false, ?int $authenticatedAt = null): Response
+    public function process(array $parameters, bool $freshLogin = false, ?int $authenticatedAt = null, bool $consentObtained = false): Response
     {
         $client_id = $parameters['client_id'] ?? null;
         $state = $parameters['state'] ?? null;
@@ -242,49 +251,6 @@ class AuthorizationService
         if ($unsupportedRequestParameterResponse !== null) {
             return $unsupportedRequestParameterResponse;
         }
-
-        if (!$this->userSession->isLoggedIn()) {
-            $clientOrResponse = $this->loadAuthorizationClient($client_id);
-            if ($clientOrResponse instanceof Response) {
-                return $clientOrResponse;
-            }
-            $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($clientOrResponse, $client_id, $redirect_uri);
-            if ($redirectUriErrorResponse !== null) {
-                return $redirectUriErrorResponse;
-            }
-            if ($this->promptContains($prompt, 'none')) {
-                $this->logger->debug('prompt=none requested without authenticated user for client ' . $client_id . '. Returning login_required.');
-                return $this->createAuthorizationErrorRedirect(
-                    (string)$redirect_uri,
-                    'login_required',
-                    'User is not logged in.',
-                    $state,
-                    $response_type,
-                    $response_mode
-                );
-            }
-
-            return $this->redirectToLoginAfterOidcAuthentication(
-                $client_id,
-                $state,
-                $response_type,
-                $redirect_uri,
-                $scope,
-                $nonce,
-                $resource,
-                $code_challenge,
-                $code_challenge_method,
-                $prompt,
-                $max_age,
-                $response_mode,
-                $claims,
-                'Not authenticated yet for client ' . $client_id . '. Redirect to login.',
-                'not_authenticated'
-            );
-        }
-
-        // Resume reads only the persisted request, never the pre-login PHP session.
-        $authTime = $this->getOidcAuthenticationTime($freshLogin, $authenticatedAt);
 
         if (empty($redirect_uri)) {
             $this->logger->error('Missing redirect URI in authorization request.');
@@ -320,10 +286,10 @@ class AuthorizationService
         // Adapt scopes to configured values
         $allowedScopes = $client->getAllowedScopes();
 
-        // authorize has always lowercased the requested and allowed scopes; kept as is.
-        $scope = $this->scopeCeiling->filterByAllowedScopes(strtolower($scope), strtolower($allowedScopes ?? ''));
+        // OAuth scope tokens are case-sensitive across issuance and refresh.
+        $scope = $this->scopeCeiling->filterByAllowedScopes($scope, $allowedScopes ?? '');
         if ($scope === '') {
-            $scope = Application::DEFAULT_SCOPE;
+            return $this->authorizationError($parameters, 'invalid_scope', 'No requested scopes are permitted.');
         }
 
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);
@@ -350,7 +316,7 @@ class AuthorizationService
             $this->logger->notice('Missing response_type in request for client ' . $client_id . '.');
             return $this->createAuthorizationErrorRedirect(
                 (string)$redirect_uri,
-                'unsupported_response_type',
+                'invalid_request',
                 'Missing response_type',
                 $state,
                 $response_type,
@@ -368,6 +334,52 @@ class AuthorizationService
         }
         if (in_array('token', $responseTypeEntries) || in_array('id_token', $responseTypeEntries)) {
             $implicitFlow = true;
+        }
+        // PKCE validation (RFC 7636)
+        if (!empty($code_challenge)) {
+            // Validate code_challenge format: 43-128 characters, unreserved chars only
+            if (!preg_match('/^[A-Za-z0-9._~-]{43,128}$/', $code_challenge)) {
+                $this->logger->notice('Invalid code_challenge format for client ' . $client_id . '.');
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'invalid_request',
+                    'Invalid code_challenge format',
+                    $state,
+                    $response_type,
+                    $response_mode
+                );
+            }
+
+            // RFC 7636 section 4.3: an omitted method means plain.
+            if (empty($code_challenge_method)) {
+                $code_challenge_method = 'plain';
+            }
+
+            // Validate code_challenge_method: only S256 and plain are allowed
+            if (!in_array($code_challenge_method, ['S256', 'plain'])) {
+                $this->logger->notice('Unsupported code_challenge_method for client ' . $client_id . ': ' . $code_challenge_method);
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'invalid_request',
+                    'Unsupported code_challenge_method',
+                    $state,
+                    $response_type,
+                    $response_mode
+                );
+            }
+
+            $this->logger->debug('PKCE challenge received for client ' . $client_id . ' using method ' . $code_challenge_method);
+        }
+
+        if (empty($code_challenge) && $code_challenge_method !== null) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'invalid_request',
+                'code_challenge_method requires code_challenge.', $state, $response_type, $response_mode);
+        }
+        $prompts = is_string($prompt) ? preg_split('/ +/', trim($prompt), -1, PREG_SPLIT_NO_EMPTY) : [];
+        if (array_diff($prompts, ['none', 'login', 'consent', 'select_account']) !== []
+            || (in_array('none', $prompts, true) && count($prompts) !== 1)) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'invalid_request',
+                'Invalid prompt parameter.', $state, $response_type, $response_mode);
         }
         // RFC 9700 requires PKCE for public clients. Require the strongest
         // supported method so a public code flow cannot be downgraded by
@@ -408,12 +420,18 @@ class AuthorizationService
             $this->logger->notice('Missing id_token in response_type of request for client ' . $client_id . '.');
             return $this->createAuthorizationErrorRedirect(
                 (string)$redirect_uri,
-                'request_not_supported',
-                'Missing id_token',
+                'unsupported_response_type',
+                'Unsupported response_type',
                 $state,
                 $response_type,
                 $response_mode
             );
+        }
+
+        if (array_diff($responseTypeEntries, ['code', 'id_token', 'token']) !== []
+            || count(array_unique($responseTypeEntries)) !== count($responseTypeEntries)) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'unsupported_response_type',
+                'Unsupported response_type', $state, $response_type, $response_mode);
         }
 
         $allowedResponseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
@@ -421,7 +439,7 @@ class AuthorizationService
         if (in_array('id_token', $allowedResponseTypeEntries)) {
             $isImplicitFlowAllowed = true;
         }
-        if (($implicitFlow && !$isImplicitFlowAllowed) || (!$codeFlow && !$implicitFlow)) {
+        if (($implicitFlow && !$isImplicitFlowAllowed) || ($codeFlow && !in_array('code', $allowedResponseTypeEntries, true)) || (!$codeFlow && !$implicitFlow)) {
             $this->logger->notice('Not allowed response_type in request for client ' . $client_id . '. Please check the configuration for not allowed flow types.');
             return $this->createAuthorizationErrorRedirect(
                 (string)$redirect_uri,
@@ -430,6 +448,51 @@ class AuthorizationService
                 $state,
                 $response_type,
                 $response_mode
+            );
+        }
+
+        if (!$this->userSession->isLoggedIn()) {
+            if ($this->promptContains($prompt, 'none')) {
+                $this->logger->debug('prompt=none requested without authenticated user for client ' . $client_id . '. Returning login_required.');
+                return $this->createAuthorizationErrorRedirect(
+                    (string)$redirect_uri,
+                    'login_required',
+                    'User is not logged in.',
+                    $state,
+                    $response_type,
+                    $response_mode
+                );
+            }
+
+            return $this->redirectToLoginAfterOidcAuthentication(
+                $client_id,
+                $state,
+                $response_type,
+                $redirect_uri,
+                $scope,
+                $nonce,
+                $resource,
+                $code_challenge,
+                $code_challenge_method,
+                $prompt,
+                $max_age,
+                $response_mode,
+                $claims,
+                'Not authenticated yet for client ' . $client_id . '. Redirect to login.',
+                'not_authenticated'
+            );
+        }
+
+        // A resumed login establishes auth_time; an authorization POST handoff does not.
+        $authTime = $this->getOidcAuthenticationTime($freshLogin, $authenticatedAt);
+
+        if (!$freshLogin && $this->promptContains($prompt, 'select_account')) {
+            // Nextcloud's login form allows selecting another account. Do not
+            // silently reuse the current user for select_account.
+            return $this->forceOidcReauthentication(
+                $client_id, $state, $response_type, $redirect_uri, $scope, $nonce, $resource,
+                $code_challenge, $code_challenge_method, $prompt, $max_age, $response_mode, $claims,
+                'Redirect to login for account selection.', 'select_account'
             );
         }
 
@@ -520,7 +583,7 @@ class AuthorizationService
         // only offers scopes the user may hold.
         $scope = $this->scopeCeiling->clamp($uid, $scope, $client_id);
         if ($scope === '') {
-            $scope = Application::DEFAULT_SCOPE;
+            return $this->authorizationError($parameters, 'invalid_scope', 'No requested scopes are permitted.');
         }
 
         // Check if user consent/settings are allowed by administrator
@@ -529,7 +592,7 @@ class AuthorizationService
             Application::DEFAULT_ALLOW_USER_SETTINGS
         );
 
-        if ($allowUserSettings === 'no') {
+        if ($allowUserSettings === 'no' && !$this->promptContains($prompt, 'consent')) {
             // Administrator has disabled user consent - auto-grant all scopes
             $this->logger->debug('User consent disabled by admin for user ' . $uid . ' and client ' . $client_id . ' - auto-granting all scopes');
 
@@ -542,6 +605,7 @@ class AuthorizationService
                 $consent->setUserId($uid);
                 $consent->setClientId($client->getId());
                 $consent->setScopesGranted($scope);
+                $consent->setScopesRequested($scope);
                 $consent->setCreatedAt($this->time->getTime());
                 $consent->setUpdatedAt($this->time->getTime());
                 $consent->setExpiresAt(null);
@@ -550,6 +614,7 @@ class AuthorizationService
             } elseif ($existingConsent->getScopesGranted() !== $scope) {
                 // Update consent if scopes changed
                 $existingConsent->setScopesGranted($scope);
+                $existingConsent->setScopesRequested($scope);
                 $existingConsent->setUpdatedAt($this->time->getTime());
                 $this->userConsentMapper->createOrUpdate($existingConsent);
                 $this->logger->debug('Auto-updated consent record for user ' . $uid . ' and client ' . $client_id);
@@ -559,23 +624,25 @@ class AuthorizationService
             // User consent is enabled - check if consent is required
             $existingConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
 
-            $consentRequired = false;
+            $consentRequired = !$consentObtained && $this->promptContains($prompt, 'consent');
             if ($existingConsent === null) {
-                // No prior consent
                 $consentRequired = true;
-                $this->logger->debug('No existing consent found for user ' . $uid . ' and client ' . $client_id);
-            } elseif ($existingConsent->getScopesGranted() !== $scope) {
-                // Scopes changed since last consent
+            } elseif (array_diff($this->splitScopes($scope), $this->splitScopes(
+                $existingConsent->getScopesRequested() ?? $existingConsent->getScopesGranted()
+            )) !== []) {
+                // Reordering/subsets and previously declined scopes do not
+                // require another prompt. Newly requested scopes do.
                 $consentRequired = true;
-                $this->logger->debug('Scopes changed for user ' . $uid . ' and client ' . $client_id . '.');
-            } elseif ($existingConsent->getExpiresAt() !== null &&
-                      $this->time->getTime() > $existingConsent->getExpiresAt()) {
-                // Consent expired
+            } elseif ($existingConsent->getExpiresAt() !== null
+                && $this->time->getTime() >= $existingConsent->getExpiresAt()) {
                 $consentRequired = true;
-                $this->logger->debug('Consent expired for user ' . $uid . ' and client ' . $client_id);
             }
 
             if ($consentRequired) {
+                if ($this->promptContains($prompt, 'none')) {
+                    return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'consent_required',
+                        'User consent is required.', $state, $response_type, $response_mode);
+                }
                 // The consent page is within the authenticated session. Granting
                 // consent invokes this service directly with these parameters.
                 $this->session->set('oidc_consent_pending', true);
@@ -607,45 +674,16 @@ class AuthorizationService
             // If consent exists and is valid, use the scopes from consent
             // (user may have approved a subset of requested scopes)
             if ($existingConsent !== null) {
-                $scope = $existingConsent->getScopesGranted();
+                $scope = implode(' ', array_values(array_intersect(
+                    $this->splitScopes($scope), $this->splitScopes($existingConsent->getScopesGranted())
+                )));
+                if ($scope === '') {
+                    return $this->createAuthorizationErrorRedirect((string)$redirect_uri,
+                        $this->promptContains($prompt, 'none') ? 'interaction_required' : 'access_denied',
+                        'No requested scopes have been granted.', $state, $response_type, $response_mode);
+                }
                 $this->logger->debug('Using consented scopes for user ' . $uid . ' and client ' . $client_id . '.');
             }
-        }
-
-        // PKCE validation (RFC 7636)
-        if (!empty($code_challenge)) {
-            // Validate code_challenge format: 43-128 characters, unreserved chars only
-            if (!preg_match('/^[A-Za-z0-9._~-]{43,128}$/', $code_challenge)) {
-                $this->logger->notice('Invalid code_challenge format for client ' . $client_id . '.');
-                return $this->createAuthorizationErrorRedirect(
-                    (string)$redirect_uri,
-                    'invalid_request',
-                    'Invalid code_challenge format',
-                    $state,
-                    $response_type,
-                    $response_mode
-                );
-            }
-
-            // Default to S256 if method not specified
-            if (empty($code_challenge_method)) {
-                $code_challenge_method = 'S256';
-            }
-
-            // Validate code_challenge_method: only S256 and plain are allowed
-            if (!in_array($code_challenge_method, ['S256', 'plain'])) {
-                $this->logger->notice('Unsupported code_challenge_method for client ' . $client_id . ': ' . $code_challenge_method);
-                return $this->createAuthorizationErrorRedirect(
-                    (string)$redirect_uri,
-                    'invalid_request',
-                    'Unsupported code_challenge_method',
-                    $state,
-                    $response_type,
-                    $response_mode
-                );
-            }
-
-            $this->logger->debug('PKCE challenge received for client ' . $client_id . ' using method ' . $code_challenge_method);
         }
 
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
@@ -707,15 +745,12 @@ class AuthorizationService
             );
         }
 
-        if (empty($state) || !isset($state)) {
-            $state = '';
-        }
-
         $expireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
 
-        $responseParams = [
-            'state' => $state,
-        ];
+        $responseParams = [];
+        if ($state !== null) {
+            $responseParams['state'] = $state;
+        }
         if ($this->sessionManagementService->isSupported()) {
             try {
                 // Session Management is defined for browser origins. Preserve
@@ -747,6 +782,8 @@ class AuthorizationService
             );
             $responseParams['id_token'] = $jwt;
         }
+
+        $responseParams['iss'] = $this->authorizationIssuer();
 
         $this->session->close(); // Close session to prevent session locking issues during redirect
 
@@ -898,6 +935,14 @@ class AuthorizationService
         // Check if redirect URI is configured for client
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
         foreach ($redirectUris as $registeredRedirectUri) {
+            try {
+                $this->redirectUriService->isValidRedirectUri($registeredRedirectUri->getRedirectUri(), true, !$client->isDcr());
+            } catch (RedirectUriValidationException $e) {
+                $this->logger->warning('Stored redirect URI requires administrative review.', [
+                    'client_id' => $client->getId(), 'redirect_uri_id' => $registeredRedirectUri->getId(),
+                ]);
+                continue;
+            }
             if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri())) {
                 return null;
             }
@@ -1064,8 +1109,8 @@ class AuthorizationService
             return false;
         }
 
-        $promptEntries = array_filter(array_map('trim', explode(' ', strtolower($prompt))));
-        return in_array(strtolower($expectedPrompt), $promptEntries, true);
+        $promptEntries = array_filter(array_map('trim', explode(' ', $prompt)));
+        return in_array($expectedPrompt, $promptEntries, true);
     }
 
     private function getOidcAuthenticationTime(bool $freshLogin, ?int $authenticatedAt): int
@@ -1118,7 +1163,7 @@ class AuthorizationService
             return [];
         }
 
-        $responseType = strtolower(trim($responseType));
+        $responseType = trim($responseType);
         if ($responseType === '') {
             return [];
         }
@@ -1263,6 +1308,33 @@ class AuthorizationService
         return is_string($decoded) ? $decoded : null;
     }
 
+    /** @return list<string> */
+    private function splitScopes(string $scopes): array {
+        return array_values(array_unique(preg_split('/ +/', trim($scopes), -1, PREG_SPLIT_NO_EMPTY) ?: []));
+    }
+
+    private function authorizationIssuer(): string {
+        return $this->request->getServerProtocol() . '://' . $this->request->getServerHost()
+            . $this->urlGenerator->getWebroot();
+    }
+
+    /** @param array<string, mixed> $parameters */
+    public function authorizationError(array $parameters, string $error, string $description): Response {
+        $clientId = $parameters['client_id'] ?? null;
+        $client = $this->loadAuthorizationClient($clientId);
+        if ($client instanceof Response) {
+            return $client;
+        }
+        $redirectUri = $parameters['redirect_uri'] ?? null;
+        $redirectError = $this->validateAuthorizationRedirectUri($client, $clientId, $redirectUri);
+        if ($redirectError !== null) {
+            return $redirectError;
+        }
+        $this->authorizationClientId = $clientId;
+        return $this->createAuthorizationErrorRedirect((string)$redirectUri, $error, $description,
+            $parameters['state'] ?? null, $parameters['response_type'] ?? null, $parameters['response_mode'] ?? null);
+    }
+
     private function createAuthorizationErrorRedirect(
         string $redirectUri,
         string $error,
@@ -1275,9 +1347,11 @@ class AuthorizationService
             'error' => $error,
             'error_description' => $errorDescription,
         ];
-        if ($state !== null && trim((string)$state) !== '') {
+        if ($state !== null) {
             $params['state'] = (string)$state;
         }
+
+        $params['iss'] = $this->authorizationIssuer();
 
         // OIDC Session Management says an Authentication Error Response SHOULD
         // carry session_state as well. Add it whenever the OP is HTTPS and the

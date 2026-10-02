@@ -21,6 +21,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
@@ -116,6 +117,7 @@ class IntrospectionController extends ApiController
      * @return JSONResponse
      */
     // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
+    #[BruteForceProtection(action: 'oidc_introspection')]
     #[NoCSRFRequired]
     #[PublicPage]
     public function introspectToken(
@@ -349,6 +351,9 @@ class IntrospectionController extends ApiController
         bool $basicChallenge = false
     ): JSONResponse {
         $response = new JSONResponse($data, $status);
+        if (($status >= 400 && $status < 500) || (($data['active'] ?? null) === false)) {
+            $response->throttle();
+        }
         $response->addHeader('Cache-Control', 'no-store');
         $response->addHeader('Pragma', 'no-cache');
         if ($basicChallenge) {

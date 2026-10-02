@@ -15,6 +15,8 @@ use OCP\IDBConnection;
 
 /** @template-extends QBMapper<RefreshToken> */
 class RefreshTokenMapper extends QBMapper {
+    /** Retain consumed hashes for seven days of replay detection, even with never-expiring grants. */
+    public const USED_RETENTION = 7 * 24 * 60 * 60;
     public function __construct(IDBConnection $db) {
         parent::__construct($db, 'oidc_refresh_tokens', RefreshToken::class);
     }
@@ -70,5 +72,37 @@ class RefreshTokenMapper extends QBMapper {
                 $qb->createNamedParameter($accessTokenId, IQueryBuilder::PARAM_INT)
             ))
             ->executeStatement();
+    }
+
+    public function cleanUp(int $now): void {
+        $qb = $this->db->getQueryBuilder();
+        $qb->delete($this->getTableName())
+            ->where($qb->expr()->gt('used_at', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
+            ->andWhere($qb->expr()->lt('used_at', $qb->createNamedParameter($now - self::USED_RETENTION, IQueryBuilder::PARAM_INT)))
+            ->executeStatement();
+
+        // Repair pre-existing orphans as well as installations where foreign
+        // key enforcement is disabled. Use bounded batches and portable joins.
+        do {
+            $qb = $this->db->getQueryBuilder();
+            $qb->select('r.id')->from($this->getTableName(), 'r')
+                ->leftJoin('r', 'oidc_access_tokens', 'a', $qb->expr()->eq('r.access_token_id', 'a.id'))
+                ->where($qb->expr()->isNull('a.id'))->setMaxResults(500);
+            $result = $qb->executeQuery();
+            try {
+                $ids = [];
+                while (($id = $result->fetchOne()) !== false) {
+                    $ids[] = (int)$id;
+                }
+            } finally {
+                $result->closeCursor();
+            }
+            foreach ($ids as $id) {
+                $delete = $this->db->getQueryBuilder();
+                $delete->delete($this->getTableName())
+                    ->where($delete->expr()->eq('id', $delete->createNamedParameter($id, IQueryBuilder::PARAM_INT)))
+                    ->executeStatement();
+            }
+        } while (count($ids) === 500);
     }
 }

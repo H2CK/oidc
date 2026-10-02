@@ -204,7 +204,7 @@ class ConsentControllerTest extends TestCase {
             ->with($this->callback(static fn (array $parameters): bool =>
                 $parameters['client_id'] === 'test-client-id'
                 && $parameters['scope'] === 'openid profile'
-            ), false, null)
+            ), false, null, true)
             ->willReturn(new RedirectResponse('https://client.example/callback'));
 
         $response = $this->controller->grant();
@@ -220,12 +220,16 @@ class ConsentControllerTest extends TestCase {
         $this->session->method('get')->willReturnCallback(function ($key) {
             $values = [
                 'oidc_redirect_uri' => 'https://client.example.com/callback',
+                'oidc_consent_pending' => true,
                 'oidc_state' => 'test-state',
                 'oidc_client_id' => 'test-client-id',
             ];
             return $values[$key] ?? null;
         });
 
+        $this->authorizationService->expects($this->once())->method('authorizationError')
+            ->with($this->callback(static fn (array $p): bool => $p['state'] === 'test-state'), 'access_denied', 'User denied consent')
+            ->willReturn(new RedirectResponse('https://client.example.com/callback?error=access_denied&state=test-state'));
         $response = $this->controller->deny();
 
         $this->assertInstanceOf(RedirectResponse::class, $response);

@@ -13,6 +13,7 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
@@ -46,7 +47,8 @@ class CleanupExpiredTokens extends TimedJob {
                                 RegistrationTokenMapper $registrationTokenMapper,
                                 DeviceCodeMapper $deviceCodeMapper,
                                 IAppConfig $appConfig,
-                                IConfig $settings) {
+                                IConfig $settings,
+                                private RefreshTokenMapper $refreshTokenMapper) {
         parent::__construct($time);
         $this->accessTokenMapper = $accessTokenMapper;
         $this->authorizationCodeMapper = $authorizationCodeMapper;
@@ -65,6 +67,7 @@ class CleanupExpiredTokens extends TimedJob {
         // if ($this->settings->getAppValue('core', 'backgroundjobs_mode') !== 'cron') return;
         $currentTime = $this->time->getTime();
         $this->accessTokenMapper->cleanUp();
+        $this->refreshTokenMapper->cleanUp($currentTime);
         $authorizationCodeRetention = $this->getAuthorizationCodeRetention();
         $this->authorizationCodeMapper->cleanUp(
             $currentTime - $authorizationCodeRetention['unused'],

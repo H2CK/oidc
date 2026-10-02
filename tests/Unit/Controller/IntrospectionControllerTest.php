@@ -103,6 +103,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_client', $result->getData()['error']);
+        $this->assertTrue($result->isThrottled());
     }
 
     public function testMissingTokenParameter() {

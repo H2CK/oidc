@@ -169,6 +169,9 @@ class ConsentController extends Controller {
             $requestBody = $this->session->get('oidc_requested_scopes') ?? '';
         }
 
+        if (!is_string($requestBody)) {
+            return new JSONResponse(['error' => 'invalid_request'], Http::STATUS_BAD_REQUEST);
+        }
         $grantedScopes = trim($requestBody);
         $clientId = $this->session->get('oidc_client_id');
         $uid = $this->userSession->getUser()->getUID();
@@ -181,27 +184,23 @@ class ConsentController extends Controller {
             return new RedirectResponse($this->urlGenerator->getBaseUrl());
         }
 
-        // Validate granted scopes are a subset of requested scopes
-        $requestedScopes = explode(' ', $this->session->get('oidc_requested_scopes') ?? '');
-        $grantedScopesArr = explode(' ', $grantedScopes);
-        foreach ($grantedScopesArr as $grantedScope) {
-            if (!in_array($grantedScope, $requestedScopes)) {
-                $this->logger->warning('User attempted to grant scope not in requested list: ' . $grantedScope);
-                // Ignore invalid scopes
-            }
+        $requestedScopeString = $this->session->get('oidc_requested_scopes') ?? '';
+        $requestedScopes = preg_split('/ +/', trim($requestedScopeString), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $grantedScopesArr = array_values(array_unique(preg_split('/ +/', $grantedScopes, -1, PREG_SPLIT_NO_EMPTY) ?: []));
+        if (array_diff($grantedScopesArr, $requestedScopes) !== []) {
+            return new JSONResponse(['error' => 'invalid_scope'], Http::STATUS_BAD_REQUEST);
         }
-
-        // Ensure at least 'openid' scope is granted
-        if (!in_array('openid', $grantedScopesArr)) {
-            $grantedScopes = 'openid ' . $grantedScopes;
+        if (in_array('openid', $requestedScopes, true) && !in_array('openid', $grantedScopesArr, true)) {
+            $grantedScopesArr[] = 'openid';
         }
-        $grantedScopes = trim($grantedScopes);
+        $grantedScopes = implode(' ', $grantedScopesArr);
 
         // Store consent in database
         $consent = new UserConsent();
         $consent->setUserId($uid);
         $consent->setClientId($client->getId());
         $consent->setScopesGranted($grantedScopes);
+        $consent->setScopesRequested($requestedScopeString);
         $consent->setCreatedAt($this->time->getTime());
         $consent->setUpdatedAt($this->time->getTime());
         // Set consent to expire after 90 days (7776000 seconds)
@@ -232,7 +231,7 @@ class ConsentController extends Controller {
             'max_age' => $this->session->get('oidc_max_age'),
             'response_mode' => $this->session->get('oidc_response_mode'),
             'claims' => $this->session->get('oidc_claims'),
-        ], $freshLogin, $freshLogin ? (int)$this->session->get('oidc_auth_time') : null);
+        ], $freshLogin, $freshLogin ? (int)$this->session->get('oidc_auth_time') : null, true);
     }
 
     /**
@@ -424,13 +423,13 @@ class ConsentController extends Controller {
             return new RedirectResponse($this->urlGenerator->linkToRoute('core.login.showLoginForm'));
         }
 
-        $redirectUri = $this->session->get('oidc_redirect_uri');
-        $state = $this->session->get('oidc_state');
-        $responseMode = $this->session->get('oidc_response_mode');
-        $clientId = $this->session->get('oidc_client_id');
-        $uid = $this->userSession->getUser()->getUID();
-
-        $this->logger->info('User ' . $uid . ' denied consent to client ' . $clientId);
+        if (!$this->session->get('oidc_consent_pending')) {
+            return new RedirectResponse($this->urlGenerator->getBaseUrl());
+        }
+        $parameters = [];
+        foreach (['client_id', 'redirect_uri', 'state', 'response_type', 'response_mode'] as $name) {
+            $parameters[$name] = $this->session->get('oidc_' . $name);
+        }
 
         // Clear session
         $this->session->remove('oidc_consent_pending');
@@ -451,29 +450,6 @@ class ConsentController extends Controller {
         $this->session->remove('oidc_claims');
         $this->session->remove('oidc_requested_scopes');
 
-        // Return error to client
-        if (!empty($redirectUri)) {
-            $params = [
-                'error' => 'access_denied',
-                'error_description' => 'User denied consent',
-            ];
-            if (!empty($state)) {
-                $params['state'] = $state;
-            }
-
-            if (is_string($responseMode) && strtolower(trim($responseMode)) === 'form_post') {
-                return new FormPostResponse((string)$redirectUri, $params);
-            }
-
-            $separator = str_contains($redirectUri, '?') ? '&' : '?';
-            $url = $redirectUri . $separator . 'error=access_denied&error_description=User%20denied%20consent';
-            if (!empty($state)) {
-                $url .= '&state=' . urlencode($state);
-            }
-            return new RedirectResponse($url);
-        } else {
-            // No redirect URI, just show error
-            return new RedirectResponse($this->urlGenerator->getBaseUrl());
-        }
+        return $this->authorizationService->authorizationError($parameters, 'access_denied', 'User denied consent');
     }
 }

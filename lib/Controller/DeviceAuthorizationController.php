@@ -374,6 +374,7 @@ class DeviceAuthorizationController extends Controller {
 			$consent->setCreatedAt($now);
 		}
 		$consent->setScopesGranted($scope);
+		$consent->setScopesRequested($scope);
 		$consent->setUpdatedAt($now);
 		// Keep the same time-limited consent policy as ConsentController (90 days).
 		// Device approval must not convert an existing expiry into permanent consent.

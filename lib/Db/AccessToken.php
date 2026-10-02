@@ -22,6 +22,8 @@ use OCP\DB\Types;
  * @method void setHashedCode(string $hashedCode)
  * @method bool getLegacyRefreshToken()
  * @method void setLegacyRefreshToken(bool $legacyRefreshToken)
+ * @method bool getEventGenerated()
+ * @method void setEventGenerated(bool $eventGenerated)
  * @method string getAccessToken()
  * @method void setAccessToken(string $accessToken)
  * @method int getCreated()
@@ -61,6 +63,8 @@ class AccessToken extends Entity
     protected $hashedCode;
     /** @var bool Whether hashedCode may be used as a pre-migration refresh token. */
     protected $legacyRefreshToken = false;
+    /** @var bool Issued by a trusted in-process TokenGenerationRequestEvent. */
+    protected $eventGenerated = false;
     /** @var string */
     protected $accessToken;
     /** @var int */
@@ -92,6 +96,7 @@ class AccessToken extends Entity
         $this->addType('scope', 'string');
         $this->addType('hashedCode', 'string');
         $this->addType('legacyRefreshToken', Types::BOOLEAN);
+        $this->addType('eventGenerated', Types::BOOLEAN);
         $this->addType('accessToken', 'string');
         $this->addType('created', 'int');
         $this->addType('refreshed', 'int');

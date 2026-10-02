@@ -75,6 +75,7 @@ class UserConsentMapper extends QBMapper {
         if ($existing !== null) {
             // Update existing consent
             $existing->setScopesGranted($consent->getScopesGranted());
+            $existing->setScopesRequested($consent->getScopesRequested());
             $existing->setUpdatedAt($consent->getUpdatedAt());
             $existing->setExpiresAt($consent->getExpiresAt());
             return $this->update($existing);

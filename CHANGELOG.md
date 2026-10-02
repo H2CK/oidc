@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0-alpha3] - 2026-10-02
+
+### Fixed
+
+- Store and rotate refresh tokens issued by TokenGenerationRequestEvent, retaining the trusted event grant's refresh lifecycle.
+- Preserve case-sensitive scopes during authorization and refresh.
+- Complete the authorization POST handoff with single-use transactions and duplicate-parameter validation across query and body.
+- Migrate static redirect URI spelling variants to explicit registrations and report unsafe legacy entries for manual correction.
+- Limit consumed refresh-token retention to seven days and remove expired token families and orphan refresh rows without relying on foreign-key cascades.
+- Record reviewed scopes separately from granted scopes, avoid repeated partial-consent prompts, and return denial errors using the requested authorization response mode.
+- Support prompt=consent and account selection via Nextcloud reauthentication; return consent_required/interaction_required for silent requests that need interaction.
+- Correct authorization error codes, omitted PKCE method handling and state presence; include RFC 9207 issuer identification in authorization responses.
+- Signal authentication and token failures to Nextcloud brute-force protection at token, UserInfo, introspection and revocation endpoints.
+- Generate JWTs before consuming grants and persist rotation atomically, so failed issuance can be retried.
+
+### Added
+
+- RFC 7009 access/refresh token revocation endpoint, discovery metadata and CORS handling.
+- Regression tests for authorization parsing, consent, event refresh redemption, refresh retention, migration, revocation and failed issuance.
+
 ## [2.5.0-alpha2] - 2026-09-30
 
 ### Fixed

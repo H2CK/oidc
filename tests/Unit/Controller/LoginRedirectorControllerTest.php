@@ -405,7 +405,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '?error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1',
+            $redirectUri . '?error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -469,7 +469,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '#error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1',
+            $redirectUri . '#error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -940,7 +940,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $html = $result->render();
         $this->assertStringContainsString('<form method="post" action="' . $redirectUri . '">', $html);
-        $this->assertStringContainsString('<input type="hidden" name="error" value="unsupported_response_type">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error" value="invalid_request">', $html);
         $this->assertStringContainsString('<input type="hidden" name="error_description" value="Missing response_type">', $html);
         $this->assertStringContainsString('<input type="hidden" name="state" value="state-1">', $html);
     }
@@ -1563,7 +1563,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=state-1',
+            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -1697,7 +1697,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '#error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=request-object-state',
+            $redirectUri . '#error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=request-object-state&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -1758,7 +1758,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.',
+            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -1844,7 +1844,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '#error=invalid_request&error_description=Missing%20nonce&state=state-1',
+            $redirectUri . '#error=invalid_request&error_description=Missing%20nonce&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }

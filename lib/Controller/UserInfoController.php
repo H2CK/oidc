@@ -301,6 +301,7 @@ class UserInfoController extends ApiController
                         'error' => 'invalid_token',
                         'error_description' => 'The access token is not valid for the UserInfo resource.',
                     ], Http::STATUS_UNAUTHORIZED);
+                    $response->throttle();
                     $response->addHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
                     $response->addHeader('Cache-Control', 'no-store');
                     $response->addHeader('Pragma', 'no-cache');
@@ -525,6 +526,7 @@ class UserInfoController extends ApiController
             'error' => 'invalid_token',
             'error_description' => $description,
         ], Http::STATUS_UNAUTHORIZED);
+        $response->throttle();
         $response->addHeader(
             'WWW-Authenticate',
             'Bearer error="invalid_token", error_description="' . addcslashes($description, "\\\"") . '"'

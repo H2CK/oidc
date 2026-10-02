@@ -59,4 +59,14 @@ class AuthorizationTransactionServiceIntegrationTest extends \Test\TestCase {
         $this->transactions->cleanup();
         $this->assertNull($this->transactions->consume($id));
     }
+
+    public function testPostContinuationIsReasonBoundAndSingleUse(): void {
+        $request = ['client_id' => 'client', 'scope' => 'openid Files:Read', 'state' => '0'];
+        $id = $this->transactions->create($request, 'authorization_post');
+        $this->assertNull($this->transactions->consume($id, 'prompt_login'));
+        $this->assertTrue($this->transactions->isPending($id));
+        $this->assertSame(['parameters' => $request, 'reason' => 'authorization_post'],
+            $this->transactions->consume($id, 'authorization_post'));
+        $this->assertNull($this->transactions->consume($id, 'authorization_post'));
+    }
 }
