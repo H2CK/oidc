@@ -1,5 +1,7 @@
 { "translations": {
+    "You must be logged in to continue authorization." : "Pre pokračovanie v autorizácii musíte byť prihlásení.",
     "Authorization session expired. Please try again." : "Platnosť autorizačnej relácie uplynula. Skúste to znova.",
+    "Continue authorization" : "Pokračovať v autorizácii",
     "You must be logged in to view this page." : "Na zobrazenie tejto stránky musíte byť prihlásení.",
     "No consent request pending." : "Žiadna žiadosť o súhlas nečaká na vybavenie.",
     "Client Identifier is missing in the request" : "V žiadosti chýba identifikátor klienta",

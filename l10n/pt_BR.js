@@ -1,7 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "You must be logged in to continue authorization." : "Você precisa estar logado para prosseguir com a autorização.",
     "Authorization session expired. Please try again." : "A sessão de autorização expirou. Tente novamente.",
+    "Continue authorization" : "Continuar com a autorização",
     "You must be logged in to view this page." : "Você deve logar para ver esta página.",
     "No consent request pending." : "Nenhuma solicitação de consentimento pendente.",
     "Client Identifier is missing in the request" : "O Client Identifier está faltando na solicitação",
@@ -203,7 +205,7 @@ OC.L10N.register(
     "Group memberships" : "Associações a grupos",
     "Access your Nextcloud groups and roles" : "Acessar seus grupos e funções no Nextcloud",
     "Access your Nextcloud group information" : "Acessar as suas informações de grupos Nextcloud",
-    "Access when you're away" : "Acesse quando estiver fora",
+    "Access when you're away" : "Acesso quando você estiver ausente",
     "Allow this app to access your data even when you're not signed in" : "Permita que este aplicativo acesse seus dados mesmo quando você não estiver logado",
     "Application Authorization Request" : "Solicitação de Autorização de Aplicativo",
     "{clientName} is requesting access to your account." : "{clientName} está solicitando acesso à sua conta.",
