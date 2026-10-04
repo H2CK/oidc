@@ -1,7 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "You must be logged in to continue authorization." : "You must be logged in to continue authorization.",
     "Authorization session expired. Please try again." : "Authorization session expired. Please try again.",
+    "Continue authorization" : "Continue authorization",
     "You must be logged in to view this page." : "You must be logged in to view this page.",
     "No consent request pending." : "No consent request pending.",
     "Client Identifier is missing in the request" : "Client Identifier is missing in the request",

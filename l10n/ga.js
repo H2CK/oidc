@@ -1,7 +1,9 @@
 OC.L10N.register(
     "oidc",
     {
+    "You must be logged in to continue authorization." : "Caithfidh tú a bheith logáilte isteach chun leanúint leis an údarú.",
     "Authorization session expired. Please try again." : "Chuaigh an seisiún údaraithe in éag. Déan iarracht arís.",
+    "Continue authorization" : "Lean ar aghaidh leis an údarú",
     "You must be logged in to view this page." : "Ní mór duit a bheith logáilte isteach chun an leathanach seo a fheiceáil.",
     "No consent request pending." : "Níl aon iarratas toiliú ar feitheamh.",
     "Client Identifier is missing in the request" : "Tá Aitheantóir Cliant ar iarraidh san iarratas",
