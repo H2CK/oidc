@@ -1,5 +1,7 @@
 { "translations": {
+    "You must be logged in to continue authorization." : "您必須登入才能繼續授權。",
     "Authorization session expired. Please try again." : "授權節已過期。請再試一次。",
+    "Continue authorization" : "繼續授權",
     "You must be logged in to view this page." : "您必須登入才能檢視此頁面。",
     "No consent request pending." : "沒有待處理的同意請求。",
     "Client Identifier is missing in the request" : "請求中缺少客戶端識別字串",
