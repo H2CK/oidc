@@ -22,12 +22,18 @@ class AuthorizationCodeMapper extends QBMapper {
         parent::__construct($db, 'oidc_authorization_codes', AuthorizationCode::class);
     }
 
-    public function createForAccessToken(int $accessTokenId, string $code, int $created): AuthorizationCode {
+    public function createForAccessToken(
+        int $accessTokenId,
+        string $code,
+        int $created,
+        string $redirectUri
+    ): AuthorizationCode {
         $authorizationCode = new AuthorizationCode();
         $authorizationCode->setAccessTokenId($accessTokenId);
         $authorizationCode->setHashedCode(hash('sha512', $code));
         $authorizationCode->setCreated($created);
         $authorizationCode->setUsedAt(0);
+        $authorizationCode->setRedirectUri($redirectUri);
 
         return $this->insert($authorizationCode);
     }

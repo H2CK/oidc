@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use OCP\AppFramework\Http;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\IUser;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -13,6 +14,7 @@ use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
+use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\IDBConnection;
 use Psr\Log\LoggerInterface;
 use OCP\AppFramework\Services\IAppConfig;
@@ -37,10 +39,24 @@ class IntrospectionControllerTest extends TestCase {
     protected $db;
     /** @var LoggerInterface */
     protected $logger;
+    /** @var FormUrlencodedParameterParser|\PHPUnit\Framework\MockObject\MockObject */
+    protected $parameterParser;
+    private string $authorizationHeader = '';
+    /** @var array<string, string> */
+    private array $bodyParameters = [];
 
     public function setUp(): void {
         parent::setUp();
         $this->request = $this->createMock(IRequest::class);
+        $this->request->method('getServerProtocol')->willReturn('https');
+        $this->request->method('getServerHost')->willReturn('op.example');
+        $this->request->method('getHeader')->willReturnCallback(function (string $name): string {
+            return match (strtolower($name)) {
+                'content-type' => 'application/x-www-form-urlencoded',
+                'authorization' => $this->authorizationHeader,
+                default => '',
+            };
+        });
         $this->db = $this->createMock(IDBConnection::class);
         $this->time = $this->createMock(ITimeFactory::class);
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -54,6 +70,16 @@ class IntrospectionControllerTest extends TestCase {
         $constructor->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
         
         $this->clientMapper = $this->createMock(ClientMapper::class);
+        $this->parameterParser = $this->createMock(FormUrlencodedParameterParser::class);
+        $this->parameterParser->method('readSelectedParameters')->willReturnCallback(function (): array {
+            $result = [];
+            foreach (['token', 'token_type_hint', 'client_id', 'client_secret'] as $name) {
+                $result[$name] = array_key_exists($name, $this->bodyParameters)
+                    ? [$this->bodyParameters[$name]]
+                    : [];
+            }
+            return $result;
+        });
 
         $this->controller = new IntrospectionController(
             'oidc',
@@ -63,15 +89,15 @@ class IntrospectionControllerTest extends TestCase {
             $this->userManager,
             $this->time,
             $this->appConfig,
-            $this->logger
+            $this->logger,
+            $this->createMock(IURLGenerator::class),
+            $this->parameterParser
         );
     }
 
     public function testInvalidClientCredentials() {
         // No credentials provided
-        $this->request
-            ->method('getHeader')
-            ->willReturn('');
+        $this->authorizationHeader = '';
 
         $this->request
             ->method('getParam')
@@ -81,6 +107,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_UNAUTHORIZED, $result->getStatus());
         $this->assertEquals('invalid_client', $result->getData()['error']);
+        $this->assertTrue($result->isThrottled());
     }
 
     public function testMissingTokenParameter() {
@@ -88,9 +115,7 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -100,6 +125,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('invalid_request', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testTokenNotFound() {
@@ -107,9 +133,7 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -123,6 +147,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testExpiredToken() {
@@ -130,9 +155,7 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -161,6 +184,7 @@ class IntrospectionControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testValidTokenIntrospection() {
@@ -169,9 +193,7 @@ class IntrospectionControllerTest extends TestCase {
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -200,6 +222,7 @@ class IntrospectionControllerTest extends TestCase {
 
         // Mock user
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -233,9 +256,7 @@ class IntrospectionControllerTest extends TestCase {
         $resourceClient->setSecret('resource-secret');
         $resourceClient->setClientIdentifier('resource-server-id');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('resource-server:resource-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('resource-server:resource-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -264,6 +285,7 @@ class IntrospectionControllerTest extends TestCase {
 
         // Mock user
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -291,9 +313,7 @@ class IntrospectionControllerTest extends TestCase {
         $unauthorizedClient->setSecret('evil-secret');
         $unauthorizedClient->setClientIdentifier('evil-client-id');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('unauthorized-client:evil-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('unauthorized-client:evil-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -322,6 +342,7 @@ class IntrospectionControllerTest extends TestCase {
 
         // Mock user
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -341,6 +362,7 @@ class IntrospectionControllerTest extends TestCase {
         // Should return inactive to not reveal token exists
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
     }
 
     public function testRefreshedTokenIsActiveAfterOriginalLifetime() {
@@ -351,9 +373,7 @@ class IntrospectionControllerTest extends TestCase {
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
 
         $this->clientMapper
             ->method('getByIdentifier')
@@ -384,6 +404,8 @@ class IntrospectionControllerTest extends TestCase {
             ->willReturn(1005500);
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
 
         $this->userManager
@@ -405,6 +427,8 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertTrue($data['active']);
         // exp must reflect the stored absolute expiry.
         $this->assertEquals(1005900, $data['exp']);
+        $this->assertSame(1005000, $data['iat']);
+        $this->assertSame(hash('sha256', 'refreshed_token'), $data['jti']);
     }
 
     public function testLegacyTokenWithoutExpiresAtUsesRefreshedFallback(): void {
@@ -412,7 +436,7 @@ class IntrospectionControllerTest extends TestCase {
         $client->setSecret('test-secret');
         $client->setClientIdentifier('client123');
 
-        $this->request->method('getHeader')->willReturn('Basic ' . base64_encode('test-client:test-secret'));
+        $this->authorizationHeader = 'Basic ' . base64_encode('test-client:test-secret');
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
 
         $accessToken = new AccessToken();
@@ -428,6 +452,8 @@ class IntrospectionControllerTest extends TestCase {
         $this->time->method('getTime')->willReturn(1005500);
 
         $user = $this->createMock(IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $this->userManager->method('get')->willReturn($user);
         $tokenClient = new Client('token-client', ['https://app.org'], 'RS256');
@@ -445,9 +471,12 @@ class IntrospectionControllerTest extends TestCase {
         $client = new Client('test-client', ['https://test.org'], 'RS256');
         $client->setSecret('test-secret');
 
-        $this->request
-            ->method('getHeader')
-            ->willReturn('');
+        $this->authorizationHeader = '';
+        $this->bodyParameters = [
+            'client_id' => 'test-client',
+            'client_secret' => 'test-secret',
+            'token' => 'some_token',
+        ];
 
         $this->request
             ->method('getParam')
@@ -470,6 +499,70 @@ class IntrospectionControllerTest extends TestCase {
         // Should succeed with authentication and return inactive token
         $this->assertEquals(Http::STATUS_OK, $result->getStatus());
         $this->assertFalse($result->getData()['active']);
+        $this->assertFalse($result->isThrottled());
+    }
+
+    private function prepareActiveIntrospection(?bool $enabled = true): AccessToken {
+        $client = new Client('test', [], 'RS256');
+        $client->setId(1);
+        $client->setClientIdentifier('client');
+        $client->setSecret('secret');
+        $this->authorizationHeader = 'Basic ' . base64_encode('client:secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->clientMapper->method('getByUid')->willReturn($client);
+        $token = new AccessToken();
+        $token->setClientId(1);
+        $token->setUserId('alice');
+        $token->setCreated(100);
+        $token->setRefreshed(900);
+        $token->setExpiresAt(1800);
+        $token->setScope('openid');
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($token);
+        $this->time->method('getTime')->willReturn(1000);
+        $user = $enabled === null ? null : $this->createMock(IUser::class);
+        if ($user !== null) {
+            $user->method('isEnabled')->willReturn($enabled);
+            $user->method('getUID')->willReturn('alice');
+        }
+        $this->userManager->method('get')->willReturn($user);
+        return $token;
+    }
+
+    public function testDisabledUserTokenIsInactiveWithoutThrottle(): void {
+        $this->prepareActiveIntrospection(false);
+        $response = $this->controller->introspectToken('opaque');
+        $this->assertSame(['active' => false], $response->getData());
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testDeletedUserTokenIsInactiveWithoutThrottle(): void {
+        $this->prepareActiveIntrospection(null);
+        $response = $this->controller->introspectToken('opaque');
+        $this->assertSame(['active' => false], $response->getData());
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testOpaqueIntrospectionReportsIssuanceIssuerAndIdentifier(): void {
+        $this->prepareActiveIntrospection();
+        $response = $this->controller->introspectToken('opaque');
+        $data = $response->getData();
+        $this->assertTrue($data['active']);
+        $this->assertSame(900, $data['iat']);
+        $this->assertSame('https://op.example', $data['iss']);
+        $this->assertSame(hash('sha256', 'opaque'), $data['jti']);
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testJwtIntrospectionUsesPersistedJwtMetadata(): void {
+        $token = $this->prepareActiveIntrospection();
+        $claims = ['iat' => 901, 'iss' => 'https://op.example/nextcloud', 'jti' => 'issued-identifier'];
+        $jwt = 'header.' . rtrim(strtr(base64_encode(json_encode($claims)), '+/', '-_'), '=') . '.signature';
+        $token->setAccessToken($jwt);
+        $data = $this->controller->introspectToken($jwt)->getData();
+        $this->assertTrue($data['active']);
+        $this->assertSame($claims['iat'], $data['iat']);
+        $this->assertSame($claims['iss'], $data['iss']);
+        $this->assertSame($claims['jti'], $data['jti']);
     }
 
 }

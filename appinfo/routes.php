@@ -147,11 +147,6 @@ return [
         ],
         [
             'name' => 'Settings#regenerateKeys',
-            'url' => '/genKeys',
-            'verb' => 'POST',
-        ],
-        [
-            'name' => 'Settings#regenerateKeys',
             'url' => '/api/v2/genKeys',
             'verb' => 'POST',
         ],
@@ -229,6 +224,11 @@ return [
             'verb' => 'GET',
         ],
         [
+            'name' => 'AuthorizationResume#completePost',
+            'url' => '/authorize/post/complete',
+            'verb' => 'GET',
+        ],
+        [
             'name' => 'Consent#show',
             'url' => '/consent',
             'verb' => 'GET',
@@ -263,6 +263,8 @@ return [
             'url' => '/token',
             'verb' => 'POST'
         ],
+        ['name' => 'OIDCApi#revokeToken', 'url' => '/revoke', 'verb' => 'POST'],
+        ['name' => 'Cors#revocationCorsResponse', 'url' => '/revoke', 'verb' => 'OPTIONS'],
         [
             'name' => 'DeviceAuthorization#authorize',
             'url' => '/device_authorization',

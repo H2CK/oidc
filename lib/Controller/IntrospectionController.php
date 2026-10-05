@@ -13,13 +13,16 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserManager;
 use OCP\AppFramework\Services\IAppConfig;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
@@ -37,6 +40,7 @@ class IntrospectionController extends ApiController
     private $appConfig;
     /** @var LoggerInterface */
     private $logger;
+    private FormUrlencodedParameterParser $parameterParser;
 
     public function __construct(
         string $appName,
@@ -46,7 +50,9 @@ class IntrospectionController extends ApiController
         IUserManager $userManager,
         ITimeFactory $time,
         IAppConfig $appConfig,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        private IURLGenerator $urlGenerator,
+        ?FormUrlencodedParameterParser $parameterParser = null
     ) {
         parent::__construct($appName, $request);
         $this->clientMapper = $clientMapper;
@@ -55,6 +61,7 @@ class IntrospectionController extends ApiController
         $this->time = $time;
         $this->appConfig = $appConfig;
         $this->logger = $logger;
+        $this->parameterParser = $parameterParser ?? new FormUrlencodedParameterParser();
     }
 
     /**
@@ -62,7 +69,7 @@ class IntrospectionController extends ApiController
      *
      * @return Client|null
      */
-    private function authenticateClient(): ?Client
+    private function authenticateClient(?string $bodyClientId, ?string $bodyClientSecret): ?Client
     {
         $clientId = null;
         $clientSecret = null;
@@ -73,14 +80,16 @@ class IntrospectionController extends ApiController
             $base64 = substr($authHeader, 6);
             $decoded = base64_decode($base64, true);
             if ($decoded !== false && strpos($decoded, ':') !== false) {
-                list($clientId, $clientSecret) = explode(':', $decoded, 2);
+                [$encodedClientId, $encodedClientSecret] = explode(':', $decoded, 2);
+                $clientId = urldecode($encodedClientId);
+                $clientSecret = urldecode($encodedClientSecret);
             }
         }
 
         // Fallback to POST body parameters
         if ($clientId === null) {
-            $clientId = $this->request->getParam('client_id');
-            $clientSecret = $this->request->getParam('client_secret');
+            $clientId = $bodyClientId;
+            $clientSecret = $bodyClientSecret;
         }
 
         if ($clientId === null || $clientSecret === null) {
@@ -90,7 +99,7 @@ class IntrospectionController extends ApiController
         try {
             $client = $this->clientMapper->getByIdentifier($clientId);
             // Use constant-time comparison to prevent timing attacks
-            if (hash_equals($client->getSecret(), $clientSecret)) {
+            if ($client->getType() !== 'public' && hash_equals($client->getSecret(), $clientSecret)) {
                 return $client;
             }
         } catch (\Exception $e) {
@@ -110,12 +119,59 @@ class IntrospectionController extends ApiController
      * @return JSONResponse
      */
     // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
+    #[BruteForceProtection(action: 'oidc_introspection')]
     #[NoCSRFRequired]
     #[PublicPage]
     public function introspectToken(
         string $token = '',
         string|null $token_type_hint = null
     ): JSONResponse {
+        $contentType = strtolower(trim(explode(';', $this->request->getHeader('Content-Type'), 2)[0]));
+        if ($contentType !== 'application/x-www-form-urlencoded') {
+            return $this->jsonResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Introspection requests must use application/x-www-form-urlencoded.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $rawParameters = $this->parameterParser->readSelectedParameters([
+            'token', 'token_type_hint', 'client_id', 'client_secret',
+        ]);
+        if ($rawParameters === null) {
+            return $this->jsonResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Unable to read the introspection request body.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        foreach ($rawParameters as $name => $values) {
+            if (count($values) > 1) {
+                return $this->jsonResponse([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Parameter ' . $name . ' must not occur more than once.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $nonEmptyValues = array_values(array_filter(
+                $values,
+                static fn (string $value): bool => $value !== ''
+            ));
+            $rawParameters[$name] = $nonEmptyValues;
+        }
+
+        $token = $rawParameters['token'][0] ?? $token;
+        $token_type_hint = $rawParameters['token_type_hint'][0] ?? $token_type_hint;
+        $bodyClientId = $rawParameters['client_id'][0] ?? null;
+        $bodyClientSecret = $rawParameters['client_secret'][0] ?? null;
+        $basicAuthenticationAttempted = stripos(
+            trim($this->request->getHeader('Authorization')),
+            'Basic '
+        ) === 0;
+        if ($basicAuthenticationAttempted && ($bodyClientId !== null || $bodyClientSecret !== null)) {
+            return $this->jsonResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Use exactly one client authentication method.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
         // Log introspection attempt
         $this->logger->info('Token introspection attempt received', [
             'token_hint' => $token_type_hint,
@@ -125,16 +181,16 @@ class IntrospectionController extends ApiController
         ]);
 
         // Authenticate the client
-        $client = $this->authenticateClient();
+        $client = $this->authenticateClient($bodyClientId, $bodyClientSecret);
         if ($client === null) {
             $this->logger->warning('Token introspection failed: invalid client credentials', [
                 'remote_addr' => $this->request->getRemoteAddress(),
                 'attempted_client_id' => $this->request->getParam('client_id') ?? 'unknown'
             ]);
-            return new JSONResponse([
+            return $this->jsonResponse([
                 'error' => 'invalid_client',
                 'error_description' => 'Client authentication failed.'
-            ], Http::STATUS_UNAUTHORIZED);
+            ], Http::STATUS_UNAUTHORIZED, true);
         }
 
         $this->logger->info('Client authenticated for introspection', [
@@ -144,7 +200,7 @@ class IntrospectionController extends ApiController
 
         // Validate token parameter
         if (empty($token)) {
-            return new JSONResponse([
+            return $this->jsonResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Token parameter is required.'
             ], Http::STATUS_BAD_REQUEST);
@@ -157,9 +213,8 @@ class IntrospectionController extends ApiController
             // Token not found - return inactive
             $this->logger->info('Token not found during introspection', [
                 'client_id' => $client->getClientIdentifier(),
-                'token_prefix' => substr($token, 0, 8) . '...'
             ]);
-            return new JSONResponse(['active' => false]);
+            return $this->jsonResponse(['active' => false]);
         }
 
         // Check if token is expired.
@@ -180,14 +235,14 @@ class IntrospectionController extends ApiController
                 'token_expired_at' => $tokenExpiryTime,
                 'current_time' => $currentTime
             ]);
-            return new JSONResponse(['active' => false]);
+            return $this->jsonResponse(['active' => false]);
         }
 
         // Get user information
         $user = $this->userManager->get($accessToken->getUserId());
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             $this->logger->debug('User not found for token during introspection');
-            return new JSONResponse(['active' => false]);
+            return $this->jsonResponse(['active' => false]);
         }
 
         // Get client information
@@ -195,7 +250,7 @@ class IntrospectionController extends ApiController
             $tokenClient = $this->clientMapper->getByUid($accessToken->getClientId());
         } catch (\Exception $e) {
             $this->logger->debug('Client not found for token during introspection');
-            return new JSONResponse(['active' => false]);
+            return $this->jsonResponse(['active' => false]);
         }
 
         // Authorization check: Only allow introspection if the requesting client
@@ -257,13 +312,18 @@ class IntrospectionController extends ApiController
                 [
                     'requesting_client' => $requestingClientId,
                     'token_resource' => $tokenResource,
-                    'token_owner_client' => $tokenClient->getClientIdentifier(),
-                    'user_id' => $accessToken->getUserId()
+                    'token_owner_client' => $tokenClient->getClientIdentifier()
                 ]
             );
             // Return inactive per RFC 7662 Section 2.2 - don't reveal token exists
-            return new JSONResponse(['active' => false]);
+            return $this->jsonResponse(['active' => false]);
         }
+
+        // The exact bearer value has already been resolved from our token store.
+        // Read metadata only from that persisted JWT, never from an unchecked input.
+        $jwtClaims = $this->storedJwtClaims((string)$accessToken->getAccessToken());
+        $issuer = $this->request->getServerProtocol() . '://' . $this->request->getServerHost()
+            . $this->urlGenerator->getWebroot();
 
         // Build successful response
         $response = [
@@ -273,7 +333,9 @@ class IntrospectionController extends ApiController
             'username' => $user->getUID(),
             'token_type' => 'Bearer',
             'exp' => $tokenExpiryTime,
-            'iat' => $accessToken->getCreated(),
+            'iat' => $jwtClaims['iat'] ?? $accessToken->getRefreshed(),
+            'iss' => $jwtClaims['iss'] ?? $issuer,
+            'jti' => $jwtClaims['jti'] ?? hash('sha256', $token),
             'sub' => $accessToken->getUserId(),
             'aud' => !empty($tokenResource) ? $tokenResource : $tokenClient->getClientIdentifier()
         ];
@@ -281,15 +343,58 @@ class IntrospectionController extends ApiController
         $this->logger->info('Token introspection successful', [
             'requesting_client' => $client->getClientIdentifier(),
             'token_owner_client' => $tokenClient->getClientIdentifier(),
-            'user_id' => $accessToken->getUserId(),
             'scopes' => $accessToken->getScope(),
             'token_resource' => $tokenResource
         ]);
 
-        $jsonResponse = new JSONResponse($response);
+        $jsonResponse = $this->jsonResponse($response);
         $jsonResponse->addHeader('Access-Control-Allow-Origin', '*');
         $jsonResponse->addHeader('Access-Control-Allow-Methods', 'POST');
 
         return $jsonResponse;
+    }
+
+    /** @return array{iat?: int, iss?: string, jti?: string} */
+    private function storedJwtClaims(string $storedToken): array {
+        $parts = explode('.', $storedToken);
+        if (count($parts) !== 3) {
+            return [];
+        }
+        $payload = base64_decode(strtr($parts[1], '-_', '+/'), true);
+        if ($payload === false) {
+            return [];
+        }
+        $claims = json_decode($payload, true);
+        if (!is_array($claims)) {
+            return [];
+        }
+        $metadata = [];
+        if (isset($claims['iat']) && is_int($claims['iat'])) {
+            $metadata['iat'] = $claims['iat'];
+        }
+        foreach (['iss', 'jti'] as $name) {
+            if (isset($claims[$name]) && is_string($claims[$name]) && $claims[$name] !== '') {
+                $metadata[$name] = $claims[$name];
+            }
+        }
+        return $metadata;
+    }
+
+    /** @param array<string, mixed> $data */
+    private function jsonResponse(
+        array $data,
+        int $status = Http::STATUS_OK,
+        bool $basicChallenge = false
+    ): JSONResponse {
+        $response = new JSONResponse($data, $status);
+        if (($data['error'] ?? null) === 'invalid_client') {
+            $response->throttle();
+        }
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        if ($basicChallenge) {
+            $response->addHeader('WWW-Authenticate', 'Basic realm="introspection"');
+        }
+        return $response;
     }
 }

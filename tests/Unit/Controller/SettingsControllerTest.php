@@ -756,6 +756,9 @@ class SettingsControllerTest extends TestCase {
     public function testAddRedirectUriBadRedirectUri() {
         $id = '11';
         $redirectUri = 'bad-uri';
+        $client = new Client();
+        $client->setId(11);
+        $this->clientMapper->method('getByUid')->with(11)->willReturn($client);
 
         $result = $this->controller->addRedirectUri(
             $id,
@@ -763,6 +766,19 @@ class SettingsControllerTest extends TestCase {
         );
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
+    }
+
+    public function testDcrClientCannotAddWildcardRedirectUri(): void {
+        $client = new Client();
+        $client->setId(11);
+        $client->setDcr(true);
+        $this->clientMapper->method('getByUid')->with(11)->willReturn($client);
+        $this->redirectUriMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->addRedirectUri(11, 'https://client.example/callback/*');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertStringContainsString('Wildcards are not allowed', $result->getData()['message']);
     }
 
 

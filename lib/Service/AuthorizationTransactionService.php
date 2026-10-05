@@ -22,7 +22,7 @@ class AuthorizationTransactionService {
 
     /** @param array<string, mixed> $parameters */
     public function create(array $parameters, string $reason): string {
-        if (!in_array($reason, ['not_authenticated', 'prompt_login', 'max_age'], true)) {
+        if (!in_array($reason, ['not_authenticated', 'prompt_login', 'max_age', 'select_account', 'authorization_post'], true)) {
             throw new \InvalidArgumentException('Invalid authorization transaction reason.');
         }
         $payload = json_encode($parameters, JSON_THROW_ON_ERROR);
@@ -55,7 +55,7 @@ class AuthorizationTransactionService {
     }
 
     /** @return array{parameters:array<string, mixed>, reason:string}|null */
-    public function consume(string $id): ?array {
+    public function consume(string $id, ?string $expectedReason = null): ?array {
         if (!preg_match('/\A[a-f0-9]{64}\z/D', $id)) {
             return null;
         }
@@ -66,6 +66,9 @@ class AuthorizationTransactionService {
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($hash)))
             ->andWhere($qb->expr()->isNull('consumed_at'))
             ->andWhere($qb->expr()->gt('expires_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT)));
+        if ($expectedReason !== null) {
+            $qb->andWhere($qb->expr()->eq('reason', $qb->createNamedParameter($expectedReason)));
+        }
         $result = $qb->executeQuery();
         try {
             $row = $result->fetch();
@@ -93,7 +96,7 @@ class AuthorizationTransactionService {
         } catch (\JsonException) {
             return null;
         }
-        if (!is_array($parameters) || !in_array($row['reason'], ['not_authenticated', 'prompt_login', 'max_age'], true)) {
+        if (!is_array($parameters) || !in_array($row['reason'], ['not_authenticated', 'prompt_login', 'max_age', 'select_account', 'authorization_post'], true)) {
             return null;
         }
         return ['parameters' => $parameters, 'reason' => $row['reason']];

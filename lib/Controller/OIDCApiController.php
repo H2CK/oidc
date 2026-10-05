@@ -23,6 +23,8 @@ use OCA\OIDCIdentityProvider\Db\DeviceCode;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\RedirectUriMapper;
+use OCA\OIDCIdentityProvider\Db\RefreshToken;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
@@ -59,6 +61,8 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
 class OIDCApiController extends ApiController {
+    /** Reject concurrent duplicates without revoking the successful request's grant. */
+    private const REFRESH_REPLAY_GRACE_SECONDS = 5;
     private const DEVICE_CODE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:device_code';
     private const TOKEN_EXCHANGE_GRANT_TYPE = 'urn:ietf:params:oauth:grant-type:token-exchange';
     private const TOKEN_TYPE_ACCESS_TOKEN = 'urn:ietf:params:oauth:token-type:access_token';
@@ -110,6 +114,8 @@ class OIDCApiController extends ApiController {
     private $deviceCodeMapper;
     /** @var RedirectUriMapper|null */
     private $redirectUriMapper;
+    /** @var RefreshTokenMapper */
+    private $refreshTokenMapper;
 
     /**
      * @param string $appName
@@ -137,6 +143,7 @@ class OIDCApiController extends ApiController {
      * @param DeviceCodeMapper $deviceCodeMapper
      * @param ScopeCeilingService|null $scopeCeiling
      * @param ClientAuthorizationService|null $clientAuthorizationService
+     * @param RefreshTokenMapper|null $refreshTokenMapper
      */
     public function __construct(
                     string $appName,
@@ -165,6 +172,7 @@ class OIDCApiController extends ApiController {
                     ?RedirectUriMapper $redirectUriMapper = null,
                     ?ScopeCeilingService $scopeCeiling = null,
                     ?ClientAuthorizationService $clientAuthorizationService = null,
+                    ?RefreshTokenMapper $refreshTokenMapper = null,
                     )
     {
         parent::__construct($appName, $request);
@@ -192,6 +200,7 @@ class OIDCApiController extends ApiController {
         $this->redirectUriMapper = $redirectUriMapper;
         $this->scopeCeiling = $scopeCeiling ?? Server::get(ScopeCeilingService::class);
         $this->clientAuthorizationService = $clientAuthorizationService ?? new ClientAuthorizationService($groupMapper, $groupManager);
+        $this->refreshTokenMapper = $refreshTokenMapper ?? Server::get(RefreshTokenMapper::class);
     }
 
     /**
@@ -226,6 +235,9 @@ class OIDCApiController extends ApiController {
         if ($basicAuthenticationAttempted) {
             $response->addHeader('WWW-Authenticate', 'Basic realm="token"');
         }
+
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
 
         return $response;
     }
@@ -299,10 +311,13 @@ class OIDCApiController extends ApiController {
     }
 
     private function invalidGrantResponse(string $description): JSONResponse {
-        return new JSONResponse([
+        $response = new JSONResponse([
             'error' => 'invalid_grant',
             'error_description' => $description,
         ], Http::STATUS_BAD_REQUEST);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        return $response;
     }
 
     private function revokeAccessTokenForReusedAuthorizationCode(
@@ -340,7 +355,23 @@ class OIDCApiController extends ApiController {
     #[PublicPage]
     #[NoCSRFRequired]
     public function getToken(
-        $grant_type,
+        $grant_type = null, ?string $code = null, ?string $refresh_token = null,
+        ?string $client_id = null, ?string $client_secret = null, ?string $code_verifier = null,
+        ?string $device_code = null, ?string $scope = null, ?string $redirect_uri = null
+    ): JSONResponse {
+        $response = $this->getTokenResponse($grant_type, $code, $refresh_token, $client_id,
+            $client_secret, $code_verifier, $device_code, $scope, $redirect_uri);
+        $data = $response->getData();
+        if (($data['error'] ?? '') === 'invalid_client') {
+            $response->throttle();
+        }
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        return $response;
+    }
+
+    private function getTokenResponse(
+        $grant_type = null,
         string|null $code = null,
         string|null $refresh_token = null,
         string|null $client_id = null,
@@ -360,15 +391,6 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        // A client must use exactly one authentication method. In particular,
-        // client_secret_basic cannot be combined with credentials in the body.
-        if ($this->hasBasicAuthorizationHeader() && ($client_id !== null || $client_secret !== null)) {
-            return new JSONResponse([
-                'error' => 'invalid_request',
-                'error_description' => 'Use exactly one client authentication method.',
-            ], Http::STATUS_BAD_REQUEST);
-        }
-
         // PHP/Nextcloud's parsed parameter map collapses repeated form fields.
         // Check the raw form body first so duplicates cannot change grant
         // dispatch or make a malformed request appear valid.
@@ -376,18 +398,45 @@ class OIDCApiController extends ApiController {
             'grant_type', 'code', 'redirect_uri', 'refresh_token', 'client_id',
             'client_secret', 'code_verifier', 'scope', 'device_code',
         ]);
-        if ($requestParameters !== null) {
-            foreach ($requestParameters as $name => $values) {
-                if (count($values) > 1) {
-                    return new JSONResponse([
-                        'error' => 'invalid_request',
-                        'error_description' => 'Parameter ' . $name . ' must not occur more than once.',
-                    ], Http::STATUS_BAD_REQUEST);
-                }
+        if ($requestParameters === null) {
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Unable to read the token request body.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        foreach ($requestParameters as $name => $values) {
+            if (count($values) > 1) {
+                return new JSONResponse([
+                    'error' => 'invalid_request',
+                    'error_description' => 'Parameter ' . $name . ' must not occur more than once.',
+                ], Http::STATUS_BAD_REQUEST);
             }
         }
+        $requestParameters = $this->omitEmptyFormParameterValues($requestParameters);
 
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, '0');
+        // Use the raw, duplicate-safe body as the authoritative source. The
+        // controller arguments remain as a fallback for direct unit calls.
+        $grant_type = $requestParameters['grant_type'][0] ?? $grant_type;
+        $code = $requestParameters['code'][0] ?? $code;
+        $redirect_uri = $requestParameters['redirect_uri'][0] ?? $redirect_uri;
+        $refresh_token = $requestParameters['refresh_token'][0] ?? $refresh_token;
+        $client_id = $requestParameters['client_id'][0] ?? $client_id;
+        $client_secret = $requestParameters['client_secret'][0] ?? $client_secret;
+        $code_verifier = $requestParameters['code_verifier'][0] ?? $code_verifier;
+        $scope = $requestParameters['scope'][0] ?? $scope;
+        $device_code = $requestParameters['device_code'][0] ?? $device_code;
+
+        // A client must use exactly one authentication method. In particular,
+        // client_secret_basic cannot be combined with credentials in the body.
+        if ($this->hasBasicAuthorizationHeader()
+            && ($requestParameters['client_id'] !== [] || $requestParameters['client_secret'] !== [])) {
+            return new JSONResponse([
+                'error' => 'invalid_request',
+                'error_description' => 'Use exactly one client authentication method.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         // Handle token exchange (RFC 8693). If Nextcloud/PHP collapsed a repeated
         // grant_type to a non-token-exchange value, inspect the raw form body before
@@ -434,6 +483,11 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        $basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
+        if ($basicAuthenticationAttempted
+            && $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+            return $this->invalidClientResponse('client_secret_basic is disabled.', true);
+        }
         if (!isset($client_id)) {
             $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
             $credentials = $this->getBasicClientCredentials();
@@ -444,39 +498,49 @@ class OIDCApiController extends ApiController {
 
         if ($client_id === null || trim($client_id) === '') {
             $this->logger->info('Missing client_id in token request.');
-            return $this->invalidClientResponse('Missing client_id.', $this->hasBasicAuthorizationHeader());
+            return $this->invalidClientResponse('Missing client_id.', $basicAuthenticationAttempted);
         }
 
         try {
             $client = $this->clientMapper->getByIdentifier($client_id);
         } catch (ClientNotFoundException $e) {
             $this->logger->info('Client not found. Client id was ' . $client_id . '.');
-            return $this->invalidClientResponse('Client not found.', $this->hasBasicAuthorizationHeader());
+            return $this->invalidClientResponse('Client not found.', $basicAuthenticationAttempted);
         }
         if ($client === null) {
             $this->logger->info('Client not found. Client id was ' . $client_id . '.');
-            return $this->invalidClientResponse('Client not found.', $this->hasBasicAuthorizationHeader());
+            return $this->invalidClientResponse('Client not found.', $basicAuthenticationAttempted);
         }
 
-        if ($client->getType() !== 'public' && (!is_string($client_secret) || !hash_equals($client->getSecret(), $client_secret))) {
+        $registeredAuthMethod = $client->getTokenEndpointAuthMethod();
+        if ($registeredAuthMethod === null && $client->getType() === 'public') {
+            // Clients created before token_endpoint_auth_method was persisted
+            // still need the public-client rule: they authenticate with their
+            // identifier only and must never be upgraded by sending a secret.
+            $registeredAuthMethod = 'none';
+        }
+        if ($registeredAuthMethod === 'client_secret_basic' && !$basicAuthenticationAttempted) {
+            return $this->invalidClientResponse('This client must use client_secret_basic.');
+        }
+        if ($registeredAuthMethod === 'client_secret_post' && $basicAuthenticationAttempted) {
+            return $this->invalidClientResponse('This client must use client_secret_post.', true);
+        }
+        if ($registeredAuthMethod === 'none'
+            && ($basicAuthenticationAttempted || $client_secret !== null)) {
+            return $this->invalidClientResponse('Public clients must not send a client secret.', $basicAuthenticationAttempted);
+        }
+
+        if ($registeredAuthMethod !== 'none'
+            && $client->getType() !== 'public'
+            && (!is_string($client_secret) || !hash_equals($client->getSecret(), $client_secret))) {
             $this->logger->error('Client authentication failed. Client id was ' . $client_id . '.');
-            return $this->invalidClientResponse('Client authentication failed.', $this->hasBasicAuthorizationHeader());
+            return $this->invalidClientResponse('Client authentication failed.', $basicAuthenticationAttempted);
         }
 
-        if ($redirect_uri !== null && $this->redirectUriMapper !== null) {
-            $redirectUriMatches = false;
-            foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $registeredRedirectUri) {
-                if ($registeredRedirectUri->getRedirectUri() === $redirect_uri) {
-                    $redirectUriMatches = true;
-                    break;
-                }
-            }
-            if (!$redirectUriMatches) {
-                return $this->invalidGrantResponse('Redirect URI does not match the authorization request.');
-            }
-        }
-
-        // We handle the initial and refresh tokens the same way
+        // Authorization codes and refresh tokens are different credential
+        // classes. Never resolve both through AccessToken.hashed_code: doing so
+        // lets an intercepted code bypass PKCE by presenting it as a refresh
+        // token.
         if ($grant_type === 'refresh_token') {
             $code = $refresh_token;
         }
@@ -490,24 +554,71 @@ class OIDCApiController extends ApiController {
         }
 
         $authorizationCode = null;
+        $refreshTokenRecord = null;
+        $legacyRefreshToken = false;
         if ($grant_type === 'authorization_code') {
             $authorizationCode = $this->authorizationCodeMapper->findByCode($code);
-            if ($authorizationCode !== null && $authorizationCode->getUsedAt() > 0) {
+            if ($authorizationCode === null) {
+                return $this->invalidGrantResponse('Authorization code is not valid.');
+            }
+            if ($authorizationCode->getUsedAt() > 0) {
                 return $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
             }
-        }
 
-        try {
-            $accessToken = $this->accessTokenMapper->getByCode($code);
-        } catch (AccessTokenNotFoundException $e) {
-            if ($authorizationCode !== null) {
-                $authorizationCode = $this->authorizationCodeMapper->findByCode($code);
-                if ($authorizationCode !== null && $authorizationCode->getUsedAt() > 0) {
-                    return $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
+            try {
+                $accessToken = $this->accessTokenMapper->getById($authorizationCode->getAccessTokenId());
+            } catch (AccessTokenNotFoundException $e) {
+                return $this->invalidGrantResponse('Authorization code is not valid.');
+            }
+
+            $boundRedirectUri = $authorizationCode->getRedirectUri();
+            if (!is_string($boundRedirectUri)
+                || $redirect_uri === null
+                || !hash_equals($boundRedirectUri, $redirect_uri)) {
+                return $this->invalidGrantResponse('Redirect URI does not match the authorization request.');
+            }
+        } else {
+            $refreshTokenRecord = $this->refreshTokenMapper->findByToken($code);
+
+            if ($refreshTokenRecord !== null) {
+                if ($refreshTokenRecord->getUsedAt() > 0) {
+                    try {
+                        $replayedAccessToken = $this->accessTokenMapper->getById($refreshTokenRecord->getAccessTokenId());
+                        if ($replayedAccessToken->getClientId() === $client->getId()
+                            && $this->shouldRevokeReplayedRefresh($refreshTokenRecord)) {
+                            $response = $this->revokeReplayedRefreshFamily($replayedAccessToken);
+                            if ($response !== null) {
+                                return $response;
+                            }
+                        }
+                    } catch (AccessTokenNotFoundException $e) {
+                        // The token family was already revoked.
+                    }
+                    return $this->invalidGrantResponse('Refresh token has already been used.');
+                }
+                try {
+                    $accessToken = $this->accessTokenMapper->getById($refreshTokenRecord->getAccessTokenId());
+                } catch (AccessTokenNotFoundException $e) {
+                    return $this->invalidGrantResponse('Refresh token is not valid.');
+                }
+            } else {
+                // Compatibility path for refresh tokens issued before the
+                // refresh-token table migration. An authorization-code record
+                // with the same credential always wins and is rejected here.
+                if ($this->authorizationCodeMapper->findByCode($code) !== null) {
+                    return $this->invalidGrantResponse('Refresh token is not valid.');
+                }
+                try {
+                    $accessToken = $this->accessTokenMapper->getByCode($code);
+                    if (!$accessToken->getLegacyRefreshToken()) {
+                        return $this->invalidGrantResponse('Refresh token is not valid.');
+                    }
+                    $legacyRefreshToken = true;
+                } catch (AccessTokenNotFoundException $e) {
+                    $this->logger->info('Could not find refresh token for client id ' . $client_id . '.');
+                    return $this->invalidGrantResponse('Refresh token is not valid.');
                 }
             }
-            $this->logger->info('Could not find access token for code or refresh_token for client id ' . $client_id . '.');
-            return $this->invalidGrantResponse('Could not find access token for code or refresh_token.');
         }
 
         if ($accessToken->getClientId() !== $client->getId()) {
@@ -525,15 +636,6 @@ class OIDCApiController extends ApiController {
                 ], Http::STATUS_BAD_REQUEST);
             }
             $accessToken->setScope(implode(' ', array_values(array_unique($requestedScopes))));
-        }
-
-        if (
-            $grant_type === 'authorization_code'
-            && $authorizationCode !== null
-            && $authorizationCode->getAccessTokenId() !== $accessToken->getId()
-        ) {
-            $this->logger->warning('Authorization code state does not match access token row for client id ' . $client_id . '.');
-            return $this->invalidGrantResponse('Authorization code is not valid.');
         }
 
         // The client must not be expired
@@ -563,7 +665,7 @@ class OIDCApiController extends ApiController {
                     return $this->invalidGrantResponse('code_verifier required for PKCE flow.');
                 }
 
-                $storedCodeChallengeMethod = $accessToken->getCodeChallengeMethod() ?: 'S256';
+                $storedCodeChallengeMethod = $accessToken->getCodeChallengeMethod() ?: 'plain';
                 if (!$this->verifyPkce($code_verifier, $storedCodeChallenge, $storedCodeChallengeMethod)) {
                     $this->accessTokenMapper->delete($accessToken);
                     $this->logger->info('PKCE verification failed. Client id: ' . $client_id);
@@ -579,7 +681,10 @@ class OIDCApiController extends ApiController {
         } elseif ($refreshExpireTime !== 'never') {
             // The refresh token must not be expired
             $refreshExpireTime = (int)$refreshExpireTime;
-            if ($this->time->getTime() >= $accessToken->getRefreshed() + $refreshExpireTime) {
+            $refreshTokenCreated = $refreshTokenRecord instanceof RefreshToken
+                ? $refreshTokenRecord->getCreated()
+                : $accessToken->getRefreshed();
+            if ($this->time->getTime() >= $refreshTokenCreated + $refreshExpireTime) {
                 $this->accessTokenMapper->delete($accessToken);
                 $this->logger->info('Refresh token is expired. Client id: ' . $client_id . '.');
                 return $this->invalidGrantResponse('Refresh token is expired.');
@@ -588,6 +693,10 @@ class OIDCApiController extends ApiController {
 
         $uid = $accessToken->getUserId();
         $user = $this->userManager->get($uid);
+        if ($user === null || !$user->isEnabled()) {
+            $this->accessTokenMapper->delete($accessToken);
+            return $this->invalidGrantResponse('The resource owner is no longer available.');
+        }
         $groups = $this->groupManager->getUserGroups($user);
         // No need to read account: $account = $this->accountManager->getAccount($user);
 
@@ -610,19 +719,18 @@ class OIDCApiController extends ApiController {
             return $this->invalidGrantResponse('Access token not allowed for user groups.');
         }
 
-        if ($grant_type === 'refresh_token') {
+        if ($grant_type === 'refresh_token' && !$accessToken->getEventGenerated()) {
             $userConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
-            if ($userConsent === null) {
+            if ($userConsent === null || ($userConsent->getExpiresAt() !== null
+                && $this->time->getTime() >= $userConsent->getExpiresAt())) {
                 $this->accessTokenMapper->delete($accessToken);
                 $this->logger->info('Consent revoked or missing for refresh token grant. Client id was ' . $client_id . '.');
                 return $this->invalidGrantResponse('Consent has been revoked.');
             }
-        }
-
-        if ($grant_type === 'authorization_code' && $authorizationCode !== null) {
-            if (!$this->authorizationCodeMapper->markUsed($authorizationCode, $this->time->getTime())) {
-                return $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
-            }
+            $accessToken->setScope(implode(' ', array_values(array_intersect(
+                preg_split('/ +/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+                preg_split('/ +/', trim($userConsent->getScopesGranted()), -1, PREG_SPLIT_NO_EMPTY) ?: []
+            ))));
         }
 
         if ($grant_type === 'refresh_token') {
@@ -639,8 +747,8 @@ class OIDCApiController extends ApiController {
         }
 
         $newCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
-        $accessToken->setHashedCode(hash('sha512', $newCode));
         $now = $this->time->getTime();
+        $accessToken->setHashedCode(hash('sha512', $newCode));
         $accessToken->setRefreshed($now);
         $accessToken->setExpiresAt($now + $expireTime);
 
@@ -653,9 +761,12 @@ class OIDCApiController extends ApiController {
                 'error_description' => 'An error occured during creation of JWT.',
             ], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
-        $this->accessTokenMapper->update($accessToken);
-
-        $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client, $this->request->getServerProtocol(), $this->request->getServerHost(), false, false);
+        try {
+            $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client,
+                $this->request->getServerProtocol(), $this->request->getServerHost(), false, false);
+        } catch (JwtCreationErrorException $e) {
+            return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
 
         $this->logger->info('Returned token for user ' . $uid);
 
@@ -678,15 +789,71 @@ class OIDCApiController extends ApiController {
         $scopeArray = preg_split('/ +/', trim($accessToken->getScope()));
         $hasOfflineAccess = in_array('offline_access', $scopeArray);
 
-        if ($provideRefreshTokenAlways || $hasOfflineAccess) {
-            $responseData['refresh_token'] = $newCode;
-            if ($refreshExpireTime !== 'never') {
-                $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+        $transactionStarted = false;
+        try {
+            $this->accessTokenMapper->beginTokenExchangeTransaction();
+            $transactionStarted = true;
+            $this->accessTokenMapper->lockTokenExchangeSubject($accessToken->getId());
+            if ($grant_type === 'authorization_code' && $authorizationCode !== null) {
+                if (!$this->authorizationCodeMapper->markUsed($authorizationCode, $this->time->getTime())) {
+                    $response = $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
+                    $this->accessTokenMapper->commitTokenExchangeTransaction();
+                    return $response;
+                }
             }
-            $reason = $provideRefreshTokenAlways ? 'always_provide=true' : 'offline_access granted';
-            $this->logger->info('Issued refresh token - User: ' . $uid . ', Client: ' . $client_id . ', Reason: ' . $reason);
-        } else {
-            $this->logger->info('Denied refresh token - missing offline_access scope - User: ' . $uid . ', Client: ' . $client_id);
+
+            if ($grant_type === 'refresh_token') {
+                $refreshConsumed = false;
+                if ($refreshTokenRecord instanceof RefreshToken) {
+                    $refreshConsumed = $this->refreshTokenMapper->markUsed($refreshTokenRecord, $this->time->getTime());
+                } elseif ($legacyRefreshToken) {
+                    $refreshConsumed = $this->accessTokenMapper->rotateLegacyRefreshToken(
+                        $accessToken->getId(),
+                        $code,
+                        $newCode
+                    );
+                }
+
+                if (!$refreshConsumed) {
+                    // Another request may have rotated while this request waited
+                    // for the family lock. Re-read the committed use timestamp.
+                    $usedRecord = $this->refreshTokenMapper->findByToken($code);
+                    if ($usedRecord !== null && $this->shouldRevokeReplayedRefresh($usedRecord)) {
+                        $this->accessTokenMapper->delete($accessToken);
+                    }
+                    $this->accessTokenMapper->commitTokenExchangeTransaction();
+                    return $this->invalidGrantResponse('Refresh token has already been used.');
+                }
+                // Once a legacy credential has been consumed, the replacement is
+                // represented by the dedicated refresh-token table.
+                $accessToken->setLegacyRefreshToken(false);
+            }
+
+            $this->accessTokenMapper->update($accessToken);
+            if ($provideRefreshTokenAlways || $hasOfflineAccess || $accessToken->getEventGenerated()) {
+                $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $newCode, $now);
+                $responseData['refresh_token'] = $newCode;
+                if ($refreshExpireTime !== 'never') {
+                    $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+                }
+                $reason = $accessToken->getEventGenerated() ? 'trusted event grant'
+                    : ($provideRefreshTokenAlways ? 'always_provide=true' : 'offline_access granted');
+                $this->logger->info('Issued refresh token - User: ' . $uid . ', Client: ' . $client_id . ', Reason: ' . $reason);
+            } else {
+                $this->logger->info('Denied refresh token - missing offline_access scope - User: ' . $uid . ', Client: ' . $client_id);
+            }
+            $this->accessTokenMapper->commitTokenExchangeTransaction();
+        } catch (AccessTokenNotFoundException $e) {
+            if ($transactionStarted) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+            return $this->invalidGrantResponse('Grant is no longer valid.');
+        } catch (\Throwable $e) {
+            if ($transactionStarted) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+            $this->logger->error('Could not persist token issuance.', ['exception' => $e]);
+            return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
         $response = new JSONResponse($responseData);
         $response->addHeader('Cache-Control', 'no-store');
@@ -694,6 +861,166 @@ class OIDCApiController extends ApiController {
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET, POST');
 
+        return $response;
+    }
+
+    /**
+     * RFC 7009: revoke access/refresh tokens and their derived token family.
+     * @NoTwoFactorRequired
+     */
+    #[BruteForceProtection(action: 'oidc_revocation')]
+    #[PublicPage]
+    #[NoCSRFRequired]
+    public function revokeToken(): Response {
+        if (!$this->isFormUrlencodedRequest()) {
+            return $this->revocationError('invalid_request', 'Revocation requests must use application/x-www-form-urlencoded.');
+        }
+        $parameters = $this->formUrlencodedParameterParser->readSelectedParameters([
+            'token', 'token_type_hint', 'client_id', 'client_secret',
+        ]);
+        if ($parameters === null) {
+            return $this->revocationError('invalid_request', 'Unable to read the revocation request body.');
+        }
+        foreach ($parameters as $name => $values) {
+            if (count($values) > 1) {
+                return $this->revocationError('invalid_request', 'Parameter ' . $name . ' must not occur more than once.');
+            }
+        }
+        $parameters = $this->omitEmptyFormParameterValues($parameters);
+        $token = $parameters['token'][0] ?? null;
+        $clientId = $parameters['client_id'][0] ?? null;
+        $clientSecret = $parameters['client_secret'][0] ?? null;
+        $basic = $this->hasBasicAuthorizationHeader();
+        if ($basic && ($clientId !== null || $clientSecret !== null)) {
+            return $this->revocationError('invalid_request', 'Use exactly one client authentication method.');
+        }
+        if ($basic) {
+            if ($this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+                return $this->revocationError('invalid_client', 'client_secret_basic is disabled.', true);
+            }
+            $credentials = $this->getBasicClientCredentials();
+            if ($credentials === null) {
+                return $this->revocationError('invalid_client', 'Client authentication failed.', true);
+            }
+            [$clientId, $clientSecret] = $credentials;
+        }
+        if ($clientId === null) {
+            return $this->revocationError('invalid_client', 'Client authentication failed.', $basic);
+        }
+        try {
+            $client = $this->clientMapper->getByIdentifier($clientId);
+        } catch (ClientNotFoundException $e) {
+            return $this->revocationError('invalid_client', 'Client authentication failed.', $basic);
+        }
+        if ($client === null) {
+            return $this->revocationError('invalid_client', 'Client authentication failed.', $basic);
+        }
+        $method = $client->getTokenEndpointAuthMethod();
+        if ($client->getType() === 'public') {
+            $method = 'none';
+        }
+        if (($method === 'client_secret_basic' && !$basic)
+            || ($method === 'client_secret_post' && $basic)
+            || ($method === 'none' && ($basic || $clientSecret !== null))
+            || ($method !== 'none' && (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret)))) {
+            return $this->revocationError('invalid_client', 'Client authentication failed.', $basic);
+        }
+        if ($token === null) {
+            return $this->revocationError('invalid_request', 'Token parameter is required.');
+        }
+
+        // token_type_hint is only a hint: search both supported token types,
+        // and ignore unknown hints, as required by RFC 7009 section 2.1.
+        $accessToken = null;
+        try {
+            $accessToken = $this->accessTokenMapper->getByAccessToken($token);
+        } catch (AccessTokenNotFoundException $e) {
+            $refresh = $this->refreshTokenMapper->findByToken($token);
+            try {
+                if ($refresh !== null) {
+                    $accessToken = $this->accessTokenMapper->getById($refresh->getAccessTokenId());
+                } elseif ($this->authorizationCodeMapper->findByCode($token) === null) {
+                    $legacy = $this->accessTokenMapper->getByCode($token);
+                    if ($legacy->getLegacyRefreshToken()) {
+                        $accessToken = $legacy;
+                    }
+                }
+            } catch (AccessTokenNotFoundException $e) {
+                // Unknown, expired or already revoked tokens still return 200.
+            }
+        }
+        if ($accessToken !== null && $accessToken->getClientId() !== $client->getId()) {
+            return $this->revocationError('invalid_grant', 'The token was not issued to this client.');
+        }
+        if ($accessToken !== null) {
+            $transactionStarted = false;
+            try {
+                $this->accessTokenMapper->beginTokenExchangeTransaction();
+                $transactionStarted = true;
+                $locked = $this->accessTokenMapper->lockTokenExchangeSubject($accessToken->getId());
+                $this->accessTokenMapper->delete($locked);
+                $this->accessTokenMapper->commitTokenExchangeTransaction();
+            } catch (AccessTokenNotFoundException $e) {
+                if ($transactionStarted) {
+                    $this->rollBackTokenExchangeTransactionSafely();
+                }
+            } catch (\Throwable $e) {
+                if ($transactionStarted) {
+                    $this->rollBackTokenExchangeTransactionSafely();
+                }
+                $this->logger->error('Could not revoke token family.', ['exception' => $e]);
+                return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+            }
+        }
+        $response = new Response();
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        $response->addHeader('Access-Control-Allow-Origin', '*');
+        return $response;
+    }
+
+    private function shouldRevokeReplayedRefresh(RefreshToken $record): bool {
+        $graceSeconds = max(0, min(self::REFRESH_REPLAY_GRACE_SECONDS, (int)$this->appConfig->getAppValueString(
+            Application::APP_CONFIG_REFRESH_REPLAY_GRACE_SECONDS,
+            Application::DEFAULT_REFRESH_REPLAY_GRACE_SECONDS
+        )));
+        return $record->getUsedAt() > 0 && ($graceSeconds === 0
+            || $this->time->getTime() - $record->getUsedAt() > $graceSeconds);
+    }
+
+    private function revokeReplayedRefreshFamily(AccessToken $token): ?JSONResponse {
+        $transactionStarted = false;
+        try {
+            $this->accessTokenMapper->beginTokenExchangeTransaction();
+            $transactionStarted = true;
+            $locked = $this->accessTokenMapper->lockTokenExchangeSubject($token->getId());
+            $this->accessTokenMapper->delete($locked);
+            $this->accessTokenMapper->commitTokenExchangeTransaction();
+        } catch (AccessTokenNotFoundException $e) {
+            if ($transactionStarted) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+        } catch (\Throwable $e) {
+            if ($transactionStarted) {
+                $this->rollBackTokenExchangeTransactionSafely();
+            }
+            $this->logger->error('Could not revoke replayed refresh-token family.', ['exception' => $e]);
+            return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+        }
+        return null;
+    }
+
+    private function revocationError(string $error, string $description, bool $basic = false): JSONResponse {
+        $response = new JSONResponse(['error' => $error, 'error_description' => $description],
+            $error === 'invalid_client' && $basic ? Http::STATUS_UNAUTHORIZED : Http::STATUS_BAD_REQUEST);
+        if ($error === 'invalid_client') {
+            $response->throttle();
+        }
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        if ($basic && $error === 'invalid_client') {
+            $response->addHeader('WWW-Authenticate', 'Basic realm="revocation"');
+        }
         return $response;
     }
 
@@ -732,6 +1059,10 @@ class OIDCApiController extends ApiController {
             return $this->deviceGrantError('invalid_request', 'Missing device_code.');
         }
         $basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
+        if ($basicAuthenticationAttempted
+            && $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+            return $this->invalidClientResponse('client_secret_basic is disabled.', true);
+        }
         if ($basicAuthenticationAttempted && ($clientId !== null || $clientSecret !== null)) {
             return $this->deviceGrantError('invalid_request', 'Use exactly one client authentication method.');
         }
@@ -753,6 +1084,18 @@ class OIDCApiController extends ApiController {
         }
         if ($client === null) {
             return $this->invalidClientResponse('Client not found.', $basicAuthenticationAttempted);
+        }
+        $registeredAuthMethod = $client->getTokenEndpointAuthMethod();
+        if ($registeredAuthMethod === null && $client->getType() === 'public') {
+            $registeredAuthMethod = 'none';
+        }
+        if (($registeredAuthMethod === 'client_secret_basic' && !$basicAuthenticationAttempted)
+            || ($registeredAuthMethod === 'client_secret_post' && $basicAuthenticationAttempted)) {
+            return $this->invalidClientResponse('Client authentication method does not match its registration.', $basicAuthenticationAttempted);
+        }
+        if ($registeredAuthMethod === 'none'
+            && ($basicAuthenticationAttempted || $clientSecret !== null)) {
+            return $this->invalidClientResponse('Public clients must not send a client secret.', $basicAuthenticationAttempted);
         }
         if ($client->getType() !== 'public' && (!is_string($clientSecret) || !hash_equals($client->getSecret(), $clientSecret))) {
             return $this->invalidClientResponse('Client authentication failed.', $basicAuthenticationAttempted);
@@ -784,7 +1127,7 @@ class OIDCApiController extends ApiController {
         }
 
         $user = $this->userManager->get($authorization->getUserId());
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
         }
         if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
@@ -857,6 +1200,7 @@ class OIDCApiController extends ApiController {
             Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
         ) === 'true';
         if ($provideRefreshTokenAlways || in_array('offline_access', $scopeArray, true)) {
+            $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $refreshCode, $now);
             $responseData['refresh_token'] = $refreshCode;
             if ($refreshExpireTime !== 'never') {
                 $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
@@ -1030,6 +1374,10 @@ class OIDCApiController extends ApiController {
             ], Http::STATUS_BAD_REQUEST);
         }
         $basicAuthenticationAttempted = $this->hasBasicAuthorizationHeader();
+        if ($basicAuthenticationAttempted
+            && $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
+            return $this->invalidClientResponse('client_secret_basic is disabled.', true);
+        }
         if ($basicAuthenticationAttempted && ($bodyClientId !== null || $bodyClientSecret !== null)) {
             return new JSONResponse([
                 'error' => 'invalid_request',
@@ -1064,6 +1412,13 @@ class OIDCApiController extends ApiController {
         if ($client === null) {
             $this->logger->info('Client not found in Token Exchange. Client id was ' . $client_id . '.');
             return $this->invalidClientResponse('Client not found.', $basicAuthenticationAttempted);
+        }
+
+        $registeredAuthMethod = $client->getTokenEndpointAuthMethod();
+        if (($registeredAuthMethod === 'client_secret_basic' && !$basicAuthenticationAttempted)
+            || ($registeredAuthMethod === 'client_secret_post' && $basicAuthenticationAttempted)
+            || $registeredAuthMethod === 'none') {
+            return $this->invalidClientResponse('Client authentication method does not match its registration.', $basicAuthenticationAttempted);
         }
 
         if ($client->getType() === 'public') {
@@ -1257,7 +1612,7 @@ class OIDCApiController extends ApiController {
 
         $uid = $subjectTokenAccessToken->getUserId();
         $user = $this->userManager->get($uid);
-        if ($user === null) {
+        if ($user === null || !$user->isEnabled()) {
             $this->logger->info('Subject token references a user that no longer exists. Client id: ' . $client_id);
             return new JSONResponse([
                 'error' => 'invalid_request',
@@ -1358,7 +1713,7 @@ class OIDCApiController extends ApiController {
             $exchangeExpireTime = min($expireTime, $subjectExpiresAt - $now);
 
             // A token exchange creates a new, independently stored token. Insert first
-            // so JWT generation sees a stable database ID (jti) and creation time.
+            // so JWT generation sees a stable database row and creation time.
             $newAccessToken = new AccessToken();
             $newAccessToken->setClientId($client->getId());
             $newAccessToken->setParentTokenId($subjectTokenId);

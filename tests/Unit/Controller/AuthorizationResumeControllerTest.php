@@ -87,4 +87,21 @@ class AuthorizationResumeControllerTest extends TestCase {
         $this->assertSame($continueUrl, $handoff->getParams()['continueUrl']);
         $this->assertSame($expected, $this->controller->complete($id));
     }
+
+    public function testPostContinuationIsPublicAndDoesNotClaimFreshAuthentication(): void {
+        $id = str_repeat('b', 64);
+        $parameters = ['client_id' => 'client', 'prompt' => 'login', 'scope' => 'openid Files:Read'];
+        $this->transactions->expects($this->once())->method('consume')->with($id, 'authorization_post')
+            ->willReturn(['parameters' => $parameters, 'reason' => 'authorization_post']);
+        $response = new RedirectResponse('/login');
+        $this->authorizationService->expects($this->once())->method('process')->with($parameters)->willReturn($response);
+        $this->assertSame($response, $this->controller->completePost($id));
+        $this->assertSame('no-store', $response->getHeaders()['Cache-Control']);
+    }
+
+    public function testUnknownOrReplayedPostContinuationDoesNotReachAuthorization(): void {
+        $this->transactions->method('consume')->willReturn(null);
+        $this->authorizationService->expects($this->never())->method('process');
+        $this->assertSame(400, $this->controller->completePost('invalid')->getStatus());
+    }
 }

@@ -72,7 +72,7 @@ class DiscoveryGenerator
                 }
 
                 // Parse space-separated scopes
-                $scopesArr = explode(' ', strtolower($allowedScopes));
+                $scopesArr = preg_split('/\s+/', $allowedScopes, -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
                 // Add to aggregated list (array_merge will handle duplicates via array_unique later)
                 $aggregatedScopes = array_merge($aggregatedScopes, $scopesArr);
@@ -152,11 +152,12 @@ class DiscoveryGenerator
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
             'client_secret_basic',
+            'none',
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];
         if ($this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
-            $tokenEndpointAuthMethodsSupported = ['client_secret_post'];
+            $tokenEndpointAuthMethodsSupported = ['client_secret_post', 'none'];
         }
         $displayValuesSupported = [
             'page',
@@ -204,6 +205,9 @@ class DiscoveryGenerator
             'issuer' => $issuer,
             'authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.LoginRedirector.authorize', []),
             'device_authorization_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.DeviceAuthorization.authorize', []),
+            'revocation_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.OIDCApi.revokeToken', []),
+            'revocation_endpoint_auth_methods_supported' => $tokenEndpointAuthMethodsSupported,
+            'authorization_response_iss_parameter_supported' => true,
             'token_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.OIDCApi.getToken', []),
             'userinfo_endpoint' => $host . $this->urlGenerator->linkToRoute('oidc.UserInfo.getInfo', []),
             'jwks_uri' => $host . $this->urlGenerator->linkToRoute('oidc.Jwks.getKeyInfo', []),

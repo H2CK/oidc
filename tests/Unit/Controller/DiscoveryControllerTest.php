@@ -139,6 +139,7 @@ class DiscoveryControllerTest extends TestCase {
         $tokenEndpointAuthMethodsSupported = [
             'client_secret_post',
             'client_secret_basic',
+            'none',
             // 'client_secret_jwt',
             // 'private_key_jwt',
         ];

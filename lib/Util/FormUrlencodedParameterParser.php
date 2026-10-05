@@ -36,6 +36,44 @@ class FormUrlencodedParameterParser {
     }
 
     /**
+     * Parse selected parameters from the query component of a request URI.
+     * Repeated names are deliberately preserved instead of going through
+     * PHP's associative query parser.
+     *
+     * @param string $requestUri
+     * @param list<string> $parameterNames
+     * @return array<string, list<string>>
+     */
+    public function parseSelectedQueryParameters(string $requestUri, array $parameterNames): array {
+        $query = parse_url($requestUri, PHP_URL_QUERY);
+        if (!is_string($query)) {
+            $query = '';
+        }
+
+        return $this->parseSelectedParameters($query, $parameterNames);
+    }
+
+    /**
+     * Merge occurrence maps without collapsing repeated parameter names.
+     *
+     * @param array<string, list<string>> ...$parameterSets
+     * @return array<string, list<string>>
+     */
+    public function mergeParameterSets(array ...$parameterSets): array {
+        $result = [];
+        foreach ($parameterSets as $parameterSet) {
+            foreach ($parameterSet as $name => $values) {
+                if (!isset($result[$name])) {
+                    $result[$name] = [];
+                }
+                $result[$name] = array_merge($result[$name], $values);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Parse selected parameters from an application/x-www-form-urlencoded body
      * without collapsing repeated names.
      *

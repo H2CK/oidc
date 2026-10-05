@@ -30,6 +30,9 @@ use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\AccessToken;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCode;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
+use OCA\OIDCIdentityProvider\Db\RefreshToken;
+use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
 use OCA\OIDCIdentityProvider\Db\GroupMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
@@ -59,6 +62,8 @@ class OIDCApiControllerTest extends TestCase {
     protected $accessTokenMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|AuthorizationCodeMapper */
     protected $authorizationCodeMapper;
+    /** @var \PHPUnit\Framework\MockObject\MockObject|RefreshTokenMapper */
+    protected $refreshTokenMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|GroupMapper */
     protected $groupMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|UserConsentMapper */
@@ -74,6 +79,7 @@ class OIDCApiControllerTest extends TestCase {
     /** @var \PHPUnit\Framework\MockObject\MockObject|ClientAuthorizationService */
     protected $clientAuthorizationService;
     protected bool $clientAuthorizationAllowed = true;
+    protected string $refreshReplayGraceSeconds = '5';
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUserManager */
     protected $userManager;
     /** @var \PHPUnit\Framework\MockObject\MockObject|IGroupManager */
@@ -150,6 +156,7 @@ class OIDCApiControllerTest extends TestCase {
         $constructor->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
 
         $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
+        $this->refreshTokenMapper = $this->createMock(RefreshTokenMapper::class);
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $this->groupMapper = $this->createMock(GroupMapper::class);
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
@@ -188,7 +195,8 @@ class OIDCApiControllerTest extends TestCase {
             $this->texSubjectClientMapper,
             null,
             new ScopeCeilingService($this->groupScopeMapper, $this->groupManager, $this->userManager, $this->logger),
-            $this->clientAuthorizationService
+            $this->clientAuthorizationService,
+            $this->refreshTokenMapper
         );
 
         // Default configuration
@@ -199,6 +207,8 @@ class OIDCApiControllerTest extends TestCase {
                         return '900';
                     case Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME:
                         return '900';
+                    case Application::APP_CONFIG_REFRESH_REPLAY_GRACE_SECONDS:
+                        return $this->refreshReplayGraceSeconds;
                     default:
                         return $default;
                 }
@@ -389,6 +399,7 @@ class OIDCApiControllerTest extends TestCase {
         $client = $this->createDeviceClient();
         $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $this->time->method('getTime')->willReturn(1000);
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
@@ -431,6 +442,7 @@ class OIDCApiControllerTest extends TestCase {
         $client = $this->createDeviceClient();
         $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $this->time->method('getTime')->willReturn(1000);
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
         $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($authorization);
@@ -464,6 +476,7 @@ class OIDCApiControllerTest extends TestCase {
         $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
         $authorization->setScope('openid profile email offline_access notes.read notes.write');
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $ceiling = new GroupScope();
         $ceiling->setGroupId('readers');
         $ceiling->setScopes('offline_access notes.read');
@@ -479,7 +492,10 @@ class OIDCApiControllerTest extends TestCase {
         $this->secureRandom->method('generate')->willReturn('refresh-code');
         $this->jwtGenerator->method('generateAccessToken')->willReturn('access-token');
         $this->jwtGenerator->method('generateIdToken')->willReturn('id-token');
-        $this->accessTokenMapper->method('insert')->willReturnArgument(0);
+        $this->accessTokenMapper->method('insert')->willReturnCallback(function (AccessToken $accessToken): AccessToken {
+            $accessToken->id = 23;
+            return $accessToken;
+        });
 
         $response = $this->controller->getToken(
             'urn:ietf:params:oauth:grant-type:device_code',
@@ -516,6 +532,7 @@ class OIDCApiControllerTest extends TestCase {
         $this->texTargetMapper->method('getByClientId')->willReturn([$this->createTexTarget($resource)]);
         $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
         $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
         $user->method('getUID')->willReturn('user1');
         $this->userManager->method('get')->willReturn($user);
         $this->groupManager->method('getUserGroups')->willReturn([]);
@@ -962,6 +979,117 @@ class OIDCApiControllerTest extends TestCase {
 
     // ==================== Authorization Code Flow Tests ====================
 
+    public function testTokenEndpointRejectsRepeatedSingletonParameter(): void {
+        $this->tokenExchangeRawParameters = [
+            'grant_type' => ['authorization_code'],
+            'code' => ['first-code', 'second-code'],
+        ];
+        $this->clientMapper->expects($this->never())->method('getByIdentifier');
+
+        $response = $this->controller->getToken('authorization_code');
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_request', $response->getData()['error']);
+        $this->assertStringContainsString('code', $response->getData()['error_description']);
+    }
+
+    public function testAuthorizationCodeGrantRequiresDedicatedCodeRecord(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->authorizationCodeMapper->method('findByCode')->with('credential')->willReturn(null);
+        $this->accessTokenMapper->expects($this->never())->method('getByCode');
+
+        $response = $this->controller->getToken(
+            'authorization_code',
+            code: 'credential',
+            client_id: 'public-client',
+            redirect_uri: 'https://client.example/callback',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testAuthorizationCodeCannotBePresentedAsRefreshToken(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $authorizationCode = new AuthorizationCode();
+        $authorizationCode->setAccessTokenId(10);
+        $authorizationCode->setHashedCode(hash('sha512', 'credential'));
+        $authorizationCode->setUsedAt(0);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->refreshTokenMapper->method('findByToken')->with('credential')->willReturn(null);
+        $this->authorizationCodeMapper->method('findByCode')->with('credential')->willReturn($authorizationCode);
+        $this->accessTokenMapper->expects($this->never())->method('getByCode');
+
+        $response = $this->controller->getToken(
+            'refresh_token',
+            refresh_token: 'credential',
+            client_id: 'public-client',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testNewCredentialWithoutCodeRecordIsNotTreatedAsLegacyRefreshToken(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $accessToken = new AccessToken();
+        $accessToken->setId(10);
+        $accessToken->setClientId(1);
+        $accessToken->setLegacyRefreshToken(false);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->refreshTokenMapper->method('findByToken')->with('credential')->willReturn(null);
+        $this->authorizationCodeMapper->method('findByCode')->with('credential')->willReturn(null);
+        $this->accessTokenMapper->method('getByCode')->with('credential')->willReturn($accessToken);
+
+        $response = $this->controller->getToken(
+            'refresh_token',
+            refresh_token: 'credential',
+            client_id: 'public-client',
+        );
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testAuthorizationCodeGrantRequiresExactBoundRedirectUri(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public-client');
+        $authorizationCode = new AuthorizationCode();
+        $authorizationCode->setAccessTokenId(10);
+        $authorizationCode->setUsedAt(0);
+        $authorizationCode->setRedirectUri('https://client.example/callback');
+        $accessToken = new AccessToken();
+        $accessToken->setId(10);
+        $accessToken->setClientId(1);
+
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->authorizationCodeMapper->method('findByCode')->willReturn($authorizationCode);
+        $this->accessTokenMapper->method('getById')->with(10)->willReturn($accessToken);
+
+        foreach ([null, 'https://client.example/other'] as $redirectUri) {
+            $response = $this->controller->getToken(
+                'authorization_code',
+                code: 'credential',
+                client_id: 'public-client',
+                redirect_uri: $redirectUri,
+            );
+
+            $this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+            $this->assertSame('invalid_grant', $response->getData()['error']);
+            $this->assertStringContainsString('Redirect URI', $response->getData()['error_description']);
+        }
+    }
+
     public function testAuthorizationCodeGrantRemainsSupported(): void {
         $result = $this->controller->getToken('authorization_code');
 
@@ -1000,10 +1128,239 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame('Basic realm="token"', $result->getHeaders()['WWW-Authenticate'] ?? null);
     }
 
+    public function testLegacyPublicClientRejectsBasicAuthentication(): void {
+        $client = new Client('public-client', [], 'RS256', 'public');
+        $client->setClientIdentifier('public-client');
+        $client->setSecret('unused-secret');
+        $client->setId(1);
+
+        $this->useBasicClient('public-client', 'unused-secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->authorizationCodeMapper->expects($this->never())->method('findByCode');
+
+        $response = $this->controller->getToken('authorization_code', code: 'credential');
+
+        $this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+        $this->assertSame('invalid_client', $response->getData()['error']);
+    }
+
     public function testGetTokenWithInvalidGrantType() {
         $result = $this->controller->getToken('invalid_grant_type');
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
         $this->assertEquals('unsupported_grant_type', $result->getData()['error']);
+        $this->assertFalse($result->isThrottled());
     }
+
+    private function prepareEventRefresh(?bool $enabled = true): array {
+        $client = new Client('client', [], 'RS256', 'confidential', 'code', 'opaque', 'openid Files:Read');
+        $client->setId(1);
+        $client->setClientIdentifier('client');
+        $client->setSecret('secret');
+        $token = new AccessToken();
+        $token->setId(10);
+        $token->setClientId(1);
+        $token->setUserId('alice');
+        $token->setScope('openid Files:Read');
+        $token->setEventGenerated(true);
+        $token->setCreated(900);
+        $token->setRefreshed(990);
+        $token->setExpiresAt(1890);
+        $record = new RefreshToken();
+        $record->setId(20);
+        $record->setAccessTokenId(10);
+        $record->setCreated(990);
+        $record->setUsedAt(0);
+        $this->tokenExchangeRawParameters = ['grant_type' => ['refresh_token'], 'refresh_token' => ['first'],
+            'client_id' => ['client'], 'client_secret' => ['secret']];
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->refreshTokenMapper->method('findByToken')->willReturn($record);
+        $this->accessTokenMapper->method('getById')->willReturn($token);
+        $this->accessTokenMapper->method('lockTokenExchangeSubject')->willReturn($token);
+        $this->time->method('getTime')->willReturn(1000);
+        $user = $enabled === null ? null : $this->createMock(IUser::class);
+        if ($user !== null) {
+            $user->method('isEnabled')->willReturn($enabled);
+        }
+        $this->userManager->method('get')->willReturn($user);
+        $this->groupMapper->method('getGroupsByClientId')->willReturn([]);
+        $this->groupManager->method('getUserGroups')->willReturn([]);
+        $this->secureRandom->method('generate')->willReturn('second');
+        return [$token, $record];
+    }
+
+    public function testEventRefreshRetainsCaseAndIssuesReplacementWithoutOfflineScope(): void {
+        [$token, $record] = $this->prepareEventRefresh();
+        $this->userConsentMapper->expects($this->never())->method('findByUserAndClient');
+        $this->refreshTokenMapper->expects($this->once())->method('markUsed')->with($record, 1000)->willReturn(true);
+        $this->refreshTokenMapper->expects($this->once())->method('createForAccessToken')->with(10, 'second', 1000);
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new-access');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('new-id');
+        $this->accessTokenMapper->expects($this->once())->method('commitTokenExchangeTransaction');
+        $response = $this->controller->getToken();
+        $this->assertSame(200, $response->getStatus());
+        $this->assertSame('openid Files:Read', $response->getData()['scope']);
+        $this->assertSame('second', $response->getData()['refresh_token']);
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testJwtFailureDoesNotConsumeRefreshCredential(): void {
+        $this->prepareEventRefresh();
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new-access');
+        $this->jwtGenerator->method('generateIdToken')->willThrowException(new JwtCreationErrorException('test failure'));
+        $this->refreshTokenMapper->expects($this->never())->method('markUsed');
+        $this->accessTokenMapper->expects($this->never())->method('beginTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->never())->method('update');
+        $this->assertSame(500, $this->controller->getToken()->getStatus());
+    }
+
+    public function testFailedRotationRollsBackAllDatabaseChanges(): void {
+        $this->prepareEventRefresh();
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new-access');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('new-id');
+        $this->refreshTokenMapper->method('markUsed')->willReturn(true);
+        $this->refreshTokenMapper->method('createForAccessToken')->willThrowException(new \RuntimeException('test persistence failure'));
+        $this->accessTokenMapper->expects($this->once())->method('rollBackTokenExchangeTransaction');
+        $this->accessTokenMapper->expects($this->never())->method('commitTokenExchangeTransaction');
+        $this->assertSame(500, $this->controller->getToken()->getStatus());
+    }
+
+    private function prepareRevocation(string $token = 'credential'): Client {
+        $client = new Client('public', [], 'RS256', 'public');
+        $client->setId(1);
+        $client->setClientIdentifier('public');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->tokenExchangeRawParameters = ['client_id' => ['public'], 'token' => [$token]];
+        return $client;
+    }
+
+    public function testRevocationDeletesOwnedAccessTokenFamily(): void {
+        $this->prepareRevocation();
+        $token = new AccessToken();
+        $token->setId(10);
+        $token->setClientId(1);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($token);
+        $this->accessTokenMapper->method('lockTokenExchangeSubject')->willReturn($token);
+        $this->accessTokenMapper->expects($this->once())->method('delete')->with($token);
+        $this->accessTokenMapper->expects($this->once())->method('commitTokenExchangeTransaction');
+        $this->assertSame(200, $this->controller->revokeToken()->getStatus());
+    }
+
+    public function testRevocationFindsRefreshTokenEvenWithWrongHint(): void {
+        $this->prepareRevocation();
+        $this->tokenExchangeRawParameters['token_type_hint'] = ['access_token'];
+        $this->accessTokenMapper->method('getByAccessToken')->willThrowException(new AccessTokenNotFoundException());
+        $record = new RefreshToken();
+        $record->setAccessTokenId(10);
+        $token = new AccessToken();
+        $token->setId(10);
+        $token->setClientId(1);
+        $this->refreshTokenMapper->method('findByToken')->willReturn($record);
+        $this->accessTokenMapper->method('getById')->willReturn($token);
+        $this->accessTokenMapper->method('lockTokenExchangeSubject')->willReturn($token);
+        $this->accessTokenMapper->expects($this->once())->method('delete')->with($token);
+        $this->assertSame(200, $this->controller->revokeToken()->getStatus());
+    }
+
+    public function testUnknownTokenRevocationReturns200(): void {
+        $this->prepareRevocation();
+        $this->accessTokenMapper->method('getByAccessToken')->willThrowException(new AccessTokenNotFoundException());
+        $this->accessTokenMapper->method('getByCode')->willThrowException(new AccessTokenNotFoundException());
+        $this->accessTokenMapper->expects($this->never())->method('delete');
+        $this->assertSame(200, $this->controller->revokeToken()->getStatus());
+    }
+
+    public function testRevocationCannotDeleteAnotherClientsToken(): void {
+        $this->prepareRevocation();
+        $token = new AccessToken();
+        $token->setClientId(2);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($token);
+        $this->accessTokenMapper->expects($this->never())->method('delete');
+        $response = $this->controller->revokeToken();
+        $this->assertSame(400, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testRevocationRejectsDuplicateTokenWithoutThrottling(): void {
+        $this->tokenExchangeRawParameters = ['token' => ['a', 'b']];
+        $this->accessTokenMapper->expects($this->never())->method('getByAccessToken');
+        $response = $this->controller->revokeToken();
+        $this->assertSame(400, $response->getStatus());
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testTokenEndpointAuthenticationFailureSignalsThrottle(): void {
+        $response = $this->controller->getToken('refresh_token');
+        $this->assertTrue($response->isThrottled());
+    }
+    public function testRefreshReplayWithinGraceDoesNotRevokeFamily(): void {
+        [, $record] = $this->prepareEventRefresh();
+        $record->setUsedAt(998);
+        $this->accessTokenMapper->expects($this->never())->method('delete');
+        $this->refreshTokenMapper->expects($this->never())->method('markUsed');
+        $response = $this->controller->getToken();
+        $this->assertSame(400, $response->getStatus());
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+        $this->assertArrayNotHasKey('access_token', $response->getData());
+        $this->assertFalse($response->isThrottled());
+    }
+
+    public function testRefreshReplayOutsideGraceRevokesFamily(): void {
+        [$token, $record] = $this->prepareEventRefresh();
+        $record->setUsedAt(994);
+        $this->accessTokenMapper->expects($this->once())->method('delete')->with($token);
+        $this->assertSame(400, $this->controller->getToken()->getStatus());
+    }
+
+    public function testForeignRefreshReplayCannotRevokeFamily(): void {
+        [$token, $record] = $this->prepareEventRefresh();
+        $token->setClientId(2);
+        $record->setUsedAt(900);
+        $this->accessTokenMapper->expects($this->never())->method('delete');
+        $this->assertSame(400, $this->controller->getToken()->getStatus());
+    }
+
+    public function testConcurrentRefreshLoserKeepsCommittedFamily(): void {
+        [, $record] = $this->prepareEventRefresh();
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('discarded-access');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('discarded-id');
+        $this->refreshTokenMapper->expects($this->once())->method('markUsed')
+            ->willReturnCallback(static function () use ($record): bool {
+                // Simulate the other request committing while this request waits.
+                $record->setUsedAt(1000);
+                return false;
+            });
+        $this->accessTokenMapper->expects($this->never())->method('delete');
+        $this->accessTokenMapper->expects($this->never())->method('update');
+        $this->refreshTokenMapper->expects($this->never())->method('createForAccessToken');
+        $this->accessTokenMapper->expects($this->once())->method('commitTokenExchangeTransaction');
+        $response = $this->controller->getToken();
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+        $this->assertArrayNotHasKey('refresh_token', $response->getData());
+    }
+
+    public function testRefreshRejectsDisabledUserBeforeIssuance(): void {
+        [$token] = $this->prepareEventRefresh(false);
+        $this->accessTokenMapper->expects($this->once())->method('delete')->with($token);
+        $this->jwtGenerator->expects($this->never())->method('generateAccessToken');
+        $response = $this->controller->getToken();
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testRefreshRejectsDeletedUserBeforeIssuance(): void {
+        [$token] = $this->prepareEventRefresh(null);
+        $this->accessTokenMapper->expects($this->once())->method('delete')->with($token);
+        $this->jwtGenerator->expects($this->never())->method('generateAccessToken');
+        $this->assertSame(400, $this->controller->getToken()->getStatus());
+    }
+
+    public function testStrictRefreshModeRevokesImmediateReplay(): void {
+        [$token, $record] = $this->prepareEventRefresh();
+        $record->setUsedAt(1000);
+        $this->refreshReplayGraceSeconds = '0';
+        $this->accessTokenMapper->expects($this->once())->method('delete')->with($token);
+        $this->assertSame(400, $this->controller->getToken()->getStatus());
+    }
+
 }

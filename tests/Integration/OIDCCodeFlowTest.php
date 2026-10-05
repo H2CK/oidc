@@ -400,7 +400,18 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         $insertedToken = $this->accessTokenMapper->insert($accessToken);
         if ($createAuthorizationCode) {
-            $this->authorizationCodeMapper->createForAccessToken($insertedToken->getId(), $rawCode, $this->time->getTime());
+            $this->authorizationCodeMapper->createForAccessToken(
+                $insertedToken->getId(),
+                $rawCode,
+                $this->time->getTime(),
+                $client->getRedirectUris()[0]
+            );
+        } else {
+            Server::get(\OCA\OIDCIdentityProvider\Db\RefreshTokenMapper::class)->createForAccessToken(
+                $insertedToken->getId(),
+                $rawCode,
+                $this->time->getTime()
+            );
         }
 
         return ['token' => $insertedToken, 'rawCode' => $rawCode];
@@ -437,7 +448,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            null
+            null,
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify the token response
@@ -646,7 +660,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            null
+            null,
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         $this->assertEquals(200, $firstResponse->getStatus(), 'First authorization code exchange should succeed');
@@ -659,7 +676,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            null
+            null,
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         $this->assertEquals(400, $secondResponse->getStatus(), 'Authorization code reuse should fail');
@@ -670,7 +690,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer ' . $firstResponseData['access_token'];
 
         $userInfoResponse = $this->userInfoController->getInfo();
-        $this->assertEquals(400, $userInfoResponse->getStatus(), 'Reused code should revoke the issued access token');
+        $this->assertEquals(401, $userInfoResponse->getStatus(), 'Reused code should revoke the issued access token');
     }
 
     /**
@@ -693,7 +713,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             'wrong-secret',
-            null
+            null,
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify error response
@@ -788,11 +811,11 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Verify error response
         $this->assertInstanceOf(JSONResponse::class, $userInfoResponse, 'UserInfo response is not a JSONResponse');
-        $this->assertEquals(400, $userInfoResponse->getStatus(), 'UserInfo endpoint should return 400 for invalid token');
+        $this->assertEquals(401, $userInfoResponse->getStatus(), 'UserInfo endpoint should return 401 for invalid token');
 
         $responseData = $userInfoResponse->getData();
         $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
-        $this->assertEquals('invalid_request', $responseData['error'], 'Error should be invalid_request');
+        $this->assertEquals('invalid_token', $responseData['error'], 'Error should be invalid_token');
     }
 
     /**
@@ -807,11 +830,11 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         // Verify error response
         $this->assertInstanceOf(JSONResponse::class, $userInfoResponse, 'UserInfo response is not a JSONResponse');
-        $this->assertEquals(400, $userInfoResponse->getStatus(), 'UserInfo endpoint should return 400 for missing token');
+        $this->assertEquals(401, $userInfoResponse->getStatus(), 'UserInfo endpoint should return 401 for missing token');
 
         $responseData = $userInfoResponse->getData();
         $this->assertArrayHasKey('error', $responseData, 'Response missing error field');
-        $this->assertEquals('invalid_request', $responseData['error'], 'Error should be invalid_request');
+        $this->assertEquals('invalid_token', $responseData['error'], 'Error should be invalid_token');
     }
 
     public function testDeletingClientRemovesUserConsents(): void
@@ -881,7 +904,12 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $accessToken->setNonce('test-nonce-' . $this->secureRandom->generate(16));
 
         $insertedToken = $this->accessTokenMapper->insert($accessToken);
-        $this->authorizationCodeMapper->createForAccessToken($insertedToken->getId(), $rawCode, $this->time->getTime());
+        $this->authorizationCodeMapper->createForAccessToken(
+            $insertedToken->getId(),
+            $rawCode,
+            $this->time->getTime(),
+            $client->getRedirectUris()[0]
+        );
 
         return ['token' => $insertedToken, 'rawCode' => $rawCode];
     }
@@ -917,7 +945,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            $codeVerifier  // PKCE code_verifier
+            $codeVerifier,  // PKCE code_verifier
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify successful token response
@@ -959,7 +990,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            $codeVerifier  // PKCE code_verifier
+            $codeVerifier,  // PKCE code_verifier
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify successful token response
@@ -996,7 +1030,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            null  // No code_verifier for non-PKCE flow
+            null,  // No code_verifier for non-PKCE flow
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify successful token response
@@ -1035,7 +1072,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            $wrongCodeVerifier  // Wrong PKCE verifier
+            $wrongCodeVerifier,  // Wrong PKCE verifier
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify error response (invalid_grant is appropriate for PKCE mismatch)
@@ -1076,7 +1116,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            null  // Missing code_verifier
+            null,  // Missing code_verifier
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         // Verify error response - should reject because PKCE was required
@@ -1118,7 +1161,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
             null,
             $this->testClientId,
             $this->testClientSecret,
-            $codeVerifier
+            $codeVerifier,
+            null,
+            null,
+            $this->testRedirectUri
         );
 
         $this->assertEquals(200, $response->getStatus(), 'Token exchange with PKCE should succeed');
@@ -1300,7 +1346,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $consent->setExpiresAt($this->time->getTime() + 7776000);
         $this->userConsentMapper->insert($consent);
 
-        $client->setAllowedScopes('openid offline_access Notes.Read');
+        $client->setAllowedScopes('openid offline_access notes.read');
         $this->clientMapper->update($client);
 
         $response = $this->oidcApiController->getToken(

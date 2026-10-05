@@ -147,22 +147,22 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->tokenProvider = Server::get(IProvider::class);
         $this->session = $this->createMock(ISession::class);
         $this->userSession = $this->createMock(IUserSession::class);
-        
+
         // Create redirectUriMapper with constructor arguments
         $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
         $reflection1 = new \ReflectionClass(RedirectUriMapper::class);
         $constructor1 = $reflection1->getConstructor();
         $constructor1->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
-        
+
         $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
         $this->subAdminManager = $this->createMock(ISubAdmin::class);
-        
+
         // Create clientMapper with constructor arguments
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $reflection2 = new \ReflectionClass(ClientMapper::class);
         $constructor2 = $reflection2->getConstructor();
         $constructor2->invoke($this->clientMapper, $this->db, $this->time, $this->appConfig, $this->redirectUriMapper, $this->customClaimMapper, $this->secureRandom, $this->logger);
-        
+
         // Create accessTokenMapper with constructor arguments
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $reflection3 = new \ReflectionClass(AccessTokenMapper::class);
@@ -170,13 +170,13 @@ class LoginRedirectorControllerTest extends TestCase {
         $constructor3->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
 
         $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
-        
+
         // Create groupMapper with constructor arguments
         $this->groupMapper = $this->createMock(GroupMapper::class);
         $reflection4 = new \ReflectionClass(GroupMapper::class);
         $constructor4 = $reflection4->getConstructor();
         $constructor4->invoke($this->groupMapper, $this->db, $this->groupManager);
-        
+
         $this->userConsentMapper = $this->createMock(UserConsentMapper::class);
         $this->l = $this->createMock(IL10N::class);
         $this->lFactory = $this->createMock(L10nFactory::class);
@@ -405,7 +405,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '?error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1',
+            $redirectUri . '?error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -469,7 +469,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '#error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1',
+            $redirectUri . '#error=login_required&error_description=User%20is%20not%20logged%20in.&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -508,6 +508,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -608,7 +610,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->with(
                 23,
                 $this->isType('string'),
-                $this->isType('int')
+                $this->isType('int'),
+                $redirectUri
             )
             ->willReturn(new AuthorizationCode());
         $this->backChannelLogoutService
@@ -662,6 +665,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -766,7 +771,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->with(
                 23,
                 $this->isType('string'),
-                $this->isType('int')
+                $this->isType('int'),
+                $redirectUri
             )
             ->willReturn(new AuthorizationCode());
         $this->backChannelLogoutService
@@ -938,7 +944,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $html = $result->render();
         $this->assertStringContainsString('<form method="post" action="' . $redirectUri . '">', $html);
-        $this->assertStringContainsString('<input type="hidden" name="error" value="unsupported_response_type">', $html);
+        $this->assertStringContainsString('<input type="hidden" name="error" value="invalid_request">', $html);
         $this->assertStringContainsString('<input type="hidden" name="error_description" value="Missing response_type">', $html);
         $this->assertStringContainsString('<input type="hidden" name="state" value="state-1">', $html);
     }
@@ -967,6 +973,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -1079,7 +1087,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->with(
                 23,
                 $this->isType('string'),
-                $this->isType('int')
+                $this->isType('int'),
+                $redirectUri
             )
             ->willReturn(new AuthorizationCode());
 
@@ -1135,6 +1144,8 @@ class LoginRedirectorControllerTest extends TestCase {
         $registeredRedirectUri->setRedirectUri($redirectUri);
 
         $user = $this->createMock(\OCP\IUser::class);
+
+        $user->method('isEnabled')->willReturn(true);
         $user
             ->method('getUID')
             ->willReturn('testuser');
@@ -1255,7 +1266,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->with(
                 23,
                 $this->isType('string'),
-                $this->isType('int')
+                $this->isType('int'),
+                $redirectUri
             )
             ->willReturn(new AuthorizationCode());
 
@@ -1338,6 +1350,7 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('isLoggedIn')
             ->willReturn(true);
         $reauthUser = $this->createMock(\OCP\IUser::class);
+        $reauthUser->method('isEnabled')->willReturn(true);
         $reauthUser->method('getUID')->willReturn('user1');
         $this->userSession->method('getUser')->willReturn($reauthUser);
         $this->userSession
@@ -1437,6 +1450,7 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('isLoggedIn')
             ->willReturn(true);
         $reauthUser = $this->createMock(\OCP\IUser::class);
+        $reauthUser->method('isEnabled')->willReturn(true);
         $reauthUser->method('getUID')->willReturn('user1');
         $this->userSession->method('getUser')->willReturn($reauthUser);
         $this->userSession
@@ -1559,7 +1573,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=state-1',
+            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -1693,7 +1707,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '#error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=request-object-state',
+            $redirectUri . '#error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&state=request-object-state&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -1754,7 +1768,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.',
+            $redirectUri . '?error=request_not_supported&error_description=Request%20object%20parameter%20is%20not%20supported.&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }
@@ -1840,7 +1854,7 @@ class LoginRedirectorControllerTest extends TestCase {
 
         $this->assertEquals(Http::STATUS_SEE_OTHER, $result->getStatus(), 'Status Code does not match!');
         $this->assertEquals(
-            $redirectUri . '#error=invalid_request&error_description=Missing%20nonce&state=state-1',
+            $redirectUri . '#error=invalid_request&error_description=Missing%20nonce&state=state-1&iss=' . rawurlencode($this->request->getServerProtocol() . '://' . $this->request->getServerHost() . $this->urlGenerator->getWebroot()),
             $result->getRedirectURL()
         );
     }

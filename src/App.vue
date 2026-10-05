@@ -216,7 +216,7 @@
 							v-model="editClient.backchannelLogoutSessionRequired"
 							name="backchannel_logout_session_required"
 							type="checkbox">
-							{{ t('oidc', 'Require sid in Back-Channel Logout Tokens') }}
+							{{ t('oidc', 'Require session in Back-Channel Logout Tokens') }}
 						</NcCheckboxRadioSwitch>
 						<NcTextField id="frontchannelLogoutUri"
 							v-model="editClient.frontchannelLogoutUri"
@@ -228,7 +228,7 @@
 							v-model="editClient.frontchannelLogoutSessionRequired"
 							name="frontchannel_logout_session_required"
 							type="checkbox">
-							{{ t('oidc', 'Require iss and sid in Front-Channel Logout requests') }}
+							{{ t('oidc', 'Require issuer and session in Front-Channel Logout requests') }}
 						</NcCheckboxRadioSwitch>
 						<NcCheckboxRadioSwitch v-if="!isPublic" v-model="editClient.texEnabled"
 							name="tex_enabled"

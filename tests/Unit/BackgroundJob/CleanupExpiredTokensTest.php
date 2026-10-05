@@ -13,6 +13,7 @@ use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\AuthorizationCodeMapper;
 use OCA\OIDCIdentityProvider\Db\RegistrationTokenMapper;
 use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
+use OCA\OIDCIdentityProvider\Db\RefreshTokenMapper;
 
 use OCA\OIDCIdentityProvider\BackgroundJob\CleanupExpiredTokens;
 
@@ -43,6 +44,7 @@ class CleanupExpiredTokensTest extends TestCase
     private $registrationTokenMapper;
     /** @var \PHPUnit\Framework\MockObject\MockObject|DeviceCodeMapper */
     private $deviceCodeMapper;
+    private $refreshTokenMapper;
 
     public function setUp(): void
     {
@@ -67,6 +69,7 @@ class CleanupExpiredTokensTest extends TestCase
         $this->authorizationCodeMapper = $this->createMock(AuthorizationCodeMapper::class);
         $this->registrationTokenMapper = $this->createMock(RegistrationTokenMapper::class);
         $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
+        $this->refreshTokenMapper = $this->createMock(RefreshTokenMapper::class);
 
         $this->job = new CleanupExpiredTokens(
             $this->time,
@@ -75,11 +78,13 @@ class CleanupExpiredTokensTest extends TestCase
             $this->registrationTokenMapper,
             $this->deviceCodeMapper,
             $this->appConfig,
-            $this->config
+            $this->config,
+            $this->refreshTokenMapper
         );
     }
 
     public function testJobRunsSuccessfully() {
+        $this->refreshTokenMapper->expects($this->once())->method('cleanUp')->with(1234567890);
         $jobList = $this->createMock(IJobList::class);
         $this->job->start($jobList);
 

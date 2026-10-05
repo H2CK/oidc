@@ -27,6 +27,8 @@ use OCA\OIDCIdentityProvider\Db\LogoutRedirectUriMapper;
 use OCA\OIDCIdentityProvider\Service\RegistrationTokenService;
 use OCA\OIDCIdentityProvider\Service\BackChannelLogoutService;
 use OCA\OIDCIdentityProvider\Service\FrontChannelLogoutService;
+use OCA\OIDCIdentityProvider\Service\RedirectUriService;
+use OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException;
 use OCP\Security\ISecureRandom;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\AnonRateLimit;
@@ -58,6 +60,7 @@ class DynamicRegistrationController extends ApiController
     private $appConfig;
     /** @var LoggerInterface */
     private $logger;
+    private RedirectUriService $redirectUriService;
 
     public const VALID_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     public const NAME_PREFIX = 'DCR-';
@@ -75,7 +78,8 @@ class DynamicRegistrationController extends ApiController
                     Throttler $throttler,
                     IURLGenerator $urlGenerator,
                     IAppConfig $appConfig,
-                    LoggerInterface $logger
+                    LoggerInterface $logger,
+                    ?RedirectUriService $redirectUriService = null
                     )
     {
         parent::__construct($appName, $request);
@@ -90,6 +94,7 @@ class DynamicRegistrationController extends ApiController
         $this->urlGenerator = $urlGenerator;
         $this->appConfig = $appConfig;
         $this->logger = $logger;
+        $this->redirectUriService = $redirectUriService ?? new RedirectUriService($logger);
     }
 
     /**
@@ -118,6 +123,7 @@ class DynamicRegistrationController extends ApiController
         string|null $frontchannel_logout_uri = null,
         bool $frontchannel_logout_session_required = false,
         array|null $post_logout_redirect_uris = null,
+        string|null $token_endpoint_auth_method = null,
         ): JSONResponse
     {
         if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
@@ -159,10 +165,51 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        if ($application_type == 'native') {
-            $application_type = 'native';
-        } else {
-            $application_type = 'web';
+        if (!in_array($application_type, ['web', 'native'], true)) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'application_type must be web or native.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $redirectUrisOrError = $this->normalizeDynamicRedirectUris($redirect_uris);
+        if ($redirectUrisOrError instanceof JSONResponse) {
+            return $redirectUrisOrError;
+        }
+        $redirect_uris = $redirectUrisOrError;
+
+        $clientSecretBasicDisabled = $this->appConfig->getAppValueBool(
+            Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC,
+            false
+        );
+        if ($token_endpoint_auth_method === null || trim($token_endpoint_auth_method) === '') {
+            $token_endpoint_auth_method = $application_type === 'native'
+                ? 'none'
+                : ($clientSecretBasicDisabled ? 'client_secret_post' : 'client_secret_basic');
+        }
+        if (!in_array($token_endpoint_auth_method, ['none', 'client_secret_basic', 'client_secret_post'], true)) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'Unsupported token_endpoint_auth_method.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        if ($application_type === 'native' && $token_endpoint_auth_method !== 'none') {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'Native clients must use token_endpoint_auth_method none.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        if ($clientSecretBasicDisabled && $token_endpoint_auth_method === 'client_secret_basic') {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'client_secret_basic is disabled by the authorization server.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        if ($token_endpoint_auth_method === 'none' && $id_token_signed_response_alg === 'HS256') {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'Public clients cannot use HS256 ID tokens because no client secret is issued.',
+            ], Http::STATUS_BAD_REQUEST);
         }
 
         $this->clientMapper->cleanUp();
@@ -175,7 +222,7 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        $name = self::NAME_PREFIX . $this->getClientIp();
+        $name = substr(self::NAME_PREFIX . $this->getClientIp(), 0, 64);
         if ($client_name != null) {
             $name = substr($client_name, 0, 64);
         }
@@ -202,16 +249,19 @@ class DynamicRegistrationController extends ApiController
             $accessTokenType = Application::DEFAULT_TOKEN_TYPE;
         }
 
+        $clientType = $token_endpoint_auth_method === 'none' ? 'public' : 'confidential';
         $client = new Client(
             $name,
             $redirect_uris,
             $id_token_signed_response_alg,
-            'confidential',  // type
+            $clientType,
             'code',          // flowType
             $accessTokenType // Use client's requested token type (or server default if invalid)
         );
 
         $client->setDcr(true);
+        $client->setApplicationType($application_type);
+        $client->setTokenEndpointAuthMethod($token_endpoint_auth_method);
 
         if ($backchannel_logout_uri !== null) {
             $backchannel_logout_uri = trim($backchannel_logout_uri);
@@ -261,13 +311,13 @@ class DynamicRegistrationController extends ApiController
         if ($scope !== null) {
             $scope = trim($scope);
             $scope = mb_substr($scope, 0, 512);  // Match database column size
-            // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
-            // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
-            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $scope)) {
+            // RFC 6749 scope-token: printable ASCII except DQUOTE and
+            // backslash, with one SP separating non-empty tokens.
+            if (!preg_match('/^(?:[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*)?$/D', $scope)) {
                 $this->logger->info('Invalid scope characters during dynamic client registration.');
                 return new JSONResponse([
                     'error' => 'invalid_scope',
-                    'error_description' => 'Scope contains invalid characters. Allowed: alphanumeric, spaces, underscores, hyphens, colons, periods, and forward slashes.',
+                    'error_description' => 'Scope must be a space-delimited list of RFC 6749 scope-token values.',
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setAllowedScopes($scope);
@@ -299,16 +349,46 @@ class DynamicRegistrationController extends ApiController
         // Note: token_type parameter controls access token format (JWT vs Bearer/opaque)
         // Client's choice is honored above, with server default as fallback for invalid values
 
-        $response_types_arr = array();
-        array_push($response_types_arr, 'code');
-        $grant_types_arr = array();
-        array_push($grant_types_arr, 'authorization_code');
-        if (in_array('code', $response_types)) {
-            $client->setFlowType('code');
-        } elseif (in_array('id_token', $response_types)){
-            $client->setFlowType('code id_token');
-            array_push($response_types_arr, 'id_token');
-            array_push($grant_types_arr, 'implicit');
+        $response_types_arr = [];
+        foreach ($response_types as $responseType) {
+            if (!is_string($responseType)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'response_types must contain only strings.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $entries = preg_split('/\s+/', trim($responseType), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            if ($entries === [] || count($entries) !== count(array_unique($entries))) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'Invalid response_types value.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            sort($entries, SORT_STRING);
+            $normalizedResponseType = implode(' ', $entries);
+            if (!in_array($normalizedResponseType, ['code', 'id_token', 'code id_token'], true)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'Unsupported response_types value.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $response_types_arr[] = $normalizedResponseType;
+        }
+        $response_types_arr = array_values(array_unique($response_types_arr));
+        if ($response_types_arr === []) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'At least one response_types value is required.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+        $implicitRequested = count(array_filter(
+            $response_types_arr,
+            static fn (string $value): bool => str_contains($value, 'id_token')
+        )) > 0;
+        $client->setFlowType($implicitRequested ? 'code id_token' : 'code');
+        $grant_types_arr = ['authorization_code'];
+        if ($implicitRequested) {
+            $grant_types_arr[] = 'implicit';
         }
 
         $client = $this->clientMapper->insert($client);
@@ -322,26 +402,33 @@ class DynamicRegistrationController extends ApiController
         $jsonResponse = [
             'client_name' => $client->getName(),
             'client_id' => $client->getClientIdentifier(),
-            'client_secret' => $client->getSecret(),
             'registration_access_token' => $registrationToken->getToken(),
             'registration_client_uri' => $this->urlGenerator->linkToRouteAbsolute(
                 'oidc.DynamicRegistration.getClientConfiguration',
                 ['clientId' => $client->getClientIdentifier()]
             ),
             'redirect_uris' => $redirect_uris,
-            'token_endpoint_auth_method' => 'client_secret_post', // Force to use client secret post
+            'token_endpoint_auth_method' => $token_endpoint_auth_method,
             'response_types' => $response_types_arr,
             'grant_types' => $grant_types_arr,
             'id_token_signed_response_alg' => $client->getSigningAlg(),
             'application_type' => $application_type,
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
             'token_type' => $client->getTokenType(),
             'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
             'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
+
+        if ($token_endpoint_auth_method !== 'none') {
+            $jsonResponse['client_secret'] = $client->getSecret();
+            $jsonResponse['client_secret_expires_at'] = $client->getIssuedAt()
+                + (int)$this->appConfig->getAppValueString(
+                    Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME,
+                    Application::DEFAULT_CLIENT_EXPIRE_TIME
+                );
+        }
 
         if ($client->getFrontchannelLogoutUri() !== null) {
             $jsonResponse['frontchannel_logout_uri'] = $client->getFrontchannelLogoutUri();
@@ -354,10 +441,61 @@ class DynamicRegistrationController extends ApiController
         }
 
         $response = new JSONResponse($jsonResponse, Http::STATUS_CREATED);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'POST');
 
         return $response;
+    }
+
+    /**
+     * Dynamic registration never accepts wildcard redirect URIs. Static/admin
+     * registration continues to use RedirectUriService's wildcard-capable
+     * policy.
+     *
+     * @return list<string>|JSONResponse
+     */
+    private function normalizeDynamicRedirectUris(array $redirectUris): array|JSONResponse {
+        if ($redirectUris === []) {
+            return new JSONResponse([
+                'error' => 'invalid_redirect_uri',
+                'error_description' => 'At least one redirect_uri is required.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $normalized = [];
+        foreach ($redirectUris as $redirectUri) {
+            if (!is_string($redirectUri)
+                || $redirectUri === ''
+                || trim($redirectUri) !== $redirectUri
+                || strlen($redirectUri) > 2000
+                || str_contains($redirectUri, '*')) {
+                return new JSONResponse([
+                    'error' => 'invalid_redirect_uri',
+                    'error_description' => 'Dynamically registered redirect_uris must be concrete URI strings without wildcards.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            try {
+                $this->redirectUriService->isValidRedirectUri($redirectUri, false, false);
+            } catch (RedirectUriValidationException $e) {
+                return new JSONResponse([
+                    'error' => 'invalid_redirect_uri',
+                    'error_description' => 'Invalid redirect_uri: ' . $e->getMessage(),
+                ], Http::STATUS_BAD_REQUEST);
+            }
+
+            if (in_array($redirectUri, $normalized, true)) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'redirect_uris must not contain duplicate values.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $normalized[] = $redirectUri;
+        }
+
+        return $normalized;
     }
 
     private function getClientIp() {
@@ -597,25 +735,33 @@ class DynamicRegistrationController extends ApiController
 
         $jsonResponse = [
             'client_id' => $client->getClientIdentifier(),
-            'client_secret' => $client->getSecret(),
             'registration_client_uri' => $this->urlGenerator->linkToRouteAbsolute(
                 'oidc.DynamicRegistration.getClientConfiguration',
                 ['clientId' => $client->getClientIdentifier()]
             ),
             'client_name' => $client->getName(),
             'redirect_uris' => $redirectUris,
-            'token_endpoint_auth_method' => 'client_secret_post',
+            'token_endpoint_auth_method' => $client->getTokenEndpointAuthMethod()
+                ?? $this->defaultTokenEndpointAuthMethod($client),
             'response_types' => $response_types_arr,
             'grant_types' => $grant_types_arr,
             'id_token_signed_response_alg' => $client->getSigningAlg(),
-            'application_type' => 'web',
+            'application_type' => $client->getApplicationType() ?? 'web',
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
             'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
             'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
+
+        if (($jsonResponse['token_endpoint_auth_method'] ?? 'none') !== 'none') {
+            $jsonResponse['client_secret'] = $client->getSecret();
+            $jsonResponse['client_secret_expires_at'] = $client->getIssuedAt()
+                + (int)$this->appConfig->getAppValueString(
+                    Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME,
+                    Application::DEFAULT_CLIENT_EXPIRE_TIME
+                );
+        }
 
         if ($client->getFrontchannelLogoutUri() !== null) {
             $jsonResponse['frontchannel_logout_uri'] = $client->getFrontchannelLogoutUri();
@@ -623,6 +769,8 @@ class DynamicRegistrationController extends ApiController
         }
 
         $response = new JSONResponse($jsonResponse);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'GET');
 
@@ -660,7 +808,9 @@ class DynamicRegistrationController extends ApiController
         bool|null $frontchannel_logout_session_required = null,
         array|null $post_logout_redirect_uris = null,
         string|null $client_id = null,
-        string|null $client_secret = null
+        string|null $client_secret = null,
+        string|null $application_type = null,
+        string|null $token_endpoint_auth_method = null
     ): JSONResponse {
         $client = $this->authenticateAndAuthorizeClientManagement($clientId);
         if ($client instanceof JSONResponse) {
@@ -690,6 +840,42 @@ class DynamicRegistrationController extends ApiController
             }
         }
 
+        $effectiveApplicationType = $application_type
+            ?? $client->getApplicationType()
+            ?? 'web';
+        $effectiveAuthMethod = $token_endpoint_auth_method
+            ?? $client->getTokenEndpointAuthMethod()
+            ?? $this->defaultTokenEndpointAuthMethod($client);
+        $clientSecretBasicDisabled = $this->appConfig->getAppValueBool(
+            Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC,
+            false
+        );
+        if (!in_array($effectiveApplicationType, ['web', 'native'], true)
+            || !in_array($effectiveAuthMethod, ['none', 'client_secret_basic', 'client_secret_post'], true)
+            || ($effectiveApplicationType === 'native' && $effectiveAuthMethod !== 'none')
+            || ($clientSecretBasicDisabled && $effectiveAuthMethod === 'client_secret_basic')) {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'Invalid application_type or token_endpoint_auth_method.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        $effectiveSigningAlg = $id_token_signed_response_alg ?? $client->getSigningAlg();
+        if ($effectiveAuthMethod === 'none' && $effectiveSigningAlg === 'HS256') {
+            return new JSONResponse([
+                'error' => 'invalid_client_metadata',
+                'error_description' => 'Public clients cannot use HS256 ID tokens.',
+            ], Http::STATUS_BAD_REQUEST);
+        }
+
+        if ($redirect_uris !== null) {
+            $redirectUrisOrError = $this->normalizeDynamicRedirectUris($redirect_uris);
+            if ($redirectUrisOrError instanceof JSONResponse) {
+                return $redirectUrisOrError;
+            }
+            $redirect_uris = $redirectUrisOrError;
+        }
+
         // Update client properties if provided
         if ($client_name !== null) {
             $client->setName(substr($client_name, 0, 64));
@@ -705,12 +891,43 @@ class DynamicRegistrationController extends ApiController
             $client->setSigningAlg($id_token_signed_response_alg);
         }
 
+        $client->setApplicationType($effectiveApplicationType);
+        $client->setTokenEndpointAuthMethod($effectiveAuthMethod);
+        $client->setType($effectiveAuthMethod === 'none' ? 'public' : 'confidential');
+
         if ($response_types !== null) {
-            if (in_array('code', $response_types)) {
-                $client->setFlowType('code');
-            } elseif (in_array('id_token', $response_types)) {
-                $client->setFlowType('code id_token');
+            $implicitRequested = false;
+            foreach ($response_types as $responseType) {
+                if (!is_string($responseType)) {
+                    return new JSONResponse([
+                        'error' => 'invalid_client_metadata',
+                        'error_description' => 'response_types must contain only strings.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+                $entries = preg_split('/\s+/', trim($responseType), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                if ($entries === [] || count($entries) !== count(array_unique($entries))) {
+                    return new JSONResponse([
+                        'error' => 'invalid_client_metadata',
+                        'error_description' => 'Invalid response_types value.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+                sort($entries, SORT_STRING);
+                $normalized = implode(' ', $entries);
+                if (!in_array($normalized, ['code', 'id_token', 'code id_token'], true)) {
+                    return new JSONResponse([
+                        'error' => 'invalid_client_metadata',
+                        'error_description' => 'Unsupported response_types value.',
+                    ], Http::STATUS_BAD_REQUEST);
+                }
+                $implicitRequested = $implicitRequested || str_contains($normalized, 'id_token');
             }
+            if ($response_types === []) {
+                return new JSONResponse([
+                    'error' => 'invalid_client_metadata',
+                    'error_description' => 'At least one response_types value is required.',
+                ], Http::STATUS_BAD_REQUEST);
+            }
+            $client->setFlowType($implicitRequested ? 'code id_token' : 'code');
         }
 
         if ($backchannel_logout_uri !== null) {
@@ -789,20 +1006,20 @@ class DynamicRegistrationController extends ApiController
         if ($scope !== null) {
             $scope = trim($scope);
             $scope = mb_substr($scope, 0, 512);  // Match database column size
-            // RFC 6749 allows most printable ASCII except space (used as separator), backslash, and double-quote
-            // Commonly used characters: letters, numbers, underscore, hyphen, colon, period, forward slash
-            if (!preg_match('/^[a-zA-Z0-9 _:\.\/-]*$/u', $scope)) {
+            // Apply the same RFC 6749 scope-token grammar as registration:
+            // printable ASCII except DQUOTE and backslash, separated by one SP.
+            if (!preg_match('/^(?:[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*)?$/D', $scope)) {
                 $this->logger->info('Invalid scope characters during client configuration update.');
                 return new JSONResponse([
                     'error' => 'invalid_scope',
-                    'error_description' => 'Scope contains invalid characters. Allowed: alphanumeric, spaces, underscores, hyphens, colons, periods, and forward slashes.',
+                    'error_description' => 'Scope must be a space-delimited list of RFC 6749 scope-token values.',
                 ], Http::STATUS_BAD_REQUEST);
             }
             $client->setAllowedScopes($scope);
         }
 
         // Update redirect URIs if provided
-        if ($redirect_uris !== null && !empty($redirect_uris)) {
+        if ($redirect_uris !== null) {
             // Delete existing redirect URIs
             foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $redirectUri) {
                 $this->redirectUriMapper->delete($redirectUri);
@@ -843,7 +1060,6 @@ class DynamicRegistrationController extends ApiController
 
         $jsonResponse = [
             'client_id' => $client->getClientIdentifier(),
-            'client_secret' => $client->getSecret(),
             'registration_access_token' => $newToken->getToken(),
             'registration_client_uri' => $this->urlGenerator->linkToRouteAbsolute(
                 'oidc.DynamicRegistration.getClientConfiguration',
@@ -851,18 +1067,27 @@ class DynamicRegistrationController extends ApiController
             ),
             'client_name' => $client->getName(),
             'redirect_uris' => $currentRedirectUris,
-            'token_endpoint_auth_method' => 'client_secret_post',
+            'token_endpoint_auth_method' => $client->getTokenEndpointAuthMethod()
+                ?? $this->defaultTokenEndpointAuthMethod($client),
             'response_types' => $response_types_arr,
             'grant_types' => $grant_types_arr,
             'id_token_signed_response_alg' => $client->getSigningAlg(),
-            'application_type' => 'web',
+            'application_type' => $client->getApplicationType() ?? 'web',
             'client_id_issued_at' => $client->getIssuedAt(),
-            'client_secret_expires_at' => $client->getIssuedAt() + (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME),
             'scope' => $client->getAllowedScopes(),
             'backchannel_logout_uri' => $client->getBackchannelLogoutUri(),
             'backchannel_logout_session_required' => $client->getBackchannelLogoutSessionRequired(),
             'post_logout_redirect_uris' => $this->getPostLogoutRedirectUris($client),
         ];
+
+        if (($jsonResponse['token_endpoint_auth_method'] ?? 'none') !== 'none') {
+            $jsonResponse['client_secret'] = $client->getSecret();
+            $jsonResponse['client_secret_expires_at'] = $client->getIssuedAt()
+                + (int)$this->appConfig->getAppValueString(
+                    Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME,
+                    Application::DEFAULT_CLIENT_EXPIRE_TIME
+                );
+        }
 
         if ($client->getFrontchannelLogoutUri() !== null) {
             $jsonResponse['frontchannel_logout_uri'] = $client->getFrontchannelLogoutUri();
@@ -870,10 +1095,23 @@ class DynamicRegistrationController extends ApiController
         }
 
         $response = new JSONResponse($jsonResponse);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
         $response->addHeader('Access-Control-Allow-Origin', '*');
         $response->addHeader('Access-Control-Allow-Methods', 'PUT');
 
         return $response;
+    }
+
+    private function defaultTokenEndpointAuthMethod(Client $client): string {
+        if ($client->getType() === 'public') {
+            return 'none';
+        }
+
+        return $this->appConfig->getAppValueBool(
+            Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC,
+            false
+        ) ? 'client_secret_post' : 'client_secret_basic';
     }
 
     /**

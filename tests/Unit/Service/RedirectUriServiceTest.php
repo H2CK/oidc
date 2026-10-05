@@ -40,7 +40,7 @@ class RedirectUriServiceTest extends TestCase {
             'Case 7-2' => ['app.immich:///oauth-callback', true],
             'Case 8-1' => ['app.immich:///oauth-callback/*', false],
             'Case 9-1' => ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', true],
-            'Case 10-1' => ['https://example.com/wp-admin/#redirect', true],
+            'Case 10-1' => ['http://[::1]:8080/callback', false],
         ];
     }
 
@@ -55,6 +55,11 @@ class RedirectUriServiceTest extends TestCase {
             'Case 5-1' => ['https://*.example.com:*/callback', true],
             'Case 6-1' => ['https://example.com/callback*', false],
             'Case 7-1' => ['app.immich:///callback*', false],
+            'Case 8-1' => ['https://example.com/callback#fragment', false],
+            'Case 9-1' => ['https://user@example.com/callback', false],
+            'Case 10-1' => ['https://example.com/callback/%zz', false],
+            'Case 11-1' => ['https://example.com/callback/%2e%2e/other', false],
+            'Case 12-1' => ['https://example.com/callback/%5c../other', false],
         ];
     }
 
@@ -71,7 +76,8 @@ class RedirectUriServiceTest extends TestCase {
             'Case 8-1' => ['app.immich:///oauth-callback', 'app.immich:///oauth-callback'],
             'Case 9-1' => ['app.immich:///oauth-callback/extra', 'app.immich:///oauth-callback/*'],
             'Case 10-1'=> ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', 'https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize'],
-            'Case 11-1'=> ['https://example.com/wp-admin/#redirect', 'https://example.com/wp-admin/#redirect'],
+            'Case 11-1'=> ['https://example.com:443/callback', 'https://example.com:443/callback'],
+            'Case 12-1'=> ['http://[::1]:8080/callback', 'http://[::1]:8080/callback'],
         ];
     }
 
@@ -91,6 +97,9 @@ class RedirectUriServiceTest extends TestCase {
             'Case 10-2' => ['app.immich:///oauth-callback', 'app.immich:///oauth-callback/*'],
             'Case 11-1' => ['app.immich:///oauth-:///callback', 'app.immich:///oauth-callback'],
             'Case 12-1' => ['https://example.com/wp-admin/admin-ajax.php?action=openid-connect-authorize', 'https://example.com/wp-admin/*?action=openid-connect-authorize'],
+            'Case 13-1' => ['https://example.com:8443/callback/more', 'https://example.com/callback/*'],
+            'Case 14-1' => ['https://example.com/callback?x=2', 'https://example.com/callback?x=1'],
+            'Case 15-1' => ['https://example.com/callback/%2e%2e/other', 'https://example.com/callback/*'],
         ];
     }
 
@@ -113,5 +122,20 @@ class RedirectUriServiceTest extends TestCase {
     #[DataProvider('redirectUriProviderNegative')]
     public function testRedirectUriMatchNegative(string $uri, string $pattern) {
         $this->assertFalse($this->service->matchRedirectUri($uri, $pattern), "Check for ".$uri." failed");
+    }
+
+    public function testDynamicRegistrationModeRejectsAllWildcards(): void {
+        foreach ([
+            'https://*.example.com/callback',
+            'https://example.com/callback/*',
+            'http://localhost:*/callback',
+        ] as $uri) {
+            try {
+                $this->service->isValidRedirectUri($uri, false, false);
+                $this->fail('Dynamic registration accepted wildcard URI: ' . $uri);
+            } catch (\OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException $e) {
+                $this->assertNotSame('', $e->getMessage());
+            }
+        }
     }
 }

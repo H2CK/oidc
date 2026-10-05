@@ -100,4 +100,25 @@ class FormUrlencodedParameterParserTest extends TestCase {
             'authorization_code',
         ], $result['grant_type']);
     }
+
+    public function testParsesRepeatedAuthorizationParametersFromRequestUri(): void {
+        $result = $this->parser->parseSelectedQueryParameters(
+            '/apps/oidc/authorize?client_id=one&unknown=ignored&state=a&state=b',
+            ['client_id', 'state']
+        );
+
+        $this->assertSame(['one'], $result['client_id']);
+        $this->assertSame(['a', 'b'], $result['state']);
+        $this->assertArrayNotHasKey('unknown', $result);
+    }
+
+    public function testMergesQueryAndBodyWithoutCollapsingDuplicates(): void {
+        $result = $this->parser->mergeParameterSets(
+            ['state' => ['query-state'], 'scope' => []],
+            ['state' => ['body-state'], 'scope' => ['openid']]
+        );
+
+        $this->assertSame(['query-state', 'body-state'], $result['state']);
+        $this->assertSame(['openid'], $result['scope']);
+    }
 }
