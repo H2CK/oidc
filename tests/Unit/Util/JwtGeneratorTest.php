@@ -369,7 +369,7 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals('12345678', $decodedJwt['nonce']);
     }
 
-    public function testGenerateImplicitIdTokenIncludesEssentialNameClaimOnly() {
+    public function testEssentialNameCannotBypassMissingProfileScope() {
         $signingConfig = $this->configureRs256Signing();
 
         $mockUser = $this->createMock(IUser::class);
@@ -432,7 +432,7 @@ class JwtGeneratorTest extends TestCase {
 
         $decodedJwt = $this->decodeJwt($result, $signingConfig);
 
-        $this->assertEquals('Test User', $decodedJwt['name']);
+        $this->assertArrayNotHasKey('name', $decodedJwt);
         $this->assertArrayNotHasKey('preferred_username', $decodedJwt);
         $this->assertArrayNotHasKey('scope', $decodedJwt);
         $this->assertArrayNotHasKey('updated_at', $decodedJwt);

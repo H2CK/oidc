@@ -140,7 +140,7 @@ class DiscoveryGeneratorTest extends TestCase {
         $scopes = $data['scopes_supported'];
 
         // Default scopes should be present
-        $expectedScopes = ['openid', 'profile', 'email', 'roles', 'groups', 'offline_access'];
+        $expectedScopes = ['openid', 'profile', 'phone', 'address', 'email', 'roles', 'groups', 'offline_access'];
         foreach ($expectedScopes as $scope) {
             $this->assertContains($scope, $scopes, "Missing scope: $scope");
         }
@@ -324,7 +324,7 @@ class DiscoveryGeneratorTest extends TestCase {
     public function testDiscoveryDoesNotReadOrExposeClientSpecificScopes(): void {
         $this->clientMapper->expects($this->never())->method('getClients');
         $response = $this->generator->generateDiscovery($this->request);
-        $this->assertSame(['openid', 'profile', 'email', 'roles', 'groups', 'offline_access'],
+        $this->assertSame(['openid', 'profile', 'phone', 'address', 'email', 'roles', 'groups', 'offline_access'],
             $response->getData()['scopes_supported']);
     }
 

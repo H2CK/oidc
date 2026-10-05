@@ -14,6 +14,8 @@ use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\ApiController;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
+use OCP\AppFramework\Http\Attribute\AnonRateLimit;
+use OCP\AppFramework\Http\Attribute\UserRateLimit;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\UseSession;
@@ -40,6 +42,12 @@ class LoginRedirectorController extends ApiController {
         $this->parameterParser ??= new FormUrlencodedParameterParser();
     }
 
+    /**
+     * @AnonRateLimit(limit=60, period=60)
+     * @UserRateLimit(limit=120, period=60)
+     */
+    #[AnonRateLimit(limit: 60, period: 60)]
+    #[UserRateLimit(limit: 120, period: 60)]
     #[BruteForceProtection(action: 'oidc_login')]
     #[NoCSRFRequired]
     #[UseSession]
@@ -69,7 +77,14 @@ class LoginRedirectorController extends ApiController {
         // GET also lets the browser attach its Nextcloud SameSite session cookie.
         $transactions = $this->transactions ?? Server::get(AuthorizationTransactionService::class);
         $urlGenerator = $this->urlGenerator ?? Server::get(IURLGenerator::class);
-        $id = $transactions->create($parameters, 'authorization_post');
+        try {
+            $id = $transactions->create($parameters, 'authorization_post');
+        } catch (\OCA\OIDCIdentityProvider\Exceptions\AuthorizationRequestLimitException) {
+            $response = $this->invalidRequest('Too many authorization requests. Please try again later.');
+            $response->setStatus(Http::STATUS_TOO_MANY_REQUESTS);
+            $response->addHeader('Retry-After', '60');
+            return $response;
+        }
         $response = new TemplateResponse('oidc', 'authorization-handoff', [
             'continueUrl' => $urlGenerator->linkToRoute('oidc.AuthorizationResume.completePost', ['t' => $id]),
             'continueLabel' => \OCP\Util::getL10N('oidc')->t('Continue authorization'),
@@ -79,6 +94,12 @@ class LoginRedirectorController extends ApiController {
         return $response;
     }
 
+    /**
+     * @AnonRateLimit(limit=60, period=60)
+     * @UserRateLimit(limit=120, period=60)
+     */
+    #[AnonRateLimit(limit: 60, period: 60)]
+    #[UserRateLimit(limit: 120, period: 60)]
     #[BruteForceProtection(action: 'oidc_login')]
     #[NoCSRFRequired]
     #[UseSession]

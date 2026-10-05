@@ -177,7 +177,7 @@ class AuthorizationService
         ?string $claims,
         string $logMessage,
         string $reason,
-    ): RedirectResponse {
+    ): Response {
         $currentUser = $this->userSession->getUser();
         if ($currentUser === null) {
             return $this->redirectToLoginAfterOidcAuthentication(
@@ -273,49 +273,34 @@ class AuthorizationService
         }
         $client = $clientOrResponse;
 
-        // Set default resource if resource is not set at all
-        if (!isset($resource) || trim($resource)==='') {
-            // Try client-specific resource_url first (RFC 9728)
-            $clientResourceUrl = $client->getResourceUrl();
-            if (isset($clientResourceUrl) && trim($clientResourceUrl) !== '') {
-                $resource = $clientResourceUrl;
-            } else {
-                // Fall back to client identifier
-                $resource = null;
-            }
-        }
-
-        if (strlen($scope) > 512 || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $scope)) {
-            return $this->authorizationError($parameters, 'invalid_scope', 'Invalid or oversized scope.');
-        }
-        $oidcRequested = in_array('openid', $this->splitScopes($scope), true);
-        // Adapt scopes to configured values
-        $allowedScopes = $client->getAllowedScopes();
-
-        // OAuth scope tokens are case-sensitive across issuance and refresh.
-        $scope = $this->scopeCeiling->filterByAllowedScopes($scope, $allowedScopes ?? '');
-        if ($scope === '' || ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true))) {
-            return $this->authorizationError($parameters, 'invalid_scope', 'No requested scopes are permitted.');
-        }
-
         $redirectUriErrorResponse = $this->validateAuthorizationRedirectUri($client, $client_id, $redirect_uri);
         if ($redirectUriErrorResponse !== null) {
             return $redirectUriErrorResponse;
         }
-
+        try {
+            $resource = (new ResourcePolicyService($this->appConfig))->resolve($client, $resource);
+        } catch (\InvalidArgumentException) {
+            return $this->authorizationError($parameters, 'invalid_target', 'The requested resource is not approved.');
+        }
+        if (strlen($scope) > 512 || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $scope)) {
+            return $this->authorizationError($parameters, 'invalid_scope', 'Invalid or oversized scope.');
+        }
+        $oidcRequested = in_array('openid', $this->splitScopes($scope), true);
         try {
             $requestedIdTokenClaims = $this->getRequestedClaims($claims, 'id_token');
             $requestedUserinfoClaims = $this->getRequestedClaims($claims, 'userinfo');
-        } catch (\InvalidArgumentException $e) {
-            $this->logger->notice('Invalid claims parameter for client ' . $client_id . '.');
-            return $this->createAuthorizationErrorRedirect(
-                (string)$redirect_uri,
-                'invalid_request',
-                'Invalid claims parameter.',
-                $state,
-                $response_type,
-                $response_mode
-            );
+            ClaimPolicyService::validateAuthenticationRequests($requestedIdTokenClaims);
+            ClaimPolicyService::validateAuthenticationRequests($requestedUserinfoClaims);
+        } catch (\InvalidArgumentException) {
+            return $this->authorizationError($parameters, 'invalid_request', 'Invalid claims parameter.');
+        }
+        $scope = ClaimPolicyService::expandScopes($scope, $requestedIdTokenClaims, $requestedUserinfoClaims);
+        if (strlen($scope) > 512) {
+            return $this->authorizationError($parameters, 'invalid_scope', 'Requested claim permissions exceed the scope limit.');
+        }
+        $scope = $this->scopeCeiling->filterByAllowedScopes($scope, $client->getAllowedScopes() ?? '');
+        if ($scope === '' || ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true))) {
+            return $this->authorizationError($parameters, 'invalid_scope', 'No requested scopes are permitted.');
         }
 
         if (empty($response_type)) {
@@ -606,6 +591,11 @@ class AuthorizationService
         }
 
         $uid = $this->userSession->getUser()->getUID();
+        if (!ClaimPolicyService::authenticationClaimsSatisfied($requestedIdTokenClaims, $uid)
+            || !ClaimPolicyService::authenticationClaimsSatisfied($requestedUserinfoClaims, $uid)) {
+            return $this->authorizationError($parameters, $this->promptContains($prompt, 'none') ? 'login_required' : 'access_denied',
+                'The requested subject or essential authentication context cannot be satisfied.');
+        }
 
         // Per-group scope ceiling. Applied before consent so the consent screen
         // only offers scopes the user may hold.
@@ -671,30 +661,14 @@ class AuthorizationService
                     return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'consent_required',
                         'User consent is required.', $state, $response_type, $response_mode);
                 }
-                // The consent page is within the authenticated session. Granting
-                // consent invokes this service directly with these parameters.
-                $this->session->set('oidc_consent_pending', true);
-                $this->session->set('oidc_consent_fresh_login', $freshLogin);
-                $this->session->set('oidc_client_id', $client_id);
-                $this->session->set('oidc_client_name', $client->getName());
-                $this->session->set('oidc_requested_scopes', $scope);
-                // Preserve the full request for direct post-consent processing.
-                $this->session->set('oidc_state', $state);
-                $this->session->set('oidc_response_type', $response_type);
-                $this->session->set('oidc_redirect_uri', $redirect_uri);
-                $this->session->set('oidc_nonce', $nonce);
-                $this->session->set('oidc_resource', $resource);
-                $this->session->set('oidc_code_challenge', $code_challenge);
-                $this->session->set('oidc_code_challenge_method', $code_challenge_method);
-                $this->session->set('oidc_prompt', $prompt);
-                $this->session->set('oidc_max_age', $max_age);
-                $this->session->set('oidc_response_mode', $response_mode);
-                $this->session->set('oidc_claims', $claims);
-
-                $this->session->close(); // Close session to prevent session locking issues during redirect
-
-                // Redirect to consent page
-                $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', []);
+                $consentParameters = $parameters;
+                $consentParameters['scope'] = $scope;
+                $consentParameters['resource'] = $resource;
+                $id = (new ConsentRequestService($this->session, $this->time))->create(
+                    $uid, $consentParameters, $client->getName(), $freshLogin
+                );
+                $this->session->close();
+                $consentUrl = $this->urlGenerator->linkToRoute('oidc.Consent.show', ['t' => $id]);
                 $this->logger->debug('Redirecting to consent page for user ' . $uid . ' and client ' . $client_id);
                 return new RedirectResponse($consentUrl);
             }
@@ -717,6 +691,8 @@ class AuthorizationService
         if ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true)) {
             return $this->authorizationError($parameters, 'invalid_scope', 'The openid scope is not permitted.');
         }
+        $requestedIdTokenClaims = ClaimPolicyService::filterRequests($requestedIdTokenClaims, $scope);
+        $requestedUserinfoClaims = ClaimPolicyService::filterRequests($requestedUserinfoClaims, $scope);
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
@@ -726,7 +702,7 @@ class AuthorizationService
         if ($resource === null) {
             $accessToken->setResource(null);
         } else {
-            $accessToken->setResource(substr($resource, 0, 2000));
+            $accessToken->setResource($resource);
         }
         $accessToken->setIdTokenClaims($this->encodeRequestedClaims($requestedIdTokenClaims));
         $accessToken->setUserinfoClaims($this->encodeRequestedClaims($requestedUserinfoClaims));
@@ -1034,22 +1010,28 @@ class AuthorizationService
         mixed $claims,
         string $logMessage,
         string $reason
-    ): RedirectResponse {
-        $id = $this->transactions->create([
-            'client_id' => $clientId,
-            'state' => $state,
-            'response_type' => $responseType,
-            'redirect_uri' => $redirectUri,
-            'scope' => $scope,
-            'nonce' => $nonce,
-            'resource' => $resource,
-            'code_challenge' => $codeChallenge,
-            'code_challenge_method' => $codeChallengeMethod,
-            'prompt' => $prompt,
-            'max_age' => $maxAge,
-            'response_mode' => $responseMode,
-            'claims' => $claims,
-        ], $reason);
+    ): Response {
+        try {
+            $id = $this->transactions->create([
+                'client_id' => $clientId,
+                'state' => $state,
+                'response_type' => $responseType,
+                'redirect_uri' => $redirectUri,
+                'scope' => $scope,
+                'nonce' => $nonce,
+                'resource' => $resource,
+                'code_challenge' => $codeChallenge,
+                'code_challenge_method' => $codeChallengeMethod,
+                'prompt' => $prompt,
+                'max_age' => $maxAge,
+                'response_mode' => $responseMode,
+                'claims' => $claims,
+            ], $reason);
+        } catch (\OCA\OIDCIdentityProvider\Exceptions\AuthorizationRequestLimitException) {
+            $response = $this->createHtmlErrorResponse($this->l->t('Too many authorization requests. Please try again later.'), Http::STATUS_TOO_MANY_REQUESTS);
+            $response->addHeader('Retry-After', '60');
+            return $response;
+        }
         $afterLoginRedirectUrl = $this->urlGenerator->linkToRoute('oidc.AuthorizationResume.resume', ['t' => $id]);
 
         $loginUrl = $this->urlGenerator->linkToRoute(
@@ -1113,8 +1095,11 @@ class AuthorizationService
                     throw new \InvalidArgumentException($section . '.' . $claimName . '.essential must be a boolean');
                 }
 
-                if (array_key_exists('values', $claimRequest) && !is_array($claimRequest['values'])) {
+                if (array_key_exists('values', $claimRequest) && (!is_array($claimRequest['values']) || !array_is_list($claimRequest['values']))) {
                     throw new \InvalidArgumentException($section . '.' . $claimName . '.values must be a JSON array');
+                }
+                if (array_key_exists('value', $claimRequest) && array_key_exists('values', $claimRequest)) {
+                    throw new \InvalidArgumentException('Use value or values, not both');
                 }
             }
 

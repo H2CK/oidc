@@ -29,6 +29,7 @@ use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Service\ResourcePolicyService;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
@@ -739,6 +740,14 @@ class OIDCApiController extends ApiController {
             return $this->invalidGrantResponse('Access token not allowed for user groups.');
         }
 
+        if (!$accessToken->getEventGenerated() && $accessToken->getResource() !== null) {
+            $policy = new ResourcePolicyService($this->appConfig);
+            if (!ResourcePolicyService::isValid($accessToken->getResource()) || !$policy->isAllowed($client, $accessToken->getResource())) {
+                $this->accessTokenMapper->delete($accessToken);
+                return $this->invalidGrantResponse('The token resource is no longer approved.');
+            }
+        }
+
         if ($grant_type === 'refresh_token' && !$accessToken->getEventGenerated()) {
             $userConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
             if ($userConsent === null || ($userConsent->getExpiresAt() !== null
@@ -1164,45 +1173,65 @@ class OIDCApiController extends ApiController {
             return $this->deviceGrantError('authorization_pending', 'The user has not completed authorization.');
         }
 
-        $user = $this->userManager->get($authorization->getUserId());
-        if ($user === null || !$user->isEnabled()) {
-            return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
-        }
-        if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
-            return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
-        }
-        // Re-check at issuance, like refresh: allowed_scopes or the user's group
-        // ceiling may have narrowed since the user approved the request.
-        $scope = $this->scopeCeiling->narrow($authorization->getUserId(), $authorization->getScope(), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
-        if ($scope === '') {
-            return $this->deviceGrantError('access_denied', 'No permitted scopes remain for this user.');
-        }
-        if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
-            return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
-        }
-
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
-        $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
-        $refreshCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-
-        $accessToken = new AccessToken();
-        $accessToken->setClientId($client->getId());
-        $accessToken->setUserId($authorization->getUserId());
-        $accessToken->setAuthTime($authorization->getAuthTime());
-        $accessToken->setScope($scope);
-        $accessToken->setHashedCode(hash('sha512', $refreshCode));
-        $accessToken->setCreated($now);
-        $accessToken->setRefreshed($now);
-        $accessToken->setExpiresAt($now + $expireTime);
-        $accessToken->setNonce('');
-        $accessToken->setResource(null);
-        $accessToken->setCodeChallenge('');
-        $accessToken->setCodeChallengeMethod('');
-        $accessToken->setIdTokenClaims(null);
-        $accessToken->setUserinfoClaims(null);
-        $accessToken->setSid(null);
-
+        $transactionStarted = false;
         try {
+            $this->userConsentMapper->beginChange($authorization->getUserId(), $client->getId());
+            $transactionStarted = true;
+            // Approval may have been revoked while this poll waited for the lock.
+            $authorization = $this->deviceCodeMapper->findByDeviceCode($deviceCode);
+            $now = $this->time->getTime();
+            if ($authorization === null || $authorization->getStatus() !== DeviceCode::STATUS_APPROVED) {
+                return $this->deviceGrantError('access_denied', 'The device approval is no longer valid.');
+            }
+            if ($now >= $authorization->getExpiresAt()) {
+                return $this->deviceGrantError('expired_token', 'The device code has expired.');
+            }
+            $user = $this->userManager->get($authorization->getUserId());
+            if ($user === null || !$user->isEnabled()) {
+                return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
+            }
+            if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
+                return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
+            }
+            // Re-check at issuance, like refresh: allowed_scopes or the user's group
+            // ceiling may have narrowed since the user approved the request.
+            $consent = $this->userConsentMapper->findByUserAndClient($authorization->getUserId(), $client->getId());
+            if ($consent === null || ($consent->getExpiresAt() !== null && $now >= $consent->getExpiresAt())) {
+                return $this->deviceGrantError('access_denied', 'Consent has been revoked or expired.');
+            }
+            $consentedScope = implode(' ', array_values(array_intersect(
+                preg_split('/ +/', trim($authorization->getScope()), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+                preg_split('/ +/', trim($consent->getScopesGranted()), -1, PREG_SPLIT_NO_EMPTY) ?: []
+            )));
+            $scope = $this->scopeCeiling->narrow($authorization->getUserId(), $consentedScope, $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
+            if ($scope === '') {
+                return $this->deviceGrantError('access_denied', 'No permitted scopes remain for this user.');
+            }
+            if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
+                return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
+            }
+
+            $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+            $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
+            $refreshCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+
+            $accessToken = new AccessToken();
+            $accessToken->setClientId($client->getId());
+            $accessToken->setUserId($authorization->getUserId());
+            $accessToken->setAuthTime($authorization->getAuthTime());
+            $accessToken->setScope($scope);
+            $accessToken->setHashedCode(hash('sha512', $refreshCode));
+            $accessToken->setCreated($now);
+            $accessToken->setRefreshed($now);
+            $accessToken->setExpiresAt($now + $expireTime);
+            $accessToken->setNonce('');
+            $accessToken->setResource(null);
+            $accessToken->setCodeChallenge('');
+            $accessToken->setCodeChallengeMethod('');
+            $accessToken->setIdTokenClaims(null);
+            $accessToken->setUserinfoClaims(null);
+            $accessToken->setSid(null);
+
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken(
                 $accessToken,
                 $client,
@@ -1221,33 +1250,37 @@ class OIDCApiController extends ApiController {
                     false
                 );
             }
-        } catch (JwtCreationErrorException $e) {
-            $this->deviceCodeMapper->revertConsumed($authorization);
-            return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
-        } catch (\Throwable $e) {
-            $this->deviceCodeMapper->revertConsumed($authorization);
-            throw $e;
-        }
 
-        $responseData = [
-            'access_token' => $accessToken->getAccessToken(),
-            'token_type' => 'Bearer',
-            'expires_in' => $expireTime,
-            'scope' => $accessToken->getScope(),
-        ];
-        if ($idToken !== null) {
-            $responseData['id_token'] = $idToken;
-        }
-        $scopeArray = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY);
-        $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
-            Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS,
-            Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
-        ) === 'true';
-        if ($client->allowsGrantType('refresh_token') && ($provideRefreshTokenAlways || in_array('offline_access', $scopeArray, true))) {
-            $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $refreshCode, $now, $accessToken->getScope());
-            $responseData['refresh_token'] = $refreshCode;
-            if ($refreshExpireTime !== 'never') {
-                $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+            $responseData = [
+                'access_token' => $accessToken->getAccessToken(),
+                'token_type' => 'Bearer',
+                'expires_in' => $expireTime,
+                'scope' => $accessToken->getScope(),
+            ];
+            if ($idToken !== null) {
+                $responseData['id_token'] = $idToken;
+            }
+            $scopeArray = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY);
+            $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
+                Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS,
+                Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
+            ) === 'true';
+            if ($client->allowsGrantType('refresh_token') && ($provideRefreshTokenAlways || in_array('offline_access', $scopeArray, true))) {
+                $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $refreshCode, $now, $accessToken->getScope());
+                $responseData['refresh_token'] = $refreshCode;
+                if ($refreshExpireTime !== 'never') {
+                    $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+                }
+            }
+
+            $this->userConsentMapper->commitChange();
+            $transactionStarted = false;
+        } catch (\Throwable $e) {
+            $this->logger->error('Could not persist device token issuance.', ['exception' => $e]);
+            return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
+        } finally {
+            if ($transactionStarted) {
+                $this->userConsentMapper->rollbackChange();
             }
         }
 

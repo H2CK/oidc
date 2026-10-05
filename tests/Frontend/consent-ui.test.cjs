@@ -191,3 +191,26 @@ test('failed permission changes keep the previous consent and the editor open', 
 	assert.equal(state.notification.type, 'error')
 	assert.equal(state.savingScopes, false)
 })
+
+
+test('grant and denial submit the exact consent request shown in this tab', () => {
+	const submitted = []
+	const { state } = component('Consent.vue', {
+		document: {
+			createElement: tag => tag === 'form'
+				? { fields: {}, appendChild(input) { this.fields[input.name] = input.value }, submit() { submitted.push(this.fields) } }
+				: {},
+			body: { appendChild() {} },
+		},
+	})
+	state.consentRequestId = 'tab-A-request'
+	state.selectedScopes = ['openid']
+	state.handleGrant()
+	state.resetSubmitting()
+	state.consentRequestId = 'tab-B-request'
+	state.handleDeny()
+	assert.equal(submitted[0].t, 'tab-A-request')
+	assert.equal(submitted[0].scopes, 'openid')
+	assert.equal(submitted[1].t, 'tab-B-request')
+	assert.equal(submitted[0].requesttoken, 'synthetic-test-value')
+})

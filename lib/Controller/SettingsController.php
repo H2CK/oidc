@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Controller;
 
 use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCA\OIDCIdentityProvider\Service\ResourcePolicyService;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -281,7 +282,7 @@ class SettingsController extends Controller
         }
         if (array_key_exists('resourceUrl', $params)) {
             $resourceUrl = trim((string)$params['resourceUrl']);
-            if ($resourceUrl !== '' && (mb_strlen($resourceUrl) > 512 || !filter_var($resourceUrl, FILTER_VALIDATE_URL))) {
+            if ($resourceUrl !== '' && !ResourcePolicyService::isValid($resourceUrl, 512)) {
                 return new JSONResponse(['error' => 'Invalid resource URL format.'], Http::STATUS_BAD_REQUEST);
             }
             $client->setResourceUrl($resourceUrl === '' ? null : $resourceUrl);
@@ -439,6 +440,9 @@ class SettingsController extends Controller
         }
 
         $this->clientMapper->update($client);
+        if (array_key_exists('resourceUrl', $params)) {
+            (new ResourcePolicyService($this->appConfig))->approveDefault($client);
+        }
 
         if (array_key_exists('redirectUris', $params)) {
             $this->redirectUriMapper->deleteByClientId($client_id);
@@ -624,19 +628,18 @@ class SettingsController extends Controller
             $resourceUrl = null;
         } else {
             // Validate URL format
-            if (!filter_var($resourceUrl, FILTER_VALIDATE_URL)) {
+            if (!ResourcePolicyService::isValid($resourceUrl, 512)) {
                 return new JSONResponse([
                     'error' => 'Invalid resource URL format. Must be a valid URL.'
                 ], Http::STATUS_BAD_REQUEST);
             }
-            // Enforce 512 character limit
-            $resourceUrl = mb_substr($resourceUrl, 0, 512);
         }
 
         $this->logger->debug("Updating resourceUrl for client " . $id . " with value " . ($resourceUrl ?? 'null'));
         $client = $this->clientMapper->getByUid($id);
         $client->setResourceUrl($resourceUrl);
         $this->clientMapper->update($client);
+        (new ResourcePolicyService($this->appConfig))->approveDefault($client);
         return new JSONResponse([]);
     }
 

@@ -178,12 +178,33 @@ class ClientMapper extends QBMapper {
         $qb = $this->db->getQueryBuilder();
 
         $qb
-            ->select('*')
+            ->selectAlias($qb->func()->count('*'), 'client_count')
             ->from($this->tableName)
-            // ->select($qb->createFunction('COUNT(`id`)'))
             ->where($qb->expr()->eq('dcr', $qb->createNamedParameter(true, IQueryBuilder::PARAM_BOOL)));
 
-        return $qb->executeQuery()->rowCount();
+        $result = $qb->executeQuery();
+        try {
+            return (int)$result->fetchOne();
+        } finally {
+            $result->closeCursor();
+        }
+    }
+
+    /** Count and insert under the same shared database lock. */
+    public function insertDynamicClient(Client $client): Client {
+        $this->db->beginTransaction();
+        try {
+            OperationLock::acquire($this->db, OperationLock::DCR);
+            if ($this->getNumDcrClients() >= 100) {
+                throw new \OCA\OIDCIdentityProvider\Exceptions\DynamicClientQuotaException('Dynamic client quota reached.');
+            }
+            $client = $this->insert($client);
+            $this->db->commit();
+            return $client;
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
 

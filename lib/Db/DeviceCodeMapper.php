@@ -16,6 +16,16 @@ use OCP\IDBConnection;
 
 /** @template-extends QBMapper<DeviceCode> */
 class DeviceCodeMapper extends QBMapper {
+
+	public function denyApprovedByUserAndClient(string $userId, int $clientId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update($this->getTableName())
+			->set('status', $qb->createNamedParameter(DeviceCode::STATUS_DENIED))
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('status', $qb->createNamedParameter(DeviceCode::STATUS_APPROVED)))
+			->executeStatement();
+	}
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'oidc_device_codes', DeviceCode::class);
 	}

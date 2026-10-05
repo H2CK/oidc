@@ -173,7 +173,7 @@ class CustomClaimService {
                     $customClaimsArray[$claim->getName()] = $functionResult;
                 }
             }
-            $this->logger->debug('Result for custom claims: ' . json_encode($customClaimsArray));
+            $this->logger->debug('Custom claims evaluated.', ['count' => count($customClaimsArray)]);
             return $customClaimsArray;
         }
     }
@@ -338,7 +338,11 @@ class CustomClaimService {
         if ($user === null) {
             return null;
         }
-        return $this->getUserCoreValue($user, 'first_day_of_week') ?? $this->lFactory->get('core', $this->getUserLocale($user) )->l('firstday', null);
+        $value = $this->getUserCoreValue($user, 'first_day_of_week');
+        if ($value === null || preg_match('/^[0-6]$/D', $value) !== 1) {
+            $value = (string)$this->lFactory->get('core', $this->getUserLocale($user))->l('firstday', null);
+        }
+        return preg_match('/^[0-6]$/D', $value) === 1 ? (int)$value : 1;
     }
 
     /**

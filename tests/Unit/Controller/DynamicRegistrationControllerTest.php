@@ -165,7 +165,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsEveryRedirectUriWildcard(string $redirectUri): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(redirect_uris: [$redirectUri]);
 
@@ -185,7 +185,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsUnsafeBackChannelLogoutUri(string $uri): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -274,7 +274,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsUnsupportedIdTokenSigningAlgorithm(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -316,7 +316,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ['default_token_type', 'opaque', 'opaque'],
         ]);
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->method('insert')->willReturnCallback(static function ($client) {
+        $this->clientMapper->method('insertDynamicClient')->willReturnCallback(static function ($client) {
             $client->setId(7);
             return $client;
         });
@@ -353,7 +353,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsInvalidPostLogoutRedirectUri(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -367,7 +367,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsForbiddenPostLogoutRedirectUriSchemes(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         foreach ([
             'javascript:alert(1)',
@@ -536,7 +536,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ['default_token_type', 'opaque', 'opaque'],
         ]);
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->method('insert')->willReturnCallback(static function ($client) {
+        $this->clientMapper->method('insertDynamicClient')->willReturnCallback(static function ($client) {
             $client->setId(7);
             return $client;
         });
@@ -559,7 +559,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsInvalidFrontChannelLogoutUri(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -573,7 +573,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsFrontChannelLogoutUriOnDifferentRedirectOrigin(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -587,7 +587,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRequiresFrontChannelUriWhenSessionCorrelationIsRequired(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -670,7 +670,7 @@ class DynamicRegistrationControllerTest extends TestCase {
         // Return max number of clients 1000
         $this->clientMapper
             ->method('getNumDcrClients')
-            ->willReturn(101);
+            ->willReturn(100);
 
         $result = $this->controller->registerClient(['https://test.org/redirect']);
 
@@ -688,13 +688,13 @@ class DynamicRegistrationControllerTest extends TestCase {
                 ['default_token_type', 'opaque', 'opaque']
             ]);
 
-        // Return max number of clients 1000
+        // Keep the client count below the server limit so the registration succeeds.
         $this->clientMapper
             ->method('getNumDcrClients')
-            ->willReturn(100);
+            ->willReturn(99);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -745,7 +745,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->willReturn(50);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -794,7 +794,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->willReturn(50);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -863,7 +863,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->willReturn(50);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert

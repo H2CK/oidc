@@ -8,6 +8,8 @@ declare(strict_types=1);
  */
 namespace OCA\OIDCIdentityProvider\Controller;
 
+use OCA\OIDCIdentityProvider\Service\ClaimPolicyService;
+
 use OC\Security\Bruteforce\Throttler;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
@@ -42,7 +44,6 @@ use Psr\Log\LoggerInterface;
 class UserInfoController extends ApiController
 {
     private const PROFILE_CLAIMS = [
-        'updated_at',
         'name',
         'family_name',
         'given_name',
@@ -328,6 +329,7 @@ class UserInfoController extends ApiController
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
         $requestedUserinfoClaims = $this->getRequestedClaimRequests($accessToken->getUserinfoClaims());
+        $requestedUserinfoClaims = ClaimPolicyService::filterRequests($requestedUserinfoClaims, $accessToken->getScope());
 
         $userInfoPayload = $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid);
 
@@ -399,9 +401,8 @@ class UserInfoController extends ApiController
             $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
         $profileScopeRequested = in_array("profile", $scopeArray);
-        if ($profileScopeRequested || $this->hasRequestedClaim(self::PROFILE_CLAIMS, $requestedUserinfoClaims)) {
+        if ($profileScopeRequested || $this->hasRequestedClaim(self::PROFILE_CLAIMS, $requestedUserinfoClaims) || array_intersect(['phone', 'address'], $scopeArray) !== []) {
             $profile = [
-                'updated_at' => $user->getLastLogin(),
             ];
             if ($account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
                 $displayName = $account->getProperty(\OCP\Accounts\IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
@@ -447,7 +448,7 @@ class UserInfoController extends ApiController
                 $profile = array_merge($profile,
                         ['quota' => $quota]);
             }
-            $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims($profile, $requestedUserinfoClaims, $profileScopeRequested));
+            $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims(ClaimPolicyService::filterReleasedClaims($profile, $accessToken->getScope()), $requestedUserinfoClaims, true));
         }
         $emailScopeRequested = in_array("email", $scopeArray);
         if (($emailScopeRequested || $this->hasRequestedClaim(self::EMAIL_CLAIMS, $requestedUserinfoClaims)) && $user->getEMailAddress() !== null) {
@@ -479,6 +480,7 @@ class UserInfoController extends ApiController
             }
             $userInfoPayload = array_merge($userInfoPayload, $this->filterClaims($email, $requestedUserinfoClaims, $emailScopeRequested));
         }
+        $userInfoPayload = ClaimPolicyService::filterReleasedClaims($userInfoPayload, $accessToken->getScope());
         $this->logger->debug('Returned user info for user ' . $uid);
         $response = new JSONResponse($userInfoPayload);
         $response->addHeader('Access-Control-Allow-Origin', '*');

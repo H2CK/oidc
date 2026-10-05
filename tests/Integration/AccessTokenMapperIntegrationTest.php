@@ -84,6 +84,7 @@ class AccessTokenMapperIntegrationTest extends \Test\TestCase {
 
 		$staleRefreshedAt = time() - 100000; // far older than expire_time
 		$entity = $this->insertToken($staleRefreshedAt);
+		Server::get(\OCA\OIDCIdentityProvider\Db\RefreshTokenMapper::class)->createForAccessToken($entity->getId(), bin2hex(random_bytes(32)), $staleRefreshedAt);
 
 		try {
 			$this->mapper->cleanUp();

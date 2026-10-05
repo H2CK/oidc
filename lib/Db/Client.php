@@ -106,7 +106,7 @@ class Client extends Entity implements JsonSerializable {
     public function __construct(
         $name = '',
         $redirectUris = [],
-        $algorithm = 'RS256',
+        $signingAlg = 'RS256',
         $type = 'confidential',
         $flowType = 'code',
         $tokenType = 'opaque',
@@ -148,7 +148,7 @@ class Client extends Entity implements JsonSerializable {
 
         $this->setName($name);
         $this->redirectUris = $redirectUris;
-        $this->setSigningAlg($algorithm == 'RS256' ? 'RS256' : 'HS256');
+        $this->setSigningAlg($signingAlg == 'RS256' ? 'RS256' : 'HS256');
         $this->setType($type == 'public' ? 'public' : 'confidential');
         $this->setFlowType($flowType == 'code' ? 'code' : 'code id_token');
         $this->setTokenType($tokenType);

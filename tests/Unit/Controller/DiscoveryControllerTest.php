@@ -97,6 +97,8 @@ class DiscoveryControllerTest extends TestCase {
         $scopesSupported = [
             'openid',
             'profile',
+            'phone',
+            'address',
             'email',
             'roles',
             'groups',
@@ -173,7 +175,6 @@ class DiscoveryControllerTest extends TestCase {
             'given_name',
             'family_name',
             'middle_name',
-            'updated_at',
             'website',
             'email',
             'email_verified',

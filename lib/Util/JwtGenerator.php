@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Util;
 
+use OCA\OIDCIdentityProvider\Service\ClaimPolicyService;
+use OCA\OIDCIdentityProvider\Db\IssuedIdTokenMapper;
+
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OC\Authentication\Token\IProvider as TokenProvider;
 use OCA\OIDCIdentityProvider\Db\Group;
@@ -74,7 +77,6 @@ class JwtGenerator
     public const AUD_OUTPUT = ' aud=> ';
     public const CLIENT_ID_OUTPUT = ' client_id=> ';
     private const PROFILE_CLAIMS = [
-        'updated_at',
         'preferred_username',
         'name',
         'family_name',
@@ -249,7 +251,11 @@ class JwtGenerator
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
         $requestedIdTokenClaims = $this->getRequestedClaimRequests($accessToken->getIdTokenClaims());
+        $requestedIdTokenClaims = ClaimPolicyService::filterRequests($requestedIdTokenClaims, $accessToken->getScope());
 
+        if (!ClaimPolicyService::authenticationClaimsSatisfied($requestedIdTokenClaims, $uid)) {
+            throw new JwtCreationErrorException('Requested authentication claims cannot be satisfied.');
+        }
         $jwt_payload = $this->filterClaims(
             $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid),
             $requestedIdTokenClaims,
@@ -364,9 +370,8 @@ class JwtGenerator
 
         $includeProfileByScope = $includeScopeClaims && in_array("profile", $scopeArray, true);
         $includeProfileByClaim = $this->hasRequestedClaim(self::PROFILE_CLAIMS, $requestedIdTokenClaims);
-        if ($includeProfileByScope || $includeProfileByClaim) {
+        if ($includeProfileByScope || $includeProfileByClaim || array_intersect(['phone', 'address'], $scopeArray) !== []) {
             $profile = [
-                'updated_at' => $user->getLastLogin(),
                 'preferred_username' => $uid,
             ];
             if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
@@ -411,7 +416,7 @@ class JwtGenerator
             if ($quota != 'none') {
                 $profile = array_merge($profile, ['quota' => $quota]);
             }
-            $jwt_payload = array_merge($jwt_payload, $this->filterClaims($profile, $requestedIdTokenClaims, $includeProfileByScope));
+            $jwt_payload = array_merge($jwt_payload, $this->filterClaims(ClaimPolicyService::filterReleasedClaims($profile, $accessToken->getScope()), $requestedIdTokenClaims, $includeScopeClaims));
         }
 
         $includeEmailByScope = $includeScopeClaims && in_array("email", $scopeArray, true);
@@ -446,6 +451,7 @@ class JwtGenerator
             $jwt_payload = array_merge($jwt_payload, $this->filterClaims($email, $requestedIdTokenClaims, $includeEmailByScope));
         }
 
+        $jwt_payload = ClaimPolicyService::filterReleasedClaims($jwt_payload, $accessToken->getScope());
         $payload = json_encode($jwt_payload);
         $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
@@ -470,6 +476,13 @@ class JwtGenerator
         }
 
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
+        if ($signing_alg === 'HS256') {
+            try {
+                Server::get(IssuedIdTokenMapper::class)->record($jwt, $jwt_payload['exp']);
+            } catch (\Throwable $e) {
+                throw new JwtCreationErrorException('Could not persist ID token issuance.', 0, $e);
+            }
+        }
         $this->logger->debug('Generated JWT with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . ' aud/azp => ' . $client->getClientIdentifier());
         return $jwt;
     }
@@ -723,10 +736,8 @@ class JwtGenerator
             $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
 
-        if (in_array("profile", $scopeArray)) {
-            $profile = [
-                'updated_at' => $user->getLastLogin(),
-            ];
+        if (array_intersect(['profile', 'phone', 'address'], $scopeArray) !== []) {
+            $profile = [];
             if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
                 $displayName = $account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
                 $names = $this->converter->splitFullName($displayName);
@@ -794,6 +805,7 @@ class JwtGenerator
             $jwt_payload = array_merge($jwt_payload, $email);
         }
 
+        $jwt_payload = ClaimPolicyService::filterReleasedClaims($jwt_payload, $accessToken->getScope());
         $payload = json_encode($jwt_payload);
         $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 

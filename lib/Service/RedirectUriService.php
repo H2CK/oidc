@@ -18,6 +18,31 @@ class RedirectUriService {
     ) {
     }
 
+    /** Enforce DCR application/flow transport rules in addition to URI syntax. */
+    public function validateDynamicPolicy(string $uri, string $applicationType, string $clientType, array $grants): void {
+        $this->isValidRedirectUri($uri, false, false);
+        $parts = $this->parseUri($uri);
+        $scheme = $parts['scheme'];
+        $loopback = in_array($parts['host'], ['localhost', '127.0.0.1', '[::1]'], true);
+        if ($applicationType === 'web') {
+            if (!in_array($scheme, ['http', 'https'], true)
+                || ($scheme === 'http' && ($clientType === 'public' || in_array('implicit', $grants, true)))
+                || (in_array('implicit', $grants, true) && $loopback)) {
+                throw new RedirectUriValidationException('Web redirect URI is incompatible with its application type, authentication method or grant types.');
+            }
+        } elseif ($applicationType === 'native') {
+            if ($scheme === 'https' || ($scheme === 'http' && !$loopback)) {
+                throw new RedirectUriValidationException('OIDC native redirects must use a private-use scheme or an HTTP loopback URL.');
+            }
+            // Additional RFC 8252 constraint on private-use reverse-DNS schemes.
+            if (!in_array($scheme, ['http', 'https'], true) && !str_contains($scheme, '.')) {
+                throw new RedirectUriValidationException('Native private-use schemes must be based on a domain name under the client owner\'s control.');
+            }
+        } else {
+            throw new RedirectUriValidationException('Unsupported application type.');
+        }
+    }
+
     /**
      * Verify redirect uri if it is valid according to OIDC specifications
      *

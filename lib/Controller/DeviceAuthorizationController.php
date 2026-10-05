@@ -282,23 +282,38 @@ class DeviceAuthorizationController extends Controller {
 			+ (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME)) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The requesting application has expired.'], Http::STATUS_BAD_REQUEST);
 		}
-		$previous = $this->userConsentMapper->findByUserAndClient($user->getUID(), $client->getId());
-		if ($previous !== null && ($previous->getExpiresAt() === null || $this->time->getTime() < $previous->getExpiresAt())) {
-			foreach ([$previous->getScopesGranted(), $previous->getScopesRequested() ?? $previous->getScopesGranted()] as $oldScope) {
-				$combined = implode(' ', array_unique(array_merge(
-					preg_split('/ +/', trim($oldScope), -1, PREG_SPLIT_NO_EMPTY) ?: [],
-					preg_split('/ +/', trim($scope), -1, PREG_SPLIT_NO_EMPTY) ?: []
-				)));
-				if (strlen($combined) > 512) {
-					return new JSONResponse(['error' => 'invalid_scope', 'error_description' => 'Too many combined permissions. Revoke this application and try again.'], Http::STATUS_BAD_REQUEST);
+		$transactionStarted = false;
+		try {
+			$this->userConsentMapper->beginChange($user->getUID(), $client->getId());
+			$transactionStarted = true;
+			$previous = $this->userConsentMapper->findByUserAndClient($user->getUID(), $client->getId());
+			if ($previous !== null && ($previous->getExpiresAt() === null || $this->time->getTime() < $previous->getExpiresAt())) {
+				foreach ([$previous->getScopesGranted(), $previous->getScopesRequested() ?? $previous->getScopesGranted()] as $oldScope) {
+					$combined = implode(' ', array_unique(array_merge(
+						preg_split('/ +/', trim($oldScope), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+						preg_split('/ +/', trim($scope), -1, PREG_SPLIT_NO_EMPTY) ?: []
+					)));
+					if (strlen($combined) > 512) {
+						return new JSONResponse(['error' => 'invalid_scope', 'error_description' => 'Too many combined permissions. Revoke this application and try again.'], Http::STATUS_BAD_REQUEST);
+					}
 				}
 			}
+			$this->storeConsent($user->getUID(), $client, $scope, $previous);
+			// Bind this device request to its reviewed subset independently of merged client consent.
+			if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID(), $this->authenticationTime->getAuthenticationTime(), $scope)) {
+				return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
+			}
+
+			$this->userConsentMapper->commitChange();
+			$transactionStarted = false;
+		} catch (\Throwable $e) {
+			$this->logger->error('Could not persist device approval.', ['exception' => $e]);
+			return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
+		} finally {
+			if ($transactionStarted) {
+				$this->userConsentMapper->rollbackChange();
+			}
 		}
-		// Bind this device request to its reviewed subset independently of merged client consent.
-		if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID(), $this->authenticationTime->getAuthenticationTime(), $scope)) {
-			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
-		}
-		$this->storeConsent($user->getUID(), $client, $scope, $previous);
 		$this->logger->info('User approved an OAuth device authorization request.', ['client_id' => $client->getClientIdentifier()]);
 		return new JSONResponse(['success' => true]);
 	}

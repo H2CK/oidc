@@ -293,12 +293,37 @@ class AccessTokenMapper extends QBMapper {
     public function cleanUp() {
         $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
         if ($refreshExpireTime === 'never') {
-            // Every row here was issued together with a refresh token (see
-            // OIDCApiController), so "never" must mean this cleanup never
-            // deletes for staleness - not "fall back to the access-token
-            // expire_time", which silently reintroduced the very expiry the
-            // admin asked to turn off (rows going stale after ~expire_time
-            // instead of never).
+            $now = $this->time->getTime();
+            $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+            $qb = $this->db->getQueryBuilder();
+            $qb->select('a.*')->from($this->tableName, 'a')
+                ->leftJoin('a', 'oidc_refresh_tokens', 'r', $qb->expr()->andX(
+                    $qb->expr()->eq('r.access_token_id', 'a.id'),
+                    $qb->expr()->eq('r.used_at', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT))
+                ))
+                ->leftJoin('a', 'oidc_authorization_codes', 'c', $qb->expr()->andX(
+                    $qb->expr()->eq('c.access_token_id', 'a.id'),
+                    $qb->expr()->eq('c.used_at', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)),
+                    $qb->expr()->gt('c.created', $qb->createNamedParameter($now - Application::AUTHORIZATION_CODE_LIFETIME, IQueryBuilder::PARAM_INT))
+                ))
+                ->where($qb->expr()->isNull('r.id'))
+                ->andWhere($qb->expr()->isNull('c.id'))
+                ->andWhere($qb->expr()->orX(
+                    $qb->expr()->eq('a.legacy_refresh_token', $qb->createNamedParameter(false, IQueryBuilder::PARAM_BOOL)),
+                    $qb->expr()->isNull('a.legacy_refresh_token')
+                ))
+                ->andWhere($qb->expr()->orX(
+                    $qb->expr()->andX(
+                        $qb->expr()->gt('a.expires_at', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)),
+                        $qb->expr()->lte('a.expires_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT))
+                    ),
+                    $qb->expr()->andX(
+                        $qb->expr()->orX($qb->expr()->isNull('a.expires_at'),
+                            $qb->expr()->eq('a.expires_at', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT))),
+                        $qb->expr()->lte('a.refreshed', $qb->createNamedParameter($now - $expireTime, IQueryBuilder::PARAM_INT))
+                    )
+                ));
+            $this->deleteEntitiesWithDescendants($qb);
             return;
         }
 

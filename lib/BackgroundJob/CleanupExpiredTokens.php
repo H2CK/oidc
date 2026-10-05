@@ -75,6 +75,7 @@ class CleanupExpiredTokens extends TimedJob {
         );
         $this->registrationTokenMapper->cleanUp($currentTime);
         $this->deviceCodeMapper->cleanUp($currentTime);
+        \OCP\Server::get(\OCA\OIDCIdentityProvider\Db\IssuedIdTokenMapper::class)->cleanUp($currentTime);
     }
 
     /**

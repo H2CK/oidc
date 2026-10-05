@@ -17,6 +17,7 @@ use OCP\IRequest;
 use OCP\IURLGenerator;
 use OCP\AppFramework\Services\IAppConfig;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
+use OCA\OIDCIdentityProvider\Service\ResourcePolicyService;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
@@ -199,9 +200,14 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
+        $redirectError = $this->validateDynamicRedirectPolicy($redirect_uris, $application_type,
+            $token_endpoint_auth_method === 'none' ? 'public' : 'confidential', $grant_types_arr);
+        if ($redirectError !== null) {
+            return $redirectError;
+        }
         $this->clientMapper->cleanUp();
 
-        if ($this->clientMapper->getNumDcrClients() > 100) {
+        if ($this->clientMapper->getNumDcrClients() >= 100) {
             $this->logger->info('Maximum number of dynamic registered clients exceeded.');
             return new JSONResponse([
                 'error' => 'max_num_clients_exceeded',
@@ -317,9 +323,9 @@ class DynamicRegistrationController extends ApiController
 
         // Validate and set resource_url if provided (RFC 9728)
         if ($resource_url !== null) {
-            $resource_url = trim($resource_url);
+
             // Enforce 512 character limit (matching database schema)
-            if (mb_strlen($resource_url) > 512) {
+            if (strlen($resource_url) > 512) {
                 $this->logger->info('Resource URL exceeds 512 character limit during dynamic client registration.');
                 return new JSONResponse([
                     'error' => 'invalid_resource_url',
@@ -327,7 +333,7 @@ class DynamicRegistrationController extends ApiController
                 ], Http::STATUS_BAD_REQUEST);
             }
             // Validate it's a proper URL
-            if (!filter_var($resource_url, FILTER_VALIDATE_URL)) {
+            if (!ResourcePolicyService::isValid($resource_url, 512)) {
                 $this->logger->info('Invalid resource_url format during dynamic client registration: ' . $resource_url);
                 return new JSONResponse([
                     'error' => 'invalid_resource_url',
@@ -347,7 +353,12 @@ class DynamicRegistrationController extends ApiController
             static fn (string $response): array => explode(' ', $response), $response_types_arr ?: ['']
         ))))));
 
-        $client = $this->clientMapper->insert($client);
+        try {
+            $client = $this->clientMapper->insertDynamicClient($client);
+        } catch (\OCA\OIDCIdentityProvider\Exceptions\DynamicClientQuotaException) {
+            return new JSONResponse(['error' => 'max_num_clients_exceeded',
+                'error_description' => 'Maximum number of dynamically registered clients reached.'], Http::STATUS_BAD_REQUEST);
+        }
         if ($normalizedPostLogoutRedirectUris !== null) {
             $this->replacePostLogoutRedirectUris($client, $normalizedPostLogoutRedirectUris);
         }
@@ -861,6 +872,11 @@ class DynamicRegistrationController extends ApiController
         if ($effectiveResponses !== [] && $effectiveRedirectUris === []) {
             return $this->invalidFlowMetadata('redirect_uris are required for browser authorization flows.');
         }
+        $redirectError = $this->validateDynamicRedirectPolicy($effectiveRedirectUris, $effectiveApplicationType,
+            $effectiveAuthMethod === 'none' ? 'public' : 'confidential', $effectiveGrants);
+        if ($redirectError !== null) {
+            return $redirectError;
+        }
         $client->setRegisteredResponseTypes($effectiveResponses);
         $client->setRegisteredGrantTypes($effectiveGrants);
         $client->setFlowType(implode(' ', array_values(array_unique(array_merge(...array_map(
@@ -1125,6 +1141,17 @@ class DynamicRegistrationController extends ApiController
             return $this->invalidFlowMetadata('Browser grants require a matching response_types value.');
         }
         return [array_values(array_unique($normalizedResponses)), array_values(array_unique($grants))];
+    }
+
+    private function validateDynamicRedirectPolicy(array $uris, string $applicationType, string $clientType, array $grants): ?JSONResponse {
+        try {
+            foreach ($uris as $uri) {
+                $this->redirectUriService->validateDynamicPolicy($uri, $applicationType, $clientType, $grants);
+            }
+        } catch (\OCA\OIDCIdentityProvider\Exceptions\RedirectUriValidationException $e) {
+            return new JSONResponse(['error' => 'invalid_redirect_uri', 'error_description' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+        }
+        return null;
     }
 
 }

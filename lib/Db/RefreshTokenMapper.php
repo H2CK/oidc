@@ -15,8 +15,6 @@ use OCP\IDBConnection;
 
 /** @template-extends QBMapper<RefreshToken> */
 class RefreshTokenMapper extends QBMapper {
-    /** Retain consumed hashes for seven days of replay detection, even with never-expiring grants. */
-    public const USED_RETENTION = 7 * 24 * 60 * 60;
     public function __construct(IDBConnection $db) {
         parent::__construct($db, 'oidc_refresh_tokens', RefreshToken::class);
     }
@@ -76,11 +74,8 @@ class RefreshTokenMapper extends QBMapper {
     }
 
     public function cleanUp(int $now): void {
-        $qb = $this->db->getQueryBuilder();
-        $qb->delete($this->getTableName())
-            ->where($qb->expr()->gt('used_at', $qb->createNamedParameter(0, IQueryBuilder::PARAM_INT)))
-            ->andWhere($qb->expr()->lt('used_at', $qb->createNamedParameter($now - self::USED_RETENTION, IQueryBuilder::PARAM_INT)))
-            ->executeStatement();
+        // Keep every consumed generation while its family exists. A sliding
+        // refresh lifetime (or "never") makes a fixed replay-retention unsafe.
 
         // Repair pre-existing orphans as well as installations where foreign
         // key enforcement is disabled. Use bounded batches and portable joins.

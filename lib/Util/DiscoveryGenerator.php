@@ -65,6 +65,8 @@ class DiscoveryGenerator
         $defaultScopes = [
             'openid',
             'profile',
+            'phone',
+            'address',
             'email',
             'roles',
             'groups',
@@ -147,7 +149,6 @@ class DiscoveryGenerator
             'given_name',
             'family_name',
             'middle_name',
-            'updated_at',
             'website',
             'email',
             'email_verified',

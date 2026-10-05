@@ -13,5 +13,6 @@ Util::addScript('oidc', 'oidc-consent');
      data-client-name="<?php p($_['clientName']); ?>"
      data-scopes="<?php p($_['requestedScopes']); ?>"
      data-redirect-target="<?php p($_['redirectTarget']); ?>"
+     data-consent-request-id="<?php p($_['consentRequestId']); ?>"
      data-client-id="<?php p($_['clientId']); ?>">
 </div>

@@ -13,6 +13,7 @@ if (consentEl) {
 		clientName: consentEl.dataset.clientName || 'Unknown Application',
 		requestedScopes: consentEl.dataset.scopes || 'openid',
 		clientId: consentEl.dataset.clientId || '',
+		consentRequestId: consentEl.dataset.consentRequestId || '',
 		redirectTarget: consentEl.dataset.redirectTarget || '',
 	})
 	app.mount('#oidc-consent')

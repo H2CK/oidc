@@ -63,6 +63,7 @@ import { generateUrl } from '@nextcloud/router'
 export default {
 	name: 'Consent',
 	props: {
+		consentRequestId: { type: String, required: true },
 		clientName: {
 			type: String,
 			required: true,
@@ -110,6 +111,8 @@ export default {
 					label: t('oidc', 'Profile information'),
 					description: t('oidc', 'Access your name, username, profile picture, and quota'),
 				},
+				phone: { label: t('oidc', 'Phone number'), description: t('oidc', 'Access your phone number') },
+				address: { label: t('oidc', 'Postal address'), description: t('oidc', 'Access your postal address') },
 				email: {
 					label: t('oidc', 'Email address'),
 					description: t('oidc', 'Access your email address and verification status'),
@@ -149,6 +152,7 @@ export default {
 			const parameters = {
 				requesttoken: getRequestToken(),
 				...fields,
+				t: this.consentRequestId,
 			}
 			Object.entries(parameters).forEach(([name, value]) => {
 				const input = document.createElement('input')

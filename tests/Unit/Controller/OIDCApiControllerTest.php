@@ -396,6 +396,10 @@ class OIDCApiControllerTest extends TestCase {
 
     public function testDeviceGrantIssuesTokensForApprovedUser(): void {
         $this->setDeviceGrantForm();
+        $consent = new \OCA\OIDCIdentityProvider\Db\UserConsent();
+        $consent->setScopesGranted('openid profile email offline_access');
+        $consent->setExpiresAt(2000);
+        $this->userConsentMapper->method('findByUserAndClient')->willReturn($consent);
         $client = $this->createDeviceClient();
         $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
         $user = $this->createMock(IUser::class);
@@ -471,6 +475,10 @@ class OIDCApiControllerTest extends TestCase {
      */
     public function testDeviceGrantNarrowsScopeToAllowedScopesAndGroupCeiling(): void {
         $this->setDeviceGrantForm();
+        $consent = new \OCA\OIDCIdentityProvider\Db\UserConsent();
+        $consent->setScopesGranted('openid profile email offline_access notes.read notes.write');
+        $consent->setExpiresAt(2000);
+        $this->userConsentMapper->method('findByUserAndClient')->willReturn($consent);
         $client = $this->createDeviceClient();
         $client->setAllowedScopes('openid profile offline_access notes.read notes.write');
         $authorization = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
@@ -1472,6 +1480,39 @@ class OIDCApiControllerTest extends TestCase {
         $response = $this->controller->getToken('authorization_code', code: 'code',
             client_id: 'client', client_secret: 'secret', redirect_uri: 'https://rp.example/cb');
         $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testApprovedDeviceCodeWithRevokedConsentCannotIssueTokens(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $approved = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
+        $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturn($approved);
+        $this->userManager->method('get')->willReturn($user);
+        $this->userConsentMapper->method('findByUserAndClient')->willReturn(null);
+        $this->deviceCodeMapper->expects($this->never())->method('markConsumed');
+        $this->accessTokenMapper->expects($this->never())->method('insert');
+        $this->userConsentMapper->expects($this->once())->method('rollbackChange');
+        $response = $this->controller->getToken('urn:ietf:params:oauth:grant-type:device_code', device_code: 'device-code', client_id: 'device-client');
+        $this->assertSame('access_denied', $response->getData()['error']);
+    }
+
+    public function testDevicePollRereadsApprovalAfterWaitingForConsentLock(): void {
+        $this->setDeviceGrantForm();
+        $client = $this->createDeviceClient();
+        $approved = $this->createDeviceAuthorization(DeviceCode::STATUS_APPROVED);
+        $denied = clone $approved;
+        $denied->setStatus(DeviceCode::STATUS_DENIED);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->method('findByDeviceCode')->willReturnOnConsecutiveCalls($approved, $denied);
+        $this->deviceCodeMapper->expects($this->never())->method('markConsumed');
+        $this->accessTokenMapper->expects($this->never())->method('insert');
+        $response = $this->controller->getToken('urn:ietf:params:oauth:grant-type:device_code', device_code: 'device-code', client_id: 'device-client');
+        $this->assertSame('access_denied', $response->getData()['error']);
     }
 
 }

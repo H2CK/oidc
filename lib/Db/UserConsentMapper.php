@@ -18,6 +18,25 @@ use OCP\IDBConnection;
  */
 class UserConsentMapper extends QBMapper {
 
+    /** Serialize consent changes and device issuance for this user/client. */
+    public function beginChange(string $userId, int $clientId): void {
+        $this->db->beginTransaction();
+        try {
+            OperationLock::acquire($this->db, OperationLock::consent($userId, $clientId));
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function commitChange(): void {
+        $this->db->commit();
+    }
+
+    public function rollbackChange(): void {
+        $this->db->rollBack();
+    }
+
     /**
      * @param IDBConnection $db
      */
