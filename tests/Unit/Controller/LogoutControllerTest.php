@@ -143,7 +143,7 @@ class LogoutControllerTest extends TestCase {
         $this->assertSame('/login', $result->getRedirectURL());
 
         $replay = $this->controller->logout(null, null, null, null, '1', 'confirmation-token');
-        $this->assertInstanceOf(JSONResponse::class, $replay);
+        $this->assertInstanceOf(TemplateResponse::class, $replay);
         $this->assertSame(Http::STATUS_BAD_REQUEST, $replay->getStatus());
     }
 
@@ -244,7 +244,7 @@ class LogoutControllerTest extends TestCase {
 
         $result = $this->controller->logout('client1', $idTokenHint);
 
-        $this->assertInstanceOf(JSONResponse::class, $result);
+        $this->assertInstanceOf(TemplateResponse::class, $result);
         $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
     }
 
@@ -416,7 +416,7 @@ class LogoutControllerTest extends TestCase {
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
-        $this->assertInstanceOf(JSONResponse::class, $result);
+        $this->assertInstanceOf(TemplateResponse::class, $result);
         $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
     }
 
@@ -464,7 +464,7 @@ class LogoutControllerTest extends TestCase {
 
         $result = $this->controller->logout($clientId, $idTokenHint);
 
-        $this->assertInstanceOf(JSONResponse::class, $result);
+        $this->assertInstanceOf(TemplateResponse::class, $result);
         $this->assertSame(Http::STATUS_UNAUTHORIZED, $result->getStatus());
     }
 

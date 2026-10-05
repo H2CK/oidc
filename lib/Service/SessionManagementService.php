@@ -375,7 +375,7 @@ class SessionManagementService {
 
         foreach ($this->redirectUriMapper->getByClientId($client->getId()) as $registeredRedirectUri) {
             try {
-                if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri())) {
+                if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri(), $client->isNativeApplication())) {
                     return true;
                 }
             } catch (\Throwable $e) {

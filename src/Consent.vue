@@ -11,6 +11,10 @@
 				<span>{{ t('oidc', '{clientName} is requesting access to your account.', { clientName: clientName }) }}</span>
 			</p>
 
+			<p class="consent-target">
+				{{ t('oidc', 'Redirect destination: {target}', { target: redirectTarget }) }}
+			</p>
+			<p>{{ t('oidc', 'Only approve access if you recognize this application and destination.') }}</p>
 			<div class="consent-scopes">
 				<h3>{{ t('oidc', 'This application will be able to:') }}</h3>
 
@@ -45,7 +49,7 @@
 			</div>
 
 			<p class="consent-note">
-				{{ t('oidc', 'You can revoke this access at any time from your account settings.') }}
+				{{ t('oidc', 'This approval expires after 90 days. You can revoke access at any time from your account settings.') }}
 			</p>
 		</div>
 	</div>
@@ -53,6 +57,7 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
@@ -66,6 +71,7 @@ export default {
 			type: String,
 			required: true,
 		},
+		redirectTarget: { type: String, default: '' },
 		clientId: {
 			type: String,
 			required: true,
@@ -141,7 +147,7 @@ export default {
 			form.acceptCharset = 'UTF-8'
 
 			const parameters = {
-				requesttoken: OC.requestToken,
+				requesttoken: getRequestToken(),
 				...fields,
 			}
 			Object.entries(parameters).forEach(([name, value]) => {

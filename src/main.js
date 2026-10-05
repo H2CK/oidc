@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-// eslint-disable-next-line n/no-extraneous-import
+import { loadState } from '@nextcloud/initial-state'
 import { createApp } from 'vue'
 import App from './App.vue'
-import { loadState } from '@nextcloud/initial-state'
 
 const clients = loadState('oidc', 'clients')
 const expireTime = loadState('oidc', 'expireTime')

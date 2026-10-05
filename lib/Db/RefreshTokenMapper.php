@@ -21,12 +21,13 @@ class RefreshTokenMapper extends QBMapper {
         parent::__construct($db, 'oidc_refresh_tokens', RefreshToken::class);
     }
 
-    public function createForAccessToken(int $accessTokenId, string $token, int $created): RefreshToken {
+    public function createForAccessToken(int $accessTokenId, string $token, int $created, ?string $scope = null): RefreshToken {
         $refreshToken = new RefreshToken();
         $refreshToken->setAccessTokenId($accessTokenId);
         $refreshToken->setHashedToken(hash('sha512', $token));
         $refreshToken->setCreated($created);
         $refreshToken->setUsedAt(0);
+        $refreshToken->setScope($scope);
 
         return $this->insert($refreshToken);
     }

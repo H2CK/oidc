@@ -15,6 +15,9 @@ use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Http\FormPostResponse;
 use OCA\OIDCIdentityProvider\Service\AuthorizationService;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
+use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
+use OCP\Server;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\RedirectResponse;
@@ -68,7 +71,9 @@ class ConsentController extends Controller {
         IL10N $l,
         IAppConfig $appConfig,
         LoggerInterface $logger,
-        private AuthorizationService $authorizationService
+        private AuthorizationService $authorizationService,
+        private ?ClientAuthorizationService $clientAuthorizationService = null,
+        private ?ScopeCeilingService $scopeCeiling = null,
     ) {
         parent::__construct($appName, $request);
         $this->session = $session;
@@ -130,6 +135,8 @@ class ConsentController extends Controller {
             'clientName' => $clientName,
             'requestedScopes' => $requestedScopes,
             'clientId' => $clientId,
+            'redirectTarget' => $this->redirectTarget((string)$this->session->get('oidc_redirect_uri')),
+
         ];
 
         return new TemplateResponse('oidc', 'consent', $parameters, TemplateResponse::RENDER_AS_USER);
@@ -159,7 +166,7 @@ class ConsentController extends Controller {
         // Check if consent is pending
         if (!$this->session->get('oidc_consent_pending')) {
             $this->logger->warning('Consent grant attempt without pending consent');
-            return new RedirectResponse($this->urlGenerator->getBaseUrl());
+            return $this->consentErrorPage($this->l->t('No consent request pending. Please start authorization again.'));
         }
 
         // Get parameters from request body (JSON)
@@ -181,7 +188,7 @@ class ConsentController extends Controller {
             $client = $this->clientMapper->getByIdentifier($clientId);
         } catch (\Exception $e) {
             $this->logger->error('Client not found during consent grant: ' . $clientId);
-            return new RedirectResponse($this->urlGenerator->getBaseUrl());
+            return $this->consentErrorPage($this->l->t('No consent request pending. Please start authorization again.'));
         }
 
         $requestedScopeString = $this->session->get('oidc_requested_scopes') ?? '';
@@ -231,7 +238,7 @@ class ConsentController extends Controller {
             'max_age' => $this->session->get('oidc_max_age'),
             'response_mode' => $this->session->get('oidc_response_mode'),
             'claims' => $this->session->get('oidc_claims'),
-        ], $freshLogin, $freshLogin ? (int)$this->session->get('oidc_auth_time') : null, true);
+        ], $freshLogin, null, true);
 
         return $this->handoffAuthorizationRedirect($response);
     }
@@ -260,6 +267,8 @@ class ConsentController extends Controller {
                     'clientName' => $client->getName(),
                     'clientIdentifier' => $client->getClientIdentifier(),
                     'scopesGranted' => $consent->getScopesGranted(),
+                    'scopesRequested' => $consent->getScopesRequested() ?? $consent->getScopesGranted(),
+                    'expiresAt' => $consent->getExpiresAt(),
                     'allowedScopes' => $client->getAllowedScopes(),
                     'createdAt' => $consent->getCreatedAt(),
                     'updatedAt' => $consent->getUpdatedAt(),
@@ -338,53 +347,43 @@ class ConsentController extends Controller {
 
         $uid = $this->userSession->getUser()->getUID();
 
-        // Get scopes from request
         $scopes = $this->request->getParam('scopes');
-        $this->logger->info('[updateScopes] Received scope update - raw param: ' . json_encode($scopes) . ' (type: ' . gettype($scopes) . ')');
-
-        if (!is_array($scopes)) {
-            $this->logger->error('[updateScopes] Invalid scopes format - not an array');
+        if (!is_array($scopes) || array_filter($scopes, static fn ($scope): bool =>
+            !is_string($scope) || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+$/D', $scope))) {
             return new JSONResponse(['error' => 'Invalid scopes format'], Http::STATUS_BAD_REQUEST);
         }
-
-        $this->logger->info('[updateScopes] Scopes array received: ' . json_encode($scopes) . ' (count: ' . count($scopes) . ')');
-
-        // Ensure openid is always included (mandatory scope)
-        if (!in_array('openid', $scopes)) {
-            $scopes[] = 'openid';
-            $this->logger->info('[updateScopes] Added openid scope');
+        $scopes = array_values(array_unique($scopes));
+        if (strlen(implode(' ', $scopes)) > 512) {
+            return new JSONResponse(['error' => 'Scope is too long'], Http::STATUS_BAD_REQUEST);
         }
-
-        $this->logger->info('[updateScopes] Final scopes array: ' . json_encode($scopes));
-
-        // Get the client to validate allowed scopes
         try {
             $client = $this->clientMapper->getByUid($clientId);
         } catch (\Exception $e) {
-            $this->logger->error('Client not found during scope update: ' . $clientId);
             return new JSONResponse(['error' => 'Client not found'], Http::STATUS_NOT_FOUND);
         }
-
-        // Validate all scopes are in client's allowedScopes
-        $allowedScopes = explode(' ', $client->getAllowedScopes());
-        foreach ($scopes as $scope) {
-            if (!in_array($scope, $allowedScopes)) {
-                $this->logger->warning('User attempted to enable scope not allowed by client: ' . $scope);
-                return new JSONResponse(
-                    ['error' => 'Scope not allowed: ' . $scope],
-                    Http::STATUS_BAD_REQUEST
-                );
-            }
-        }
-
-        // Get existing consent
         $consent = $this->userConsentMapper->findByUserAndClient($uid, $clientId);
-
-        if ($consent === null) {
-            $this->logger->error('Consent not found for update - user: ' . $uid . ', client: ' . $clientId);
-            return new JSONResponse(['error' => 'Consent not found'], Http::STATUS_NOT_FOUND);
+        if ($consent === null || ($consent->getExpiresAt() !== null && $this->time->getTime() >= $consent->getExpiresAt())) {
+            return new JSONResponse(['error' => 'Consent not found or expired'], Http::STATUS_NOT_FOUND);
+        }
+        $requested = preg_split('/ +/', trim($consent->getScopesRequested() ?? $consent->getScopesGranted()), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if (in_array('openid', $requested, true) && !in_array('openid', $scopes, true)) {
+            $scopes[] = 'openid';
+        }
+        if (strlen(implode(' ', $scopes)) > 512) {
+            return new JSONResponse(['error' => 'Scope is too long'], Http::STATUS_BAD_REQUEST);
+        }
+        $allowed = preg_split('/ +/', trim($client->getAllowedScopes() ?? ''), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if (array_diff($scopes, $requested) !== [] || ($allowed !== [] && array_diff($scopes, $allowed) !== [])) {
+            return new JSONResponse(['error' => 'Scope not requested or not allowed'], Http::STATUS_BAD_REQUEST);
         }
 
+        if (!($this->clientAuthorizationService ?? Server::get(ClientAuthorizationService::class))->isUserAllowedForClient($this->userSession->getUser(), $client)) {
+            return new JSONResponse(['error' => 'Access denied'], Http::STATUS_FORBIDDEN);
+        }
+        $permitted = ($this->scopeCeiling ?? Server::get(ScopeCeilingService::class))->narrow($uid, implode(' ', $scopes), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
+        if ($permitted !== implode(' ', $scopes)) {
+            return new JSONResponse(['error' => 'Scope not permitted'], Http::STATUS_FORBIDDEN);
+        }
         // Log before update
         $oldScopes = $consent->getScopesGranted();
         $this->logger->info('Updating scopes for user ' . $uid . ', client ' . $clientId . ': ' . $oldScopes . ' -> ' . implode(' ', $scopes));
@@ -398,12 +397,17 @@ class ConsentController extends Controller {
 
         try {
             $updatedConsent = $this->userConsentMapper->createOrUpdate($consent);
+            if (array_diff(preg_split('/ +/', $oldScopes, -1, PREG_SPLIT_NO_EMPTY) ?: [], $scopes) !== []) {
+                // Existing bearer tokens must not keep permissions the user removed.
+                $this->accessTokenMapper->deleteByUserAndClient($uid, $clientId);
+            }
             $this->logger->info('Successfully updated scopes. DB now has: ' . $updatedConsent->getScopesGranted());
 
             return new JSONResponse([
                 'success' => true,
                 'scopesGranted' => $updatedConsent->getScopesGranted(),
-                'updatedAt' => $updatedConsent->getUpdatedAt()
+                'updatedAt' => $updatedConsent->getUpdatedAt(),
+                'expiresAt' => $updatedConsent->getExpiresAt()
             ]);
         } catch (\Exception $e) {
             $this->logger->error('Error updating consent scopes: ' . $e->getMessage());
@@ -426,7 +430,7 @@ class ConsentController extends Controller {
         }
 
         if (!$this->session->get('oidc_consent_pending')) {
-            return new RedirectResponse($this->urlGenerator->getBaseUrl());
+            return $this->consentErrorPage($this->l->t('No consent request pending. Please start authorization again.'));
         }
         $parameters = [];
         foreach (['client_id', 'redirect_uri', 'state', 'response_type', 'response_mode'] as $name) {
@@ -469,4 +473,20 @@ class ConsentController extends Controller {
         $handoff->addHeader('Referrer-Policy', 'no-referrer');
         return $handoff;
     }
+    private function consentErrorPage(string $message): TemplateResponse {
+        return new TemplateResponse('core', 'error', [
+            'errors' => [['error' => $message]],
+        ], TemplateResponse::RENDER_AS_ERROR, Http::STATUS_BAD_REQUEST);
+    }
+
+    private function redirectTarget(string $uri): string {
+        $parts = parse_url($uri);
+        if ($parts === false || !isset($parts['scheme'])) {
+            return '';
+        }
+        return isset($parts['host'])
+            ? $parts['scheme'] . '://' . $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '')
+            : $parts['scheme'] . ':';
+    }
+
 }

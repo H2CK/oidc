@@ -54,7 +54,7 @@ class AuthorizationTransactionService {
         return $qb->executeQuery()->fetchOne() !== false;
     }
 
-    /** @return array{parameters:array<string, mixed>, reason:string}|null */
+    /** @return array{parameters:array<string, mixed>, reason:string, created_at:int}|null */
     public function consume(string $id, ?string $expectedReason = null): ?array {
         if (!preg_match('/\A[a-f0-9]{64}\z/D', $id)) {
             return null;
@@ -62,7 +62,7 @@ class AuthorizationTransactionService {
         $hash = hash('sha256', $id);
         $now = $this->time->getTime();
         $qb = $this->db->getQueryBuilder();
-        $qb->select('request_payload', 'reason')->from(self::TABLE)
+        $qb->select('request_payload', 'reason', 'created_at')->from(self::TABLE)
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($hash)))
             ->andWhere($qb->expr()->isNull('consumed_at'))
             ->andWhere($qb->expr()->gt('expires_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT)));
@@ -99,7 +99,7 @@ class AuthorizationTransactionService {
         if (!is_array($parameters) || !in_array($row['reason'], ['not_authenticated', 'prompt_login', 'max_age', 'select_account', 'authorization_post'], true)) {
             return null;
         }
-        return ['parameters' => $parameters, 'reason' => $row['reason']];
+        return ['parameters' => $parameters, 'reason' => $row['reason'], 'created_at' => (int)$row['created_at']];
     }
 
     public function cleanup(): void {

@@ -18,7 +18,7 @@ function component(relativePath, globals = {}) {
 		t: (_app, message) => message,
 		generateUrl: value => value,
 		NcNoteCard: {},
-		OC: { requestToken: 'synthetic-test-value' },
+		getRequestToken: () => 'synthetic-test-value',
 		confirm: () => true,
 		console: { error() {}, log() {} },
 		...globals,
@@ -131,4 +131,63 @@ test('loading failure remains visible without OC.Notification', async () => {
 	await state.loadConsents()
 	assert.equal(state.notification.type, 'error')
 	assert.equal(state.loading, false)
+})
+
+test('a pending revocation prevents a second concurrent request', async () => {
+	let requests = 0
+	const { state } = applications({ fetch: () => { requests++ } })
+	state.revoking = 1
+	await state.revokeAccess(2)
+	assert.equal(requests, 0)
+	assert.equal(state.consents.length, 2)
+})
+
+test('revocation uses the current supported request token', async () => {
+	let headers
+	const { state } = applications({
+		getRequestToken: () => 'current-synthetic-csrf',
+		fetch: async (_url, options) => { headers = options.headers; return { ok: true } },
+	})
+	await state.revokeAccess(1)
+	assert.equal(headers.requesttoken, 'current-synthetic-csrf')
+})
+
+test('empty client scope limit allows previously requested scopes for editing', () => {
+	const { state } = applications()
+	const scopes = state.getRequestedScopes({ scopesGranted: 'openid', scopesRequested: 'openid Files:Read', allowedScopes: '' })
+	assert.deepEqual([...scopes], ['openid', 'Files:Read'])
+})
+
+test('a client scope limit is case-sensitive and restricts the permission editor', () => {
+	const { state } = applications()
+	const scopes = state.getRequestedScopes({ scopesRequested: 'openid Files:Read files:read', allowedScopes: 'openid Files:Read' })
+	assert.deepEqual([...scopes], ['openid', 'Files:Read'])
+})
+
+test('permission changes send selected scopes and update the displayed expiration', async () => {
+	let request
+	const { state } = applications({ fetch: async (url, options) => {
+		request = { url, options }
+		return { ok: true, json: async () => ({ scopesGranted: 'openid', updatedAt: 1000, expiresAt: 7777000 }) }
+	} })
+	state.selectedScopes = ['openid']
+	state.editingClient = '1'
+	await state.saveScopes(state.consents[0])
+	assert.equal(request.url, '/apps/oidc/api/consents/1/scopes')
+	assert.equal(request.options.method, 'PATCH')
+	assert.deepEqual(JSON.parse(request.options.body), { scopes: ['openid'] })
+	assert.equal(state.consents[0].expiresAt, 7777000)
+	assert.equal(state.editingClient, null)
+	assert.equal(state.notification.type, 'success')
+})
+
+test('failed permission changes keep the previous consent and the editor open', async () => {
+	const { state } = applications({ fetch: async () => ({ ok: false }) })
+	state.consents[0].scopesGranted = 'openid Files:Read'
+	state.editingClient = '1'
+	await state.saveScopes(state.consents[0])
+	assert.equal(state.consents[0].scopesGranted, 'openid Files:Read')
+	assert.equal(state.editingClient, '1')
+	assert.equal(state.notification.type, 'error')
+	assert.equal(state.savingScopes, false)
 })

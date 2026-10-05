@@ -1363,4 +1363,115 @@ class OIDCApiControllerTest extends TestCase {
         $this->assertSame(400, $this->controller->getToken()->getStatus());
     }
 
+
+    public function testNarrowRefreshKeepsOriginalRefreshScopeAndAlwaysRotates(): void {
+        [$token, $record] = $this->prepareEventRefresh();
+        $token->setEventGenerated(false);
+        $record->setScope('openid Files:Read offline_access');
+        $consent = new \OCA\OIDCIdentityProvider\Db\UserConsent();
+        $consent->setScopesGranted('openid Files:Read offline_access');
+        $consent->setExpiresAt(2000);
+        $this->userConsentMapper->method('findByUserAndClient')->willReturn($consent);
+        $this->tokenExchangeRawParameters['scope'] = ['Files:Read'];
+        $this->refreshTokenMapper->method('markUsed')->willReturn(true);
+        $this->refreshTokenMapper->expects($this->once())->method('createForAccessToken')
+            ->with(10, 'second', 1000, 'openid Files:Read offline_access');
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new-access');
+        $this->jwtGenerator->expects($this->never())->method('generateIdToken');
+        $response = $this->controller->getToken();
+        $this->assertSame(200, $response->getStatus());
+        $this->assertSame('Files:Read', $response->getData()['scope']);
+        $this->assertSame('second', $response->getData()['refresh_token']);
+        $this->assertArrayNotHasKey('id_token', $response->getData());
+    }
+
+    public function testRefreshWithoutScopeUsesOriginalScopeAfterNarrowedAccessToken(): void {
+        [$token, $record] = $this->prepareEventRefresh();
+        $token->setScope('Files:Read');
+        $record->setScope('openid Files:Read');
+        $this->refreshTokenMapper->method('markUsed')->willReturn(true);
+        $this->refreshTokenMapper->expects($this->once())->method('createForAccessToken')
+            ->with(10, 'second', 1000, 'openid Files:Read');
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new-access');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('new-id');
+        $response = $this->controller->getToken();
+        $this->assertSame(200, $response->getStatus());
+        $this->assertSame('openid Files:Read', $response->getData()['scope']);
+        $this->assertSame('new-id', $response->getData()['id_token']);
+    }
+
+    public function testRefreshScopeEscalationDoesNotConsumeCredential(): void {
+        [, $record] = $this->prepareEventRefresh();
+        $record->setScope('openid Files:Read');
+        $this->tokenExchangeRawParameters['scope'] = ['openid Files:Write'];
+        $this->refreshTokenMapper->expects($this->never())->method('markUsed');
+        $this->accessTokenMapper->expects($this->never())->method('update');
+        $response = $this->controller->getToken();
+        $this->assertSame('invalid_scope', $response->getData()['error']);
+    }
+
+    public function testBasicCredentialsAllowMatchingClientIdInBody(): void {
+        $this->prepareEventRefresh();
+        unset($this->tokenExchangeRawParameters['client_secret']);
+        $this->useBasicClient('client', 'secret');
+        $this->refreshTokenMapper->method('markUsed')->willReturn(true);
+        $this->jwtGenerator->method('generateAccessToken')->willReturn('new-access');
+        $this->jwtGenerator->method('generateIdToken')->willReturn('new-id');
+        $this->assertSame(200, $this->controller->getToken()->getStatus());
+    }
+
+    public function testBasicCredentialsRejectDifferentClientIdInBody(): void {
+        $this->prepareEventRefresh();
+        unset($this->tokenExchangeRawParameters['client_secret']);
+        $this->tokenExchangeRawParameters['client_id'] = ['another-client'];
+        $this->useBasicClient('client', 'secret');
+        $this->refreshTokenMapper->expects($this->never())->method('markUsed');
+        $response = $this->controller->getToken();
+        $this->assertSame(401, $response->getStatus());
+        $this->assertSame('invalid_client', $response->getData()['error']);
+    }
+
+    public function testCodeExpiresAfterTenMinutesEvenIfAccessTokenIsValid(): void {
+        $client = new Client();
+        $client->setId(1);
+        $client->setSecret('secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $code = new AuthorizationCode();
+        $code->setAccessTokenId(10);
+        $code->setCreated(400);
+        $code->setUsedAt(0);
+        $code->setRedirectUri('https://rp.example/cb');
+        $this->authorizationCodeMapper->method('findByCode')->willReturn($code);
+        $token = new AccessToken();
+        $token->setId(10);
+        $token->setClientId(1);
+        $token->setScope('openid');
+        $token->setExpiresAt(10000);
+        $this->accessTokenMapper->method('getById')->willReturn($token);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->authorizationCodeMapper->expects($this->never())->method('markUsed');
+        $response = $this->controller->getToken('authorization_code', code: 'code',
+            client_id: 'client', client_secret: 'secret', redirect_uri: 'https://rp.example/cb');
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
+    public function testForeignUsedCodeCannotRevokeAnotherClientTokenFamily(): void {
+        $client = new Client();
+        $client->setId(1);
+        $client->setSecret('secret');
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $code = new AuthorizationCode();
+        $code->setAccessTokenId(10);
+        $code->setUsedAt(950);
+        $this->authorizationCodeMapper->method('findByCode')->willReturn($code);
+        $token = new AccessToken();
+        $token->setId(10);
+        $token->setClientId(2);
+        $this->accessTokenMapper->method('getById')->willReturn($token);
+        $this->accessTokenMapper->expects($this->never())->method('delete');
+        $response = $this->controller->getToken('authorization_code', code: 'code',
+            client_id: 'client', client_secret: 'secret', redirect_uri: 'https://rp.example/cb');
+        $this->assertSame('invalid_grant', $response->getData()['error']);
+    }
+
 }

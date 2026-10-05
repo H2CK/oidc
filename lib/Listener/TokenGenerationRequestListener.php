@@ -63,6 +63,11 @@ class TokenGenerationRequestListener implements IEventListener {
         if ($extraScopes !== "") {
             $scopes .= " " . $extraScopes;
         }
+        // Scope tokens are ASCII and must fit the persisted grant unchanged.
+        if (strlen($scopes) > 512 || preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $scopes) !== 1) {
+            $this->logger->warning('[TokenGenerationRequestListener] Invalid or oversized scope request');
+            return;
+        }
 
         $this->logger->debug('[TokenGenerationRequestListener] received token request event for user: ' . $userId . ' and client identifier: ' . $clientIdentifier);
 
@@ -87,7 +92,8 @@ class TokenGenerationRequestListener implements IEventListener {
         }
         $scopes = $this->scopeCeiling->narrow($userId, $scopes, $client->getAllowedScopes() ?? '', $clientIdentifier);
         if ($scopes === '') {
-            $scopes = Application::DEFAULT_SCOPE;
+            $this->logger->notice('[TokenGenerationRequestListener] No scopes permitted for client ' . $clientIdentifier);
+            return;
         }
 
         // getAbsoluteURL() rather than getBaseUrl(): the event is also dispatched
@@ -113,7 +119,7 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setEventGenerated(true);
         $accessToken->setUserId($userId);
         $accessToken->setHashedCode(hash('sha512', $code));
-        $accessToken->setScope(substr($scopes, 0, 512));
+        $accessToken->setScope($scopes);
         $now = $this->time->getTime();
         $accessToken->setCreated($now);
         $accessToken->setRefreshed($now);
@@ -138,17 +144,18 @@ class TokenGenerationRequestListener implements IEventListener {
         $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
         $accessToken = $this->accessTokenMapper->insert($accessToken);
 
-        $idToken = $this->jwtGenerator->generateIdToken($accessToken, $client, $protocol, $host, false);
-
-        $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $code, $now);
-
         $event->setAccessToken($accessToken->getAccessToken());
         $event->setExpiresIn($expireTime);
-        $event->setRefreshToken($code);
-        $event->setIdToken($idToken);
-        $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
-        if ($refreshExpireTime !== 'never') {
-            $event->setRefreshExpiresIn((int)$refreshExpireTime);
+        if (in_array('openid', explode(' ', $scopes), true)) {
+            $event->setIdToken($this->jwtGenerator->generateIdToken($accessToken, $client, $protocol, $host, false));
+        }
+        if ($client->allowsGrantType('refresh_token')) {
+            $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $code, $now, $scopes);
+            $event->setRefreshToken($code);
+            $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
+            if ($refreshExpireTime !== 'never') {
+                $event->setRefreshExpiresIn((int)$refreshExpireTime);
+            }
         }
     }
 

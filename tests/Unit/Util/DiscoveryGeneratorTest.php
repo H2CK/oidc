@@ -321,75 +321,11 @@ class DiscoveryGeneratorTest extends TestCase {
         $this->assertArrayNotHasKey('registration_endpoint', $data);
     }
 
-    public function testGetAggregatedScopesWithClients() {
-        // Create real Client entities
-        $client1 = new Client();
-        $client1->setAllowedScopes('profile email');
-
-        $client2 = new Client();
-        $client2->setAllowedScopes('email roles groups');
-
-        $client3 = new Client();
-        $client3->setAllowedScopes(''); // Empty scopes
-
-        $this->clientMapper->method('getClients')
-            ->willReturn([$client1, $client2, $client3]);
-
-        $result = $this->generator->generateDiscovery($this->request);
-        $data = $result->getData();
-
-        $scopes = $data['scopes_supported'];
-
-        // Should have default scopes plus custom scopes
-        $this->assertContains('profile', $scopes);
-        $this->assertContains('email', $scopes);
-        $this->assertContains('roles', $scopes);
-        $this->assertContains('groups', $scopes);
-
-        // Should not have duplicates
-        $this->assertEquals(count(array_unique($scopes)), count($scopes), 'Duplicate scopes found');
-    }
-
-    public function testGetAggregatedScopesWithException() {
-        $this->clientMapper->method('getClients')
-            ->willThrowException(new \Exception('Database error'));
-
-        $this->logger->expects($this->once())
-            ->method('warning')
-            ->with('Failed to aggregate scopes from OAuth clients: Database error');
-
-        $result = $this->generator->generateDiscovery($this->request);
-        $data = $result->getData();
-
-        // Should still have default scopes
-        $scopes = $data['scopes_supported'];
-        $this->assertContains('openid', $scopes);
-        $this->assertContains('profile', $scopes);
-        $this->assertContains('email', $scopes);
-    }
-
-    public function testGetAggregatedScopesWithDuplicateScopes() {
-        // Create real Client entities
-        $client1 = new Client();
-        $client1->setAllowedScopes('profile email profile');
-
-        $client2 = new Client();
-        $client2->setAllowedScopes('EMAIL PROFILE');
-
-        $this->clientMapper->method('getClients')
-            ->willReturn([$client1, $client2]);
-
-        $result = $this->generator->generateDiscovery($this->request);
-        $data = $result->getData();
-
-        $scopes = $data['scopes_supported'];
-
-        // Scope names are case-sensitive; exact duplicates are removed while
-        // differently-cased scope names remain distinct values.
-        $this->assertContains('profile', $scopes);
-        $this->assertContains('PROFILE', $scopes);
-        $this->assertContains('email', $scopes);
-        $this->assertContains('EMAIL', $scopes);
+    public function testDiscoveryDoesNotReadOrExposeClientSpecificScopes(): void {
+        $this->clientMapper->expects($this->never())->method('getClients');
+        $response = $this->generator->generateDiscovery($this->request);
+        $this->assertSame(['openid', 'profile', 'email', 'roles', 'groups', 'offline_access'],
+            $response->getData()['scopes_supported']);
     }
 
     public function testGenerateDiscoveryHasSubjectTypesSupported() {

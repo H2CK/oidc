@@ -793,4 +793,29 @@ class UserInfoControllerTest extends TestCase {
         $this->assertFalse($response->isThrottled());
     }
 
+
+    public function testOAuthOnlyTokenCannotReadUserInfo(): void {
+        $client = new Client();
+        $client->setId(1);
+        $client->setDcr(false);
+        $token = new AccessToken();
+        $token->setClientId(1);
+        $token->setScope('profile email');
+        $token->setExpiresAt(2000);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->accessTokenMapper->method('getByAccessToken')->willReturn($token);
+        $this->clientMapper->method('getByUid')->willReturn($client);
+        $this->userManager->expects($this->never())->method('get');
+        $originalServer = $_SERVER;
+        $_SERVER['HTTP_AUTHORIZATION'] = 'Bearer oauth-only-token';
+        try {
+            $response = $this->controller->getInfo();
+            $this->assertSame(403, $response->getStatus());
+            $this->assertSame('insufficient_scope', $response->getData()['error']);
+            $this->assertStringContainsString('scope="openid"', $response->getHeaders()['WWW-Authenticate']);
+        } finally {
+            $_SERVER = $originalServer;
+        }
+    }
+
 }

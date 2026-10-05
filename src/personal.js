@@ -3,10 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-// eslint-disable-next-line n/no-extraneous-import
+import { loadState } from '@nextcloud/initial-state'
 import { createApp } from 'vue'
 import AppPersonal from './AppPersonal.vue'
-import { loadState } from '@nextcloud/initial-state'
 
 const allowUserSettings = loadState('oidc', 'allowUserSettings')
 const restrictUserInformation = loadState('oidc', 'restrictUserInformation')

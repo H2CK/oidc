@@ -81,7 +81,10 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $this->formParser->method('readSelectedParameters')->willReturnCallback(fn (): ?array => $this->rawParameters);
 
         $scopeCeiling = $this->createMock(ScopeCeilingService::class);
-        $scopeCeiling->method('clamp')->willReturnCallback(fn (string $uid, string $scope): string => $this->ceilingScope ?? $scope);
+        $scopeCeiling->method('narrow')->willReturnCallback(fn (string $uid, string $scope): string => $this->ceilingScope ?? $scope);
+
+        $l = $this->createMock(IL10N::class);
+        $l->method('t')->willReturnArgument(0);
 
         $this->controller = new DeviceAuthorizationController(
             'oidc',
@@ -94,11 +97,12 @@ class DeviceAuthorizationControllerTest extends TestCase {
             $this->secureRandom,
             $this->time,
             $this->urlGenerator,
-            $this->createMock(IL10N::class),
+            $l,
             $this->createMock(LoggerInterface::class),
             $this->formParser,
             $this->appConfig,
             $scopeCeiling,
+            $this->createMock(\OCA\OIDCIdentityProvider\Service\AuthenticationTimeService::class),
         );
     }
 
@@ -142,17 +146,17 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $this->assertSame(Http::STATUS_OK, $response->getStatus());
         $this->assertSame('device-code', $response->getData()['device_code']);
         $this->assertSame('ABCD-2345', $response->getData()['user_code']);
-        // verification_uri carries the code by default; see
+        // verification_uri omits the code by default; see
         // Application::DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI.
-        $this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri']);
+        $this->assertSame('https://cloud.example/apps/oidc/device', $response->getData()['verification_uri']);
         $this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri_complete']);
         $this->assertSame(600, $response->getData()['expires_in']);
         $this->assertSame(5, $response->getData()['interval']);
         $this->assertSame('no-store', $response->getHeaders()['Cache-Control']);
     }
 
-    public function testUserCodeCanBeKeptOutOfVerificationUri(): void {
-        $this->appConfigValues['device_code_in_verification_uri'] = 'false';
+    public function testLegacyInlineUserCodeRequiresExplicitOptIn(): void {
+        $this->appConfigValues['device_code_in_verification_uri'] = 'true';
         $this->rawParameters = [
             'client_id' => ['device-client'],
             'client_secret' => [],
@@ -166,9 +170,9 @@ class DeviceAuthorizationControllerTest extends TestCase {
 
         $response = $this->controller->authorize('device-client', 'openid profile email');
 
-        // Opting out restores the short RFC 8628 section 3.2 form. Clients that read
+        // Explicit legacy opt-in keeps the old QR behavior. Clients that read
         // verification_uri_complete keep working either way.
-        $this->assertSame('https://cloud.example/apps/oidc/device', $response->getData()['verification_uri']);
+        $this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri']);
         $this->assertSame('https://cloud.example/apps/oidc/device?user_code=ABCD-2345', $response->getData()['verification_uri_complete']);
         $this->assertSame('ABCD-2345', $response->getData()['user_code']);
     }
@@ -309,7 +313,8 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $this->time->method('getTime')->willReturn(1_000);
         $this->userSession->method('getUser')->willReturn($user);
         $this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
-        $this->deviceCodeMapper->method('markApproved')->willReturn(true);
+        $this->deviceCodeMapper->expects($this->once())->method('markApproved')
+            ->with($deviceCode, 'alice', null, 'openid profile')->willReturn(true);
         $this->userConsentMapper->method('findByUserAndClient')->willReturn(null);
         $this->userConsentMapper->expects($this->once())
             ->method('createOrUpdate')
@@ -348,7 +353,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $deviceCode = new DeviceCode();
         $deviceCode->setId(8);
         $deviceCode->setClientId(1);
-        $deviceCode->setScope('openid profile email');
+        $deviceCode->setScope('openid email');
         $deviceCode->setExpiresAt(2_000);
         $deviceCode->setStatus(DeviceCode::STATUS_PENDING);
 
@@ -356,6 +361,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
         $existingConsent->setUserId('alice');
         $existingConsent->setClientId(1);
         $existingConsent->setScopesGranted('openid profile');
+        $existingConsent->setScopesRequested('openid profile offline_access');
         $existingConsent->setCreatedAt(100);
         $existingConsent->setUpdatedAt(100);
         $existingConsent->setExpiresAt(1_500);
@@ -376,6 +382,7 @@ class DeviceAuthorizationControllerTest extends TestCase {
             ->with($this->callback(function (UserConsent $consent) use ($existingConsent): bool {
                 $this->assertSame($existingConsent, $consent);
                 $this->assertSame('openid profile email', $consent->getScopesGranted());
+                $this->assertSame('openid profile offline_access email', $consent->getScopesRequested());
                 $this->assertSame(1_200 + 7_776_000, $consent->getExpiresAt());
                 $this->assertNotNull($consent->getExpiresAt());
                 return true;
@@ -449,6 +456,36 @@ class DeviceAuthorizationControllerTest extends TestCase {
             $this->assertCount(1, $limits);
             $this->assertSame(['limit' => 30, 'period' => 60], $limits[0]->getArguments());
         }
+    }
+
+
+    public function testDeviceEndpointRejectsClientWithoutRegisteredDeviceGrant(): void {
+        $client = $this->createClient('public');
+        $client->setRegisteredGrantTypes(['authorization_code']);
+        $this->rawParameters = ['client_id' => ['device-client'], 'scope' => ['openid']];
+        $this->clientMapper->method('getByIdentifier')->willReturn($client);
+        $this->deviceCodeMapper->expects($this->never())->method('insert');
+        $response = $this->controller->authorize('device-client', 'openid');
+        $this->assertSame('unauthorized_client', $response->getData()['error']);
+    }
+
+    public function testGroupRestrictionIsExplainedBeforeShowingDeviceConsent(): void {
+        $code = new DeviceCode();
+        $code->setClientId(1);
+        $code->setStatus(DeviceCode::STATUS_PENDING);
+        $code->setScope('openid');
+        $code->setExpiresAt(2000);
+        $user = $this->createMock(IUser::class);
+        $user->method('isEnabled')->willReturn(true);
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        $this->userSession->method('getUser')->willReturn($user);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->deviceCodeMapper->method('findByUserCode')->willReturn($code);
+        $this->clientMapper->method('getByUid')->willReturn($this->createClient('public'));
+        $this->clientAuthorizationAllowed = false;
+        $response = $this->controller->verify('ABCD-2345');
+        $this->assertSame('error', $response->getParams()['mode']);
+        $this->assertSame('You are not allowed to authorize this application.', $response->getParams()['message']);
     }
 
 }

@@ -100,6 +100,8 @@ class Client extends Entity implements JsonSerializable {
     protected $applicationType;
     /** @var string|null */
     protected $tokenEndpointAuthMethod;
+    protected $grantTypes = null;
+    protected $responseTypes = null;
 
     public function __construct(
         $name = '',
@@ -141,6 +143,8 @@ class Client extends Entity implements JsonSerializable {
         $this->addType('frontchannel_logout_sess_req', Types::BOOLEAN);
         $this->addType('application_type', Types::STRING);
         $this->addType('token_endpoint_auth_method', Types::STRING);
+        $this->addType('grantTypes', Types::STRING);
+        $this->addType('responseTypes', Types::STRING);
 
         $this->setName($name);
         $this->redirectUris = $redirectUris;
@@ -183,8 +187,61 @@ class Client extends Entity implements JsonSerializable {
         return $this->redirectUris;
     }
 
+    /** @return list<string> */
+    public function getRegisteredGrantTypes(): array {
+        if ($this->grantTypes !== null) {
+            return json_decode($this->grantTypes, true, 512, JSON_THROW_ON_ERROR);
+        }
+        // Static/legacy clients retain established flows. Legacy DCR clients
+        // must explicitly register device grants before using them.
+        $grants = ['authorization_code', 'refresh_token'];
+        if (str_contains($this->getFlowType(), 'id_token')) {
+            $grants[] = 'implicit';
+        }
+        if (!$this->isDcr()) {
+            $grants[] = 'urn:ietf:params:oauth:grant-type:device_code';
+        }
+        if ($this->getTexEnabled()) {
+            $grants[] = 'urn:ietf:params:oauth:grant-type:token-exchange';
+        }
+        return $grants;
+    }
+
+    public function setRegisteredGrantTypes(array $grants): void {
+        $this->setGrantTypes(json_encode(array_values(array_unique($grants)), JSON_THROW_ON_ERROR));
+    }
+
+    public function allowsGrantType(string $grant): bool {
+        return in_array($grant, $this->getRegisteredGrantTypes(), true);
+    }
+
+    /** @return list<string> */
+    public function getRegisteredResponseTypes(): array {
+        if ($this->responseTypes !== null) {
+            return json_decode($this->responseTypes, true, 512, JSON_THROW_ON_ERROR);
+        }
+        return str_contains($this->getFlowType(), 'id_token')
+            ? ['code', 'id_token', 'code id_token', 'id_token token', 'code id_token token'] : ['code'];
+    }
+
+    public function setRegisteredResponseTypes(array $responses): void {
+        $this->setResponseTypes(json_encode(array_values(array_unique($responses)), JSON_THROW_ON_ERROR));
+    }
+
+    public function supportsResponseType(string $response): bool {
+        $entries = preg_split('/ +/', trim($response), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        sort($entries, SORT_STRING);
+        return in_array(implode(' ', $entries), $this->getRegisteredResponseTypes(), true);
+    }
+
     public function setRedirectUris(array $uris): void {
         $this->redirectUris = $uris;
+    }
+
+    public function isNativeApplication(): bool {
+        // Static public clients predate application_type and represent native apps.
+        return $this->getApplicationType() === 'native'
+            || ($this->getApplicationType() === null && $this->getType() === 'public');
     }
 
     /**

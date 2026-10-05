@@ -261,7 +261,6 @@ class JwtGenerator
             'sub' => $uid,
             'aud' => $client->getClientIdentifier(),
             'exp' => $this->time->getTime() + $expireTime,
-            'auth_time' => $accessToken->getCreated(),
             'iat' => $this->time->getTime(),
             'acr' => '0',
             'azp' => $client->getClientIdentifier(),
@@ -269,6 +268,11 @@ class JwtGenerator
             'jti' => $this->secureRandom->generate(32, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
         ];
 
+        if ((int)$accessToken->getAuthTime() > 0) {
+            $jwt_payload_base['auth_time'] = $accessToken->getAuthTime();
+        } else {
+            unset($jwt_payload['auth_time']);
+        }
         $sid = $accessToken->getSid();
         if ($sid !== null && trim($sid) !== '') {
             $jwt_payload_base['sid'] = $sid;
@@ -294,7 +298,7 @@ class JwtGenerator
             $jwt_payload = array_merge($jwt_payload, $cHashPayload);
         }
 
-        if (!empty($nonce)) {
+        if ($nonce !== null && $nonce !== '') {
             $nonce_payload = [
                 'nonce' => $nonce
             ];
@@ -657,14 +661,14 @@ class JwtGenerator
             'jti' => $this->secureRandom->generate(32, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
         ];
 
-        if ($includeAuthTime) {
-            $jwt_payload_base['auth_time'] = $accessToken->getCreated();
+        if ($includeAuthTime && (int)$accessToken->getAuthTime() > 0) {
+            $jwt_payload_base['auth_time'] = $accessToken->getAuthTime();
         }
 
         $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
         // Custom claims must not re-introduce auth_time when the caller intentionally
         // omits it (e.g. RFC 8693 Token Exchange).
-        if (!$includeAuthTime) {
+        if (!$includeAuthTime || (int)$accessToken->getAuthTime() <= 0) {
             unset($jwt_payload['auth_time']);
         }
 
@@ -798,13 +802,13 @@ class JwtGenerator
 
         $signing_alg = $this->getSupportedSigningAlgorithm($client); // HS256 or RS256
         if ($signing_alg === 'HS256') {
-            $header = json_encode(['typ' => 'at+JWT', 'alg' => $signing_alg]);
+            $header = json_encode(['typ' => 'at+jwt', 'alg' => $signing_alg]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
             $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $this->getHmacSigningSecret($client), true);
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         } else {
             $kid = $this->appConfig->getAppValueString('kid');
-            $header = json_encode(['typ' => 'at+JWT', 'alg' => 'RS256', 'kid' => $kid]);
+            $header = json_encode(['typ' => 'at+jwt', 'alg' => 'RS256', 'kid' => $kid]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
             $signature = '';
             if (!openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption')) {

@@ -18,6 +18,7 @@ use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
+use OCA\OIDCIdentityProvider\Service\AuthenticationTimeService;
 use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Controller;
@@ -65,6 +66,7 @@ class DeviceAuthorizationController extends Controller {
 		private FormUrlencodedParameterParser $formUrlencodedParameterParser,
 		private IAppConfig $appConfig,
 		private ScopeCeilingService $scopeCeiling,
+		private AuthenticationTimeService $authenticationTime,
 	) {
 		parent::__construct($appName, $request);
 	}
@@ -112,10 +114,13 @@ class DeviceAuthorizationController extends Controller {
 			return $this->invalidClient('Malformed client credentials.', true);
 		}
 		if ($basicCredentials !== null
-			&& ($parameters['client_id'] !== [] || $parameters['client_secret'] !== [])) {
+			&& ($parameters['client_secret'] !== [])) {
 			return $this->oauthError('invalid_request', 'Use exactly one client authentication method.');
 		}
 		if ($basicCredentials !== null) {
+			if ($client_id !== null && !hash_equals($basicCredentials[0], $client_id)) {
+				return $this->invalidClient('Inconsistent client_id.', true);
+			}
 			[$client_id, $client_secret] = $basicCredentials;
 		}
 
@@ -124,6 +129,9 @@ class DeviceAuthorizationController extends Controller {
 			return $clientOrResponse;
 		}
 		$client = $clientOrResponse;
+		if (!$client->allowsGrantType('urn:ietf:params:oauth:grant-type:device_code')) {
+			return $this->oauthError('unauthorized_client', 'The client is not registered for the device grant.');
+		}
 
 		$scopeOrResponse = $this->normalizeScope($scope, $client);
 		if ($scopeOrResponse instanceof JSONResponse) {
@@ -218,8 +226,18 @@ class DeviceAuthorizationController extends Controller {
 			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('The requesting application no longer exists.'));
 		}
 
+		if (!$client->allowsGrantType('urn:ietf:params:oauth:grant-type:device_code')
+			|| !$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
+			return $this->devicePage('error', $normalizedUserCode, null,
+				$this->l->t('You are not allowed to authorize this application.'));
+		}
+		if ($client->isDcr() && $this->time->getTime() >= $client->getIssuedAt()
+			+ (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME)) {
+			return $this->devicePage('error', $normalizedUserCode, null,
+				$this->l->t('The requesting application has expired. Start a new request on your device.'));
+		}
 		// Show only the scopes the user's group ceiling lets them receive, as authorize does.
-		$scope = $this->scopeCeiling->clamp($this->userSession->getUser()->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		$scope = $this->scopeCeiling->narrow($user->getUID(), $deviceCode->getScope(), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
 		if ($scope === '') {
 			return $this->devicePage('error', $normalizedUserCode, null, $this->l->t('You are not permitted any of the access this application requested.'));
 		}
@@ -247,11 +265,12 @@ class DeviceAuthorizationController extends Controller {
 		} catch (ClientNotFoundException $e) {
 			return new JSONResponse(['error' => 'invalid_request'], Http::STATUS_BAD_REQUEST);
 		}
-		if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
-			return new JSONResponse(['error' => 'access_denied'], Http::STATUS_FORBIDDEN);
+		if (!$client->allowsGrantType('urn:ietf:params:oauth:grant-type:device_code')
+			|| !$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
+			return new JSONResponse(['error' => 'access_denied', 'error_description' => 'You are not allowed to authorize this application.'], Http::STATUS_FORBIDDEN);
 		}
 
-		$scope = $this->scopeCeiling->clamp($user->getUID(), $deviceCode->getScope(), $client->getClientIdentifier());
+		$scope = $this->scopeCeiling->narrow($user->getUID(), $deviceCode->getScope(), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
 		if ($scope === '') {
 			// Nothing the user may receive: deny now, so the polling device gets
 			// access_denied instead of waiting for the code to expire.
@@ -259,10 +278,27 @@ class DeviceAuthorizationController extends Controller {
 			return new JSONResponse(['error' => 'access_denied', 'error_description' => 'None of the requested scopes are permitted for this user.'], Http::STATUS_FORBIDDEN);
 		}
 
-		if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID())) {
+		if ($client->isDcr() && $this->time->getTime() >= $client->getIssuedAt()
+			+ (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME, Application::DEFAULT_CLIENT_EXPIRE_TIME)) {
+			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The requesting application has expired.'], Http::STATUS_BAD_REQUEST);
+		}
+		$previous = $this->userConsentMapper->findByUserAndClient($user->getUID(), $client->getId());
+		if ($previous !== null && ($previous->getExpiresAt() === null || $this->time->getTime() < $previous->getExpiresAt())) {
+			foreach ([$previous->getScopesGranted(), $previous->getScopesRequested() ?? $previous->getScopesGranted()] as $oldScope) {
+				$combined = implode(' ', array_unique(array_merge(
+					preg_split('/ +/', trim($oldScope), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+					preg_split('/ +/', trim($scope), -1, PREG_SPLIT_NO_EMPTY) ?: []
+				)));
+				if (strlen($combined) > 512) {
+					return new JSONResponse(['error' => 'invalid_scope', 'error_description' => 'Too many combined permissions. Revoke this application and try again.'], Http::STATUS_BAD_REQUEST);
+				}
+			}
+		}
+		// Bind this device request to its reviewed subset independently of merged client consent.
+		if (!$this->deviceCodeMapper->markApproved($deviceCode, $user->getUID(), $this->authenticationTime->getAuthenticationTime(), $scope)) {
 			return new JSONResponse(['error' => 'invalid_request', 'error_description' => 'The request is no longer pending.'], Http::STATUS_CONFLICT);
 		}
-		$this->storeConsent($user->getUID(), $client, $scope);
+		$this->storeConsent($user->getUID(), $client, $scope, $previous);
 		$this->logger->info('User approved an OAuth device authorization request.', ['client_id' => $client->getClientIdentifier()]);
 		return new JSONResponse(['success' => true]);
 	}
@@ -354,13 +390,20 @@ class DeviceAuthorizationController extends Controller {
 		$scopeValue = ($scope === null || trim($scope) === '')
 			? Application::DEFAULT_SCOPE
 			: $scope;
+		if (strlen($scopeValue) > 512 || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $scopeValue)) {
+			return $this->oauthError('invalid_scope', 'Invalid or oversized scope.');
+		}
 		$requested = preg_split('/\s+/', trim($scopeValue), -1, PREG_SPLIT_NO_EMPTY);
 		$requested = array_values(array_unique($requested));
 		$allowed = preg_split('/\s+/', trim($client->getAllowedScopes()), -1, PREG_SPLIT_NO_EMPTY);
 		if ($allowed !== [] && array_diff($requested, $allowed) !== []) {
 			return $this->oauthError('invalid_scope', 'One or more requested scopes are not allowed for this client.');
 		}
-		return substr(implode(' ', $requested), 0, 512);
+		$normalized = implode(' ', $requested);
+		if (strlen($normalized) > 512 || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $normalized)) {
+			return $this->oauthError('invalid_scope', 'Scope must contain valid, complete OAuth scope tokens of at most 512 bytes.');
+		}
+		return $normalized;
 	}
 
 	private function generateUniqueUserCode(): string {
@@ -386,8 +429,7 @@ class DeviceAuthorizationController extends Controller {
 		return $deviceCode;
 	}
 
-	private function storeConsent(string $userId, Client $client, string $scope): void {
-		$existingConsent = $this->userConsentMapper->findByUserAndClient($userId, $client->getId());
+	private function storeConsent(string $userId, Client $client, string $scope, ?UserConsent $existingConsent): void {
 		$consent = $existingConsent ?? new UserConsent();
 		$now = $this->time->getTime();
 		if ($existingConsent === null) {
@@ -395,8 +437,20 @@ class DeviceAuthorizationController extends Controller {
 			$consent->setClientId($client->getId());
 			$consent->setCreatedAt($now);
 		}
-		$consent->setScopesGranted($scope);
-		$consent->setScopesRequested($scope);
+		$validExisting = $existingConsent !== null
+			&& ($existingConsent->getExpiresAt() === null || $now < $existingConsent->getExpiresAt());
+		$merge = static fn (string $previous): string => implode(' ', array_values(array_unique(array_merge(
+			preg_split('/ +/', trim($previous), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+			preg_split('/ +/', trim($scope), -1, PREG_SPLIT_NO_EMPTY) ?: []
+		))));
+		$granted = $merge($validExisting ? $existingConsent->getScopesGranted() : '');
+		$requested = $merge($validExisting ? ($existingConsent->getScopesRequested() ?? $existingConsent->getScopesGranted()) : '');
+		// Preserve complete scope tokens; do not truncate a merged permission set.
+		if (strlen($granted) > 512 || strlen($requested) > 512) {
+			throw new \InvalidArgumentException('The combined consent scope exceeds the storage limit.');
+		}
+		$consent->setScopesGranted($granted);
+		$consent->setScopesRequested($requested);
 		$consent->setUpdatedAt($now);
 		// Keep the same time-limited consent policy as ConsentController (90 days).
 		// Device approval must not convert an existing expiry into permanent consent.

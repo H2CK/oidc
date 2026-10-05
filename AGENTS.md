@@ -5,14 +5,14 @@
 
 ## Project Overview
 
-**Nextcloud OIDC Identity Provider** enables Nextcloud to serve as an OpenID Connect (OIDC) provider, allowing users to authenticate at external services with their Nextcloud credentials. The app implements full OIDC compliance including Authorization Code and Implicit flows, PKCE support, JWT access tokens, dynamic client registration, and user consent management.
+**Nextcloud OIDC Identity Provider** enables Nextcloud to serve as an OpenID Connect (OIDC) provider, allowing users to authenticate at external services with their Nextcloud credentials. The app supports Authorization Code and Implicit flows, PKCE support, JWT access tokens, dynamic client registration, and user consent management.
 
 - **Repository**: https://github.com/H2CK/oidc
 - **License**: AGPL-3.0-or-later
 - **Namespace**: `OCA\OIDCIdentityProvider`
-- **Minimum Nextcloud**: 31
+- **Minimum Nextcloud**: 32 (appinfo/info.xml permits 32–35)
 - **PHP Requirements**: 8.2+
-- **Node Requirements**: 22+, npm 10+
+- **Node Requirements**: 22.14+ or 24.x, npm 10+ (see package.json)
 
 ## Architecture
 
@@ -36,16 +36,18 @@ Located in `/src`, exports four app entry points:
 - **App.vue + main.js** - Admin settings UI (client management)
 - **AppPersonal.vue + personal.js** - User consent/authorized apps view
 - **Consent.vue + consent.js** - Authorization request UI (inline)
-- **Redirect.vue + redirect.js** - OIDC redirect landing page
+- **DeviceAuthorization.vue + device.js** - Device-code entry and approval
 
-All components use `@nextcloud/vue` component library and `@nextcloud/axios` for API calls.
+Components use Vue 3 and the Nextcloud libraries. Browser requests use `@nextcloud/axios` or `fetch`; obtain CSRF tokens with `getRequestToken()` from `@nextcloud/auth`.
 
 ### Templates
 
 Located in `/templates`:
-- `main.php` - Redirect page template
-- `personal.php` - User settings template
-- Admin templates defined via Settings classes
+- `admin.php` and `personal.php` - Settings mount points
+- `consent.php` and `device.php` - Authorization and device UI mount points
+- `authorization-handoff.php` - Safe continuation after POST/login
+- `logout_confirmation.php`, `logout_completion.php` - Browser logout pages
+- `form-post.php` and `check_session_iframe.php` - Protocol response templates
 
 ## Development Workflow
 
@@ -63,9 +65,9 @@ make build-js        # Single build (webpack dev)
 make watch-js        # Live rebuild on file changes
 make serve-js        # Start webpack dev server
 make lint            # ESLint check
-make lint:fix        # Auto-fix ESLint issues
+make lint-fix        # Auto-fix ESLint issues
 make stylelint       # CSS/SCSS linting
-make stylelint:fix   # Auto-fix styles
+make stylelint-fix   # Auto-fix styles
 ```
 
 ### Backend Development
@@ -74,6 +76,7 @@ make stylelint:fix   # Auto-fix styles
 make test            # Run all PHPUnit tests (unit + integration)
 make test-unit       # Unit tests only
 make test-integration # Integration tests only
+npm run test:frontend # Dependency-free browser logic regression tests
 ```
 
 ### Building for Production
@@ -89,7 +92,7 @@ make appstore        # Sign app for Nextcloud App Store
 ### Frontend
 
 - **Vue 3 Composition API** - Use `<script setup>` for new components
-- **ESLint/Stylelint** - Run `make lint:fix` before committing
+- **ESLint/Stylelint** - Run `make lint-fix` before committing
 - **Naming** - PascalCase for components, camelCase for methods/props
 - **i18n** - Use `t('oidc', 'Label')` for all user-facing strings
 - **Nextcloud UI** - Prefer `@nextcloud/vue` components over custom HTML
@@ -99,17 +102,17 @@ make appstore        # Sign app for Nextcloud App Store
 - **PSR-12** - PHP coding standard enforced by php-cs-fixer
 - **Namespace**: `OCA\OIDCIdentityProvider\`
 - **Autoloading**: PSR-4 via composer
-- **Logging**: Use Nextcloud ILogger interface
+- **Logging**: Use `Psr\Log\LoggerInterface`
 - **Database**: Use Nextcloud Db abstraction with typed mappers
 
 ## Key Files & Features
 
 ### OIDC Flows
 
-- **Authorization Code** - Full OIDC compliance, PKCE support
+- **Authorization Code** - PKCE support, concrete redirect binding, independent 600-second code lifetime
 - **Implicit** - Legacy support, requires explicit client configuration
 - **RFC9068 JWT Access Tokens** - Optional, per-client
-- **Offline Access** - Refresh token handling with legacy mode option (v1.12+)
+- **Offline Access** - Rotating refresh credentials retain their original scope; request scope narrows only the access token
 
 ### API Endpoints
 
@@ -123,7 +126,10 @@ See `/lib/Db` for mappers:
 - `Client` - OIDC client configurations
 - `AccessToken`, `RefreshToken` - Token storage
 - `AuthorizationCode` - Authorization code storage
-- `UserConsent` - User permission records
+- `UserConsent` - User permission records (90-day expiry)
+- `DeviceCode` - Device authorization and approval state
+
+Services include `AuthenticationTimeService` for active login evidence and `AuthorizationTransactionService` for single-use authorization continuations. Never derive auth_time from authorization or token issuance.
 
 ### CLI Commands
 
@@ -159,7 +165,7 @@ php occ oidc:list-claim-functions # Show claim functions
 Version updates required in four files (then commit):
 1. `appinfo/info.xml` - `<version>` tag
 2. `package.json` - `"version"` field
-3. `package-lock.json` - related versions to chnages in package.json
+3. `package-lock.json` - root versions and dependency declarations matching package.json
 4. `CHANGELOG.md` - New entry with changes
 
 After version bump, run:
@@ -170,8 +176,11 @@ make build-test   # Verify build passes tests
 ## Important Constraints & Edge Cases
 
 - **PKCE Mandatory for Public Clients** - Always required (RFC 7636)
-- **Offline Access Scope** - Must be explicitly requested (OIDC compliance v1.12+)
-  - Legacy mode available in admin settings for older clients
+- **Offline Access Scope** - Required for initial refresh issuance unless the configured legacy/trusted-event policy applies. Refresh rotation always issues a replacement. DCR clients must register the refresh grant.
+- **OIDC vs OAuth** - Issue ID tokens and serve UserInfo only when openid was granted. OAuth-only requests remain supported.
+- **Active Authentication** - Record time on UserLoggedInEvent; remember-me/app-token restoration is not active login evidence. Unknown old sessions must reauthenticate. max_age=0 requires an active login continuation.
+- **Registration** - Store and enforce grant_types and response_types. Device-only registrations use response_types=[] and an explicit device grant.
+- **Native Loopback** - RFC 8252 allows any HTTP loopback-IP port for native clients; preserve host, path and query exactly. Public web clients do not get this exception.
 - **Redirect URI Validation** - Supports wildcards (port, path, subdomain with config)
 - **Group Limitations** - Clients can restrict access to specific user groups
 - **Email Verified** - Can source from Nextcloud account or force "always verified"
@@ -189,4 +198,6 @@ Translations managed via Transifex, not in the repository. New strings are auto-
 
 ---
 
-**Last Updated**: May 2026 | **Version**: 1.17.0
+**Last Updated**: October 2026 | **Version**: 2.5.1
+
+ESLint 10 uses `eslint.config.mjs` and the named `recommended` flat configuration from `@nextcloud/eslint-config` 9. The old `.eslintrc.js` is ignored by ESLint 10. Do not remove PHP annotations required by Nextcloud 32/33 when adding attributes introduced in newer releases. Backend tests require a Nextcloud test installation; a JavaScript-only test run does not validate PHP, migrations or protocol conformance.

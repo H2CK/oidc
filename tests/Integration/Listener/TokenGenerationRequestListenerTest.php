@@ -617,6 +617,56 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         }
     }
 
+    public function testEmptyScopeCeilingDoesNotRestoreDefaultPermissions(): void {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('notes.read');
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+
+        $this->listener->handle($event);
+
+        $this->assertNull($event->getAccessToken());
+        $this->assertNull($event->getIdToken());
+        $this->assertNull($event->getRefreshToken());
+    }
+
+    public function testOAuthOnlyEventDoesNotReceiveAnIdToken(): void {
+        $this->configureAppConfig();
+        $this->setClientAllowedScopes('profile');
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+
+        $this->listener->handle($event);
+
+        $this->assertNotNull($event->getAccessToken());
+        $this->assertSame('profile', $this->accessTokenMapper->getByAccessToken($event->getAccessToken())->getScope());
+        $this->assertNull($event->getIdToken());
+    }
+
+    public function testEventRespectsRegisteredRefreshGrant(): void {
+        $this->configureAppConfig();
+        $client = $this->clientMapper->getByIdentifier($this->testClientId);
+        $client->setRegisteredGrantTypes(['authorization_code']);
+        $this->clientMapper->update($client);
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+
+        $this->listener->handle($event);
+
+        $this->assertNotNull($event->getAccessToken());
+        $this->assertNotNull($event->getIdToken());
+        $this->assertNull($event->getRefreshToken());
+        $this->assertNull($event->getRefreshExpiresIn());
+    }
+
+    public function testInvalidOrOversizedEventScopeDoesNotMintTokens(): void {
+        $this->configureAppConfig();
+        foreach (["notes.read\nnotes.write", str_repeat('a', 512)] as $extraScopes) {
+            $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, $extraScopes);
+            $this->listener->handle($event);
+            $this->assertNull($event->getAccessToken());
+            $this->assertNull($event->getIdToken());
+            $this->assertNull($event->getRefreshToken());
+        }
+    }
+
     public function testEventRefreshTokenCanBeRedeemedAndRotatedTwice(): void {
         $this->configureAppConfig();
         $this->setClientAllowedScopes('openid profile Files:Read');

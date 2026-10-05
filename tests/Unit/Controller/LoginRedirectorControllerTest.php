@@ -558,7 +558,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) use ($authTime) {
                 $values = [
-                    'oidc_auth_time' => $authTime,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => $authTime,
                 ];
                 return $values[$key] ?? null;
             });
@@ -600,7 +601,7 @@ class LoginRedirectorControllerTest extends TestCase {
             ->expects($this->once())
             ->method('insert')
             ->willReturnCallback(function (AccessToken $accessToken) use ($authTime) {
-                $this->assertSame($authTime, $accessToken->getCreated());
+                $this->assertSame($authTime, $accessToken->getAuthTime());
                 $accessToken->id = 23;
                 return $accessToken;
             });
@@ -726,7 +727,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 1234567890,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 1234567890,
                 ];
                 return $values[$key] ?? null;
             });
@@ -914,7 +916,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 1234567890,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 1234567890,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1042,7 +1045,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 1234567890,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 1234567890,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1205,7 +1209,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 1234567890,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 1234567890,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1373,7 +1378,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 1000,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 1000,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1473,7 +1479,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 2000,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 2000,
                 ];
                 return $values[$key] ?? null;
             });
@@ -1827,7 +1834,8 @@ class LoginRedirectorControllerTest extends TestCase {
             ->method('get')
             ->willReturnCallback(function ($key) {
                 $values = [
-                    'oidc_auth_time' => 1234567890,
+                    'oidc_active_auth_user' => $this->userSession->getUser()->getUID(),
+                    'oidc_active_auth_time' => 1234567890,
                 ];
                 return $values[$key] ?? null;
             });

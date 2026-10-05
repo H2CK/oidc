@@ -44,6 +44,7 @@ use Psr\Log\LoggerInterface;
 
 class AuthorizationService
 {
+    private AuthenticationTimeService $authenticationTime;
     private IRequest $request;
     private AuthorizationTransactionService $transactions;
     /** @var IURLGenerator */
@@ -134,6 +135,7 @@ class AuthorizationService
                     ?AuthorizationTransactionService $transactions = null
                     )
         {
+        $this->authenticationTime = new AuthenticationTimeService($session, $time, $userSession);
         $this->request = $request;
         $this->urlGenerator = $urlGenerator;
         $this->clientMapper = $clientMapper;
@@ -255,7 +257,7 @@ class AuthorizationService
         if (empty($redirect_uri)) {
             $this->logger->error('Missing redirect URI in authorization request.');
             return $this->createHtmlErrorResponse(
-                $this->l->t('Authorization session expired. Please try again.'),
+                $this->l->t('Authorization request is missing a redirect URI.'),
                 Http::STATUS_BAD_REQUEST
             );
         }
@@ -283,12 +285,16 @@ class AuthorizationService
             }
         }
 
+        if (strlen($scope) > 512 || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $scope)) {
+            return $this->authorizationError($parameters, 'invalid_scope', 'Invalid or oversized scope.');
+        }
+        $oidcRequested = in_array('openid', $this->splitScopes($scope), true);
         // Adapt scopes to configured values
         $allowedScopes = $client->getAllowedScopes();
 
         // OAuth scope tokens are case-sensitive across issuance and refresh.
         $scope = $this->scopeCeiling->filterByAllowedScopes($scope, $allowedScopes ?? '');
-        if ($scope === '') {
+        if ($scope === '' || ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true))) {
             return $this->authorizationError($parameters, 'invalid_scope', 'No requested scopes are permitted.');
         }
 
@@ -375,6 +381,15 @@ class AuthorizationService
             return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'invalid_request',
                 'code_challenge_method requires code_challenge.', $state, $response_type, $response_mode);
         }
+        if ($max_age !== null && (!$this->isNonNegativeIntegerLike($max_age)
+            || strlen((string)$max_age) > 10)) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'invalid_request',
+                'Invalid max_age parameter.', $state, $response_type, $response_mode);
+        }
+        if ($nonce !== null && (mb_strlen($nonce, 'UTF-8') > 256 || !mb_check_encoding($nonce, 'UTF-8'))) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'invalid_request',
+                'The nonce must be valid UTF-8 and at most 256 characters.', $state, $response_type, $response_mode);
+        }
         $prompts = is_string($prompt) ? preg_split('/ +/', trim($prompt), -1, PREG_SPLIT_NO_EMPTY) : [];
         if (array_diff($prompts, ['none', 'login', 'consent', 'select_account']) !== []
             || (in_array('none', $prompts, true) && count($prompts) !== 1)) {
@@ -405,7 +420,7 @@ class AuthorizationService
                 $response_type
             );
         }
-        if (in_array('id_token', $responseTypeEntries) && empty($nonce)) {
+        if (in_array('id_token', $responseTypeEntries) && ($nonce === null || $nonce === '')) {
             $this->logger->notice('Missing nonce in request for client ' . $client_id . '.');
             return $this->createAuthorizationErrorRedirect(
                 (string)$redirect_uri,
@@ -434,6 +449,16 @@ class AuthorizationService
                 'Unsupported response_type', $state, $response_type, $response_mode);
         }
 
+        if (in_array('id_token', $responseTypeEntries, true) && !$oidcRequested) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'invalid_scope',
+                'The openid scope is required for an ID token.', $state, $response_type, $response_mode);
+        }
+        if (!$client->supportsResponseType($response_type)
+            || ($codeFlow && !$client->allowsGrantType('authorization_code'))
+            || ($implicitFlow && !$client->allowsGrantType('implicit'))) {
+            return $this->createAuthorizationErrorRedirect((string)$redirect_uri, 'unauthorized_client',
+                'The client is not registered for this response type.', $state, $response_type, $response_mode);
+        }
         $allowedResponseTypeEntries = explode(' ', strtolower(trim($client->getFlowType())), 3);
         $isImplicitFlowAllowed = false;
         if (in_array('id_token', $allowedResponseTypeEntries)) {
@@ -483,8 +508,9 @@ class AuthorizationService
             );
         }
 
-        // A resumed login establishes auth_time; an authorization POST handoff does not.
-        $authTime = $this->getOidcAuthenticationTime($freshLogin, $authenticatedAt);
+        // Only login-event evidence establishes auth_time; continuations merely read it.
+        $authTime = $this->getOidcAuthenticationTime();
+        $freshLogin = $freshLogin && $authTime > 0;
 
         if (!$freshLogin && $this->promptContains($prompt, 'select_account')) {
             // Nextcloud's login form allows selecting another account. Do not
@@ -517,7 +543,8 @@ class AuthorizationService
             );
         }
 
-        if (!$freshLogin && $this->maxAgeExceeded($max_age, $authTime)) {
+        if ($this->maxAgeExceeded($max_age, $authTime)
+            && !($freshLogin && $max_age !== null && (int)$max_age === 0)) {
             if ($this->promptContains($prompt, 'none')) {
                 $this->logger->debug('prompt=none requested but max_age is exceeded for client ' . $client_id . '. Returning login_required.');
                 return $this->createAuthorizationErrorRedirect(
@@ -583,7 +610,7 @@ class AuthorizationService
         // Per-group scope ceiling. Applied before consent so the consent screen
         // only offers scopes the user may hold.
         $scope = $this->scopeCeiling->clamp($uid, $scope, $client_id);
-        if ($scope === '') {
+        if ($scope === '' || ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true))) {
             return $this->authorizationError($parameters, 'invalid_scope', 'No requested scopes are permitted.');
         }
 
@@ -678,7 +705,7 @@ class AuthorizationService
                 $scope = implode(' ', array_values(array_intersect(
                     $this->splitScopes($scope), $this->splitScopes($existingConsent->getScopesGranted())
                 )));
-                if ($scope === '') {
+                if ($scope === '' || ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true))) {
                     return $this->createAuthorizationErrorRedirect((string)$redirect_uri,
                         $this->promptContains($prompt, 'none') ? 'interaction_required' : 'access_denied',
                         'No requested scopes have been granted.', $state, $response_type, $response_mode);
@@ -687,6 +714,9 @@ class AuthorizationService
             }
         }
 
+        if ($oidcRequested && !in_array('openid', $this->splitScopes($scope), true)) {
+            return $this->authorizationError($parameters, 'invalid_scope', 'The openid scope is not permitted.');
+        }
         $code = $this->random->generate(128, ISecureRandom::CHAR_UPPER.ISecureRandom::CHAR_LOWER.ISecureRandom::CHAR_DIGITS);
         $accessToken = new AccessToken();
         $accessToken->setClientId($client->getId());
@@ -700,12 +730,13 @@ class AuthorizationService
         }
         $accessToken->setIdTokenClaims($this->encodeRequestedClaims($requestedIdTokenClaims));
         $accessToken->setUserinfoClaims($this->encodeRequestedClaims($requestedUserinfoClaims));
-        $accessToken->setCreated($authTime);
+        $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($authTime);
         $accessToken->setRefreshed($this->time->getTime());
-        if (empty($nonce) || !isset($nonce)) {
+        if ($nonce === null || $nonce === '') {
             $nonce = '';
         } else {
-            $nonce = substr($nonce, 0, 256);
+            $nonce = (string)$nonce; // Validated above; the nonce must be echoed unchanged.
         }
         $accessToken->setNonce($nonce);
 
@@ -944,7 +975,8 @@ class AuthorizationService
                 ]);
                 continue;
             }
-            if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri())) {
+            if ($this->redirectUriService->matchRedirectUri($redirectUri, $registeredRedirectUri->getRedirectUri(),
+                $client->isNativeApplication())) {
                 return null;
             }
         }
@@ -1114,26 +1146,24 @@ class AuthorizationService
         return in_array($expectedPrompt, $promptEntries, true);
     }
 
-    private function getOidcAuthenticationTime(bool $freshLogin, ?int $authenticatedAt): int
-    {
-        $storedAuthTime = $this->session->get('oidc_auth_time');
-        if ($freshLogin || !$this->isPositiveIntegerLike($storedAuthTime)) {
-            // Consent completion reuses the time established by /resume;
-            // consenting later must not move the user's authentication time.
-            $storedAuthTime = $authenticatedAt !== null && $authenticatedAt > 0
-                ? $authenticatedAt : $this->time->getTime();
-            $this->session->set('oidc_auth_time', $storedAuthTime);
-        }
-        return (int)$storedAuthTime;
+    public function hasFreshAuthenticationSince(int $timestamp): bool {
+        return $this->authenticationTime->authenticatedSince($timestamp);
     }
 
-    private function maxAgeExceeded(mixed $maxAge, int $authTime): bool
-    {
+    private function getOidcAuthenticationTime(): int {
+        // A continuation or consent POST must never fabricate a login timestamp.
+        return $this->authenticationTime->getAuthenticationTime() ?? 0;
+    }
+
+    private function maxAgeExceeded(mixed $maxAge, int $authTime): bool {
+        if ($authTime <= 0) {
+            return true;
+        }
         if (!$this->isNonNegativeIntegerLike($maxAge)) {
             return false;
         }
-
-        return $this->time->getTime() > $authTime + (int)$maxAge;
+        // OIDC Core: max_age=0 is equivalent to prompt=login.
+        return (int)$maxAge === 0 || $this->time->getTime() - $authTime > (int)$maxAge;
     }
 
     private function isPositiveIntegerLike(mixed $value): bool

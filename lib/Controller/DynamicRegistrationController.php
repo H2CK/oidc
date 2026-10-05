@@ -124,6 +124,7 @@ class DynamicRegistrationController extends ApiController
         bool $frontchannel_logout_session_required = false,
         array|null $post_logout_redirect_uris = null,
         string|null $token_endpoint_auth_method = null,
+        ?array $grant_types = null,
         ): JSONResponse
     {
         if ($this->appConfig->getAppValueString('dynamic_client_registration', 'false') != 'true') {
@@ -134,29 +135,15 @@ class DynamicRegistrationController extends ApiController
             ], Http::STATUS_BAD_REQUEST);
         }
 
-        if ($redirect_uris == null) {
-            $this->logger->info('No redirect uris provided during register dynamic client.');
-            return new JSONResponse([
-                'error' => 'no_redirect_uris_provided',
-                'error_description' => 'Dynamic Client Registration requires redirect_uris to be set.',
-            ], Http::STATUS_BAD_REQUEST);
+        $metadata = $this->normalizeFlowMetadata($response_types, $grant_types ?? ['authorization_code']);
+        if ($metadata instanceof JSONResponse) {
+            return $metadata;
         }
-
-        if (!is_array($redirect_uris)) {
-            $this->logger->info('No redirect uris array delivered.');
-            return new JSONResponse([
-                'error' => 'no_redirect_uris_provided',
-                'error_description' => 'Dynamic Client Registration requires redirect_uris to be set.',
-            ], Http::STATUS_BAD_REQUEST);
+        [$response_types_arr, $grant_types_arr] = $metadata;
+        if ($response_types_arr !== [] && empty($redirect_uris)) {
+            return $this->invalidFlowMetadata('redirect_uris are required for browser authorization flows.');
         }
-
-        if (empty($redirect_uris)) {
-            $this->logger->info('No redirect uris array delivered.');
-            return new JSONResponse([
-                'error' => 'no_redirect_uris_provided',
-                'error_description' => 'Dynamic Client Registration requires at least one redirect_uris to be set.',
-            ], Http::STATUS_BAD_REQUEST);
-        }
+        $redirect_uris ??= [];
 
         if (!in_array($id_token_signed_response_alg, ['RS256', 'HS256'], true)) {
             return new JSONResponse([
@@ -224,7 +211,10 @@ class DynamicRegistrationController extends ApiController
 
         $name = substr(self::NAME_PREFIX . $this->getClientIp(), 0, 64);
         if ($client_name != null) {
-            $name = substr($client_name, 0, 64);
+            if (!mb_check_encoding($client_name, 'UTF-8')) {
+                return $this->invalidFlowMetadata('client_name must be valid UTF-8.');
+            }
+            $name = mb_substr($client_name, 0, 64, 'UTF-8');
         }
 
         // Honor client's requested token type from DCR, fall back to server default if not specified or invalid
@@ -310,7 +300,9 @@ class DynamicRegistrationController extends ApiController
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
-            $scope = mb_substr($scope, 0, 512);  // Match database column size
+            if (strlen($scope) > 512) {
+                return new JSONResponse(['error' => 'invalid_scope', 'error_description' => 'Scope exceeds 512 bytes.'], Http::STATUS_BAD_REQUEST);
+            }
             // RFC 6749 scope-token: printable ASCII except DQUOTE and
             // backslash, with one SP separating non-empty tokens.
             if (!preg_match('/^(?:[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*)?$/D', $scope)) {
@@ -349,47 +341,11 @@ class DynamicRegistrationController extends ApiController
         // Note: token_type parameter controls access token format (JWT vs Bearer/opaque)
         // Client's choice is honored above, with server default as fallback for invalid values
 
-        $response_types_arr = [];
-        foreach ($response_types as $responseType) {
-            if (!is_string($responseType)) {
-                return new JSONResponse([
-                    'error' => 'invalid_client_metadata',
-                    'error_description' => 'response_types must contain only strings.',
-                ], Http::STATUS_BAD_REQUEST);
-            }
-            $entries = preg_split('/\s+/', trim($responseType), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-            if ($entries === [] || count($entries) !== count(array_unique($entries))) {
-                return new JSONResponse([
-                    'error' => 'invalid_client_metadata',
-                    'error_description' => 'Invalid response_types value.',
-                ], Http::STATUS_BAD_REQUEST);
-            }
-            sort($entries, SORT_STRING);
-            $normalizedResponseType = implode(' ', $entries);
-            if (!in_array($normalizedResponseType, ['code', 'id_token', 'code id_token'], true)) {
-                return new JSONResponse([
-                    'error' => 'invalid_client_metadata',
-                    'error_description' => 'Unsupported response_types value.',
-                ], Http::STATUS_BAD_REQUEST);
-            }
-            $response_types_arr[] = $normalizedResponseType;
-        }
-        $response_types_arr = array_values(array_unique($response_types_arr));
-        if ($response_types_arr === []) {
-            return new JSONResponse([
-                'error' => 'invalid_client_metadata',
-                'error_description' => 'At least one response_types value is required.',
-            ], Http::STATUS_BAD_REQUEST);
-        }
-        $implicitRequested = count(array_filter(
-            $response_types_arr,
-            static fn (string $value): bool => str_contains($value, 'id_token')
-        )) > 0;
-        $client->setFlowType($implicitRequested ? 'code id_token' : 'code');
-        $grant_types_arr = ['authorization_code'];
-        if ($implicitRequested) {
-            $grant_types_arr[] = 'implicit';
-        }
+        $client->setRegisteredResponseTypes($response_types_arr);
+        $client->setRegisteredGrantTypes($grant_types_arr);
+        $client->setFlowType(implode(' ', array_values(array_unique(array_merge(...array_map(
+            static fn (string $response): array => explode(' ', $response), $response_types_arr ?: ['']
+        ))))));
 
         $client = $this->clientMapper->insert($client);
         if ($normalizedPostLogoutRedirectUris !== null) {
@@ -457,12 +413,7 @@ class DynamicRegistrationController extends ApiController
      * @return list<string>|JSONResponse
      */
     private function normalizeDynamicRedirectUris(array $redirectUris): array|JSONResponse {
-        if ($redirectUris === []) {
-            return new JSONResponse([
-                'error' => 'invalid_redirect_uri',
-                'error_description' => 'At least one redirect_uri is required.',
-            ], Http::STATUS_BAD_REQUEST);
-        }
+        // The caller enforces redirect presence for browser response types.
 
         $normalized = [];
         foreach ($redirectUris as $redirectUri) {
@@ -726,12 +677,8 @@ class DynamicRegistrationController extends ApiController
             $redirectUris[] = $redirectUri->getRedirectUri();
         }
 
-        $response_types_arr = ['code'];
-        $grant_types_arr = ['authorization_code'];
-        if ($client->getFlowType() === 'code id_token') {
-            array_push($response_types_arr, 'id_token');
-            array_push($grant_types_arr, 'implicit');
-        }
+        $response_types_arr = $client->getRegisteredResponseTypes();
+        $grant_types_arr = $client->getRegisteredGrantTypes();
 
         $jsonResponse = [
             'client_id' => $client->getClientIdentifier(),
@@ -810,7 +757,8 @@ class DynamicRegistrationController extends ApiController
         string|null $client_id = null,
         string|null $client_secret = null,
         string|null $application_type = null,
-        string|null $token_endpoint_auth_method = null
+        string|null $token_endpoint_auth_method = null,
+        ?array $grant_types = null,
     ): JSONResponse {
         $client = $this->authenticateAndAuthorizeClientManagement($clientId);
         if ($client instanceof JSONResponse) {
@@ -878,7 +826,10 @@ class DynamicRegistrationController extends ApiController
 
         // Update client properties if provided
         if ($client_name !== null) {
-            $client->setName(substr($client_name, 0, 64));
+            if (!mb_check_encoding($client_name, 'UTF-8')) {
+                return $this->invalidFlowMetadata('client_name must be valid UTF-8.');
+            }
+            $client->setName(mb_substr($client_name, 0, 64, 'UTF-8'));
         }
 
         if ($id_token_signed_response_alg !== null) {
@@ -895,40 +846,26 @@ class DynamicRegistrationController extends ApiController
         $client->setTokenEndpointAuthMethod($effectiveAuthMethod);
         $client->setType($effectiveAuthMethod === 'none' ? 'public' : 'confidential');
 
-        if ($response_types !== null) {
-            $implicitRequested = false;
-            foreach ($response_types as $responseType) {
-                if (!is_string($responseType)) {
-                    return new JSONResponse([
-                        'error' => 'invalid_client_metadata',
-                        'error_description' => 'response_types must contain only strings.',
-                    ], Http::STATUS_BAD_REQUEST);
-                }
-                $entries = preg_split('/\s+/', trim($responseType), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-                if ($entries === [] || count($entries) !== count(array_unique($entries))) {
-                    return new JSONResponse([
-                        'error' => 'invalid_client_metadata',
-                        'error_description' => 'Invalid response_types value.',
-                    ], Http::STATUS_BAD_REQUEST);
-                }
-                sort($entries, SORT_STRING);
-                $normalized = implode(' ', $entries);
-                if (!in_array($normalized, ['code', 'id_token', 'code id_token'], true)) {
-                    return new JSONResponse([
-                        'error' => 'invalid_client_metadata',
-                        'error_description' => 'Unsupported response_types value.',
-                    ], Http::STATUS_BAD_REQUEST);
-                }
-                $implicitRequested = $implicitRequested || str_contains($normalized, 'id_token');
-            }
-            if ($response_types === []) {
-                return new JSONResponse([
-                    'error' => 'invalid_client_metadata',
-                    'error_description' => 'At least one response_types value is required.',
-                ], Http::STATUS_BAD_REQUEST);
-            }
-            $client->setFlowType($implicitRequested ? 'code id_token' : 'code');
+        $metadata = $this->normalizeFlowMetadata(
+            $response_types ?? $client->getRegisteredResponseTypes(),
+            $grant_types ?? $client->getRegisteredGrantTypes()
+        );
+        if ($metadata instanceof JSONResponse) {
+            return $metadata;
         }
+        [$effectiveResponses, $effectiveGrants] = $metadata;
+        $effectiveRedirectUris = $redirect_uris ?? array_map(
+            static fn ($entry): string => $entry->getRedirectUri(),
+            $this->redirectUriMapper->getByClientId($client->getId())
+        );
+        if ($effectiveResponses !== [] && $effectiveRedirectUris === []) {
+            return $this->invalidFlowMetadata('redirect_uris are required for browser authorization flows.');
+        }
+        $client->setRegisteredResponseTypes($effectiveResponses);
+        $client->setRegisteredGrantTypes($effectiveGrants);
+        $client->setFlowType(implode(' ', array_values(array_unique(array_merge(...array_map(
+            static fn (string $response): array => explode(' ', $response), $effectiveResponses ?: ['']
+        ))))));
 
         if ($backchannel_logout_uri !== null) {
             $backchannel_logout_uri = trim($backchannel_logout_uri);
@@ -952,14 +889,6 @@ class DynamicRegistrationController extends ApiController
                 'error' => 'invalid_client_metadata',
                 'error_description' => 'backchannel_logout_session_required requires backchannel_logout_uri.',
             ], Http::STATUS_BAD_REQUEST);
-        }
-
-        $effectiveRedirectUris = $redirect_uris;
-        if ($effectiveRedirectUris === null || $effectiveRedirectUris === []) {
-            $effectiveRedirectUris = array_map(
-                static fn ($entry): string => $entry->getRedirectUri(),
-                $this->redirectUriMapper->getByClientId($client->getId())
-            );
         }
 
         if ($frontchannel_logout_uri !== null) {
@@ -1005,7 +934,9 @@ class DynamicRegistrationController extends ApiController
         // Validate and set scope if provided
         if ($scope !== null) {
             $scope = trim($scope);
-            $scope = mb_substr($scope, 0, 512);  // Match database column size
+            if (strlen($scope) > 512) {
+                return new JSONResponse(['error' => 'invalid_scope', 'error_description' => 'Scope exceeds 512 bytes.'], Http::STATUS_BAD_REQUEST);
+            }
             // Apply the same RFC 6749 scope-token grammar as registration:
             // printable ASCII except DQUOTE and backslash, separated by one SP.
             if (!preg_match('/^(?:[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*)?$/D', $scope)) {
@@ -1051,12 +982,8 @@ class DynamicRegistrationController extends ApiController
             $currentRedirectUris[] = $redirectUri->getRedirectUri();
         }
 
-        $response_types_arr = ['code'];
-        $grant_types_arr = ['authorization_code'];
-        if ($client->getFlowType() === 'code id_token') {
-            array_push($response_types_arr, 'id_token');
-            array_push($grant_types_arr, 'implicit');
-        }
+        $response_types_arr = $client->getRegisteredResponseTypes();
+        $grant_types_arr = $client->getRegisteredGrantTypes();
 
         $jsonResponse = [
             'client_id' => $client->getClientIdentifier(),
@@ -1153,6 +1080,51 @@ class DynamicRegistrationController extends ApiController
         $response->addHeader('Access-Control-Allow-Methods', 'DELETE');
 
         return $response;
+    }
+
+    private function invalidFlowMetadata(string $description): JSONResponse {
+        return new JSONResponse([
+            'error' => 'invalid_client_metadata', 'error_description' => $description,
+        ], Http::STATUS_BAD_REQUEST);
+    }
+
+    /** @return array{list<string>,list<string>}|JSONResponse */
+    private function normalizeFlowMetadata(array $responses, array $grants): array|JSONResponse {
+        $supportedGrants = ['authorization_code', 'implicit', 'refresh_token',
+            'urn:ietf:params:oauth:grant-type:device_code',
+            'urn:ietf:params:oauth:grant-type:token-exchange'];
+        if ($grants === []) {
+            return $this->invalidFlowMetadata('grant_types must not be empty.');
+        }
+        foreach ($grants as $grant) {
+            if (!is_string($grant) || !in_array($grant, $supportedGrants, true)) {
+                return $this->invalidFlowMetadata('Unsupported grant_types value.');
+            }
+        }
+        $normalizedResponses = [];
+        foreach ($responses as $response) {
+            if (!is_string($response)) {
+                return $this->invalidFlowMetadata('response_types must contain only strings.');
+            }
+            $entries = preg_split('/ +/', trim($response), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            sort($entries, SORT_STRING);
+            $normalized = implode(' ', $entries);
+            if (!in_array($normalized, ['code', 'id_token', 'code id_token', 'id_token token', 'code id_token token'], true)) {
+                return $this->invalidFlowMetadata('Unsupported response_types value.');
+            }
+            if ((in_array('code', $entries, true) && !in_array('authorization_code', $grants, true))
+                || (in_array('id_token', $entries, true) && !in_array('implicit', $grants, true))) {
+                return $this->invalidFlowMetadata('response_types and grant_types are inconsistent.');
+            }
+            $normalizedResponses[] = $normalized;
+        }
+        if ((in_array('authorization_code', $grants, true)
+                && !array_filter($normalizedResponses, static fn (string $value): bool => str_contains($value, 'code')))
+            || (in_array('implicit', $grants, true)
+                && !array_filter($normalizedResponses, static fn (string $value): bool => str_contains($value, 'id_token')))) {
+            return $this->invalidFlowMetadata('Browser grants require a matching response_types value.');
+        }
+        return [array_values(array_unique($normalizedResponses)), array_values(array_unique($grants))];
     }
 
 }

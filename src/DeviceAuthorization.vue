@@ -19,7 +19,6 @@
 					autocapitalize="characters"
 					autocorrect="off"
 					spellcheck="false"
-					maxlength="9"
 					aria-describedby="oidc-device-code-hint"
 					autofocus
 					required
@@ -47,6 +46,7 @@
 					<button class="button primary" :disabled="busy" @click="respond('approve')">{{ t('oidc', 'Allow') }}</button>
 				</div>
 				<p class="consent-note">
+					{{ t('oidc', 'This approval expires after 90 days.') }}
 					{{ t('oidc', 'You can revoke this access at any time from your account settings.') }}
 				</p>
 			</div>
@@ -168,6 +168,7 @@ function verifyCode() {
 }
 
 async function respond(action) {
+	if (busy.value) return
 	busy.value = true
 	try {
 		const body = new URLSearchParams({ user_code: props.userCode })
@@ -175,7 +176,21 @@ async function respond(action) {
 		currentMode.value = 'complete'
 	} catch (error) {
 		currentMode.value = 'error'
-		currentMessage.value = t('oidc', 'The device request could not be completed. Please try again.')
+		const status = error.response?.status
+		const reason = error.response?.data?.error
+		if (reason === 'access_denied' || status === 403) {
+			currentMessage.value = t('oidc', 'You are not allowed to authorize this application.')
+		} else if (reason === 'login_required' || status === 401) {
+			currentMessage.value = t('oidc', 'Your login has expired. Sign in again to authorize the device.')
+		} else if (status === 409) {
+			currentMessage.value = t('oidc', 'This device request was already completed. Start a new request on your device.')
+		} else if (status === 400) {
+			currentMessage.value = t('oidc', 'The device code is invalid or has expired. Start a new request on your device.')
+		} else if (status === 429) {
+			currentMessage.value = t('oidc', 'Too many attempts. Please wait and try again.')
+		} else {
+			currentMessage.value = t('oidc', 'The device request could not be completed. Please try again.')
+		}
 	} finally {
 		busy.value = false
 	}

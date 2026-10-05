@@ -52,45 +52,6 @@ class DiscoveryGenerator
     }
 
     /**
-     * Aggregates scopes from all registered OAuth clients
-     *
-     * @return array Deduplicated list of scopes from all clients
-     */
-    private function getAggregatedScopes(): array
-    {
-        $aggregatedScopes = [];
-
-        try {
-            $clients = $this->clientMapper->getClients();
-
-            foreach ($clients as $client) {
-                $allowedScopes = trim($client->getAllowedScopes());
-
-                // Skip clients with no allowed_scopes configured
-                if ($allowedScopes === '') {
-                    continue;
-                }
-
-                // Parse space-separated scopes
-                $scopesArr = preg_split('/\s+/', $allowedScopes, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
-                // Add to aggregated list (array_merge will handle duplicates via array_unique later)
-                $aggregatedScopes = array_merge($aggregatedScopes, $scopesArr);
-            }
-
-            // Remove duplicates and empty values
-            $aggregatedScopes = array_filter(array_unique($aggregatedScopes), function($scope) {
-                return trim($scope) !== '';
-            });
-
-        } catch (\Exception $e) {
-            $this->logger->warning('Failed to aggregate scopes from OAuth clients: ' . $e->getMessage());
-        }
-
-        return array_values($aggregatedScopes); // Re-index array
-    }
-
-    /**
      * Generates the responsefor the discovery endpoint
      *
      * @return JSONResponse
@@ -110,18 +71,14 @@ class DiscoveryGenerator
             'offline_access',
         ];
 
-        // Aggregate custom scopes from all registered OAuth clients
-        $customScopes = $this->getAggregatedScopes();
-
-        // Merge default and custom scopes, removing duplicates
-        $scopesSupported = array_values(array_unique(array_merge($defaultScopes, $customScopes)));
+        $scopesSupported = $defaultScopes;
         $responseTypesSupported = [
             'code',
             'code id_token',
             // 'code token',
-            // 'code id_token token',
+            'code id_token token',
             'id_token',
-            // 'id_token token'
+            'id_token token',
         ];
         $responseModesSupported = [
             'query',

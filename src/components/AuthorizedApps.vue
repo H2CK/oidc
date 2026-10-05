@@ -53,23 +53,41 @@
 					<p class="date">
 						{{ t('oidc', 'Authorized on:') }} {{ formatDate(consent.createdAt) }}
 					</p>
+					<p v-if="consent.expiresAt" class="date">
+						{{ t('oidc', 'Approval expires on: {date}', { date: formatDate(consent.expiresAt) }) }}
+					</p>
+					<div v-if="editingClient === consent.clientId" class="scope-editor">
+						<label v-for="scope in getRequestedScopes(consent)" :key="scope">
+							<input v-model="selectedScopes" type="checkbox" :value="scope" :disabled="scope === 'openid' || savingScopes">
+							{{ scope }}
+						</label>
+						<button :disabled="savingScopes" @click="saveScopes(consent)">{{ t('oidc', 'Save permissions') }}</button>
+						<button :disabled="savingScopes" @click="editingClient = null">{{ t('oidc', 'Cancel') }}</button>
+					</div>
 				</div>
 				<div v-if="allowUserSettings !== 'no'" class="consent-actions">
+					<button :disabled="savingScopes || revoking !== null" @click="editScopes(consent)">{{ t('oidc', 'Edit permissions') }}</button>
 					<button
 						class="button secondary"
 						:disabled="revoking === consent.clientId"
-						@click="revokeAccess(consent.clientId, consent.clientName)">
+						@click="pendingRevocation = consent">
 						<span v-if="revoking === consent.clientId" class="icon-loading-small"></span>
 						<span v-else>{{ t('oidc', 'Revoke Access') }}</span>
 					</button>
 				</div>
 			</div>
 		</div>
+		<div v-if="pendingRevocation" role="alert" class="revoke-confirmation">
+			<p>{{ t('oidc', 'Are you sure you want to revoke access for "{clientName}"?', { clientName: pendingRevocation.clientName }) }}</p>
+			<button @click="revokeAccess(pendingRevocation.clientId)">{{ t('oidc', 'Revoke Access') }}</button>
+			<button @click="pendingRevocation = null">{{ t('oidc', 'Cancel') }}</button>
+		</div>
 	</div>
 </template>
 
 <script>
 import { t } from '@nextcloud/l10n'
+import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 
@@ -87,6 +105,10 @@ export default {
 			consents: [],
 			loading: true,
 			revoking: null,
+			pendingRevocation: null,
+			editingClient: null,
+			selectedScopes: [],
+			savingScopes: false,
 			notification: null,
 			revokedConsentIds: [],
 		}
@@ -102,7 +124,7 @@ export default {
 				const response = await fetch(generateUrl('/apps/oidc/api/consents'), {
 					cache: 'no-store',
 					headers: {
-						requesttoken: OC.requestToken,
+						requesttoken: getRequestToken(),
 					},
 				})
 
@@ -122,11 +144,9 @@ export default {
 				this.loading = false
 			}
 		},
-		async revokeAccess(clientId, clientName) {
-			const message = t('oidc', 'Are you sure you want to revoke access for "{clientName}"?').replace('{clientName}', clientName)
-			if (!confirm(message)) {
-				return
-			}
+		async revokeAccess(clientId) {
+			if (this.revoking !== null) return
+			this.pendingRevocation = null
 
 			this.notification = null
 			this.revoking = clientId
@@ -134,7 +154,7 @@ export default {
 				const response = await fetch(generateUrl('/apps/oidc/api/consents/' + clientId), {
 					method: 'DELETE',
 					headers: {
-						requesttoken: OC.requestToken,
+						requesttoken: getRequestToken(),
 					},
 				})
 
@@ -156,8 +176,37 @@ export default {
 		showNotification(type, text) {
 			this.notification = { type, text }
 		},
+		getRequestedScopes(consent) {
+			const requested = this.getScopes(consent.scopesRequested || consent.scopesGranted)
+			const allowed = this.getScopes(consent.allowedScopes || '')
+			return allowed.length ? requested.filter(scope => allowed.includes(scope)) : requested
+		},
+		editScopes(consent) {
+			this.editingClient = consent.clientId
+			this.selectedScopes = this.getScopes(consent.scopesGranted)
+		},
+		async saveScopes(consent) {
+			if (this.savingScopes) return
+			this.savingScopes = true
+			try {
+				const response = await fetch(generateUrl('/apps/oidc/api/consents/' + consent.clientId + '/scopes'), {
+					method: 'PATCH',
+					headers: { requesttoken: getRequestToken(), 'Content-Type': 'application/json' },
+					body: JSON.stringify({ scopes: this.selectedScopes }),
+				})
+				if (!response.ok) throw new Error('Permission update failed')
+				const result = await response.json()
+				Object.assign(consent, { scopesGranted: result.scopesGranted, updatedAt: result.updatedAt, expiresAt: result.expiresAt })
+				this.editingClient = null
+				this.showNotification('success', t('oidc', 'Permissions updated'))
+			} catch {
+				this.showNotification('error', t('oidc', 'Failed to update permissions'))
+			} finally {
+				this.savingScopes = false
+			}
+		},
 		getScopes(scopesString) {
-			return scopesString.split(' ').filter(s => s.trim())
+			return String(scopesString || '').split(' ').filter(s => s.trim())
 		},
 		getAllowedScopes(consent) {
 			// Return all scopes allowed by the client

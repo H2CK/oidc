@@ -51,6 +51,7 @@ class AuthorizationServiceRegressionTest extends TestCase {
     private IUserSession $userSession;
 
     protected function setUp(): void {
+        $this->sessionValues = ['oidc_active_auth_time' => 900, 'oidc_active_auth_user' => 'test-user'];
         $logger = $this->createMock(LoggerInterface::class);
         $request = $this->createMock(IRequest::class);
         $request->method('getServerProtocol')->willReturn('https');
@@ -235,6 +236,60 @@ class AuthorizationServiceRegressionTest extends TestCase {
         $response = $this->service->process($this->request());
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertStringContainsString('error=access_denied', $response->getRedirectURL());
+    }
+
+
+    public function testUnknownLoginTimeReturnsLoginRequiredWithoutInventingTime(): void {
+        $this->sessionValues = ['oidc_auth_time' => 1000];
+        $this->tokens->expects($this->never())->method('insert');
+        $response = $this->service->process($this->request(['prompt' => 'none', 'max_age' => '3600']));
+        $this->assertStringContainsString('error=login_required', $response->getRedirectURL());
+        $this->assertArrayNotHasKey('oidc_active_auth_time', $this->sessionValues);
+    }
+
+    public function testZeroMaxAgeRequiresActiveLoginEvenInTheSameSecond(): void {
+        $this->sessionValues['oidc_active_auth_time'] = 1000;
+        $this->tokens->expects($this->never())->method('insert');
+        $response = $this->service->process($this->request(['prompt' => 'none', 'max_age' => '0']));
+        $this->assertStringContainsString('error=login_required', $response->getRedirectURL());
+    }
+
+    public function testTokenStoresAuthenticationTimeSeparatelyFromIssuanceTime(): void {
+        $this->allowConsent = 'no';
+        $this->tokens->expects($this->once())->method('insert')->with($this->callback(
+            static fn (AccessToken $token): bool => $token->getAuthTime() === 900 && $token->getCreated() === 1000
+        ));
+        $this->service->process($this->request());
+    }
+
+    public function testUnicodeNonceIsEchoedWithoutTruncation(): void {
+        $this->allowConsent = 'no';
+        $nonce = str_repeat('ä', 256);
+        $this->tokens->expects($this->once())->method('insert')->with($this->callback(
+            static fn (AccessToken $token): bool => $token->getNonce() === $nonce
+        ));
+        $this->service->process($this->request(['nonce' => $nonce]));
+    }
+
+    public function testOversizedNonceIsRejectedInsteadOfChanged(): void {
+        $this->tokens->expects($this->never())->method('insert');
+        $response = $this->service->process($this->request(['nonce' => str_repeat('ä', 257)]));
+        $this->assertStringContainsString('error=invalid_request', $response->getRedirectURL());
+    }
+
+    public function testIdTokenResponseRequiresOpenidScope(): void {
+        $this->tokens->expects($this->never())->method('insert');
+        $response = $this->service->process($this->request(['response_type' => 'id_token', 'scope' => 'profile', 'nonce' => 'n']));
+        $this->assertStringContainsString('error=invalid_scope', $response->getRedirectURL());
+    }
+
+
+    public function testLiteralZeroNonceIsPreserved(): void {
+        $this->allowConsent = 'no';
+        $this->tokens->expects($this->once())->method('insert')->with($this->callback(
+            static fn (AccessToken $token): bool => $token->getNonce() === '0'
+        ));
+        $this->service->process($this->request(['nonce' => '0']));
     }
 
 }

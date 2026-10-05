@@ -86,13 +86,13 @@ class CleanupExpiredTokens extends TimedJob {
 
         if ($refreshExpireTime === 'never') {
             return [
-                'unused' => $expireTime,
+                'unused' => Application::AUTHORIZATION_CODE_LIFETIME,
                 'used' => null,
             ];
         }
 
         return [
-            'unused' => $expireTime,
+            'unused' => Application::AUTHORIZATION_CODE_LIFETIME,
             'used' => $expireTime + max($expireTime, (int)$refreshExpireTime),
         ];
     }

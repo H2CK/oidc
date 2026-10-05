@@ -114,4 +114,11 @@ class CleanupExpiredTokensTest extends TestCase
 
         $this->assertEquals(\OCP\BackgroundJob\IJob::TIME_INSENSITIVE, $timeSensitivity);
     }
+
+    public function testUnusedCodeCleanupUsesIndependentTenMinuteLifetime(): void {
+        $this->authorizationCodeMapper->expects($this->once())->method('cleanUp')
+            ->with(1234567890 - 600, 1234567890 - 10800);
+        $this->job->start($this->createMock(IJobList::class));
+    }
+
 }

@@ -70,8 +70,8 @@ class RedirectUriService {
             throw new RedirectUriValidationException('localhost redirect URI must use http or https');
         }
 
-        if ($port === '*' && ($host !== 'localhost' || !$allowWildcards)) {
-            throw new RedirectUriValidationException('Port wildcard is allowed only for static localhost redirect URIs');
+        if ($port === '*' && (!in_array($host, ['localhost', '127.0.0.1', '[::1]'], true) || !$allowWildcards || !in_array($scheme, ['http', 'https'], true))) {
+            throw new RedirectUriValidationException('Port wildcard is allowed only for static HTTP(S) loopback redirect URIs');
         }
 
         if (str_starts_with($host, '*.')) {
@@ -130,7 +130,7 @@ class RedirectUriService {
      * @return bool True if matches, false otherwise
      * @throws RedirectUriValidationException
      */
-    public function matchRedirectUri(string $concreteUri, string $wildcardPattern): bool {
+    public function matchRedirectUri(string $concreteUri, string $wildcardPattern, bool $nativeLoopback = false): bool {
         try {
             $this->isValidRedirectUri($concreteUri, false, false);
             $this->isValidRedirectUri($wildcardPattern, true, true);
@@ -141,6 +141,23 @@ class RedirectUriService {
 
         // OAuth's default rule is exact string comparison. Component matching
         // is used only for an explicitly configured static wildcard pattern.
+        $loopbackPortException = false;
+        if ($nativeLoopback) {
+            $concreteParts = $this->parseUri($concreteUri);
+            $patternParts = $this->parseUri($wildcardPattern);
+            $loopbackPortException = $concreteParts !== null && $patternParts !== null
+                && $patternParts['scheme'] === 'http'
+                && in_array($patternParts['host'], ['127.0.0.1', '[::1]'], true)
+                && $concreteParts['scheme'] === $patternParts['scheme']
+                && $concreteParts['host'] === $patternParts['host'];
+            if ($loopbackPortException && !str_contains($wildcardPattern, '*')) {
+                // RFC 8252 changes only the port, not casing, paths or queries.
+                $stripPort = static fn (string $value): string => (string)preg_replace(
+                    '#^(http://(?:127\.0\.0\.1|\[::1\])):[0-9]+(?=/|\?|$)#', '$1', $value
+                );
+                return hash_equals($stripPort($wildcardPattern), $stripPort($concreteUri));
+            }
+        }
         if (!str_contains($wildcardPattern, '*')) {
             return hash_equals($wildcardPattern, $concreteUri);
         }
@@ -164,7 +181,7 @@ class RedirectUriService {
             return false;
         }
 
-        if ($pattern['port'] !== '*'
+        if (!$loopbackPortException && $pattern['port'] !== '*'
             && $this->effectivePort($concrete['scheme'], $concrete['port'])
                 !== $this->effectivePort($pattern['scheme'], $pattern['port'])) {
             return false;
@@ -192,9 +209,9 @@ class RedirectUriService {
             return null;
         }
 
-        $portWildcard = preg_match('#^([A-Za-z][A-Za-z0-9+.-]*)://localhost:\*(?=/|\?|$)#i', $normalizedUri) === 1;
+        $portWildcard = preg_match('#^([A-Za-z][A-Za-z0-9+.-]*)://(?:localhost|127\.0\.0\.1|\[::1\]):\*(?=/|\?|$)#i', $normalizedUri) === 1;
         $parseableUri = $portWildcard
-            ? preg_replace('#^(.*://localhost):\*#i', '$1:65535', $normalizedUri, 1)
+            ? preg_replace('#^([A-Za-z][A-Za-z0-9+.-]*://(?:localhost|127\.0\.0\.1|\[::1\])):\*#i', '$1:65535', $normalizedUri, 1)
             : $normalizedUri;
         if (!is_string($parseableUri)) {
             return null;

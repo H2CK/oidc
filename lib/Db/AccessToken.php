@@ -9,6 +9,8 @@ use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
 
 /**
+ * @method int|null getAuthTime()
+ * @method void setAuthTime(?int $authTime)
  * @method int getId()
  * @method int getClientId()
  * @method void setClientId(int $clientId)
@@ -59,6 +61,7 @@ class AccessToken extends Entity
     protected $userId;
     /** @var string */
     protected $scope;
+    protected $authTime = null;
     /** @var string */
     protected $hashedCode;
     /** @var bool Whether hashedCode may be used as a pre-migration refresh token. */
@@ -94,6 +97,7 @@ class AccessToken extends Entity
         $this->addType('parentTokenId', 'int');
         $this->addType('userId', 'string');
         $this->addType('scope', 'string');
+        $this->addType('authTime', 'int');
         $this->addType('hashedCode', 'string');
         $this->addType('legacyRefreshToken', Types::BOOLEAN);
         $this->addType('eventGenerated', Types::BOOLEAN);

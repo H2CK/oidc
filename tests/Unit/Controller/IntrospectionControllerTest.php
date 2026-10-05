@@ -565,4 +565,20 @@ class IntrospectionControllerTest extends TestCase {
         $this->assertSame($claims['jti'], $data['jti']);
     }
 
+
+    public function testBasicAuthenticationAllowsMatchingBodyClientId(): void {
+        $this->prepareActiveIntrospection(true);
+        $this->bodyParameters = ['client_id' => 'client'];
+        $response = $this->controller->introspectToken('opaque');
+        $this->assertSame(200, $response->getStatus());
+        $this->assertTrue($response->getData()['active']);
+    }
+
+    public function testBasicAuthenticationRejectsMismatchedBodyClientId(): void {
+        $this->authorizationHeader = 'Basic ' . base64_encode('client:secret');
+        $this->bodyParameters = ['client_id' => 'another'];
+        $this->clientMapper->expects($this->never())->method('getByIdentifier');
+        $this->assertSame(401, $this->controller->introspectToken('opaque')->getStatus());
+    }
+
 }

@@ -47,7 +47,7 @@ class LoginRedirectorController extends ApiController {
     public function authorizePost(
         $client_id = null, $state = null, $response_type = null, $redirect_uri = null, $scope = null, $nonce = null,
         $resource = null, $code_challenge = null, $code_challenge_method = null,
-        $prompt = null, $max_age = null
+        $prompt = null, $max_age = null, $response_mode = null
     ): Response {
         $contentType = strtolower(trim(explode(';', $this->request->getHeader('Content-Type'), 2)[0]));
         if ($contentType !== 'application/x-www-form-urlencoded') {
@@ -55,7 +55,7 @@ class LoginRedirectorController extends ApiController {
         }
         $parameters = $this->parseParameters(compact(
             'client_id', 'state', 'response_type', 'redirect_uri', 'scope', 'nonce',
-            'resource', 'code_challenge', 'code_challenge_method', 'prompt', 'max_age'
+            'resource', 'code_challenge', 'code_challenge_method', 'prompt', 'max_age', 'response_mode'
         ), true);
         if ($parameters instanceof Response) {
             return $parameters;
@@ -72,7 +72,7 @@ class LoginRedirectorController extends ApiController {
         $id = $transactions->create($parameters, 'authorization_post');
         $response = new TemplateResponse('oidc', 'authorization-handoff', [
             'continueUrl' => $urlGenerator->linkToRoute('oidc.AuthorizationResume.completePost', ['t' => $id]),
-            'continueLabel' => 'Continue authorization',
+            'continueLabel' => \OCP\Util::getL10N('oidc')->t('Continue authorization'),
         ], TemplateResponse::RENDER_AS_GUEST);
         $response->addHeader('Cache-Control', 'no-store');
         $response->addHeader('Referrer-Policy', 'no-referrer');
@@ -86,13 +86,16 @@ class LoginRedirectorController extends ApiController {
     public function authorize(
         $client_id = null, $state = null, $response_type = null, $redirect_uri = null, $scope = null, $nonce = null,
         $resource = null, $code_challenge = null, $code_challenge_method = null,
-        $prompt = null, $max_age = null
+        $prompt = null, $max_age = null, $response_mode = null
     ): Response {
         $parameters = $this->parseParameters(compact(
             'client_id', 'state', 'response_type', 'redirect_uri', 'scope', 'nonce',
-            'resource', 'code_challenge', 'code_challenge_method', 'prompt', 'max_age'
+            'resource', 'code_challenge', 'code_challenge_method', 'prompt', 'max_age', 'response_mode'
         ), false);
-        return $parameters instanceof Response ? $parameters : $this->authorizationService->process($parameters);
+        if ($parameters instanceof Response) {
+            return $parameters;
+        }
+        return $this->authorizationService->process($parameters);
     }
 
     /** @return array<string, mixed>|Response */

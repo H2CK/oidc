@@ -1,7 +1,7 @@
 {
 	"name": "oidc",
 	"description": "Use Nextcloud as OIDC Identity Provider",
-	"version": "2.5.0",
+	"version": "2.5.1-alpha1",
 	"author": "Thorsten Jagel <dev@jagel.net>",
 	"bugs": {
 		"url": "https://github.com/H2CK/oidc/issues"
@@ -18,37 +18,40 @@
 		"dev": "webpack --node-env development --progress",
 		"watch": "webpack --node-env development --progress --watch",
 		"serve": "webpack --node-env development serve --progress",
-		"lint": "eslint --ext .js,.vue src",
-		"lint:fix": "eslint --ext .js,.vue src --fix",
+		"lint": "eslint src",
+		"lint:fix": "eslint src --fix",
 		"stylelint": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue",
-		"stylelint:fix": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue --fix"
+		"stylelint:fix": "stylelint css/*.css css/*.scss src/**/*.scss src/**/*.vue --fix",
+		"test:frontend": "node --test tests/Frontend/*.test.cjs"
 	},
 	"dependencies": {
 		"@jridgewell/sourcemap-codec": "^1.6.0",
 		"@mdi/js": "^7.4.47",
 		"@nextcloud/axios": "^2.6.0",
-		"@nextcloud/eslint-plugin": "^2.2.1",
 		"@nextcloud/initial-state": "^3.0.0",
 		"@nextcloud/l10n": "^3.3.0",
 		"@nextcloud/logger": "^3.0.2",
 		"@nextcloud/router": "^3.0.1",
 		"@nextcloud/vue": "^9.13.1",
-		"webpack": "^5.111.1"
+		"webpack": "^5.111.1",
+		"@nextcloud/auth": "2.6.0",
+		"vue": "3.5.42"
 	},
 	"browserslist": [
 		"extends @nextcloud/browserslist-config"
 	],
 	"engines": {
-		"node": "^22.0.0",
-		"npm": "^10.0.0"
+		"node": "^22.14.0 || ^24.0.0",
+		"npm": ">=10"
 	},
 	"devDependencies": {
 		"@nextcloud/babel-config": "^1.2.0",
 		"@nextcloud/browserslist-config": "^3.0.1",
-		"@nextcloud/eslint-config": "^9.0.1",
+		"@nextcloud/eslint-config": "9.0.1",
 		"@nextcloud/stylelint-config": "^3.2.2",
 		"@nextcloud/webpack-vue-config": "^7.0.4",
 		"@vue/compiler-sfc": "^3.5.43",
-		"postcss-html": "^1.8.0"
+		"postcss-html": "^1.8.0",
+		"eslint": "10.9.1"
 	}
 }
