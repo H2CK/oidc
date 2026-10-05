@@ -5,11 +5,11 @@ declare(strict_types=1);
 /** SPDX-License-Identifier: AGPL-3.0-or-later */
 namespace OCA\OIDCIdentityProvider\Migration;
 
+use OCA\OIDCIdentityProvider\Db\OperationLock;
 use Closure;
 use OCP\DB\ISchemaWrapper;
 use OCP\DB\Types;
 use OCP\IDBConnection;
-use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
@@ -35,22 +35,6 @@ class Version0039Date20261005120000 extends SimpleMigrationStep {
     }
 
     public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-        for ($id = 1; $id <= 66; $id++) {
-            $qb = $this->db->getQueryBuilder();
-            $qb->select('id')->from('oidc_operation_locks')
-                ->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
-            $result = $qb->executeQuery();
-            try {
-                $exists = $result->fetchOne() !== false;
-            } finally {
-                $result->closeCursor();
-            }
-            if (!$exists) {
-                $qb = $this->db->getQueryBuilder();
-                $qb->insert('oidc_operation_locks')->values([
-                    'id' => $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT),
-                ])->executeStatement();
-            }
-        }
+        OperationLock::initialize($this->db);
     }
 }

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Tests\Integration;
 
+use OCA\OIDCIdentityProvider\Db\OperationLock;
 use OCA\OIDCIdentityProvider\Service\AuthorizationTransactionService;
+use OCA\OIDCIdentityProvider\Migration\InitializeOperationLocks;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IDBConnection;
+use OCP\Migration\IOutput;
 use OCP\Server;
 
 #[\PHPUnit\Framework\Attributes\Group(name: 'DB')]
@@ -27,6 +30,31 @@ class AuthorizationTransactionServiceIntegrationTest extends \Test\TestCase {
         $this->now += AuthorizationTransactionService::TTL + 1;
         $this->transactions->cleanup();
         parent::tearDown();
+    }
+
+    public function testInstallRepairRestoresMissingAuthorizationLock(): void {
+        $db = Server::get(IDBConnection::class);
+        $db->beginTransaction();
+        try {
+            $qb = $db->getQueryBuilder();
+            $qb->delete('oidc_operation_locks')
+                ->where($qb->expr()->eq('id', $qb->createNamedParameter(OperationLock::AUTHORIZATION)))
+                ->executeStatement();
+
+            (new InitializeOperationLocks($db))->run($this->createMock(IOutput::class));
+            $qb = $db->getQueryBuilder();
+            $qb->select('id')->from('oidc_operation_locks')
+                ->where($qb->expr()->eq('id', $qb->createNamedParameter(OperationLock::AUTHORIZATION)));
+            $result = $qb->executeQuery();
+            try {
+                $this->assertSame(OperationLock::AUTHORIZATION, (int)$result->fetchOne());
+            } finally {
+                $result->closeCursor();
+            }
+            OperationLock::acquire($db, OperationLock::AUTHORIZATION);
+        } finally {
+            $db->rollBack();
+        }
     }
 
     public function testParametersSurviveAnotherServiceInstanceAndTokenCannotBeReplayed(): void {

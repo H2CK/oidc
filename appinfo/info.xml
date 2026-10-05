@@ -70,7 +70,11 @@ Full documentation can be found at:
   <repair-steps>
     <install>
       <step>OCA\OIDCIdentityProvider\Migration\CreateKeys</step>
+      <step>OCA\OIDCIdentityProvider\Migration\InitializeOperationLocks</step>
     </install>
+    <post-migration>
+      <step>OCA\OIDCIdentityProvider\Migration\InitializeOperationLocks</step>
+    </post-migration>
   </repair-steps>
 
   <settings>
