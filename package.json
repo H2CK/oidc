@@ -49,6 +49,6 @@
 		"@nextcloud/stylelint-config": "^3.2.2",
 		"@nextcloud/webpack-vue-config": "^7.0.4",
 		"@vue/compiler-sfc": "^3.5.42",
-		"postcss-html": "^1.8.0"
+		"postcss-html": "^2.0.0"
 	}
 }
