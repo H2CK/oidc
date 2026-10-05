@@ -23,8 +23,8 @@ on:
         type: boolean
       require_revocation:
         description: Fail when RFC 7009 revocation is not available
-        required: false
-        default: false
+        required: true
+        default: true
         type: boolean
 
 permissions:
