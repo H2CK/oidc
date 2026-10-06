@@ -218,6 +218,7 @@ def main() -> int:
 
         fill_by_id(browser, "Settings_AuthorizationUri", metadata["authorization_endpoint"])
         fill_by_id(browser, "Settings_TokenUri", metadata["token_endpoint"])
+        fill_by_id(browser, "Settings_RevocationUri", metadata["revocation_endpoint"])
         browser.execute_script(
             "arguments[0].click();", browser.find_element(By.ID, "label-oidc")
         )
@@ -240,6 +241,7 @@ def main() -> int:
             for element_id, value in (
                 ("Settings_AuthorizationUri", metadata["authorization_endpoint"]),
                 ("Settings_TokenUri", metadata["token_endpoint"]),
+                ("Settings_RevocationUri", metadata["revocation_endpoint"]),
                 ("Settings_OpenIdIssuer", metadata["issuer"]),
                 ("Settings_JwksUri", metadata["jwks_uri"]),
                 ("Settings_DefaultClient_ClientId", CLIENT_ID),
