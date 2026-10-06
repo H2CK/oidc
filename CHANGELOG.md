@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.2] - 2026-10-06
+
+### Fixed
+
+- Do not force reauthentication when `max_age` is omitted and the active session has no known authentication time ([#743](https://github.com/H2CK/oidc/issues/743)).
+
 ## [2.5.1] - 2026-10-05
 
 ### Fixed
