@@ -37,7 +37,6 @@ class Application extends App implements IBootstrap
     public const DEFAULT_REFRESH_EXPIRE_TIME = '900';
     public const DEFAULT_REFRESH_REPLAY_GRACE_SECONDS = '5';
     public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
-    public const DEFAULT_RESOURCE_IDENTIFIER = 'https://rs.local/';
     public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
     public const DEFAULT_RESTRICT_USER_INFORMATION = 'no';
     public const DEFAULT_TOKEN_TYPE = 'opaque';
@@ -56,7 +55,6 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME = 'refresh_expire_time';
     public const APP_CONFIG_REFRESH_REPLAY_GRACE_SECONDS = 'refresh_replay_grace_seconds';
     public const APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME = 'client_expire_time';
-    public const APP_CONFIG_DEFAULT_RESOURCE_IDENTIFIER = 'default_resource_identifier';
     public const APP_CONFIG_OVERWRITE_EMAIL_VERIFIED = 'overwrite_email_verified';
     public const APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION = 'dynamic_client_registration';
     public const APP_CONFIG_ALLOW_USER_SETTINGS = 'allow_user_settings';
