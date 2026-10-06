@@ -31,6 +31,19 @@ All notable changes to this project will be documented in this file.
 - Nullable auth_time fields, per-refresh scope and registered grant/response metadata.
 - Backend standards/security regression tests and additional dependency-free frontend tests.
 
+### Changed
+
+- Security and standards hardening for OIDC/OAuth authorization, refresh, and device flows ([#741](https://github.com/H2CK/oidc/pull/741)).
+- Updated dependencies ([#742](https://github.com/H2CK/oidc/pull/742)).
+
+### Upgrade notes
+
+- Consent pages opened before the upgrade must be restarted; old single-use consent IDs are no longer accepted.
+- Administrators must explicitly approve `resource` audiences before they are accepted, even for existing client registrations.
+- Existing device consent approvals and refresh/grant state created under the old behavior should be re-tested after upgrade, because consent revocation, scope changes and replay protection are now re-checked at redemption time.
+- Device authorization now returns the short `verification_uri` without a `user_code` by default, in line with RFC 8628. If an existing client still relies on the old behavior, re-enable it explicitly with `device_code_in_verification_uri=true`; otherwise use `verification_uri_complete` for QR or direct-approval links.
+- HS256 ID tokens issued before this fix do not have valid issuance proof and will no longer pass the validation fallback; reissue them from a trusted provider or client application.
+
 ## [2.5.0] - 2026-10-05
 
 ### Fixed
