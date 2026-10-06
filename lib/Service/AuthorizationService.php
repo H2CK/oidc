@@ -1141,11 +1141,11 @@ class AuthorizationService
     }
 
     private function maxAgeExceeded(mixed $maxAge, int $authTime): bool {
-        if ($authTime <= 0) {
-            return true;
-        }
         if (!$this->isNonNegativeIntegerLike($maxAge)) {
             return false;
+        }
+        if ($authTime <= 0) {
+            return true;
         }
         // OIDC Core: max_age=0 is equivalent to prompt=login.
         return (int)$maxAge === 0 || $this->time->getTime() - $authTime > (int)$maxAge;

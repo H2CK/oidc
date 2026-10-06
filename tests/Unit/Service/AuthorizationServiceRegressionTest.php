@@ -247,6 +247,18 @@ class AuthorizationServiceRegressionTest extends TestCase {
         $this->assertArrayNotHasKey('oidc_active_auth_time', $this->sessionValues);
     }
 
+    public function testUnknownLoginTimeDoesNotRequireLoginWhenMaxAgeWasNotRequested(): void {
+        $this->sessionValues = [];
+        $this->allowConsent = 'no';
+        $this->userSession->expects($this->never())->method('logout');
+        $this->tokens->expects($this->once())->method('insert');
+
+        $response = $this->service->process($this->request());
+
+        $this->assertInstanceOf(RedirectResponse::class, $response);
+        $this->assertStringContainsString('code=', $response->getRedirectURL());
+    }
+
     public function testZeroMaxAgeRequiresActiveLoginEvenInTheSameSecond(): void {
         $this->sessionValues['oidc_active_auth_time'] = 1000;
         $this->tokens->expects($this->never())->method('insert');
