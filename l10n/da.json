@@ -11,7 +11,7 @@
     "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "Dit klient- id skal overholde følgende regler: Udskriv ASCII undtagen: og længde 32- 64",
     "Your client secret must comply with the following rules: printable ASCII except : and length 32-64" : "Din klient hemmelighed skal overholde følgende regler: printbar ASCII undtagen: og længde 32- 64",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Brugeren er ikke medlem af de grupper, der er defineret for klienten. Du har ikke lov til at hente et login token.",
-    "A failure during JWT creation occured. Please inform the administrator of your client." : "Der opstod en fejl under oprettelsen af ​​JWT. Informer venligst din klients administrator.",
+    "A failure during JWT creation occured. Please inform the administrator of your client." : "Der opstod en fejl under oprettelsen af JWT. Informer venligst din klients administrator.",
     "Authorization request is missing a redirect URI." : "Der mangler en URI.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient er ikke autoriseret til at oprette forbindelse. Informer venligst din klients administrator.",
     "Your client is expired. Please inform the administrator of your client." : "Din klient er udløbet. Underret din administrator om din klient.",

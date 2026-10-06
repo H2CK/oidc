@@ -101,7 +101,6 @@
     "Resource URL (RFC 9728) for token introspection authorization. Clients with this URL can introspect tokens issued to this resource." : "Resurs-URL (RFC 9728) för auktorisering av tokenintrospektion. Klienter med denna URL kan introspektera token som har utfärdats för resursen.",
     "Back-Channel Logout URI" : "Bakkanals-URI för utloggning",
     "Endpoint that receives signed OpenID Connect Back-Channel Logout Tokens when the Nextcloud session ends." : "Slutpunkt som tar emot signerade OpenID Connect-backkanalstoken för utloggning när Nextcloud-sessionen avslutas.",
-    "Require sid in Back-Channel Logout Tokens" : "Kräv sid i backkanalstoken för utloggning",
     "Enable Token Exchange according to RFC 8693" : "Aktivera Token Exchange enligt RFC 8693",
     "Clients whose access tokens may be used as Token Exchange subject tokens." : "Klienter vars åtkomsttoken får användas som subject-token vid Token Exchange.",
     "Allowed Token Exchange subject clients" : "Tillåtna subject-klienter för Token Exchange",
