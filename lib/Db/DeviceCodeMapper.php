@@ -16,6 +16,16 @@ use OCP\IDBConnection;
 
 /** @template-extends QBMapper<DeviceCode> */
 class DeviceCodeMapper extends QBMapper {
+
+	public function denyApprovedByUserAndClient(string $userId, int $clientId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update($this->getTableName())
+			->set('status', $qb->createNamedParameter(DeviceCode::STATUS_DENIED))
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('client_id', $qb->createNamedParameter($clientId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('status', $qb->createNamedParameter(DeviceCode::STATUS_APPROVED)))
+			->executeStatement();
+	}
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'oidc_device_codes', DeviceCode::class);
 	}
@@ -45,12 +55,16 @@ class DeviceCodeMapper extends QBMapper {
 		}
 	}
 
-	public function markApproved(DeviceCode $deviceCode, string $userId): bool {
+	public function markApproved(DeviceCode $deviceCode, string $userId, ?int $authTime = null, ?string $scope = null): bool {
+		$values = ['user_id' => $userId, 'auth_time' => $authTime];
+		if ($scope !== null) {
+			$values['scope'] = $scope;
+		}
 		return $this->updateStatus(
 			$deviceCode,
 			DeviceCode::STATUS_PENDING,
 			DeviceCode::STATUS_APPROVED,
-			['user_id' => $userId]
+			$values
 		);
 	}
 
@@ -81,7 +95,7 @@ class DeviceCodeMapper extends QBMapper {
 		);
 	}
 
-	/** @param array<string,int|string> $extraValues */
+	/** @param array<string,int|string|null> $extraValues */
 	private function updateStatus(
 		DeviceCode $deviceCode,
 		string $expectedStatus,
@@ -95,7 +109,7 @@ class DeviceCodeMapper extends QBMapper {
 			->andWhere($qb->expr()->eq('status', $qb->createNamedParameter($expectedStatus)));
 
 		foreach ($extraValues as $column => $value) {
-			$type = is_int($value) ? IQueryBuilder::PARAM_INT : IQueryBuilder::PARAM_STR;
+			$type = $value === null ? IQueryBuilder::PARAM_NULL : (is_int($value) ? IQueryBuilder::PARAM_INT : IQueryBuilder::PARAM_STR);
 			$qb->set($column, $qb->createNamedParameter($value, $type));
 		}
 

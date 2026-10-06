@@ -5,12 +5,15 @@ namespace OCA\OIDCIdentityProvider\Tests\Unit\Controller;
 use PHPUnit\Framework\TestCase;
 use OCA\OIDCIdentityProvider\Controller\ConsentController;
 use OCA\OIDCIdentityProvider\Service\AuthorizationService;
+use OCA\OIDCIdentityProvider\Service\ClientAuthorizationService;
+use OCA\OIDCIdentityProvider\Service\ScopeCeilingService;
 use OCA\OIDCIdentityProvider\Db\UserConsent;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Db\Client;
+use OCA\OIDCIdentityProvider\Db\DeviceCodeMapper;
 use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -51,6 +54,11 @@ class ConsentControllerTest extends TestCase {
     /** @var \PHPUnit\Framework\MockObject\MockObject|IUser */
     protected $user;
     private AuthorizationService $authorizationService;
+    private ClientAuthorizationService $clientAuthorizationService;
+    private ScopeCeilingService $scopeCeiling;
+    private DeviceCodeMapper $deviceCodeMapper;
+    private array $sessionValues = [];
+    private const REQUEST_ID = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
     public function setUp(): void {
         parent::setUp();
@@ -68,6 +76,14 @@ class ConsentControllerTest extends TestCase {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->user = $this->createMock(IUser::class);
         $this->authorizationService = $this->createMock(AuthorizationService::class);
+        $this->clientAuthorizationService = $this->createMock(ClientAuthorizationService::class);
+        $this->clientAuthorizationService->method('isUserAllowedForClient')->willReturn(true);
+        $this->deviceCodeMapper = $this->createMock(DeviceCodeMapper::class);
+        $this->session->method('get')->willReturnCallback(fn ($key) => $this->sessionValues[$key] ?? null);
+        $this->session->method('set')->willReturnCallback(function ($key, $value): void { $this->sessionValues[$key] = $value; });
+        $this->userSession->method('getUser')->willReturn($this->user);
+        $this->scopeCeiling = $this->createMock(ScopeCeilingService::class);
+        $this->scopeCeiling->method('narrow')->willReturnCallback(static fn (string $uid, string $scope): string => $scope);
 
         $this->l->method('t')->willReturnCallback(function ($text) {
             return $text;
@@ -86,14 +102,17 @@ class ConsentControllerTest extends TestCase {
             $this->l,
             $this->appConfig,
             $this->logger,
-            $this->authorizationService
+            $this->authorizationService,
+            $this->clientAuthorizationService,
+            $this->scopeCeiling,
+            $this->deviceCodeMapper
         );
     }
 
     public function testShowWithoutLogin() {
         $this->userSession->method('isLoggedIn')->willReturn(false);
 
-        $response = $this->controller->show();
+        $response = $this->controller->show(self::REQUEST_ID);
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
         $this->assertEquals('403', $response->getTemplateName());
@@ -103,45 +122,38 @@ class ConsentControllerTest extends TestCase {
 
     public function testShowWithoutPendingConsent() {
         $this->userSession->method('isLoggedIn')->willReturn(true);
-        $this->session->method('get')->with('oidc_consent_pending')->willReturn(false);
 
-        $response = $this->controller->show();
+
+        $response = $this->controller->show(self::REQUEST_ID);
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
         $this->assertSame('error', $response->getTemplateName());
         $this->assertSame(400, $response->getStatus());
         $this->assertSame('error', $response->getRenderAs());
         $this->assertSame(
-            'No consent request pending.',
+            'No consent request pending. Please start authorization again.',
             $response->getParams()['errors'][0]['error']
         );
     }
 
     public function testShowSuccess() {
         $this->userSession->method('isLoggedIn')->willReturn(true);
-        $this->session->method('get')->willReturnCallback(function ($key) {
-            $values = [
-                'oidc_consent_pending' => true,
-                'oidc_client_name' => 'Test Client',
-                'oidc_requested_scopes' => 'openid profile email',
-                'oidc_client_id' => 'test-client-id',
-            ];
-            return $values[$key] ?? null;
-        });
+        $this->user->method('getUID')->willReturn('testuser');
+        $this->prepareConsentSnapshot();
 
-        $response = $this->controller->show();
+        $response = $this->controller->show(self::REQUEST_ID);
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
         $this->assertEquals('consent', $response->getTemplateName());
         $params = $response->getParams();
         $this->assertEquals('Test Client', $params['clientName']);
+        $this->assertSame('https://client.example:8443', $params['redirectTarget']);
         $this->assertEquals('openid profile email', $params['requestedScopes']);
     }
 
     public function testRevokeConsentDeletesAccessTokens(): void {
         $this->userSession->method('isLoggedIn')->willReturn(true);
         $this->user->method('getUID')->willReturn('testuser');
-        $this->userSession->method('getUser')->willReturn($this->user);
 
         $this->appConfig->method('getAppValueString')
             ->with(
@@ -158,6 +170,7 @@ class ConsentControllerTest extends TestCase {
             ->method('deleteByUserAndClient')
             ->with('testuser', 1);
 
+        $this->deviceCodeMapper->expects($this->once())->method('denyApprovedByUserAndClient')->with('testuser', 1);
         $response = $this->controller->revokeConsent(1);
 
         $this->assertEquals(200, $response->getStatus());
@@ -167,19 +180,12 @@ class ConsentControllerTest extends TestCase {
     public function testGrantSuccess() {
         $this->userSession->method('isLoggedIn')->willReturn(true);
         $this->user->method('getUID')->willReturn('testuser');
-        $this->userSession->method('getUser')->willReturn($this->user);
 
-        $this->session->method('get')->willReturnCallback(function ($key) {
-            $values = [
-                'oidc_consent_pending' => true,
-                'oidc_requested_scopes' => 'openid profile email',
-                'oidc_client_id' => 'test-client-id',
-            ];
-            return $values[$key] ?? null;
-        });
+        $this->prepareConsentSnapshot();
 
         $client = new Client();
         $client->id = 1;
+        $client->setClientIdentifier('test-client-id');
         $this->clientMapper->method('getByIdentifier')->willReturn($client);
 
         $this->request->method('getParam')->with('scopes')->willReturn('openid profile');
@@ -207,7 +213,7 @@ class ConsentControllerTest extends TestCase {
             ), false, null, true)
             ->willReturn(new RedirectResponse('https://client.example/callback'));
 
-        $response = $this->controller->grant();
+        $response = $this->controller->grant(self::REQUEST_ID);
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
         $this->assertSame('authorization-handoff', $response->getTemplateName());
@@ -217,22 +223,13 @@ class ConsentControllerTest extends TestCase {
     public function testDenySuccess() {
         $this->userSession->method('isLoggedIn')->willReturn(true);
         $this->user->method('getUID')->willReturn('testuser');
-        $this->userSession->method('getUser')->willReturn($this->user);
 
-        $this->session->method('get')->willReturnCallback(function ($key) {
-            $values = [
-                'oidc_redirect_uri' => 'https://client.example.com/callback',
-                'oidc_consent_pending' => true,
-                'oidc_state' => 'test-state',
-                'oidc_client_id' => 'test-client-id',
-            ];
-            return $values[$key] ?? null;
-        });
+        $this->prepareConsentSnapshot();
 
         $this->authorizationService->expects($this->once())->method('authorizationError')
             ->with($this->callback(static fn (array $p): bool => $p['state'] === 'test-state'), 'access_denied', 'User denied consent')
             ->willReturn(new RedirectResponse('https://client.example.com/callback?error=access_denied&state=test-state'));
-        $response = $this->controller->deny();
+        $response = $this->controller->deny(self::REQUEST_ID);
 
         $this->assertInstanceOf(TemplateResponse::class, $response);
         $this->assertSame('authorization-handoff', $response->getTemplateName());
@@ -240,4 +237,64 @@ class ConsentControllerTest extends TestCase {
         $this->assertStringContainsString('error=access_denied', $redirectUrl);
         $this->assertStringContainsString('state=test-state', $redirectUrl);
     }
+
+    private function prepareScopeUpdate(array $selected, string $allowed = ''): UserConsent {
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        $this->user->method('getUID')->willReturn('alice');
+        $this->request->method('getParam')->with('scopes')->willReturn($selected);
+        $this->time->method('getTime')->willReturn(1000);
+        $this->appConfig->method('getAppValueString')->willReturn('yes');
+        $client = new Client(allowedScopes: $allowed);
+        $client->setId(1);
+        $client->setClientIdentifier('client');
+        $this->clientMapper->method('getByUid')->willReturn($client);
+        $consent = new UserConsent();
+        $consent->setId(1);
+        $consent->setScopesGranted('openid Files:Read');
+        $consent->setScopesRequested('openid Files:Read email');
+        $consent->setExpiresAt(2000);
+        $this->userConsentMapper->method('findByUserAndClient')->willReturn($consent);
+        $this->userConsentMapper->method('createOrUpdate')->willReturnArgument(0);
+        return $consent;
+    }
+
+    public function testScopeUpdateWithEmptyClientLimitCanRetainRequestedPermissions(): void {
+        $this->prepareScopeUpdate(['openid', 'Files:Read', 'email']);
+        $this->accessTokenMapper->expects($this->never())->method('deleteByUserAndClient');
+        $response = $this->controller->updateScopes(1);
+        $this->assertSame(200, $response->getStatus());
+        $this->assertSame('openid Files:Read email', $response->getData()['scopesGranted']);
+        $this->assertSame(7777000, $response->getData()['expiresAt']);
+    }
+
+    public function testScopeRemovalRevokesStoredBearerAndRefreshFamilies(): void {
+        $this->prepareScopeUpdate(['openid']);
+        $this->deviceCodeMapper->expects($this->once())->method('denyApprovedByUserAndClient')->with('alice', 1);
+        $this->accessTokenMapper->expects($this->once())->method('deleteByUserAndClient')->with('alice', 1);
+        $this->assertSame(200, $this->controller->updateScopes(1)->getStatus());
+    }
+
+    public function testScopeEditorCannotGrantAnUnrequestedOrDifferentlyCasedScope(): void {
+        $this->prepareScopeUpdate(['openid', 'files:read']);
+        $this->userConsentMapper->expects($this->never())->method('createOrUpdate');
+        $this->assertSame(400, $this->controller->updateScopes(1)->getStatus());
+    }
+
+    public function testGrantAndDenyWithoutPendingRequestShowAnErrorPage(): void {
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        foreach (['grant', 'deny'] as $method) {
+            $response = $this->controller->$method();
+            $this->assertInstanceOf(TemplateResponse::class, $response);
+            $this->assertSame(400, $response->getStatus());
+        }
+    }
+
+    private function prepareConsentSnapshot(): void {
+        $this->sessionValues['oidc_consent_requests'] = [self::REQUEST_ID => [
+            'uid' => 'testuser', 'expiresAt' => 2000000000, 'clientName' => 'Test Client', 'freshLogin' => false,
+            'parameters' => ['client_id' => 'test-client-id', 'scope' => 'openid profile email',
+                'redirect_uri' => 'https://client.example:8443/callback', 'state' => 'test-state', 'response_type' => 'code'],
+        ]];
+    }
+
 }

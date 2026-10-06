@@ -541,9 +541,10 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $session = $this->createMock(ISession::class);
         $session
             ->method('get')
-            ->willReturnCallback(function ($key) {
+            ->willReturnCallback(function ($key) use ($user) {
                 return match ($key) {
-                    'oidc_auth_time' => $this->time->getTime(),
+                    'oidc_active_auth_time' => $this->time->getTime(),
+                    'oidc_active_auth_user' => $user->getUID(),
                     default => null,
                 };
             });
@@ -624,7 +625,13 @@ class OIDCCodeFlowTest extends \Test\TestCase
             'code',
             $this->testRedirectUri,
             'openid profile email',
-            'nonce-1'
+            'nonce-1',
+            null,
+            null,
+            null,
+            null,
+            null,
+            'form_post'
         );
 
         $this->assertInstanceOf(FormPostResponse::class, $response);
@@ -1218,7 +1225,8 @@ class OIDCCodeFlowTest extends \Test\TestCase
 
         $session = $this->createMock(ISession::class);
         $session->method('get')->willReturnCallback(fn ($key) => match ($key) {
-            'oidc_auth_time' => $this->time->getTime(),
+            'oidc_active_auth_time' => $this->time->getTime(),
+            'oidc_active_auth_user' => $user->getUID(),
             default => null,
         });
 

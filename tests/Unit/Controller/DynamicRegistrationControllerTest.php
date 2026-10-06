@@ -77,35 +77,35 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->appConfig = $this->createMock(IAppConfig::class);
         $appConfigMock = $this->createMock(\OCP\IAppConfig::class);
         $this->bruteforceAllowList = new BruteforceAllowList($appConfigMock, new Factory());
-        
+
         // Create accessTokenMapper with constructor arguments
         $this->accessTokenMapper = $this->createMock(AccessTokenMapper::class);
         $reflection1 = new \ReflectionClass(AccessTokenMapper::class);
         $constructor1 = $reflection1->getConstructor();
         $constructor1->invoke($this->accessTokenMapper, $this->db, $this->time, $this->appConfig);
-        
+
         // Create redirectUriMapper with constructor arguments
         $this->redirectUriMapper = $this->createMock(RedirectUriMapper::class);
         $reflection2 = new \ReflectionClass(RedirectUriMapper::class);
         $constructor2 = $reflection2->getConstructor();
         $constructor2->invoke($this->redirectUriMapper, $this->db, $this->time, $this->appConfig);
-        
+
         // Create logoutRedirectUriMapper with constructor arguments
         $this->logoutRedirectUriMapper = $this->createMock(LogoutRedirectUriMapper::class);
         $reflection3 = new \ReflectionClass(LogoutRedirectUriMapper::class);
         $constructor3 = $reflection3->getConstructor();
         $constructor3->invoke($this->logoutRedirectUriMapper, $this->db, $this->time, $this->appConfig);
-        
+
         $this->registrationTokenService = $this->createMock(RegistrationTokenService::class);
-        
+
         // Create throttler with constructor arguments
         $this->throttler = $this->createMock(Throttler::class);
         $reflection4 = new \ReflectionClass(Throttler::class);
         $constructor4 = $reflection4->getConstructor();
         $constructor4->invoke($this->throttler, $this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList);
-        
+
         $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
-        
+
         // Create clientMapper with constructor arguments
         $this->clientMapper = $this->createMock(ClientMapper::class);
         $reflection5 = new \ReflectionClass(ClientMapper::class);
@@ -146,7 +146,7 @@ class DynamicRegistrationControllerTest extends TestCase {
         $result = $this->controller->registerClient();
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('no_redirect_uris_provided', $result->getData()['error']);
+        $this->assertEquals('invalid_client_metadata', $result->getData()['error']);
     }
 
     public function testEmptyRedirectUris() {
@@ -158,14 +158,14 @@ class DynamicRegistrationControllerTest extends TestCase {
         $result = $this->controller->registerClient([]);
 
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
-        $this->assertEquals('no_redirect_uris_provided', $result->getData()['error']);
+        $this->assertEquals('invalid_client_metadata', $result->getData()['error']);
     }
 
     /** @dataProvider dynamicRedirectWildcardProvider */
     public function testDynamicRegistrationRejectsEveryRedirectUriWildcard(string $redirectUri): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(redirect_uris: [$redirectUri]);
 
@@ -185,7 +185,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsUnsafeBackChannelLogoutUri(string $uri): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -274,7 +274,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsUnsupportedIdTokenSigningAlgorithm(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -316,7 +316,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ['default_token_type', 'opaque', 'opaque'],
         ]);
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->method('insert')->willReturnCallback(static function ($client) {
+        $this->clientMapper->method('insertDynamicClient')->willReturnCallback(static function ($client) {
             $client->setId(7);
             return $client;
         });
@@ -353,7 +353,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsInvalidPostLogoutRedirectUri(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -367,7 +367,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsForbiddenPostLogoutRedirectUriSchemes(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         foreach ([
             'javascript:alert(1)',
@@ -476,6 +476,11 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->clientMapper->method('getByUid')->with(7)->willReturn($client);
         $this->clientMapper->method('update')->willReturn($client);
 
+        $existingRedirectUri = new \OCA\OIDCIdentityProvider\Db\RedirectUri();
+        $existingRedirectUri->setClientId(7);
+        $existingRedirectUri->setRedirectUri('https://rp.example/callback');
+        $this->redirectUriMapper->method('getByClientId')->with(7)->willReturn([$existingRedirectUri]);
+
         $newEntry = new \OCA\OIDCIdentityProvider\Db\LogoutRedirectUri();
         $newEntry->setClientId(7);
         $newEntry->setRedirectUri('https://rp.example/logout/new');
@@ -531,7 +536,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ['default_token_type', 'opaque', 'opaque'],
         ]);
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->method('insert')->willReturnCallback(static function ($client) {
+        $this->clientMapper->method('insertDynamicClient')->willReturnCallback(static function ($client) {
             $client->setId(7);
             return $client;
         });
@@ -554,7 +559,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsInvalidFrontChannelLogoutUri(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -568,7 +573,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRejectsFrontChannelLogoutUriOnDifferentRedirectOrigin(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -582,7 +587,7 @@ class DynamicRegistrationControllerTest extends TestCase {
     public function testDynamicRegistrationRequiresFrontChannelUriWhenSessionCorrelationIsRequired(): void {
         $this->appConfig->method('getAppValueString')->willReturn('true');
         $this->clientMapper->method('getNumDcrClients')->willReturn(0);
-        $this->clientMapper->expects($this->never())->method('insert');
+        $this->clientMapper->expects($this->never())->method('insertDynamicClient');
 
         $result = $this->controller->registerClient(
             redirect_uris: ['https://rp.example/callback'],
@@ -665,7 +670,7 @@ class DynamicRegistrationControllerTest extends TestCase {
         // Return max number of clients 1000
         $this->clientMapper
             ->method('getNumDcrClients')
-            ->willReturn(101);
+            ->willReturn(100);
 
         $result = $this->controller->registerClient(['https://test.org/redirect']);
 
@@ -683,13 +688,13 @@ class DynamicRegistrationControllerTest extends TestCase {
                 ['default_token_type', 'opaque', 'opaque']
             ]);
 
-        // Return max number of clients 1000
+        // Keep the client count below the server limit so the registration succeeds.
         $this->clientMapper
             ->method('getNumDcrClients')
-            ->willReturn(100);
+            ->willReturn(99);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -740,7 +745,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->willReturn(50);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -789,7 +794,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->willReturn(50);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -842,7 +847,7 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->assertEquals('invalid_scope', $result->getData()['error']);
     }
 
-    public function testScopeTruncation() {
+    public function testOversizedScopeIsRejectedWithoutCreatingPartialScopeTokens() {
         // Return true for getAppValue('dynamic_client_registration', 'false')
         $this->appConfig
             ->method('getAppValueString')
@@ -858,7 +863,7 @@ class DynamicRegistrationControllerTest extends TestCase {
             ->willReturn(50);
 
         $this->clientMapper
-            ->method('insert')
+            ->method('insertDynamicClient')
             ->willReturnCallBack (
                 function ($arg) {
                     // Set ID on the client to simulate database insert
@@ -889,11 +894,8 @@ class DynamicRegistrationControllerTest extends TestCase {
             $longScope
         );
 
-        $this->assertEquals(Http::STATUS_CREATED, $result->getStatus());
-
-        $client = $result->getData();
-        // Verify scope was truncated to 512 characters (database column size)
-        $this->assertEquals(512, strlen($client['scope']));
+        $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus());
+        $this->assertSame('invalid_scope', $result->getData()['error']);
     }
 
 }

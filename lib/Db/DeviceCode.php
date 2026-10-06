@@ -12,6 +12,8 @@ namespace OCA\OIDCIdentityProvider\Db;
 use OCP\AppFramework\Db\Entity;
 
 /**
+ * @method int|null getAuthTime()
+ * @method void setAuthTime(?int $authTime)
  * @method int getId()
  * @method int getClientId()
  * @method void setClientId(int $clientId)
@@ -47,6 +49,7 @@ class DeviceCode extends Entity {
 	protected $hashedDeviceCode;
 	protected $hashedUserCode;
 	protected $scope;
+	protected $authTime = null;
 	protected $createdAt;
 	protected $expiresAt;
 	protected $intervalSeconds;
@@ -61,6 +64,7 @@ class DeviceCode extends Entity {
 		$this->addType('hashedDeviceCode', 'string');
 		$this->addType('hashedUserCode', 'string');
 		$this->addType('scope', 'string');
+		$this->addType('authTime', 'int');
 		$this->addType('createdAt', 'int');
 		$this->addType('expiresAt', 'int');
 		$this->addType('intervalSeconds', 'int');

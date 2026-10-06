@@ -60,13 +60,13 @@ class DiscoveryControllerTest extends TestCase {
         $this->appConfig = $this->createMock(IAppConfig::class);
         $appConfigMock = $this->createMock(\OCP\IAppConfig::class);
         $this->bruteforceAllowList = new BruteforceAllowList($appConfigMock, new Factory());
-        
+
         // Create throttler with constructor arguments
         $this->throttler = $this->createMock(Throttler::class);
         $reflection = new \ReflectionClass(Throttler::class);
         $constructor = $reflection->getConstructor();
         $constructor->invoke($this->throttler, $this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList);
-        
+
         $this->config->method('getSystemValueBool')
             ->willReturnCallback(function($key, $default) {
                 return $default;
@@ -97,6 +97,8 @@ class DiscoveryControllerTest extends TestCase {
         $scopesSupported = [
             'openid',
             'profile',
+            'phone',
+            'address',
             'email',
             'roles',
             'groups',
@@ -105,10 +107,9 @@ class DiscoveryControllerTest extends TestCase {
         $responseTypesSupported = [
             'code',
             'code id_token',
-            // 'code token',
-            // 'code id_token token',
+            'code id_token token',
             'id_token',
-            // 'id_token token'
+            'id_token token',
         ];
         $responseModesSupported = [
             'query',
@@ -174,7 +175,6 @@ class DiscoveryControllerTest extends TestCase {
             'given_name',
             'family_name',
             'middle_name',
-            'updated_at',
             'website',
             'email',
             'email_verified',

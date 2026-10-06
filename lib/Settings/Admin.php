@@ -132,6 +132,8 @@ class Admin implements ISettings {
                 'allowedScopes' => $client->getAllowedScopes(),
                 'emailRegex' => $client->getEmailRegex(),
                 'resourceUrl' => $client->getResourceUrl(),
+                'frontchannelLogoutUri' => $client->getFrontchannelLogoutUri(),
+                'frontchannelLogoutSessionRequired' => $client->getFrontchannelLogoutSessionRequired(),
                 'backchannelLogoutUri' => $client->getBackchannelLogoutUri(),
                 'backchannelLogoutSessionRequired' => $client->getBackchannelLogoutSessionRequired(),
                 'texEnabled' => $client->getTexEnabled(),

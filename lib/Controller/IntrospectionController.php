@@ -22,6 +22,7 @@ use OCA\OIDCIdentityProvider\Db\Client;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
 use OCA\OIDCIdentityProvider\Util\FormUrlencodedParameterParser;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+// use OCP\AppFramework\Http\Attribute\NoTwoFactorRequired;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
@@ -83,9 +84,16 @@ class IntrospectionController extends ApiController
                 [$encodedClientId, $encodedClientSecret] = explode(':', $decoded, 2);
                 $clientId = urldecode($encodedClientId);
                 $clientSecret = urldecode($encodedClientSecret);
+                if ($bodyClientId !== null && !hash_equals($clientId, $bodyClientId)) {
+                    return null;
+                }
             }
         }
 
+        // A malformed Basic header must not fall back to another method.
+        if ($authHeader && stripos(trim($authHeader), 'Basic ') === 0 && $clientId === null) {
+            return null;
+        }
         // Fallback to POST body parameters
         if ($clientId === null) {
             $clientId = $bodyClientId;
@@ -98,6 +106,14 @@ class IntrospectionController extends ApiController
 
         try {
             $client = $this->clientMapper->getByIdentifier($clientId);
+            $basic = stripos(trim($authHeader), 'Basic ') === 0;
+            $method = $client->getTokenEndpointAuthMethod();
+            if (($basic && $this->appConfig->getAppValueBool(
+                Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false
+            )) || ($method === 'client_secret_basic' && !$basic)
+                || ($method === 'client_secret_post' && $basic) || $method === 'none') {
+                return null;
+            }
             // Use constant-time comparison to prevent timing attacks
             if ($client->getType() !== 'public' && hash_equals($client->getSecret(), $clientSecret)) {
                 return $client;
@@ -118,10 +134,10 @@ class IntrospectionController extends ApiController
      * @param string|null $token_type_hint Optional hint about the token type
      * @return JSONResponse
      */
-    // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
     #[BruteForceProtection(action: 'oidc_introspection')]
     #[NoCSRFRequired]
     #[PublicPage]
+    // #[NoTwoFactorRequired] not supported below NC34
     public function introspectToken(
         string $token = '',
         string|null $token_type_hint = null
@@ -165,7 +181,7 @@ class IntrospectionController extends ApiController
             trim($this->request->getHeader('Authorization')),
             'Basic '
         ) === 0;
-        if ($basicAuthenticationAttempted && ($bodyClientId !== null || $bodyClientSecret !== null)) {
+        if ($basicAuthenticationAttempted && $bodyClientSecret !== null) {
             return $this->jsonResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Use exactly one client authentication method.',

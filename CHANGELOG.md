@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.1] - 2026-10-05
+
+### Fixed
+
+- Record active login time separately from token issuance; enforce max_age and require real login evidence for resumed authorization.
+- Preserve refresh scope across narrowed access-token requests and always replace consumed rotating credentials.
+- Expire authorization codes after 600 seconds independently of access-token configuration, and prevent foreign-client code replays from revoking token families.
+- Accept matching form client_id alongside Basic authentication while rejecting conflicting credentials.
+- Normalize JWT access-token typ to at+jwt; gate ID tokens and UserInfo on openid.
+- Support IPv4/IPv6 native loopback ports; persist and enforce dynamic grant_types and response_types.
+- Return a code-free verification_uri by default, preserve device consent permissions, and enforce device group restrictions before approval.
+- Restrict WebFinger to known local resources and preserve the requested subject; stop publishing clients' scope inventories.
+- Preserve front-channel logout metadata in admin initial state; display browser logout errors as HTML.
+- Display consent redirect origin and approval expiration, add working scope editing and localized revocation confirmation, and use the supported CSRF token API.
+- Support full verification-link pasting and explain device errors; preserve UTF-8 names and nonces.
+- Add ESLint 10 flat configuration, pin ESLint/config versions, remove the obsolete ESLint plugin dependency, update the agent guide, and normalize text line endings.
+- Reject revoked JWT access tokens in the ID-token validation fallback; validate ID token identity, issuer, audience, required claims and registered algorithm. Require local issuance proof for HS256 ID tokens.
+- Authorize and consent to explicit identity claims through their scopes; enforce requested subject and essential authentication context.
+- Bind consent forms to separate, expiring, single-use requests and invalidate approved device codes on consent revocation or scope removal.
+- Enforce administrator-approved resource audiences and application/flow-specific DCR redirect policies.
+- Keep consumed refresh-token generations for the lifetime of their family and clean expired grants without refresh capability even with refresh_expire_time=never.
+- Bound authorization handoff storage and atomically enforce the 100-client DCR quota using portable counts.
+- Convert first-day-of-week strings to integers, omit the inaccurate updated_at claim and remove custom-claim values from debug logs.
+
+### Added
+
+- Nullable auth_time fields, per-refresh scope and registered grant/response metadata.
+- Backend standards/security regression tests and additional dependency-free frontend tests.
+
 ## [2.5.0] - 2026-10-05
 
 ### Fixed

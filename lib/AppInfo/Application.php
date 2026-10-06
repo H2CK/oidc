@@ -33,6 +33,7 @@ class Application extends App implements IBootstrap
 
     public const DEFAULT_SCOPE = 'openid profile email roles';
     public const DEFAULT_EXPIRE_TIME = '900';
+    public const AUTHORIZATION_CODE_LIFETIME = 600;
     public const DEFAULT_REFRESH_EXPIRE_TIME = '900';
     public const DEFAULT_REFRESH_REPLAY_GRACE_SECONDS = '5';
     public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
@@ -42,13 +43,8 @@ class Application extends App implements IBootstrap
     public const DEFAULT_TOKEN_TYPE = 'opaque';
     public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
     public const DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS = 'false';
-    /**
-     * Also return the pre-filled URL in verification_uri. Enabled by default for
-     * clients that build their QR code from verification_uri and ignore
-     * verification_uri_complete, such as Ubuntu authd. Set to 'false' for the
-     * short form RFC 8628 section 3.2 recommends.
-     */
-    public const DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI = 'true';
+    /** Legacy QR-code compatibility is opt-in; the default follows RFC 8628. */
+    public const DEFAULT_DEVICE_CODE_IN_VERIFICATION_URI = 'false';
 
     public const DEFAULT_DISABLE_AUTH_CLIENT_SECRET_BASIC = false;
     public const DEFAULT_ALWAYS_INCLUDE_SCOPE_CLAIMS = false;

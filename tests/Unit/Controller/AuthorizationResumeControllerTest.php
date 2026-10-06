@@ -75,7 +75,8 @@ class AuthorizationResumeControllerTest extends TestCase {
         ];
         $this->transactions->expects($this->once())->method('consume')
             ->with($id)
-            ->willReturn(['parameters' => $parameters, 'reason' => 'prompt_login']);
+            ->willReturn(['parameters' => $parameters, 'reason' => 'prompt_login', 'created_at' => 1000]);
+        $this->authorizationService->method('hasFreshAuthenticationSince')->with(1000)->willReturn(true);
         $expected = new RedirectResponse('https://rp.example/callback?code=abc');
         $this->authorizationService->expects($this->once())->method('process')
             ->with($parameters, true)->willReturn($expected);
@@ -104,4 +105,19 @@ class AuthorizationResumeControllerTest extends TestCase {
         $this->authorizationService->expects($this->never())->method('process');
         $this->assertSame(400, $this->controller->completePost('invalid')->getStatus());
     }
+
+    public function testContinuationWithoutActiveLoginDoesNotBypassPromptLogin(): void {
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        $this->userSession->method('getUser')->willReturn($this->createMock(IUser::class));
+        $parameters = ['prompt' => 'login', 'scope' => 'openid'];
+        $this->transactions->method('consume')->willReturn([
+            'parameters' => $parameters, 'reason' => 'prompt_login', 'created_at' => 1000,
+        ]);
+        $this->authorizationService->method('hasFreshAuthenticationSince')->with(1000)->willReturn(false);
+        $expected = new RedirectResponse('/login');
+        $this->authorizationService->expects($this->once())->method('process')
+            ->with($parameters, false)->willReturn($expected);
+        $this->assertSame($expected, $this->controller->complete(str_repeat('a', 64)));
+    }
+
 }

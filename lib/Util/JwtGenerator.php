@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Util;
 
+use OCA\OIDCIdentityProvider\Service\ClaimPolicyService;
+use OCA\OIDCIdentityProvider\Db\IssuedIdTokenMapper;
+
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OC\Authentication\Token\IProvider as TokenProvider;
 use OCA\OIDCIdentityProvider\Db\Group;
@@ -74,7 +77,6 @@ class JwtGenerator
     public const AUD_OUTPUT = ' aud=> ';
     public const CLIENT_ID_OUTPUT = ' client_id=> ';
     private const PROFILE_CLAIMS = [
-        'updated_at',
         'preferred_username',
         'name',
         'family_name',
@@ -249,7 +251,11 @@ class JwtGenerator
         $account = $this->accountManager->getAccount($user);
         $quota = $user->getQuota();
         $requestedIdTokenClaims = $this->getRequestedClaimRequests($accessToken->getIdTokenClaims());
+        $requestedIdTokenClaims = ClaimPolicyService::filterRequests($requestedIdTokenClaims, $accessToken->getScope());
 
+        if (!ClaimPolicyService::authenticationClaimsSatisfied($requestedIdTokenClaims, $uid)) {
+            throw new JwtCreationErrorException('Requested authentication claims cannot be satisfied.');
+        }
         $jwt_payload = $this->filterClaims(
             $this->customClaimService->provideCustomClaims($client->getId(), $accessToken->getScope(), $uid),
             $requestedIdTokenClaims,
@@ -261,7 +267,6 @@ class JwtGenerator
             'sub' => $uid,
             'aud' => $client->getClientIdentifier(),
             'exp' => $this->time->getTime() + $expireTime,
-            'auth_time' => $accessToken->getCreated(),
             'iat' => $this->time->getTime(),
             'acr' => '0',
             'azp' => $client->getClientIdentifier(),
@@ -269,6 +274,11 @@ class JwtGenerator
             'jti' => $this->secureRandom->generate(32, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
         ];
 
+        if ((int)$accessToken->getAuthTime() > 0) {
+            $jwt_payload_base['auth_time'] = $accessToken->getAuthTime();
+        } else {
+            unset($jwt_payload['auth_time']);
+        }
         $sid = $accessToken->getSid();
         if ($sid !== null && trim($sid) !== '') {
             $jwt_payload_base['sid'] = $sid;
@@ -294,7 +304,7 @@ class JwtGenerator
             $jwt_payload = array_merge($jwt_payload, $cHashPayload);
         }
 
-        if (!empty($nonce)) {
+        if ($nonce !== null && $nonce !== '') {
             $nonce_payload = [
                 'nonce' => $nonce
             ];
@@ -360,9 +370,8 @@ class JwtGenerator
 
         $includeProfileByScope = $includeScopeClaims && in_array("profile", $scopeArray, true);
         $includeProfileByClaim = $this->hasRequestedClaim(self::PROFILE_CLAIMS, $requestedIdTokenClaims);
-        if ($includeProfileByScope || $includeProfileByClaim) {
+        if ($includeProfileByScope || $includeProfileByClaim || array_intersect(['phone', 'address'], $scopeArray) !== []) {
             $profile = [
-                'updated_at' => $user->getLastLogin(),
                 'preferred_username' => $uid,
             ];
             if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
@@ -407,7 +416,7 @@ class JwtGenerator
             if ($quota != 'none') {
                 $profile = array_merge($profile, ['quota' => $quota]);
             }
-            $jwt_payload = array_merge($jwt_payload, $this->filterClaims($profile, $requestedIdTokenClaims, $includeProfileByScope));
+            $jwt_payload = array_merge($jwt_payload, $this->filterClaims(ClaimPolicyService::filterReleasedClaims($profile, $accessToken->getScope()), $requestedIdTokenClaims, $includeScopeClaims));
         }
 
         $includeEmailByScope = $includeScopeClaims && in_array("email", $scopeArray, true);
@@ -442,6 +451,7 @@ class JwtGenerator
             $jwt_payload = array_merge($jwt_payload, $this->filterClaims($email, $requestedIdTokenClaims, $includeEmailByScope));
         }
 
+        $jwt_payload = ClaimPolicyService::filterReleasedClaims($jwt_payload, $accessToken->getScope());
         $payload = json_encode($jwt_payload);
         $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
@@ -466,6 +476,13 @@ class JwtGenerator
         }
 
         $jwt = "$base64UrlHeader.$base64UrlPayload.$base64UrlSignature";
+        if ($signing_alg === 'HS256') {
+            try {
+                Server::get(IssuedIdTokenMapper::class)->record($jwt, $jwt_payload['exp']);
+            } catch (\Throwable $e) {
+                throw new JwtCreationErrorException('Could not persist ID token issuance.', 0, $e);
+            }
+        }
         $this->logger->debug('Generated JWT with iss => ' . $issuer . JwtGenerator::SUB_OUTPUT . $uid . ' aud/azp => ' . $client->getClientIdentifier());
         return $jwt;
     }
@@ -657,14 +674,14 @@ class JwtGenerator
             'jti' => $this->secureRandom->generate(32, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS),
         ];
 
-        if ($includeAuthTime) {
-            $jwt_payload_base['auth_time'] = $accessToken->getCreated();
+        if ($includeAuthTime && (int)$accessToken->getAuthTime() > 0) {
+            $jwt_payload_base['auth_time'] = $accessToken->getAuthTime();
         }
 
         $jwt_payload = array_merge($jwt_payload, $jwt_payload_base);
         // Custom claims must not re-introduce auth_time when the caller intentionally
         // omits it (e.g. RFC 8693 Token Exchange).
-        if (!$includeAuthTime) {
+        if (!$includeAuthTime || (int)$accessToken->getAuthTime() <= 0) {
             unset($jwt_payload['auth_time']);
         }
 
@@ -719,10 +736,8 @@ class JwtGenerator
             $restrictUserInformationPersonalArr = explode(' ', strtolower(trim($this->userConfig->getValueString($uid, Application::APP_ID, Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION))));
         }
 
-        if (in_array("profile", $scopeArray)) {
-            $profile = [
-                'updated_at' => $user->getLastLogin(),
-            ];
+        if (array_intersect(['profile', 'phone', 'address'], $scopeArray) !== []) {
+            $profile = [];
             if ($account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue() != '') {
                 $displayName = $account->getProperty(IAccountManager::PROPERTY_DISPLAYNAME)->getValue();
                 $names = $this->converter->splitFullName($displayName);
@@ -790,6 +805,7 @@ class JwtGenerator
             $jwt_payload = array_merge($jwt_payload, $email);
         }
 
+        $jwt_payload = ClaimPolicyService::filterReleasedClaims($jwt_payload, $accessToken->getScope());
         $payload = json_encode($jwt_payload);
         $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
@@ -798,13 +814,13 @@ class JwtGenerator
 
         $signing_alg = $this->getSupportedSigningAlgorithm($client); // HS256 or RS256
         if ($signing_alg === 'HS256') {
-            $header = json_encode(['typ' => 'at+JWT', 'alg' => $signing_alg]);
+            $header = json_encode(['typ' => 'at+jwt', 'alg' => $signing_alg]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
             $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $this->getHmacSigningSecret($client), true);
             $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
         } else {
             $kid = $this->appConfig->getAppValueString('kid');
-            $header = json_encode(['typ' => 'at+JWT', 'alg' => 'RS256', 'kid' => $kid]);
+            $header = json_encode(['typ' => 'at+jwt', 'alg' => 'RS256', 'kid' => $kid]);
             $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
             $signature = '';
             if (!openssl_sign("$base64UrlHeader.$base64UrlPayload", $signature, $this->credentialService->getPrivateKey(), 'sha256WithRSAEncryption')) {

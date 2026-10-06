@@ -261,6 +261,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setHashedCode(hash('sha512', $code));
         $accessToken->setScope(substr($scope, 0, 128));
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
         $accessToken->setSid('session-id-123');
@@ -343,6 +344,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setUserId($user_id);
         $accessToken->setScope('openid');
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
         $accessToken->setIdTokenClaims('');
@@ -367,7 +369,7 @@ class JwtGeneratorTest extends TestCase {
         $this->assertEquals('12345678', $decodedJwt['nonce']);
     }
 
-    public function testGenerateImplicitIdTokenIncludesEssentialNameClaimOnly() {
+    public function testEssentialNameCannotBypassMissingProfileScope() {
         $signingConfig = $this->configureRs256Signing();
 
         $mockUser = $this->createMock(IUser::class);
@@ -410,6 +412,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setUserId($user_id);
         $accessToken->setScope('openid');
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
         $accessToken->setIdTokenClaims(json_encode([
@@ -429,7 +432,7 @@ class JwtGeneratorTest extends TestCase {
 
         $decodedJwt = $this->decodeJwt($result, $signingConfig);
 
-        $this->assertEquals('Test User', $decodedJwt['name']);
+        $this->assertArrayNotHasKey('name', $decodedJwt);
         $this->assertArrayNotHasKey('preferred_username', $decodedJwt);
         $this->assertArrayNotHasKey('scope', $decodedJwt);
         $this->assertArrayNotHasKey('updated_at', $decodedJwt);
@@ -466,6 +469,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setUserId($user_id);
         $accessToken->setScope($scope);
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
         $accessToken->setIdTokenClaims('');
@@ -544,6 +548,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setUserId($user_id);
         $accessToken->setScope($scope);
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
         $accessToken->setIdTokenClaims(json_encode([
@@ -606,6 +611,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setUserId('34');
         $accessToken->setScope('openid');
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
         $accessToken->setAccessToken('front-channel-access-token');
@@ -639,6 +645,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setScope(substr('openid profile email roles', 0, 128));
         $accessToken->setResource(substr('http://test.rs.url/', 0, 2000));
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
 
@@ -740,6 +747,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setScope(substr($scope, 0, 128));
         $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $issuedAt = $this->time->getTime();
         $accessToken->setRefreshed($issuedAt);
         $accessToken->setExpiresAt($issuedAt + 3600);
@@ -782,7 +790,12 @@ class JwtGeneratorTest extends TestCase {
         $this->assertArrayHasKey('email', $decodedJwt);
         $this->assertEquals('testuser@example.com', $decodedJwt['email']);
         $this->assertArrayHasKey('auth_time', $decodedJwt, 'Existing JWT access-token behavior must remain unchanged by default.');
+        $header = json_decode(base64_decode(strtr(explode('.', $result)[0], '-_', '+/')), true);
+        $this->assertSame('at+jwt', $header['typ']);
         $this->assertSame($issuedAt, $decodedJwt['iat']);
+        $accessToken->setAuthTime(null);
+        $unknownTimeJwt = $this->generator->generateAccessToken($accessToken, $client, $protocol, $issuer);
+        $this->assertArrayNotHasKey('auth_time', (array)JWT::decode($unknownTimeJwt, JWK::parseKeySet($jwks)));
         $this->assertSame($accessToken->getExpiresAt(), $decodedJwt['exp']);
 
         // RFC 9068 makes auth_time optional. Token Exchange is not a new End-User
@@ -888,6 +901,7 @@ class JwtGeneratorTest extends TestCase {
         $accessToken->setScope(substr($scope, 0, 128));
         $accessToken->setResource(substr($resource, 0, 2000));
         $accessToken->setCreated($this->time->getTime());
+        $accessToken->setAuthTime($this->time->getTime());
         $accessToken->setRefreshed($this->time->getTime());
         $accessToken->setNonce('12345678');
 

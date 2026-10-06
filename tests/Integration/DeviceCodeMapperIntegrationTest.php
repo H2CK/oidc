@@ -92,11 +92,13 @@ class DeviceCodeMapperIntegrationTest extends \Test\TestCase {
 			$this->assertSame(DeviceCodeMapper::INITIAL_INTERVAL_SECONDS, $stored->getIntervalSeconds());
 			$this->assertSame(1030, $stored->getLastPolledAt());
 
-			$this->assertTrue($this->mapper->markApproved($stored, 'alice'));
+			$this->assertTrue($this->mapper->markApproved($stored, 'alice', 900, 'openid profile'));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);
 			$this->assertNotNull($stored);
 			$this->assertSame(DeviceCode::STATUS_APPROVED, $stored->getStatus());
 			$this->assertSame('alice', $stored->getUserId());
+			$this->assertSame(900, $stored->getAuthTime());
+			$this->assertSame('openid profile', $stored->getScope());
 
 			$this->assertTrue($this->mapper->markConsumed($stored, 1050));
 			$stored = $this->mapper->findByDeviceCode($deviceCode);

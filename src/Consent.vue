@@ -11,6 +11,10 @@
 				<span>{{ t('oidc', '{clientName} is requesting access to your account.', { clientName: clientName }) }}</span>
 			</p>
 
+			<p class="consent-target">
+				{{ t('oidc', 'Redirect destination: {target}', { target: redirectTarget }) }}
+			</p>
+			<p>{{ t('oidc', 'Only approve access if you recognize this application and destination.') }}</p>
 			<div class="consent-scopes">
 				<h3>{{ t('oidc', 'This application will be able to:') }}</h3>
 
@@ -45,7 +49,7 @@
 			</div>
 
 			<p class="consent-note">
-				{{ t('oidc', 'You can revoke this access at any time from your account settings.') }}
+				{{ t('oidc', 'This approval expires after 90 days. You can revoke access at any time from your account settings.') }}
 			</p>
 		</div>
 	</div>
@@ -53,11 +57,13 @@
 
 <script>
 import { t } from '@nextcloud/l10n'
+import { getRequestToken } from '@nextcloud/auth'
 import { generateUrl } from '@nextcloud/router'
 
 export default {
 	name: 'Consent',
 	props: {
+		consentRequestId: { type: String, required: true },
 		clientName: {
 			type: String,
 			required: true,
@@ -66,6 +72,7 @@ export default {
 			type: String,
 			required: true,
 		},
+		redirectTarget: { type: String, default: '' },
 		clientId: {
 			type: String,
 			required: true,
@@ -104,6 +111,8 @@ export default {
 					label: t('oidc', 'Profile information'),
 					description: t('oidc', 'Access your name, username, profile picture, and quota'),
 				},
+				phone: { label: t('oidc', 'Phone number'), description: t('oidc', 'Access your phone number') },
+				address: { label: t('oidc', 'Postal address'), description: t('oidc', 'Access your postal address') },
 				email: {
 					label: t('oidc', 'Email address'),
 					description: t('oidc', 'Access your email address and verification status'),
@@ -141,8 +150,9 @@ export default {
 			form.acceptCharset = 'UTF-8'
 
 			const parameters = {
-				requesttoken: OC.requestToken,
+				requesttoken: getRequestToken(),
 				...fields,
+				t: this.consentRequestId,
 			}
 			Object.entries(parameters).forEach(([name, value]) => {
 				const input = document.createElement('input')

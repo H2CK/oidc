@@ -25,7 +25,11 @@ class RefreshTokenCleanupIntegrationTest extends \Test\TestCase {
 
     protected function tearDown(): void {
         foreach ($this->created as $token) {
-            $this->accessTokens->delete($token);
+            try {
+                $this->accessTokens->delete($this->accessTokens->getById($token->getId()));
+            } catch (\OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException) {
+                // The case already removed this family.
+            }
         }
         parent::tearDown();
     }
@@ -46,21 +50,23 @@ class RefreshTokenCleanupIntegrationTest extends \Test\TestCase {
         return $token;
     }
 
-    public function testUsedRefreshRowsArePurgedEvenWhenGrantNeverExpires(): void {
+    public function testConsumedGenerationsRemainAvailableForReplayDetectionWhileFamilyExists(): void {
         $now = time();
         $token = $this->token($now);
         $old = bin2hex(random_bytes(16));
         $recent = bin2hex(random_bytes(16));
         $unused = bin2hex(random_bytes(16));
-        $oldRow = $this->refreshTokens->createForAccessToken($token->getId(), $old, $now - RefreshTokenMapper::USED_RETENTION - 100);
+        $oldRow = $this->refreshTokens->createForAccessToken($token->getId(), $old, $now - (30 * 86400) - 100);
         $recentRow = $this->refreshTokens->createForAccessToken($token->getId(), $recent, $now - 100);
-        $this->refreshTokens->createForAccessToken($token->getId(), $unused, $now - RefreshTokenMapper::USED_RETENTION - 100);
-        $this->refreshTokens->markUsed($oldRow, $now - RefreshTokenMapper::USED_RETENTION - 1);
+        $this->refreshTokens->createForAccessToken($token->getId(), $unused, $now - (30 * 86400) - 100);
+        $this->refreshTokens->markUsed($oldRow, $now - (30 * 86400) - 1);
         $this->refreshTokens->markUsed($recentRow, $now - 1);
         $this->refreshTokens->cleanUp($now);
-        $this->assertNull($this->refreshTokens->findByToken($old));
+        $this->assertNotNull($this->refreshTokens->findByToken($old));
         $this->assertNotNull($this->refreshTokens->findByToken($recent));
         $this->assertNotNull($this->refreshTokens->findByToken($unused));
+        $this->accessTokens->delete($token);
+        $this->assertNull($this->refreshTokens->findByToken($old));
     }
 
     public function testExpiredAccessTokenCleanupExplicitlyDeletesRefreshRows(): void {
@@ -101,4 +107,30 @@ class RefreshTokenCleanupIntegrationTest extends \Test\TestCase {
             if ($row !== null) { $this->refreshTokens->delete($row); }
         }
     }
+    public function testNeverCleanupRemovesExpiredGrantWithoutRefreshCredential(): void {
+        $now = time();
+        $expired = $this->token($now - 10000);
+        $clock = $this->createMock(ITimeFactory::class);
+        $clock->method('getTime')->willReturn($now);
+        $config = $this->createMock(IAppConfig::class);
+        $config->method('getAppValueString')->willReturnCallback(static fn ($key): string => $key === 'refresh_expire_time' ? 'never' : '900');
+        $mapper = new AccessTokenMapper(Server::get(\OCP\IDBConnection::class), $clock, $config);
+        $mapper->cleanUp();
+        $this->expectException(\OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException::class);
+        $mapper->getById($expired->getId());
+    }
+
+    public function testNeverCleanupPreservesUnusedRefreshCredential(): void {
+        $now = time();
+        $expired = $this->token($now - 10000);
+        $this->refreshTokens->createForAccessToken($expired->getId(), bin2hex(random_bytes(32)), $now - 10000);
+        $clock = $this->createMock(ITimeFactory::class);
+        $clock->method('getTime')->willReturn($now);
+        $config = $this->createMock(IAppConfig::class);
+        $config->method('getAppValueString')->willReturnCallback(static fn ($key): string => $key === 'refresh_expire_time' ? 'never' : '900');
+        $mapper = new AccessTokenMapper(Server::get(\OCP\IDBConnection::class), $clock, $config);
+        $mapper->cleanUp();
+        $this->assertSame($expired->getId(), $mapper->getById($expired->getId())->getId());
+    }
+
 }

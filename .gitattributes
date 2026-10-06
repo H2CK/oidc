@@ -1,1 +1,8 @@
+# Keep source text portable and avoid reintroducing mixed line endings.
+* text=auto eol=lf
 /js/* binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.zip binary

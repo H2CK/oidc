@@ -11,6 +11,8 @@ namespace OCA\OIDCIdentityProvider\Db;
 use OCP\AppFramework\Db\Entity;
 
 /**
+ * @method string|null getScope()
+ * @method void setScope(?string $scope)
  * @method int getId()
  * @method int getAccessTokenId()
  * @method void setAccessTokenId(int $accessTokenId)
@@ -32,6 +34,7 @@ class RefreshToken extends Entity {
     protected $created;
     /** @var int */
     protected $usedAt;
+    protected $scope = null;
 
     public function __construct() {
         $this->addType('id', 'int');
@@ -39,5 +42,6 @@ class RefreshToken extends Entity {
         $this->addType('hashedToken', 'string');
         $this->addType('created', 'int');
         $this->addType('usedAt', 'int');
+        $this->addType('scope', 'string');
     }
 }

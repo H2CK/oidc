@@ -11,10 +11,14 @@ namespace OCA\OIDCIdentityProvider\Service;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
+use OCA\OIDCIdentityProvider\Db\OperationLock;
+use OCA\OIDCIdentityProvider\Exceptions\AuthorizationRequestLimitException;
 
 /** Persist an authorization request across a Nextcloud login/session replacement. */
 class AuthorizationTransactionService {
     public const TTL = 600;
+    public const MAX_PENDING = 2000;
+    public const MAX_PAYLOAD = 32768;
     private const TABLE = 'oidc_auth_transactions';
 
     public function __construct(private IDBConnection $db, private ITimeFactory $time) {
@@ -26,16 +30,41 @@ class AuthorizationTransactionService {
             throw new \InvalidArgumentException('Invalid authorization transaction reason.');
         }
         $payload = json_encode($parameters, JSON_THROW_ON_ERROR);
+        if (strlen($payload) > self::MAX_PAYLOAD) {
+            throw new AuthorizationRequestLimitException('Authorization request is too large.');
+        }
         $id = bin2hex(random_bytes(32));
         $now = $this->time->getTime();
-        $qb = $this->db->getQueryBuilder();
-        $qb->insert(self::TABLE)->values([
-            'id' => $qb->createNamedParameter(hash('sha256', $id)),
-            'request_payload' => $qb->createNamedParameter($payload),
-            'reason' => $qb->createNamedParameter($reason),
-            'created_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT),
-            'expires_at' => $qb->createNamedParameter($now + self::TTL, IQueryBuilder::PARAM_INT),
-        ])->executeStatement();
+        $this->db->beginTransaction();
+        try {
+            OperationLock::acquire($this->db, OperationLock::AUTHORIZATION);
+            $this->cleanup();
+            $count = $this->db->getQueryBuilder();
+            $count->selectAlias($count->func()->count('*'), 'transaction_count')->from(self::TABLE);
+            $result = $count->executeQuery();
+            try {
+                $pending = (int)$result->fetchOne();
+            } finally {
+                $result->closeCursor();
+            }
+            // Consumed but unexpired handoffs count too, preventing churn from
+            // defeating the storage budget before the ten-minute TTL elapses.
+            if ($pending >= self::MAX_PENDING) {
+                throw new AuthorizationRequestLimitException('Authorization transaction capacity reached.');
+            }
+            $qb = $this->db->getQueryBuilder();
+            $qb->insert(self::TABLE)->values([
+                'id' => $qb->createNamedParameter(hash('sha256', $id)),
+                'request_payload' => $qb->createNamedParameter($payload),
+                'reason' => $qb->createNamedParameter($reason),
+                'created_at' => $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT),
+                'expires_at' => $qb->createNamedParameter($now + self::TTL, IQueryBuilder::PARAM_INT),
+            ])->executeStatement();
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
         return $id;
     }
 
@@ -54,7 +83,7 @@ class AuthorizationTransactionService {
         return $qb->executeQuery()->fetchOne() !== false;
     }
 
-    /** @return array{parameters:array<string, mixed>, reason:string}|null */
+    /** @return array{parameters:array<string, mixed>, reason:string, created_at:int}|null */
     public function consume(string $id, ?string $expectedReason = null): ?array {
         if (!preg_match('/\A[a-f0-9]{64}\z/D', $id)) {
             return null;
@@ -62,7 +91,7 @@ class AuthorizationTransactionService {
         $hash = hash('sha256', $id);
         $now = $this->time->getTime();
         $qb = $this->db->getQueryBuilder();
-        $qb->select('request_payload', 'reason')->from(self::TABLE)
+        $qb->select('request_payload', 'reason', 'created_at')->from(self::TABLE)
             ->where($qb->expr()->eq('id', $qb->createNamedParameter($hash)))
             ->andWhere($qb->expr()->isNull('consumed_at'))
             ->andWhere($qb->expr()->gt('expires_at', $qb->createNamedParameter($now, IQueryBuilder::PARAM_INT)));
@@ -99,13 +128,13 @@ class AuthorizationTransactionService {
         if (!is_array($parameters) || !in_array($row['reason'], ['not_authenticated', 'prompt_login', 'max_age', 'select_account', 'authorization_post'], true)) {
             return null;
         }
-        return ['parameters' => $parameters, 'reason' => $row['reason']];
+        return ['parameters' => $parameters, 'reason' => $row['reason'], 'created_at' => (int)$row['created_at']];
     }
 
     public function cleanup(): void {
         $qb = $this->db->getQueryBuilder();
         $qb->delete(self::TABLE)
-            ->where($qb->expr()->lt('expires_at', $qb->createNamedParameter($this->time->getTime(), IQueryBuilder::PARAM_INT)))
+            ->where($qb->expr()->lte('expires_at', $qb->createNamedParameter($this->time->getTime(), IQueryBuilder::PARAM_INT)))
             ->executeStatement();
     }
 }

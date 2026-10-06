@@ -180,4 +180,11 @@ class CustomClaimServiceTest extends TestCase {
         $this->assertEquals($expected_result, $result[$claim_name], 'Claim value does not match');
     }
 
+    public function testFirstDayOfWeekConvertsStringSettingsToInteger(): void {
+        $user = $this->createMock(IUser::class);
+        $user->method('getUID')->willReturn('alice');
+        $this->config->method('getUserValue')->with('alice', 'core', 'first_day_of_week', null)->willReturn('0');
+        $this->assertSame(0, $this->service->getUserFDOW($user));
+    }
+
 }

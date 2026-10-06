@@ -29,6 +29,7 @@ use OCA\OIDCIdentityProvider\Db\Group;
 use OCA\OIDCIdentityProvider\Db\TexTargetMapper;
 use OCA\OIDCIdentityProvider\Db\TexSubjectClientMapper;
 use OCA\OIDCIdentityProvider\Db\UserConsentMapper;
+use OCA\OIDCIdentityProvider\Service\ResourcePolicyService;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\JwtCreationErrorException;
@@ -57,6 +58,7 @@ use OCP\Server;
 use OCP\AppFramework\Services\IAppConfig;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+//use OCP\AppFramework\Http\Attribute\NoTwoFactorRequired;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use Psr\Log\LoggerInterface;
 
@@ -322,10 +324,14 @@ class OIDCApiController extends ApiController {
 
     private function revokeAccessTokenForReusedAuthorizationCode(
         AuthorizationCode $authorizationCode,
-        string|null $clientId
+        string|null $clientId,
+        int $authenticatedClientId
     ): JSONResponse {
         try {
             $accessToken = $this->accessTokenMapper->getById($authorizationCode->getAccessTokenId());
+            if ($accessToken->getClientId() !== $authenticatedClientId) {
+                return $this->invalidGrantResponse('Authorization code is not valid for this client.');
+            }
             $this->accessTokenMapper->delete($accessToken);
             $this->logger->warning('Revoked access token after authorization code reuse. Client id was ' . $clientId . '.');
         } catch (AccessTokenNotFoundException $e) {
@@ -350,10 +356,10 @@ class OIDCApiController extends ApiController {
      * @param string|null $device_code
      * @return JSONResponse
      */
-    // #[NoTwoFactorRequired] currently not working with NC below 34, so we use the annotation instead
     #[BruteForceProtection(action: 'oidc_token')]
     #[PublicPage]
     #[NoCSRFRequired]
+    //#[NoTwoFactorRequired] not supported below NC34
     public function getToken(
         $grant_type = null, ?string $code = null, ?string $refresh_token = null,
         ?string $client_id = null, ?string $client_secret = null, ?string $code_verifier = null,
@@ -429,7 +435,7 @@ class OIDCApiController extends ApiController {
         // A client must use exactly one authentication method. In particular,
         // client_secret_basic cannot be combined with credentials in the body.
         if ($this->hasBasicAuthorizationHeader()
-            && ($requestParameters['client_id'] !== [] || $requestParameters['client_secret'] !== [])) {
+            && ($requestParameters['client_secret'] !== [])) {
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Use exactly one client authentication method.',
@@ -488,12 +494,12 @@ class OIDCApiController extends ApiController {
             && $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
             return $this->invalidClientResponse('client_secret_basic is disabled.', true);
         }
-        if (!isset($client_id)) {
-            $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
+        if ($basicAuthenticationAttempted) {
             $credentials = $this->getBasicClientCredentials();
-            if ($credentials !== null) {
-                [$client_id, $client_secret] = $credentials;
+            if ($credentials === null || ($client_id !== null && !hash_equals($credentials[0], $client_id))) {
+                return $this->invalidClientResponse('Malformed or inconsistent client credentials.', true);
             }
+            [$client_id, $client_secret] = $credentials;
         }
 
         if ($client_id === null || trim($client_id) === '') {
@@ -537,6 +543,11 @@ class OIDCApiController extends ApiController {
             return $this->invalidClientResponse('Client authentication failed.', $basicAuthenticationAttempted);
         }
 
+        if (!$client->allowsGrantType($grant_type)) {
+            return new JSONResponse(['error' => 'unauthorized_client',
+                'error_description' => 'The client is not registered for this grant.'], Http::STATUS_BAD_REQUEST);
+        }
+
         // Authorization codes and refresh tokens are different credential
         // classes. Never resolve both through AccessToken.hashed_code: doing so
         // lets an intercepted code bypass PKCE by presenting it as a refresh
@@ -562,7 +573,7 @@ class OIDCApiController extends ApiController {
                 return $this->invalidGrantResponse('Authorization code is not valid.');
             }
             if ($authorizationCode->getUsedAt() > 0) {
-                return $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
+                return $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id, $client->getId());
             }
 
             try {
@@ -626,7 +637,17 @@ class OIDCApiController extends ApiController {
             return $this->invalidGrantResponse('Grant is not valid for this client.');
         }
 
+        $refreshGrantScope = $refreshTokenRecord instanceof RefreshToken
+            ? ($refreshTokenRecord->getScope() ?? $accessToken->getScope())
+            : $accessToken->getScope();
+        if ($grant_type === 'refresh_token') {
+            // Restore the refresh credential's scope, not the previous access token's subset.
+            $accessToken->setScope($refreshGrantScope);
+        }
         if ($grant_type === 'refresh_token' && $scope !== null) {
+            if (strlen($scope) > 512 || !preg_match('/^[\x21\x23-\x5B\x5D-\x7E]+(?: [\x21\x23-\x5B\x5D-\x7E]+)*$/D', $scope)) {
+                return new JSONResponse(['error' => 'invalid_scope'], Http::STATUS_BAD_REQUEST);
+            }
             $requestedScopes = preg_split('/\s+/', trim($scope), -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $originalScopes = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY) ?: [];
             if (array_diff($requestedScopes, $originalScopes) !== []) {
@@ -648,11 +669,11 @@ class OIDCApiController extends ApiController {
         }
 
         if ($grant_type === 'authorization_code') {
-            // The accessToken must not be expired
-            if ($this->time->getTime() >= $accessToken->getEffectiveExpiresAt($expireTime)) {
+            // RFC 6749 section 4.1.2: authorization codes have a separate, short lifetime.
+            if ($this->time->getTime() >= $authorizationCode->getCreated() + Application::AUTHORIZATION_CODE_LIFETIME) {
                 $this->accessTokenMapper->delete($accessToken);
-                $this->logger->info('Access token already expired. Client id was ' . $client_id . '.');
-                return $this->invalidGrantResponse('Access token already expired.');
+                $this->logger->info('Authorization code expired. Client id was ' . $client_id . '.');
+                return $this->invalidGrantResponse('Authorization code has expired.');
             }
 
             // PKCE verification (RFC 7636 Section 4.6)
@@ -719,6 +740,14 @@ class OIDCApiController extends ApiController {
             return $this->invalidGrantResponse('Access token not allowed for user groups.');
         }
 
+        if (!$accessToken->getEventGenerated() && $accessToken->getResource() !== null) {
+            $policy = new ResourcePolicyService($this->appConfig);
+            if (!ResourcePolicyService::isValid($accessToken->getResource()) || !$policy->isAllowed($client, $accessToken->getResource())) {
+                $this->accessTokenMapper->delete($accessToken);
+                return $this->invalidGrantResponse('The token resource is no longer approved.');
+            }
+        }
+
         if ($grant_type === 'refresh_token' && !$accessToken->getEventGenerated()) {
             $userConsent = $this->userConsentMapper->findByUserAndClient($uid, $client->getId());
             if ($userConsent === null || ($userConsent->getExpiresAt() !== null
@@ -761,9 +790,12 @@ class OIDCApiController extends ApiController {
                 'error_description' => 'An error occured during creation of JWT.',
             ], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
+        $jwt = null;
         try {
-            $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client,
-                $this->request->getServerProtocol(), $this->request->getServerHost(), false, false);
+            if (in_array('openid', preg_split('/ +/', $accessToken->getScope()) ?: [], true)) {
+                $jwt = $this->jwtGenerator->generateIdToken($accessToken, $client,
+                    $this->request->getServerProtocol(), $this->request->getServerHost(), false, false);
+            }
         } catch (JwtCreationErrorException $e) {
             return new JSONResponse(['error' => 'server_error'], Http::STATUS_INTERNAL_SERVER_ERROR);
         }
@@ -774,11 +806,14 @@ class OIDCApiController extends ApiController {
             'access_token' => $accessToken->getAccessToken(),
             'token_type' => 'Bearer',
             'expires_in' => $expireTime,
-            'id_token' => $jwt,
             // Always report the effective scope. This is required when policy
             // (for example allowed_scopes or a group ceiling) narrowed it.
             'scope' => $accessToken->getScope(),
         ];
+
+        if ($jwt !== null) {
+            $responseData['id_token'] = $jwt;
+        }
 
         // Check if refresh token should be issued (OIDC Core 1.0 Section 11)
         $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
@@ -796,7 +831,7 @@ class OIDCApiController extends ApiController {
             $this->accessTokenMapper->lockTokenExchangeSubject($accessToken->getId());
             if ($grant_type === 'authorization_code' && $authorizationCode !== null) {
                 if (!$this->authorizationCodeMapper->markUsed($authorizationCode, $this->time->getTime())) {
-                    $response = $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id);
+                    $response = $this->revokeAccessTokenForReusedAuthorizationCode($authorizationCode, $client_id, $client->getId());
                     $this->accessTokenMapper->commitTokenExchangeTransaction();
                     return $response;
                 }
@@ -830,8 +865,10 @@ class OIDCApiController extends ApiController {
             }
 
             $this->accessTokenMapper->update($accessToken);
-            if ($provideRefreshTokenAlways || $hasOfflineAccess || $accessToken->getEventGenerated()) {
-                $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $newCode, $now);
+            if ($grant_type === 'refresh_token' || ($client->allowsGrantType('refresh_token')
+                && ($provideRefreshTokenAlways || $hasOfflineAccess || $accessToken->getEventGenerated()))) {
+                $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $newCode, $now,
+                    $grant_type === 'refresh_token' ? $refreshGrantScope : $accessToken->getScope());
                 $responseData['refresh_token'] = $newCode;
                 if ($refreshExpireTime !== 'never') {
                     $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
@@ -871,6 +908,7 @@ class OIDCApiController extends ApiController {
     #[BruteForceProtection(action: 'oidc_revocation')]
     #[PublicPage]
     #[NoCSRFRequired]
+    // #[NoTwoFactorRequired] not supported below NC34
     public function revokeToken(): Response {
         if (!$this->isFormUrlencodedRequest()) {
             return $this->revocationError('invalid_request', 'Revocation requests must use application/x-www-form-urlencoded.');
@@ -891,7 +929,7 @@ class OIDCApiController extends ApiController {
         $clientId = $parameters['client_id'][0] ?? null;
         $clientSecret = $parameters['client_secret'][0] ?? null;
         $basic = $this->hasBasicAuthorizationHeader();
-        if ($basic && ($clientId !== null || $clientSecret !== null)) {
+        if ($basic && $clientSecret !== null) {
             return $this->revocationError('invalid_request', 'Use exactly one client authentication method.');
         }
         if ($basic) {
@@ -901,6 +939,9 @@ class OIDCApiController extends ApiController {
             $credentials = $this->getBasicClientCredentials();
             if ($credentials === null) {
                 return $this->revocationError('invalid_client', 'Client authentication failed.', true);
+            }
+            if ($clientId !== null && !hash_equals($credentials[0], $clientId)) {
+                return $this->revocationError('invalid_client', 'Inconsistent client_id.', true);
             }
             [$clientId, $clientSecret] = $credentials;
         }
@@ -1063,13 +1104,16 @@ class OIDCApiController extends ApiController {
             && $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
             return $this->invalidClientResponse('client_secret_basic is disabled.', true);
         }
-        if ($basicAuthenticationAttempted && ($clientId !== null || $clientSecret !== null)) {
+        if ($basicAuthenticationAttempted && $clientSecret !== null) {
             return $this->deviceGrantError('invalid_request', 'Use exactly one client authentication method.');
         }
         if ($basicAuthenticationAttempted) {
             $credentials = $this->getBasicClientCredentials();
             if ($credentials === null) {
                 return $this->invalidClientResponse('Malformed client credentials.', true);
+            }
+            if ($clientId !== null && !hash_equals($credentials[0], $clientId)) {
+                return $this->invalidClientResponse('Inconsistent client_id.', true);
             }
             [$clientId, $clientSecret] = $credentials;
         }
@@ -1104,6 +1148,9 @@ class OIDCApiController extends ApiController {
             return $this->deviceGrantError('expired_client', 'Client expired.');
         }
 
+        if (!$client->allowsGrantType(self::DEVICE_CODE_GRANT_TYPE)) {
+            return $this->deviceGrantError('unauthorized_client', 'The client is not registered for the device grant.');
+        }
         $authorization = $this->deviceCodeMapper->findByDeviceCode($deviceCode);
         if ($authorization === null || $authorization->getClientId() !== $client->getId()) {
             return $this->deviceGrantError('invalid_grant', 'The device code is invalid.');
@@ -1126,44 +1173,65 @@ class OIDCApiController extends ApiController {
             return $this->deviceGrantError('authorization_pending', 'The user has not completed authorization.');
         }
 
-        $user = $this->userManager->get($authorization->getUserId());
-        if ($user === null || !$user->isEnabled()) {
-            return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
-        }
-        if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
-            return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
-        }
-        // Re-check at issuance, like refresh: allowed_scopes or the user's group
-        // ceiling may have narrowed since the user approved the request.
-        $scope = $this->scopeCeiling->narrow($authorization->getUserId(), $authorization->getScope(), $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
-        if ($scope === '') {
-            return $this->deviceGrantError('access_denied', 'No permitted scopes remain for this user.');
-        }
-        if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
-            return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
-        }
-
-        $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
-        $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
-        $refreshCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
-
-        $accessToken = new AccessToken();
-        $accessToken->setClientId($client->getId());
-        $accessToken->setUserId($authorization->getUserId());
-        $accessToken->setScope($scope);
-        $accessToken->setHashedCode(hash('sha512', $refreshCode));
-        $accessToken->setCreated($now);
-        $accessToken->setRefreshed($now);
-        $accessToken->setExpiresAt($now + $expireTime);
-        $accessToken->setNonce('');
-        $accessToken->setResource(null);
-        $accessToken->setCodeChallenge('');
-        $accessToken->setCodeChallengeMethod('');
-        $accessToken->setIdTokenClaims(null);
-        $accessToken->setUserinfoClaims(null);
-        $accessToken->setSid(null);
-
+        $transactionStarted = false;
         try {
+            $this->userConsentMapper->beginChange($authorization->getUserId(), $client->getId());
+            $transactionStarted = true;
+            // Approval may have been revoked while this poll waited for the lock.
+            $authorization = $this->deviceCodeMapper->findByDeviceCode($deviceCode);
+            $now = $this->time->getTime();
+            if ($authorization === null || $authorization->getStatus() !== DeviceCode::STATUS_APPROVED) {
+                return $this->deviceGrantError('access_denied', 'The device approval is no longer valid.');
+            }
+            if ($now >= $authorization->getExpiresAt()) {
+                return $this->deviceGrantError('expired_token', 'The device code has expired.');
+            }
+            $user = $this->userManager->get($authorization->getUserId());
+            if ($user === null || !$user->isEnabled()) {
+                return $this->deviceGrantError('access_denied', 'The authorizing user is no longer available.');
+            }
+            if (!$this->clientAuthorizationService->isUserAllowedForClient($user, $client)) {
+                return $this->deviceGrantError('access_denied', 'The user is no longer allowed to use this client.');
+            }
+            // Re-check at issuance, like refresh: allowed_scopes or the user's group
+            // ceiling may have narrowed since the user approved the request.
+            $consent = $this->userConsentMapper->findByUserAndClient($authorization->getUserId(), $client->getId());
+            if ($consent === null || ($consent->getExpiresAt() !== null && $now >= $consent->getExpiresAt())) {
+                return $this->deviceGrantError('access_denied', 'Consent has been revoked or expired.');
+            }
+            $consentedScope = implode(' ', array_values(array_intersect(
+                preg_split('/ +/', trim($authorization->getScope()), -1, PREG_SPLIT_NO_EMPTY) ?: [],
+                preg_split('/ +/', trim($consent->getScopesGranted()), -1, PREG_SPLIT_NO_EMPTY) ?: []
+            )));
+            $scope = $this->scopeCeiling->narrow($authorization->getUserId(), $consentedScope, $client->getAllowedScopes() ?? '', $client->getClientIdentifier());
+            if ($scope === '') {
+                return $this->deviceGrantError('access_denied', 'No permitted scopes remain for this user.');
+            }
+            if (!$this->deviceCodeMapper->markConsumed($authorization, $now)) {
+                return $this->deviceGrantError('invalid_grant', 'The device code has already been used.');
+            }
+
+            $expireTime = (int)$this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_EXPIRE_TIME, Application::DEFAULT_EXPIRE_TIME);
+            $refreshExpireTime = $this->appConfig->getAppValueString(Application::APP_CONFIG_DEFAULT_REFRESH_EXPIRE_TIME, Application::DEFAULT_REFRESH_EXPIRE_TIME);
+            $refreshCode = $this->secureRandom->generate(128, ISecureRandom::CHAR_UPPER . ISecureRandom::CHAR_LOWER . ISecureRandom::CHAR_DIGITS);
+
+            $accessToken = new AccessToken();
+            $accessToken->setClientId($client->getId());
+            $accessToken->setUserId($authorization->getUserId());
+            $accessToken->setAuthTime($authorization->getAuthTime());
+            $accessToken->setScope($scope);
+            $accessToken->setHashedCode(hash('sha512', $refreshCode));
+            $accessToken->setCreated($now);
+            $accessToken->setRefreshed($now);
+            $accessToken->setExpiresAt($now + $expireTime);
+            $accessToken->setNonce('');
+            $accessToken->setResource(null);
+            $accessToken->setCodeChallenge('');
+            $accessToken->setCodeChallengeMethod('');
+            $accessToken->setIdTokenClaims(null);
+            $accessToken->setUserinfoClaims(null);
+            $accessToken->setSid(null);
+
             $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken(
                 $accessToken,
                 $client,
@@ -1171,39 +1239,48 @@ class OIDCApiController extends ApiController {
                 $this->request->getServerHost()
             ));
             $accessToken = $this->accessTokenMapper->insert($accessToken);
-            $idToken = $this->jwtGenerator->generateIdToken(
-                $accessToken,
-                $client,
-                $this->request->getServerProtocol(),
-                $this->request->getServerHost(),
-                false,
-                false
-            );
-        } catch (JwtCreationErrorException $e) {
-            $this->deviceCodeMapper->revertConsumed($authorization);
-            return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
-        } catch (\Throwable $e) {
-            $this->deviceCodeMapper->revertConsumed($authorization);
-            throw $e;
-        }
+            $idToken = null;
+            if (in_array('openid', preg_split('/ +/', $scope) ?: [], true)) {
+                $idToken = $this->jwtGenerator->generateIdToken(
+                    $accessToken,
+                    $client,
+                    $this->request->getServerProtocol(),
+                    $this->request->getServerHost(),
+                    false,
+                    false
+                );
+            }
 
-        $responseData = [
-            'access_token' => $accessToken->getAccessToken(),
-            'token_type' => 'Bearer',
-            'expires_in' => $expireTime,
-            'id_token' => $idToken,
-            'scope' => $accessToken->getScope(),
-        ];
-        $scopeArray = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY);
-        $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
-            Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS,
-            Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
-        ) === 'true';
-        if ($provideRefreshTokenAlways || in_array('offline_access', $scopeArray, true)) {
-            $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $refreshCode, $now);
-            $responseData['refresh_token'] = $refreshCode;
-            if ($refreshExpireTime !== 'never') {
-                $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+            $responseData = [
+                'access_token' => $accessToken->getAccessToken(),
+                'token_type' => 'Bearer',
+                'expires_in' => $expireTime,
+                'scope' => $accessToken->getScope(),
+            ];
+            if ($idToken !== null) {
+                $responseData['id_token'] = $idToken;
+            }
+            $scopeArray = preg_split('/\s+/', trim($accessToken->getScope()), -1, PREG_SPLIT_NO_EMPTY);
+            $provideRefreshTokenAlways = $this->appConfig->getAppValueString(
+                Application::APP_CONFIG_PROVIDE_REFRESH_TOKEN_ALWAYS,
+                Application::DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS
+            ) === 'true';
+            if ($client->allowsGrantType('refresh_token') && ($provideRefreshTokenAlways || in_array('offline_access', $scopeArray, true))) {
+                $this->refreshTokenMapper->createForAccessToken($accessToken->getId(), $refreshCode, $now, $accessToken->getScope());
+                $responseData['refresh_token'] = $refreshCode;
+                if ($refreshExpireTime !== 'never') {
+                    $responseData['refresh_expires_in'] = (int)$refreshExpireTime;
+                }
+            }
+
+            $this->userConsentMapper->commitChange();
+            $transactionStarted = false;
+        } catch (\Throwable $e) {
+            $this->logger->error('Could not persist device token issuance.', ['exception' => $e]);
+            return $this->deviceGrantError('server_error', 'Token creation failed.', Http::STATUS_INTERNAL_SERVER_ERROR);
+        } finally {
+            if ($transactionStarted) {
+                $this->userConsentMapper->rollbackChange();
             }
         }
 
@@ -1378,7 +1455,7 @@ class OIDCApiController extends ApiController {
             && $this->appConfig->getAppValueBool(Application::APP_CONFIG_DISABLE_AUTH_CLIENT_SECRET_BASIC, false)) {
             return $this->invalidClientResponse('client_secret_basic is disabled.', true);
         }
-        if ($basicAuthenticationAttempted && ($bodyClientId !== null || $bodyClientSecret !== null)) {
+        if ($basicAuthenticationAttempted && $bodyClientSecret !== null) {
             return new JSONResponse([
                 'error' => 'invalid_request',
                 'error_description' => 'Use exactly one client authentication method.',
@@ -1389,12 +1466,12 @@ class OIDCApiController extends ApiController {
         $client_id = $bodyClientId;
         $client_secret = $bodyClientSecret;
         // Get client authentication from request or HTTP Basic credentials.
-        if (!isset($client_id) || trim((string)$client_id) === '') {
-            $this->logger->debug('No client_id in request. Trying to fetch from Authorization Header.');
+        if ($basicAuthenticationAttempted) {
             $credentials = $this->getBasicClientCredentials();
-            if ($credentials !== null) {
-                [$client_id, $client_secret] = $credentials;
+            if ($credentials === null || ($client_id !== null && !hash_equals($credentials[0], $client_id))) {
+                return $this->invalidClientResponse('Malformed or inconsistent client credentials.', true);
             }
+            [$client_id, $client_secret] = $credentials;
         }
 
         if ($client_id === null || trim($client_id) === '') {
@@ -1434,7 +1511,7 @@ class OIDCApiController extends ApiController {
             return $this->invalidClientResponse('Client authentication failed.', $basicAuthenticationAttempted);
         }
 
-        if (!$client->getTexEnabled()) {
+        if (!$client->getTexEnabled() || !$client->allowsGrantType(self::TOKEN_EXCHANGE_GRANT_TYPE)) {
             $this->logger->info('Token Exchange is not enabled for client ' . $client_id . '.');
             return new JSONResponse([
                 'error' => 'unauthorized_client',

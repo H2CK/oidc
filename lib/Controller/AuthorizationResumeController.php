@@ -80,7 +80,8 @@ class AuthorizationResumeController extends Controller {
             return $this->error($this->l->t('Invalid authorization continuation.'), Http::STATUS_BAD_REQUEST);
         }
 
-        $response = $this->authorizationService->process($transaction['parameters'], true);
+        $response = $this->authorizationService->process($transaction['parameters'],
+            $this->authorizationService->hasFreshAuthenticationSince($transaction['created_at']));
         $response->addHeader('Cache-Control', 'no-store');
         $response->addHeader('Referrer-Policy', 'no-referrer');
         return $response;

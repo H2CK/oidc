@@ -14,7 +14,7 @@ Full documentation can be found at:
 - [Developer Documentation](https://github.com/H2CK/oidc/wiki#developer-documentation)
 
     ]]></description>
-  <version>2.5.0</version>
+  <version>2.5.1-alpha2</version>
   <licence>agpl</licence>
   <author mail="dev@jagel.net" homepage="https://github.com/H2CK/oidc">Thorsten Jagel</author>
   <namespace>OIDCIdentityProvider</namespace>
@@ -70,7 +70,11 @@ Full documentation can be found at:
   <repair-steps>
     <install>
       <step>OCA\OIDCIdentityProvider\Migration\CreateKeys</step>
+      <step>OCA\OIDCIdentityProvider\Migration\InitializeOperationLocks</step>
     </install>
+    <post-migration>
+      <step>OCA\OIDCIdentityProvider\Migration\InitializeOperationLocks</step>
+    </post-migration>
   </repair-steps>
 
   <settings>

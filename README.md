@@ -157,7 +157,7 @@ Use the option `--help` to retrieve more information on how to use the commands.
 Wildcards in configured redirect uris are allowed as described in the following.
 
 - End of path wildcard support (`.../*`)
-- Port wildcard for localhost (e.g. `http://localhost:*`)
+- Static loopback port wildcards for `localhost`, `127.0.0.1` and `[::1]` (e.g. `http://127.0.0.1:*/callback`). Native HTTP loopback-IP redirects accept any port even with a concrete registered port; host, path and query remain exact. Dynamic registrations use concrete URIs without wildcards.
 - Subdomain wildcard support (e.g. `https://*.example.com/callback`) - Must be activated via `occ config:app:set oidc allow_subdomain_wildcards --value "true"` Deactivation is possible with value `false`.
 
 ### User specific settings
@@ -199,7 +199,9 @@ The End-User opens the verification URI, signs in to Nextcloud, and approves or 
 
 Request `offline_access` when the device needs a refresh token. Device clients can be registered as public clients when they cannot protect a client secret. Existing per-client scope and group restrictions are enforced when the request is created and again before tokens are issued.
 
-By default `verification_uri` also carries the `user_code`, so clients that render a QR code from it produce a code the End-User can scan straight through to the approval page. Set `device_code_in_verification_uri` to `false` to return the short form RFC 8628 section 3.2 recommends; `verification_uri_complete` contains the user code either way.
+By default `verification_uri` is the short URI without a user code (RFC 8628 section 3.2). Use `verification_uri_complete` when rendering a QR code or a direct approval link. The legacy `device_code_in_verification_uri=true` option explicitly restores the old behavior; its default is now `false`.
+
+Dynamically registered device clients must include `urn:ietf:params:oauth:grant-type:device_code` in `grant_types`. Add `refresh_token` when requesting offline access. Device-only clients send `response_types: []` and may omit `redirect_uris`. Browser clients retain the default `response_types: ["code"]` and require registered redirect URIs. Existing static clients retain their device flow. The device endpoint and the token endpoint enforce the registered grants.
 
 ### Logout Details
 
@@ -612,4 +614,3 @@ Several global OIDC app settings can be changed with the Nextcloud `occ config:a
 ## JWT Access Tokens (RFC9068)
 
 It is possible to activate the use of JWT based access tokens according to RFC9068. This can be done in the settings UI or while creating a client in the CLI. If not activated an opaque access token will be generated.
-

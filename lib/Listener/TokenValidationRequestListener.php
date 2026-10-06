@@ -8,16 +8,15 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Listener;
 
-use DomainException;
-use Firebase\JWT\BeforeValidException;
-use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWK;
 use Firebase\JWT\JWT;
-use Firebase\JWT\SignatureInvalidException;
-use InvalidArgumentException;
+use Firebase\JWT\Key;
+use OCP\IURLGenerator;
+use OCP\Server;
 use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCA\OIDCIdentityProvider\Db\AccessTokenMapper;
 use OCA\OIDCIdentityProvider\Db\ClientMapper;
+use OCA\OIDCIdentityProvider\Db\IssuedIdTokenMapper;
 use OCA\OIDCIdentityProvider\Event\TokenValidationRequestEvent;
 use OCA\OIDCIdentityProvider\Exceptions\AccessTokenNotFoundException;
 use OCA\OIDCIdentityProvider\Exceptions\ClientNotFoundException;
@@ -27,7 +26,6 @@ use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUserManager;
 use Psr\Log\LoggerInterface;
-use UnexpectedValueException;
 
 /**
  * @implements IEventListener<TokenValidationRequestEvent|Event>
@@ -41,6 +39,8 @@ class TokenValidationRequestListener implements IEventListener {
         private IUserManager $userManager,
         private AccessTokenMapper $accessTokenMapper,
         private ClientMapper $clientMapper,
+        private ?IURLGenerator $urlGenerator = null,
+        private ?IssuedIdTokenMapper $issuedIdTokenMapper = null,
     ) {
     }
 
@@ -49,6 +49,7 @@ class TokenValidationRequestListener implements IEventListener {
             return;
         }
 
+        $event->setIsValid(false);
         $tokenString = $event->getToken();
         $this->logger->debug('[TokenValidationRequestListener] received a token validation request event');
 
@@ -71,87 +72,69 @@ class TokenValidationRequestListener implements IEventListener {
             // proceed checking for an id token
         }
 
-        // check if it's an id token
-        $oidcKey = [
-            'kty' => 'RSA',
-            'use' => 'sig',
-            'key_ops' => [ 'verify' ],
-            'alg' => 'RS256',
-            'kid' => $this->appConfig->getAppValueString('kid'),
-            'n' => $this->appConfig->getAppValueString('public_key_n'),
-            'e' => $this->appConfig->getAppValueString('public_key_e'),
-        ];
-
-        $jwks = [
-            'keys' => [
-                $oidcKey,
-            ],
-        ];
-
-        $decodedJwt = null;
+        // Unverified fields select a verification key only; they never authorize.
         try {
-            $decodedStdClass = JWT::decode($tokenString, JWK::parseKeySet($jwks));
-            $decodedJwt = (array) $decodedStdClass;
-        } catch (InvalidArgumentException $e) {
-            // provided key/key-array is empty or malformed.
-            $this->logger->debug('Provided key/key-array is empty or malformed.');
-        } catch (DomainException $e) {
-            // provided algorithm is unsupported OR
-            // provided key is invalid OR
-            // unknown error thrown in openSSL or libsodium OR
-            // libsodium is required but not available.
-            $this->logger->debug('Provided algorithm is unsupported OR provided key is invalid OR unknown error thrown in openSSL or libsodium OR libsodium is required but not available.');
-        } catch (SignatureInvalidException $e) {
-            // provided JWT signature verification failed.
-            $this->logger->debug('Provided JWT signature verification failed.');
-        } catch (BeforeValidException $e) {
-            // provided JWT is trying to be used before "nbf" claim OR
-            // provided JWT is trying to be used before "iat" claim.
-            $this->logger->debug('Provided JWT is trying to be used before "nbf" claim OR provided JWT is trying to be used before "iat" claim.');
-        } catch (ExpiredException $e) {
-            // provided JWT is trying to be used after "exp" claim.
-            $this->logger->debug('Provided JWT is trying to be used after "exp" claim.');
-        } catch (UnexpectedValueException $e) {
-            // provided JWT is malformed OR
-            // provided JWT is missing an algorithm / using an unsupported algorithm OR
-            // provided JWT algorithm does not match provided key OR
-            // provided key ID in key/key-array is empty or invalid.
-            $this->logger->debug('Provided JWT is malformed OR provided JWT is missing an algorithm / using an unsupported algorithm OR provided JWT algorithm does not match provided key OR provided key ID in key/key-array is empty or invalid.');
-        }
-
-        if ($decodedJwt === null) {
-            $this->logger->info('Provided JWT could not be decoded.');
-            $event->setIsValid(false);
-            return;
-        }
-
-        // check audience
-        $audience = $decodedJwt['aud'] ?? '';
-        try {
-            $client = $this->clientMapper->getByIdentifier($audience);
-            if ($client === null) {
-                $this->logger->error('Token audience does not match any of our clients identifiers');
-                $event->setIsValid(false);
+            $parts = explode('.', $tokenString);
+            if (count($parts) !== 3 || strlen($tokenString) > 65536) {
                 return;
             }
-        } catch (ClientNotFoundException) {
-            $this->logger->error('Token audience does not match any of our clients identifiers');
-            $event->setIsValid(false);
-            return;
+            $header = json_decode(JWT::urlsafeB64Decode($parts[0]), true, 32, JSON_THROW_ON_ERROR);
+            $payload = json_decode(JWT::urlsafeB64Decode($parts[1]), true, 32, JSON_THROW_ON_ERROR);
+            if (!is_array($header) || !is_array($payload)
+                || !in_array($header['typ'] ?? 'JWT', ['JWT', 'application/jwt'], true)) {
+                // In particular, a revoked at+jwt token must not enter this path.
+                return;
+            }
+            $audiences = $payload['aud'] ?? null;
+            $audiences = is_string($audiences) ? [$audiences] : $audiences;
+            if (!is_array($audiences) || !array_is_list($audiences) || $audiences === []
+                || count($audiences) > 16 || array_filter($audiences, static fn ($aud): bool => !is_string($aud) || $aud === '') !== []) {
+                return;
+            }
+            $authorizedParty = $payload['azp'] ?? null;
+            if ($authorizedParty !== null && (!is_string($authorizedParty) || !in_array($authorizedParty, $audiences, true))) {
+                return;
+            }
+            if (count($audiences) > 1 && $authorizedParty === null) {
+                return;
+            }
+            $client = $this->clientMapper->getByIdentifier($authorizedParty ?? $audiences[0]);
+            if ($client === null || ($header['alg'] ?? null) !== $client->getSigningAlg()) {
+                return;
+            }
+            if ($client->getSigningAlg() === 'HS256') {
+                if ($client->getType() === 'public' || !$client->getSecret()) {
+                    return;
+                }
+                if (!($this->issuedIdTokenMapper ?? Server::get(IssuedIdTokenMapper::class))->isIssued($tokenString, $this->time->getTime())) {
+                    return;
+                }
+                $keys = new Key($client->getSecret(), 'HS256');
+            } elseif ($client->getSigningAlg() === 'RS256') {
+                $keys = JWK::parseKeySet(['keys' => [[
+                    'kty' => 'RSA', 'use' => 'sig', 'alg' => 'RS256',
+                    'kid' => $this->appConfig->getAppValueString('kid'),
+                    'n' => $this->appConfig->getAppValueString('public_key_n'),
+                    'e' => $this->appConfig->getAppValueString('public_key_e'),
+                ]]]);
+            } else {
+                return;
+            }
+            $claims = (array)JWT::decode($tokenString, $keys);
+            $issuer = rtrim(($this->urlGenerator ?? Server::get(IURLGenerator::class))->getAbsoluteURL(''), '/');
+            $now = $this->time->getTime();
+            if (($claims['iss'] ?? null) !== $issuer || !is_string($claims['sub'] ?? null) || $claims['sub'] === ''
+                || !is_int($claims['exp'] ?? null) || !is_int($claims['iat'] ?? null)
+                || $claims['exp'] <= $now || $claims['iat'] > $now || $claims['exp'] <= $claims['iat']) {
+                return;
+            }
+            $user = $this->userManager->get($claims['sub']);
+            if ($user !== null && $user->isEnabled()) {
+                $event->setIsValid(true);
+                $event->setUserId($claims['sub']);
+            }
+        } catch (ClientNotFoundException | \InvalidArgumentException | \DomainException | \UnexpectedValueException | \JsonException $e) {
+            $this->logger->debug('ID token validation failed.', ['exception' => get_class($e)]);
         }
-
-        // check user ID
-        $userId = $decodedJwt['preferred_username'] ?? '';
-        $user = $this->userManager->get($userId);
-        if ($user === null || !$user->isEnabled()) {
-            $this->logger->error('Provided user in JWT is unknown.');
-            $event->setIsValid(false);
-            return;
-        }
-
-        // all good
-        $event->setIsValid(true);
-        $event->setUserId($userId);
-
     }
 }

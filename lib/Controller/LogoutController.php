@@ -498,10 +498,7 @@ class LogoutController extends ApiController {
             }
             $confirmationContext = $this->consumeLogoutConfirmationToken($logout_confirmation_token, $activeUserId);
             if ($confirmationContext === null) {
-                return new JSONResponse([
-                    'error' => 'invalid_request',
-                    'error_description' => 'Logout confirmation is missing, expired, or has already been used.',
-                ], Http::STATUS_BAD_REQUEST);
+                return $this->logoutErrorPage($this->l->t('Logout confirmation has expired or was already used. Please start logout again.'), Http::STATUS_BAD_REQUEST);
             }
 
             // Revalidate the RP-specific redirect immediately before logout.
@@ -543,7 +540,7 @@ class LogoutController extends ApiController {
         if ($validated instanceof JSONResponse) {
             return $activeUserId !== null
                 ? $this->buildLogoutConfirmationResponse($activeUserId)
-                : $validated;
+                : $this->logoutErrorPage($this->l->t('The logout request contains an invalid ID token.'), $validated->getStatus());
         }
 
         $userId = $validated['user_id'];
@@ -576,7 +573,7 @@ class LogoutController extends ApiController {
                 $description = $expiredHint
                     ? 'Expired id_token_hint does not match a recent OP/RP session.'
                     : 'id_token_hint does not match a current or recent OP/RP session.';
-                return $this->invalidIdTokenHint($description);
+                return $this->logoutErrorPage($this->l->t('The logout request does not match a current or recent session.'), Http::STATUS_UNAUTHORIZED);
             }
         }
 
@@ -588,4 +585,13 @@ class LogoutController extends ApiController {
 
         return $this->completeBrowserLogout($frontChannelUris ?? [], $targetUrl);
     }
+    private function logoutErrorPage(string $message, int $status): TemplateResponse {
+        $response = new TemplateResponse('core', 'error', [
+            'errors' => [['error' => $message]],
+        ], TemplateResponse::RENDER_AS_ERROR, $status);
+        $response->addHeader('Cache-Control', 'no-store');
+        $response->addHeader('Pragma', 'no-cache');
+        return $response;
+    }
+
 }
