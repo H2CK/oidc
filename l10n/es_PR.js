@@ -24,6 +24,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
     "Scope" : "Alcance",
+    "Phone number" : "Número telefónico",
     "Continue" : "Continuar",
     "Loading..." : "Cargando..."
 },

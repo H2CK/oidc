@@ -1,7 +1,6 @@
 { "translations": {
     "Authorization session expired. Please try again." : "Auktoriseringssessionen har löpt ut. Försök igen.",
     "You must be logged in to view this page." : "Du måste vara inloggad för att visa den här sidan.",
-    "No consent request pending." : "Ingen väntande begäran om samtycke.",
     "Client Identifier is missing in the request" : "Klientidentifierare saknas i begäran",
     "Could not find client for the given uid or client identifier" : "Kunde inte hitta någon klient för angivet UID eller klientidentifierare",
     "Custom claim name is missing in the request" : "Namn på anpassat anspråk saknas i begäran",
@@ -12,9 +11,9 @@
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "URL:en för omdirigering måste vara fullständig, till exempel https://yourdomain.com/path",
     "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "Ditt klient-ID måste följa dessa regler: utskrivbara ASCII-tecken utom : och en längd på 32–64 tecken",
     "Your client secret must comply with the following rules: printable ASCII except : and length 32-64" : "Din klienthemlighet måste följa dessa regler: utskrivbara ASCII-tecken utom : och en längd på 32–64 tecken",
+    "Authorization request is missing a redirect URI." : "Omdirigerings-URI saknas i auktoriseringsbegäran.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Användaren tillhör inte någon av grupperna som har angetts för klienten. En inloggningstoken får därför inte hämtas.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Ett fel inträffade när JWT:n skapades. Informera klientens administratör.",
-    "Authorization request is missing a redirect URI." : "Omdirigerings-URI saknas i auktoriseringsbegäran.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Klienten har inte behörighet att ansluta. Informera klientens administratör.",
     "Your client is expired. Please inform the administrator of your client." : "Klienten har upphört att gälla. Informera klientens administratör.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den mottagna omdirigerings-URI:n godkänns inte. Informera klientens administratör.",
@@ -182,6 +181,7 @@
     "Verify your identity (required)" : "Verifiera din identitet (obligatoriskt)",
     "Profile information" : "Profilinformation",
     "Access your name, username, profile picture, and quota" : "Få åtkomst till ditt namn, användarnamn, din profilbild och kvot",
+    "Phone number" : "Telefonnummer",
     "Email address" : "E-postadress",
     "Access your email address and verification status" : "Få åtkomst till din e-postadress och verifieringsstatus",
     "Group memberships" : "Gruppmedlemskap",
@@ -194,10 +194,9 @@
     "This application will be able to:" : "Den här appen kommer att kunna:",
     "Deny" : "Neka",
     "Allow" : "Tillåt",
-    "You can revoke this access at any time from your account settings." : "Du kan när som helst återkalla åtkomsten i dina kontoinställningar.",
     "Continue" : "Fortsätt",
+    "You can revoke this access at any time from your account settings." : "Du kan när som helst återkalla åtkomsten i dina kontoinställningar.",
     "Failed to load authorized applications" : "Kunde inte läsa in auktoriserade appar",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "Vill du verkligen återkalla åtkomsten för ”{clientName}”?",
     "Access revoked successfully" : "Åtkomsten har återkallats",
     "Failed to revoke access" : "Kunde inte återkalla åtkomsten",
     "Authorized Applications" : "Auktoriserade appar",
@@ -208,6 +207,8 @@
     "Client ID:" : "Klient-ID:",
     "Permissions:" : "Behörigheter:",
     "Authorized on:" : "Auktoriserad den:",
-    "Revoke Access" : "Återkalla åtkomst"
+    "Edit permissions" : "Redigera behörigheter",
+    "Revoke Access" : "Återkalla åtkomst",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "Vill du verkligen återkalla åtkomsten för ”{clientName}”?"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

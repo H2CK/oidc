@@ -89,10 +89,12 @@ OC.L10N.register(
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect hukuruhusu kuingia katika huduma za nje ukitumia akaunti yako ya mtumiaji ya {instanceName}.",
     "All settings for the login at other services are managed by your administrator." : "Mipangilio yote ya kuingia katika huduma zingine inadhibitiwa na msimamizi wako.",
     "Restrict Personal Information" : "Zuia Taarifa Binafsi",
+    "Phone number" : "Namba ya simu",
     "Email address" : "Anwani ya barua pepe",
     "Deny" : "Kataa",
     "Allow" : "Ruhusu",
     "Continue" : "Endelea",
-    "Loading..." : "Inapakia..."
+    "Loading..." : "Inapakia...",
+    "Edit permissions" : "Hariri ruhusa"
 },
 "nplurals=2; plural=(n != 1);");

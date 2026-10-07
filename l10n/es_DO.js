@@ -23,6 +23,7 @@ OC.L10N.register(
     "Disable" : "Deshabilitar",
     "Enable" : "Habilitar",
     "Scope" : "Alcance",
+    "Phone number" : "Número de teléfono",
     "Loading..." : "Cargando..."
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

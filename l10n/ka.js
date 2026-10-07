@@ -32,9 +32,11 @@ OC.L10N.register(
     "Remove" : "Remove",
     "Scope" : "Scope",
     "Profile information" : "Profile information",
+    "Phone number" : "Phone number",
     "Email address" : "Email address",
     "Deny" : "Deny",
     "Allow" : "Allow",
-    "Continue" : "გაგრძელება"
+    "Continue" : "გაგრძელება",
+    "Edit permissions" : "Edit permissions"
 },
 "nplurals=2; plural=(n!=1);");

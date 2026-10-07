@@ -31,6 +31,7 @@ OC.L10N.register(
     "Remove" : "הסרה",
     "Select group" : "בחירת קבוצה",
     "Scope" : "היקף",
+    "Phone number" : "מספר טלפון",
     "Email address" : "כתובת דוא״ל",
     "Deny" : "לדחות",
     "Allow" : "לאפשר",

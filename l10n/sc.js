@@ -33,6 +33,7 @@ OC.L10N.register(
     "Remove" : "Boga",
     "Select group" : "Seletziona grupos",
     "Scope" : "Àmbitu",
+    "Phone number" : "Nùmeru de telèfonu",
     "Email address" : "Indiritzu de posta eletrònica",
     "Deny" : "Nega",
     "Allow" : "Permite"

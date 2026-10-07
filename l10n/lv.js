@@ -28,6 +28,7 @@ OC.L10N.register(
     "Enable" : "Iespējot",
     "Remove" : "Noņemt",
     "Scope" : "Darbības joma",
+    "Phone number" : "Tālruņa numurs",
     "Email address" : "E-pasta adrese",
     "Deny" : "Noraidīt",
     "Allow" : "Atļaut",

@@ -33,10 +33,12 @@ OC.L10N.register(
     "Select group" : "그룹 선택",
     "Scope" : "범위",
     "Profile information" : "프로필 정보",
+    "Phone number" : "휴대폰 번호",
     "Email address" : "이메일 주소",
     "Deny" : "거부",
     "Allow" : "허용",
     "Continue" : "계속",
-    "Loading..." : "불러오는 중..."
+    "Loading..." : "불러오는 중...",
+    "Edit permissions" : "권한 수정"
 },
 "nplurals=1; plural=0;");

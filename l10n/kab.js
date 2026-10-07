@@ -26,6 +26,7 @@ OC.L10N.register(
     "Disable" : "Désactiver",
     "Enable" : "Sermed",
     "Remove" : "Kkes",
+    "Phone number" : "Uṭṭun n tiliɣri",
     "Email address" : "Tansa imayl",
     "Deny" : "Agwi",
     "Allow" : "Sireg",

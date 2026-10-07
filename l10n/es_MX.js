@@ -31,6 +31,7 @@ OC.L10N.register(
     "Select group" : "Seleccionar grupos",
     "Scope" : "Ámbito",
     "Profile information" : "Información del perfil",
+    "Phone number" : "Número telefónico",
     "Email address" : "Dirección de correo electrónico",
     "Deny" : "Denegar",
     "Allow" : "Permitir",

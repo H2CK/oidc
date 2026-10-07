@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "You must be logged in to view this page." : "Pokud si chcete tuto stránku zobrazit, je třeba se přihlásit.",
-    "No consent request pending." : "Žádná čekající žádost o souhlas.",
     "Client Identifier is missing in the request" : "V požadavku chybí identifikátor klienta",
     "Could not find client for the given uid or client identifier" : "Nebylo možné najít klienta pro dané uid nebo identifikátor klienta",
     "Custom claim name is missing in the request" : "Uživatelsky určené tvrzené jméno chybí v požadavku",
@@ -154,10 +153,9 @@ OC.L10N.register(
     "This application will be able to:" : "Tato aplikace bude moci:",
     "Deny" : "Odepřít",
     "Allow" : "Umožnit",
-    "You can revoke this access at any time from your account settings." : "Tento přístup je možné kdykoli odvolat a to z nastavení vašeho účtu.",
     "Continue" : "Pokračovat",
+    "You can revoke this access at any time from your account settings." : "Tento přístup je možné kdykoli odvolat a to z nastavení vašeho účtu.",
     "Failed to load authorized applications" : "Nepodařilo se načíst pověřené aplikace",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "Opravdu chcete odvolat přístup pro „{clientName}“?",
     "Access revoked successfully" : "Přístup úspěšně odvolán",
     "Failed to revoke access" : "Nepodařilo se odvolat přístup",
     "Authorized Applications" : "Pověřené aplikace",
@@ -168,6 +166,7 @@ OC.L10N.register(
     "Client ID:" : "Identif. klienta:",
     "Permissions:" : "Oprávnění:",
     "Authorized on:" : "Pověřeno na:",
-    "Revoke Access" : "Odvolat přístup"
+    "Revoke Access" : "Odvolat přístup",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "Opravdu chcete odvolat přístup pro „{clientName}“?"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

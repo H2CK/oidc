@@ -98,6 +98,7 @@ OC.L10N.register(
     "All settings for the login at other services are managed by your administrator." : "Alle instellingen voor het aanmelden bij andere services worden beheerd door je beheerder.",
     "Restrict Personal Information" : "Persoonlijke gegevens beperken",
     "Profile information" : "Profiel informatie",
+    "Phone number" : "Telefoonnummer",
     "Email address" : "E-mailadres",
     "Group memberships" : "Groepslidmaatschap",
     "Access when you're away" : "Toegang bij afwezigheid",
@@ -106,6 +107,7 @@ OC.L10N.register(
     "Deny" : "Weigeren",
     "Allow" : "Toestaan",
     "Continue" : "Doorgaan",
-    "Loading..." : "Laden...."
+    "Loading..." : "Laden....",
+    "Edit permissions" : "Pas machtigingen aan"
 },
 "nplurals=2; plural=(n != 1);");

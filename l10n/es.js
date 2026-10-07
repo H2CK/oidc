@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "You must be logged in to view this page." : "Debe iniciar sesión para ver esta página.",
-    "No consent request pending." : "No hay solicitud de consentimiento pendiente.",
     "Client Identifier is missing in the request" : "ID de cliente no encontrado en la solicitud",
     "Could not find client for the given uid or client identifier" : "Imposible encontrar el cliente para el identificador de usuario o cliente especificado",
     "Custom claim name is missing in the request" : "Falta el nombre de la reclamación personalizada en la solicitud",
@@ -141,6 +140,7 @@ OC.L10N.register(
     "Verify your identity (required)" : "Verifique su identidad (obligatorio)",
     "Profile information" : "Información del perfil",
     "Access your name, username, profile picture, and quota" : "Accede a tu nombre, nombre de usuario, foto de perfil y cuota.",
+    "Phone number" : "Número de teléfono",
     "Email address" : "Dirección de correo electrónico",
     "Access your email address and verification status" : "Accede a su dirección de correo electrónico y al estado de verificación.",
     "Group memberships" : "Afiliaciones a grupos",
@@ -153,10 +153,9 @@ OC.L10N.register(
     "This application will be able to:" : "Esta aplicación podrá:",
     "Deny" : "Denegar",
     "Allow" : "Permitir",
-    "You can revoke this access at any time from your account settings." : "Puedes revocar este acceso en cualquier momento desde la configuración de tu cuenta.",
     "Continue" : "Continuar",
+    "You can revoke this access at any time from your account settings." : "Puedes revocar este acceso en cualquier momento desde la configuración de tu cuenta.",
     "Failed to load authorized applications" : "No se pudieron cargar las aplicaciones autorizadas.",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "¿Está seguro de que desea revocar el acceso a {clientName}?",
     "Access revoked successfully" : "Acceso revocado correctamente",
     "Failed to revoke access" : "No se ha podido revocar el acceso",
     "Authorized Applications" : "Aplicaciones autorizadas",
@@ -167,6 +166,8 @@ OC.L10N.register(
     "Client ID:" : "ID de cliente:",
     "Permissions:" : "Permisos:",
     "Authorized on:" : "Autorizado el:",
-    "Revoke Access" : "Revocar acceso"
+    "Edit permissions" : "Editar permisos",
+    "Revoke Access" : "Revocar acceso",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "¿Está seguro de que desea revocar el acceso a {clientName}?"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

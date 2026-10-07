@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "You must be logged in to view this page." : "Морате бити пријављени да бисте видели ову страницу.",
-    "No consent request pending." : "Нема ниједног захтева са сагласност на чекању.",
     "Log out" : "Одјави се",
     "Cancel" : "Откажи",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Адреса за преусмеравање мора бити пуна адреса, нпр: https://yourdomain.com/path",
@@ -106,6 +105,7 @@ OC.L10N.register(
     "Verify your identity (required)" : "Потврди ваш идентитет (обавезно)",
     "Profile information" : "Информације о профилу",
     "Access your name, username, profile picture, and quota" : "Приступа вашем имену, корисничком имену, профилној слици и квоти",
+    "Phone number" : "Број телефона",
     "Email address" : "Адреса е-поште",
     "Access your email address and verification status" : "Приступа вашој и-мејл адреси и статусу потврде идентитета.",
     "Group memberships" : "Чланство у групама",
@@ -118,10 +118,9 @@ OC.L10N.register(
     "This application will be able to:" : "Ова апликација ће моћи да:",
     "Deny" : "Одбиј",
     "Allow" : "Дозволи",
-    "You can revoke this access at any time from your account settings." : "Овај приступ можете да укинете кад год то желите из подешавања вашег налога.",
     "Continue" : "Настави",
+    "You can revoke this access at any time from your account settings." : "Овај приступ можете да укинете кад год то желите из подешавања вашег налога.",
     "Failed to load authorized applications" : "Није успело учитавање одобрених апликација",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "Да ли заиста желите да укинете приступ за „{clientName}”?",
     "Access revoked successfully" : "Приступ је успешно укинут",
     "Failed to revoke access" : "Није успело укидаље приступа",
     "Authorized Applications" : "Одобрене апликације",
@@ -132,6 +131,8 @@ OC.L10N.register(
     "Client ID:" : "ID клијента:",
     "Permissions:" : "Дозволе:",
     "Authorized on:" : "Одобрено:",
-    "Revoke Access" : "Укини приступ"
+    "Edit permissions" : "Уреди дозволе",
+    "Revoke Access" : "Укини приступ",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "Да ли заиста желите да укинете приступ за „{clientName}”?"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

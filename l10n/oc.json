@@ -29,7 +29,9 @@
     "Disable" : "Desactivar",
     "Enable" : "Activar",
     "Remove" : "Suprimir",
+    "Phone number" : "Numèro de telefòn",
     "Email address" : "Adreça mail",
-    "Continue" : "Contunhar"
+    "Continue" : "Contunhar",
+    "Edit permissions" : "Modificar las autorizacions"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

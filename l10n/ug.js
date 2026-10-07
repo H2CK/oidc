@@ -2,7 +2,6 @@ OC.L10N.register(
     "oidc",
     {
     "You must be logged in to view this page." : "بۇ بەتنى كۆرۈش ئۈچۈن كىرىشىڭىز كېرەك.",
-    "No consent request pending." : "ھېچقانداق ماقۇللۇق تەلىپى يوق.",
     "Client Identifier is missing in the request" : "تەلەپتە خېرىدار ئېنىقلىغۇچى يوق",
     "Could not find client for the given uid or client identifier" : "بېرىلگەن uid ياكى خېرىدار ئېنىقلىغۇچى ئارقىلق خېرىدارنى تاپالمىدى",
     "Custom claim name is missing in the request" : "تەلەپتە خاس تەلەپ قىلغۇچى نامى يوق",
@@ -109,6 +108,7 @@ OC.L10N.register(
     "Verify your identity (required)" : "كىملىكىڭىزنى دەلىللەڭ (تەلەپ قىلىنىدۇ)",
     "Profile information" : "ئارخىپ ئۇچۇرى",
     "Access your name, username, profile picture, and quota" : "ئىسمىڭىز، ئىشلەتكۈچى نامىڭىز، تەرجىمال رەسىمىڭىز ھەمدە ساقلاش چىكىنى ئۆزگەرتەلەيسىز",
+    "Phone number" : "تېلېفون نومۇرى",
     "Email address" : "ئېلخەت ئادرېسى",
     "Access your email address and verification status" : "ئېلخەت ئادىرسىڭىز ھەمدە دەلىللەش ھالىتىڭىزنى ئۆزگەرتەلەيسىز",
     "Group memberships" : "گۇرۇپپا ئەزالىقى",
@@ -121,10 +121,9 @@ OC.L10N.register(
     "This application will be able to:" : "بۇ ئەپ تۆۋەندىكى ھوقوققا ئىگە:",
     "Deny" : "رەت قىلىش",
     "Allow" : "رۇخسەت قىلىڭ",
-    "You can revoke this access at any time from your account settings." : "سىز بۇ زىيارەتنى ھېسابات تەڭشىكىدىن ھەر-قانداق ۋاقىتتا رەت قىلالايسىز.",
     "Continue" : "داۋاملاشتۇر",
+    "You can revoke this access at any time from your account settings." : "سىز بۇ زىيارەتنى ھېسابات تەڭشىكىدىن ھەر-قانداق ۋاقىتتا رەت قىلالايسىز.",
     "Failed to load authorized applications" : "ھوقوق بېرىلگەن ئەپلەرنى يۈكلەش مەغلۇپ بولدى",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "سىز \"{clientName}\" نىڭ زىيارەت ھوقوقىنى تارتىۋالماقچىمۇ؟",
     "Access revoked successfully" : "زىيارەت مۇۋاپىقىيەتلىك تارتىۋېلىندى",
     "Failed to revoke access" : "زىيارەتنى تارتىۋېلىش مەغلۇپ بولدى",
     "Authorized Applications" : "ھوقوق بېرىلگەن ئەپلەر",
@@ -135,6 +134,8 @@ OC.L10N.register(
     "Client ID:" : "خېرىدار ID:",
     "Permissions:" : "ئىجازەتلەر:",
     "Authorized on:" : "دا ھوقوق بېرىلدى:",
-    "Revoke Access" : "زىيارەتنى تارتىۋال"
+    "Edit permissions" : "ئىجازەتلەرنى تەھرىرلەڭ",
+    "Revoke Access" : "زىيارەتنى تارتىۋال",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "سىز \"{clientName}\" نىڭ زىيارەت ھوقوقىنى تارتىۋالماقچىمۇ؟"
 },
 "nplurals=2; plural=(n != 1);");

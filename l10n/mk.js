@@ -33,9 +33,11 @@ OC.L10N.register(
     "Remove" : "Отстрани ",
     "Scope" : "Опсег",
     "Profile information" : "Информации за профилот",
+    "Phone number" : "Телефонски број",
     "Email address" : "Е-пошта адреса",
     "Deny" : "Забрани",
     "Allow" : "Дозволи",
-    "Continue" : "Продолжи"
+    "Continue" : "Продолжи",
+    "Edit permissions" : "Уреди дозволи"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

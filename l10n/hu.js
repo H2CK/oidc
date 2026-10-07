@@ -57,10 +57,12 @@ OC.L10N.register(
     "Regenerate Keys" : "Kulcsok újbóli előállítása",
     "Scope" : "Hatókör",
     "Profile information" : "Profilinformációk",
+    "Phone number" : "Telefonszám",
     "Email address" : "E-mail-cím",
     "Deny" : "Megtagadás",
     "Allow" : "Engedélyezés",
     "Continue" : "Folytatás",
-    "Loading..." : "Betöltés…"
+    "Loading..." : "Betöltés…",
+    "Edit permissions" : "Jogosultságok szerkesztése"
 },
 "nplurals=2; plural=(n != 1);");

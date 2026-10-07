@@ -57,10 +57,12 @@
     "Scope" : "Объем",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect позволяет вам входить во внешние сервисы с вашей {instanceName} учётной записью.",
     "Profile information" : "Сведения о профиле",
+    "Phone number" : "Телефон",
     "Email address" : "Email адрес",
     "Deny" : "Запретить",
     "Allow" : "Разрешить",
     "Continue" : "Продолжить",
-    "Loading..." : "Загрузка..."
+    "Loading..." : "Загрузка...",
+    "Edit permissions" : "Разрешения на редактирование"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"
 }

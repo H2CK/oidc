@@ -23,6 +23,7 @@
     "Disable" : "Deshabilitar",
     "Remove" : "Remover",
     "Scope" : "Alcance",
+    "Phone number" : "Número telefónico",
     "Loading..." : "Cargando..."
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

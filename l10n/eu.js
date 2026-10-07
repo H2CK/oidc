@@ -51,10 +51,12 @@ OC.L10N.register(
     "Regenerate Keys" : "Berriro sortu gakoak",
     "Scope" : "Esparrua",
     "Profile information" : "Profilaren informazioa",
+    "Phone number" : "Telefono zenbakia",
     "Email address" : "Helbide elektronikoa",
     "Deny" : "Ukatu",
     "Allow" : "Baimendu",
     "Continue" : "Jarraitu",
-    "Loading..." : "Kargatzen..."
+    "Loading..." : "Kargatzen...",
+    "Edit permissions" : "Editatu baimenak"
 },
 "nplurals=2; plural=(n != 1);");

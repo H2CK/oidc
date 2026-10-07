@@ -30,6 +30,7 @@ OC.L10N.register(
     "Enable" : "Aktivizoje",
     "Remove" : "Hiqe",
     "Scope" : "Shtrirje",
+    "Phone number" : "Numri i telefonit",
     "Deny" : "Refuzo",
     "Allow" : "Lejo",
     "Continue" : "Vazhdo",

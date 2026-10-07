@@ -37,9 +37,11 @@ OC.L10N.register(
     "Select group" : "Izbor skupine",
     "Scope" : "Obseg",
     "Profile information" : "Podrobnosti profila",
+    "Phone number" : "Telefonska številka",
     "Email address" : "Elektronski naslov",
     "Deny" : "Zavrni",
     "Allow" : "Dovoli",
-    "Continue" : "Nadaljuj"
+    "Continue" : "Nadaljuj",
+    "Edit permissions" : "Uredi dovoljenja"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

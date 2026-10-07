@@ -31,7 +31,9 @@ OC.L10N.register(
     "Disable" : "Desactivar",
     "Enable" : "Activar",
     "Remove" : "Suprimir",
+    "Phone number" : "Numèro de telefòn",
     "Email address" : "Adreça mail",
-    "Continue" : "Contunhar"
+    "Continue" : "Contunhar",
+    "Edit permissions" : "Modificar las autorizacions"
 },
 "nplurals=2; plural=(n > 1);");

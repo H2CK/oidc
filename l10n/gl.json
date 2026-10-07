@@ -1,6 +1,5 @@
 { "translations": {
     "You must be logged in to view this page." : "Debe ter accedido para ver esta páxina.",
-    "No consent request pending." : "Non hai ningunha solicitude de consentimento pendente.",
     "Client Identifier is missing in the request" : "Falta o identificador do cliente na solicitude",
     "Could not find client for the given uid or client identifier" : "Non foi posíbel o cliente para o uid ou identificador de cliente dado",
     "Custom claim name is missing in the request" : "Falta o nome da reclamación personalizada na solicitude",
@@ -133,6 +132,7 @@
     "Verify your identity (required)" : "Verificar a súa identidade (obrigatorio)",
     "Profile information" : "Información do perfil",
     "Access your name, username, profile picture, and quota" : "Acceder ao seu nome, nome de usuario, imaxe de perfil e cota",
+    "Phone number" : "Número de teléfono",
     "Email address" : "Enderezo de correo",
     "Access your email address and verification status" : "Acceder ao seu enderezo de correo-e e estado de verificación",
     "Group memberships" : "Membros do grupo",
@@ -145,10 +145,9 @@
     "This application will be able to:" : "Esta aplicación será quen a:",
     "Deny" : "Denegar",
     "Allow" : "Permitir",
-    "You can revoke this access at any time from your account settings." : "Pode revogar este acceso en calquera momento desde a configuración da súa conta.",
     "Continue" : "Continuar",
+    "You can revoke this access at any time from your account settings." : "Pode revogar este acceso en calquera momento desde a configuración da súa conta.",
     "Failed to load authorized applications" : "Produciuse un fallo ao cargar as aplicacións autorizadas",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "Confirma que quere revogar o acceso de «{clientName}»",
     "Access revoked successfully" : "O acceso foi revogado satisfactoriamente",
     "Failed to revoke access" : "Produciuse un fallo ao revogar o acceso",
     "Authorized Applications" : "Aplicacións autorizadas",
@@ -159,6 +158,8 @@
     "Client ID:" : "ID de cliente:",
     "Permissions:" : "Permisos:",
     "Authorized on:" : "Autorizado o:",
-    "Revoke Access" : "Revogar o acceso"
+    "Edit permissions" : "Editar permisos",
+    "Revoke Access" : "Revogar o acceso",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "Confirma que quere revogar o acceso de «{clientName}»"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -33,9 +33,11 @@ OC.L10N.register(
     "Remove" : "–£—Å—Ç–≥–∞—Ö",
     "Scope" : "Хамрах хүрээ",
     "Profile information" : "Профайлын мэдээлэл",
+    "Phone number" : "–£—Ç–∞—Å–Ω—ã –¥—É–≥–∞–∞—Ä",
     "Email address" : "Имэйл хаяг",
     "Deny" : "Татгалзах",
     "Allow" : "Зөвшөөрөх",
-    "Continue" : "“Ø—Ä–≥—ç–ª–∂–ª“Ø“Ø–ª—ç—Ö"
+    "Continue" : "“Ø—Ä–≥—ç–ª–∂–ª“Ø“Ø–ª—ç—Ö",
+    "Edit permissions" : "Зөвшөөрлүүд засах"
 },
 "nplurals=2; plural=(n != 1);");

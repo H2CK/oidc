@@ -26,9 +26,11 @@ OC.L10N.register(
     "Select group" : "Selectați grupul",
     "Scope" : "Scop",
     "Profile information" : "Informații de profil",
+    "Phone number" : "Număr telefon",
     "Email address" : "Email",
     "Deny" : "Refuzați",
     "Allow" : "Permiteți",
-    "Continue" : "Continuă"
+    "Continue" : "Continuă",
+    "Edit permissions" : "Editare permisiuni"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

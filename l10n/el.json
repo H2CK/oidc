@@ -1,7 +1,6 @@
 { "translations": {
     "Authorization session expired. Please try again." : "Η συνεδρία εξουσιοδότησης έληξε. Παρακαλούμε δοκιμάστε ξανά.",
     "You must be logged in to view this page." : "Πρέπει να έχετε συνδεθεί για να δείτε αυτήν τη σελίδα.",
-    "No consent request pending." : "Δεν εκκρεμεί αίτημα συγκατάθεσης.",
     "Client Identifier is missing in the request" : "Το αναγνωριστικό πελάτη (Client Identifier) λείπει από το αίτημα",
     "Could not find client for the given uid or client identifier" : "Δεν ήταν δυνατή η εύρεση πελάτη για το δοθέν uid ή αναγνωριστικό πελάτη",
     "Custom claim name is missing in the request" : "Το όνομα της προσαρμοσμένης αξίωσης (custom claim) λείπει από το αίτημα",
@@ -10,9 +9,9 @@
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Η διεύθυνση URL ανακατεύθυνσης πρέπει να είναι μια πλήρης διεύθυνση URL, για παράδειγμα: https://yourdomain.com/path",
     "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "Το ID πελάτη πρέπει να συμμορφώνεται με τους εξής κανόνες: εκτυπώσιμοι χαρακτήρες ASCII εκτός από : και μήκος 32-64 χαρακτήρες",
     "Your client secret must comply with the following rules: printable ASCII except : and length 32-64" : "Το μυστικό πελάτη πρέπει να συμμορφώνεται με τους εξής κανόνες: εκτυπώσιμοι χαρακτήρες ASCII εκτός από : και μήκος 32-64 χαρακτήρες",
+    "Authorization request is missing a redirect URI." : "Από το αίτημα εξουσιοδότησης λείπει ένα URI ανακατεύθυνσης.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Ο χρήστης δεν είναι μέλος των ομάδων που έχουν οριστεί για τον πελάτη. Δεν επιτρέπεται η ανάκτηση διακριτικού σύνδεσης.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Παρουσιάστηκε σφάλμα κατά τη δημιουργία του JWT. Παρακαλούμε ενημερώστε τον διαχειριστή της εφαρμογής-πελάτη σας.",
-    "Authorization request is missing a redirect URI." : "Από το αίτημα εξουσιοδότησης λείπει ένα URI ανακατεύθυνσης.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Η εφαρμογή-πελάτης σας δεν είναι εξουσιοδοτημένη να συνδεθεί. Παρακαλούμε ενημερώστε τον διαχειριστή της εφαρμογής-πελάτη σας.",
     "Your client is expired. Please inform the administrator of your client." : "Η εφαρμογή-πελάτης σας έχει λήξει. Παρακαλούμε ενημερώστε τον διαχειριστή της εφαρμογής-πελάτη σας.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Το ληφθέν URI ανακατεύθυνσης δεν είναι αποδεκτό για σύνδεση. Παρακαλούμε ενημερώστε τον διαχειριστή της εφαρμογής-πελάτη σας.",
@@ -164,6 +163,7 @@
     "Verify your identity (required)" : "Επαληθεύστε την ταυτότητά σας (απαιτείται)",
     "Profile information" : "Πληροφορίες προφίλ",
     "Access your name, username, profile picture, and quota" : "Πρόσβαση στο όνομα, το όνομα χρήστη, την εικόνα προφίλ και το όριο χώρου (quota) σας",
+    "Phone number" : "Αριθμός τηλεφώνου",
     "Email address" : "Διεύθυνση email",
     "Access your email address and verification status" : "Πρόσβαση στη διεύθυνση email και την κατάσταση επαλήθευσής σας",
     "Group memberships" : "Συμμετοχές σε ομάδες",
@@ -176,10 +176,9 @@
     "This application will be able to:" : "Αυτή η εφαρμογή θα έχει τη δυνατότητα να:",
     "Deny" : "Απόρριψη",
     "Allow" : "Να επιτρέπεται",
-    "You can revoke this access at any time from your account settings." : "Μπορείτε να ανακαλέσετε αυτήν την πρόσβαση ανά πάσα στιγμή από τις ρυθμίσεις του λογαριασμού σας.",
     "Continue" : "Συνέχεια",
+    "You can revoke this access at any time from your account settings." : "Μπορείτε να ανακαλέσετε αυτήν την πρόσβαση ανά πάσα στιγμή από τις ρυθμίσεις του λογαριασμού σας.",
     "Failed to load authorized applications" : "Αποτυχία φόρτωσης εξουσιοδοτημένων εφαρμογών",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "Είστε βέβαιοι ότι θέλετε να ανακαλέσετε την πρόσβαση για την εφαρμογή \"{clientName}\";",
     "Access revoked successfully" : "Η πρόσβαση ανακλήθηκε επιτυχώς",
     "Failed to revoke access" : "Αποτυχία ανάκλησης πρόσβασης",
     "Authorized Applications" : "Εξουσιοδοτημένες εφαρμογές",
@@ -190,6 +189,7 @@
     "Client ID:" : "ID πελάτη:",
     "Permissions:" : "Δικαιώματα:",
     "Authorized on:" : "Εξουσιοδοτήθηκε στις:",
-    "Revoke Access" : "Ανάκληση πρόσβασης"
+    "Revoke Access" : "Ανάκληση πρόσβασης",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "Είστε βέβαιοι ότι θέλετε να ανακαλέσετε την πρόσβαση για την εφαρμογή \"{clientName}\";"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

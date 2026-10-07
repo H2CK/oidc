@@ -64,10 +64,12 @@ OC.L10N.register(
     "Regenerate Keys" : "Generer nøkler på nytt",
     "Scope" : "Omfang",
     "Profile information" : "Profil-informasjon",
+    "Phone number" : "Telefonnummer",
     "Email address" : "E-post adresse",
     "Deny" : "ikke tillatt",
     "Allow" : "Tillatt",
     "Continue" : "Fortsett",
-    "Loading..." : "Laster…"
+    "Loading..." : "Laster…",
+    "Edit permissions" : "Rediger rettigheter"
 },
 "nplurals=2; plural=(n != 1);");

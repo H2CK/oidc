@@ -32,6 +32,7 @@ OC.L10N.register(
     "Remove" : "Fjarlægja",
     "Scope" : "Umfang",
     "Profile information" : "Persónuupplýsingar",
+    "Phone number" : "Símanúmer",
     "Email address" : "Tölvupóstfang",
     "Deny" : "Neita",
     "Allow" : "Leyfa",

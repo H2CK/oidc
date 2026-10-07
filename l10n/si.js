@@ -22,6 +22,7 @@ OC.L10N.register(
     "30 minutes" : "විනාඩි 30 යි",
     "12 hours" : "හෝරා 12 යි",
     "Disable" : "අබල කරන්න",
-    "Remove" : "ඉවත් කරන්න"
+    "Remove" : "ඉවත් කරන්න",
+    "Phone number" : "දුරකථන අංකය"
 },
 "nplurals=2; plural=(n != 1);");

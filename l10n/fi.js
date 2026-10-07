@@ -90,10 +90,12 @@ OC.L10N.register(
     "All settings for the login at other services are managed by your administrator." : "Järjestelmänvalvoja hallinnoi kaikkia muihin palveluihin kirjautumisen asetuksia.",
     "Restrict Personal Information" : "Henkilökohtaisten tietojen rajoittaminen",
     "Profile information" : "Profiilitiedot",
+    "Phone number" : "Puhelinnumero",
     "Email address" : "Sähköpostiosoite",
     "Deny" : "Kiellä",
     "Allow" : "Salli",
     "Continue" : "Jatka",
-    "Loading..." : "Ladataan..."
+    "Loading..." : "Ladataan...",
+    "Edit permissions" : "Muokkaa oikeuksia"
 },
 "nplurals=2; plural=(n != 1);");

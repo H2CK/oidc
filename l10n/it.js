@@ -90,10 +90,12 @@ OC.L10N.register(
     "All settings for the login at other services are managed by your administrator." : "Tutte le impostazioni per il login ad altri servizi sono gestite dall'amministratore.",
     "Restrict Personal Information" : "Limitare le informazioni personali",
     "Profile information" : "Informazioni del profilo",
+    "Phone number" : "Numero di telefono",
     "Email address" : "Indirizzo email",
     "Deny" : "Nega",
     "Allow" : "Consenti",
     "Continue" : "Continua",
-    "Loading..." : "Caricamento in corso..."
+    "Loading..." : "Caricamento in corso...",
+    "Edit permissions" : "Modifica permessi"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

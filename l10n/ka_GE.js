@@ -21,6 +21,7 @@ OC.L10N.register(
     "Never" : "არასდროს",
     "Disable" : "გამორთვა",
     "Scope" : "ფარგლები",
+    "Phone number" : "ტელეფონის ნომერი",
     "Loading..." : "იტვირთება…"
 },
 "nplurals=2; plural=(n!=1);");

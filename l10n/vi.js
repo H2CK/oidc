@@ -28,6 +28,7 @@ OC.L10N.register(
     "Enable" : "Bật",
     "Remove" : "Xoá",
     "Profile information" : "Thông tin cá nhân",
+    "Phone number" : "Số điện thoại",
     "Email address" : "Địa chỉ thư điện tử",
     "Deny" : "Từ chối",
     "Allow" : "Cho phép",

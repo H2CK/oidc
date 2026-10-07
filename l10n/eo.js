@@ -16,6 +16,7 @@ OC.L10N.register(
     "Disable" : "Malŝalti",
     "Enable" : "Ŝalti",
     "Scope" : "Amplekso",
+    "Phone number" : "Telefonnumero",
     "Email address" : "Retpoŝtadreso",
     "Deny" : "Rifuzi",
     "Allow" : "Permesi",

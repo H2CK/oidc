@@ -35,10 +35,12 @@ OC.L10N.register(
     "Remove" : "ລຶບອອກ",
     "Scope" : "Scope",
     "Profile information" : "Profile information",
+    "Phone number" : "ເບີໂທລະສັບ",
     "Email address" : "ທີ່ຢູ່ອີເມວ",
     "Deny" : "ປະຕິເສດ",
     "Allow" : "ອະນຸຍາດ",
     "Continue" : "ສືບຕໍ່",
-    "Loading..." : "ກຳລັງໂຫລດ..."
+    "Loading..." : "ກຳລັງໂຫລດ...",
+    "Edit permissions" : "Edit permissions"
 },
 "nplurals=1; plural=0;");

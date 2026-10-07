@@ -26,6 +26,7 @@ OC.L10N.register(
     "Enable" : "Activar",
     "Remove" : "Eliminar",
     "Scope" : "Alcance",
+    "Phone number" : "Número telefónico",
     "Deny" : "Rechazar",
     "Allow" : "Permitir",
     "Continue" : "Continuar",

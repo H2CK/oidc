@@ -15,6 +15,7 @@ OC.L10N.register(
     "30 minutes" : "Leth-uair a thìde",
     "Disable" : "Cuir à comas",
     "Remove" : "Thoir air falbh",
+    "Phone number" : "Àireamh fòn",
     "Deny" : "Diùlt",
     "Allow" : "Ceadaich"
 },

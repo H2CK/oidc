@@ -3,7 +3,6 @@ OC.L10N.register(
     {
     "Authorization session expired. Please try again." : "授權工作階段已過期。請重新嘗試。",
     "You must be logged in to view this page." : "您必須登入才能檢視此頁面。",
-    "No consent request pending." : "無待處理的同意請求。",
     "Client Identifier is missing in the request" : "請求中缺少客戶端識別字串",
     "Could not find client for the given uid or client identifier" : "找不到指定 uid 或客戶端識別字串對應的客戶端",
     "Custom claim name is missing in the request" : "請求中缺少客戶端申報名稱",
@@ -12,9 +11,9 @@ OC.L10N.register(
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "您的重新導向 URL 必須為完整的 URL，例如：https://yourdomain.com/path",
     "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "您的客戶 ID 必須符合以下規則：僅限可列印的 ASCII 字元（不包括「:」），且長度須為 32 至 64 個字元",
     "Your client secret must comply with the following rules: printable ASCII except : and length 32-64" : "您的客戶祕密必須符合以下規則：僅限可列印的 ASCII 字元（不包括「:」），且長度須為 32 至 64 位元",
+    "Authorization request is missing a redirect URI." : "授權請求缺少重新導向 URI。",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "使用者不是客戶端定義的群組成員。您無權擷取登入權杖。",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "JWT 建立時發生問題。請通知您的客戶端管理員。",
-    "Authorization request is missing a redirect URI." : "授權請求缺少重新導向 URI。",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "您的客戶端無連線授權。請通知您客戶端的管理員。",
     "Your client is expired. Please inform the administrator of your client." : "您的客戶端已過期。請通知您客戶端的管理員。",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "所收到之重新導向 URI 不被連線所接受。請通知您的客戶端管理員。",
@@ -128,6 +127,7 @@ OC.L10N.register(
     "Verify your identity (required)" : "驗證您的身份（必要）",
     "Profile information" : "個人檔案資訊",
     "Access your name, username, profile picture, and quota" : "存取您的名字、使用者名稱、個人檔案照片、配額",
+    "Phone number" : "電話號碼",
     "Email address" : "電子郵件地址",
     "Access your email address and verification status" : "存取您的電子郵件地址與驗證狀態",
     "Group memberships" : "群組成員資格",
@@ -140,10 +140,9 @@ OC.L10N.register(
     "This application will be able to:" : "此應用程式將可以：",
     "Deny" : "拒絕",
     "Allow" : "允許",
-    "You can revoke this access at any time from your account settings." : "您可以從您的帳號設定中隨時撤銷此存取權。",
     "Continue" : "繼續",
+    "You can revoke this access at any time from your account settings." : "您可以從您的帳號設定中隨時撤銷此存取權。",
     "Failed to load authorized applications" : "無法載入授權應用程式",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "您確定您想要撤銷「{clientName}」的存取權嗎？",
     "Access revoked successfully" : "已成功撤銷存取權",
     "Failed to revoke access" : "無法撤銷存取權",
     "Authorized Applications" : "授權應用程式",
@@ -154,6 +153,8 @@ OC.L10N.register(
     "Client ID:" : "客戶端 ID：",
     "Permissions:" : "權限：",
     "Authorized on:" : "授權於：",
-    "Revoke Access" : "撤銷存取權"
+    "Edit permissions" : "編輯權限",
+    "Revoke Access" : "撤銷存取權",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "您確定您想要撤銷「{clientName}」的存取權嗎？"
 },
 "nplurals=1; plural=0;");

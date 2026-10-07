@@ -1,7 +1,6 @@
 { "translations": {
     "Authorization session expired. Please try again." : "Autorizacijos sesija baigėsi. Bandykite dar kartą.",
     "You must be logged in to view this page." : "Norėdami peržiūrėti šį puslapį, turite prisijungti.",
-    "No consent request pending." : "Nėra laukiančių sutikimo prašymų.",
     "Client Identifier is missing in the request" : "Užklausoje trūksta kliento identifikatoriaus",
     "Could not find client for the given uid or client identifier" : "Nepavyko rasti kliento pagal nurodytą uid arba kliento identifikatorių",
     "Custom claim name is missing in the request" : "Užklausoje trūksta pasirinktinio paraiškos pavadinimo",
@@ -10,9 +9,9 @@
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "Jūsų nukreipimo adresas (redirect URL) turi būti pilnas, pavyzdžiui: https://jusuadresas.com/path",
     "Your client ID must comply with the following rules: printable ASCII except : and length 32-64" : "Jūsų kliento ID turi atitikti šias taisykles: spausdinami ASCII simboliai, išskyrus „:“, o ilgis turi būti nuo 32 iki 64 simbolių",
     "Your client secret must comply with the following rules: printable ASCII except : and length 32-64" : "Jūsų kliento slaptažodis turi atitikti šias taisykles: spausdinami ASCII simboliai, išskyrus „:“, ir ilgis – 32–64",
+    "Authorization request is missing a redirect URI." : "Autorizacijos užklausoje trūksta peradresavimo URI.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Vartotojas nepriklauso klientui apibrėžtoms grupėms. Jums neleidžiama gauti prisijungimo žymens.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Kuriant JWT įvyko klaida. Prašome informuoti savo kliento administratorių.",
-    "Authorization request is missing a redirect URI." : "Autorizacijos užklausoje trūksta peradresavimo URI.",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Jūsų kliento programa nėra įgaliota prisijungti. Informuokite administratorių apie savo kliento programą.",
     "Your client is expired. Please inform the administrator of your client." : "Jūsų kliento galiojimo laikas pasibaigęs. Prašome informuoti savo kliento administratorių.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Gautas peradresavimo URI nepriimamas prisijungimui. Prašome informuoti savo kliento administratorių.",
@@ -164,6 +163,7 @@
     "Verify your identity (required)" : "Patvirtinkite savo tapatybę (būtina)",
     "Profile information" : "Profilio informacija",
     "Access your name, username, profile picture, and quota" : "Pasiekti savo vardą, vartotojo vardą, profilio nuotrauką ir kvotą",
+    "Phone number" : "Telefono numeris",
     "Email address" : "El. pašto adresas",
     "Access your email address and verification status" : "Pasiekti jūsų el. pašto adresą ir jo patvirtinimo būseną",
     "Group memberships" : "Grupės narystės",
@@ -176,10 +176,9 @@
     "This application will be able to:" : "Ši programėlė galės:",
     "Deny" : "Drausti",
     "Allow" : "Leisti",
-    "You can revoke this access at any time from your account settings." : "Šią prieigą galite bet kada atšaukti savo paskyros nustatymuose.",
     "Continue" : "Tęsti",
+    "You can revoke this access at any time from your account settings." : "Šią prieigą galite bet kada atšaukti savo paskyros nustatymuose.",
     "Failed to load authorized applications" : "Nepavyko įkelti autorizuotų programėlių",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "Ar tikrai norite atšaukti prieigą prie „{clientName}“?",
     "Access revoked successfully" : "Prieiga sėkmingai atšaukta",
     "Failed to revoke access" : "Nepavyko atšaukti prieigos",
     "Authorized Applications" : "Autorizuotos programėlės",
@@ -190,6 +189,8 @@
     "Client ID:" : "Kliento ID:",
     "Permissions:" : "Leidimai:",
     "Authorized on:" : "Autorizuota:",
-    "Revoke Access" : "Atšaukti prieigą"
+    "Edit permissions" : "Taisyti leidimus",
+    "Revoke Access" : "Atšaukti prieigą",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "Ar tikrai norite atšaukti prieigą prie „{clientName}“?"
 },"pluralForm" :"nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);"
 }

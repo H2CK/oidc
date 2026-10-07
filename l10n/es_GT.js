@@ -25,6 +25,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Disable" : "Deshabilitar",
     "Scope" : "Alcance",
+    "Phone number" : "Número telefónico",
     "Email address" : "Dirección de correo electrónico",
     "Continue" : "Continuar",
     "Loading..." : "Cargando..."

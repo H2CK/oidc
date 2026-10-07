@@ -14,6 +14,7 @@ OC.L10N.register(
     "Disable" : "ปิดใช้งาน",
     "Remove" : "ลบออก",
     "Scope" : "ขอบเขต",
+    "Phone number" : "หมายเลขโทรศัพท์",
     "Email address" : "ที่อยู่อีเมล",
     "Continue" : "ดำเนินการต่อ"
 },
