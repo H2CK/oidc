@@ -3,6 +3,7 @@
     "Cancel" : "Cancel",
     "Your redirect URL needs to be a full URL for example: https://yourdomain.com/path" : "L'URL de redirecció ha de ser un URL complet, com ara: https://domini.com/camí",
     "Your client is not authorized to connect. Please inform the administrator of your client." : "El vostre client no té autorització per a connectar-se. Informeu-ne a l'administrador del client.",
+    "Confidential" : "Confidencial",
     "Public" : "Públic",
     "Avatar" : "Avatar",
     "Address" : "Adreça",
@@ -34,10 +35,12 @@
     "Select group" : "Selecciona un grup",
     "Scope" : "Abast",
     "Profile information" : "Informació del perfil",
+    "Phone number" : "Telèfon",
     "Email address" : "Adreça electrònica",
     "Deny" : "Denega",
     "Allow" : "Permet",
     "Continue" : "Continuar",
-    "Loading..." : "Carregant..."
+    "Loading..." : "Carregant...",
+    "Edit permissions" : "Edició dels permisos"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

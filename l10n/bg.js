@@ -57,9 +57,11 @@ OC.L10N.register(
     "Regenerate Keys" : "Регенериране на ключове",
     "Scope" : "Обхват",
     "Profile information" : "Информация за профила",
+    "Phone number" : "Телефонен номер",
     "Email address" : "Имейл адрес",
     "Deny" : "Не",
     "Allow" : "Да",
-    "Continue" : "Продължаване"
+    "Continue" : "Продължаване",
+    "Edit permissions" : "Редактиране на права"
 },
 "nplurals=2; plural=(n != 1);");

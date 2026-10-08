@@ -141,6 +141,7 @@ OC.L10N.register(
     "Verify your identity (required)" : "Ověřte svou identitu (vyžadováno)",
     "Profile information" : "Informace o profilu",
     "Access your name, username, profile picture, and quota" : "Přístup k vašemu jménu, uživatelskému jménu, profilovému obrázku a kvótě",
+    "Phone number" : "Telefonní číslo",
     "Email address" : "E-mailová adresa",
     "Access your email address and verification status" : "Přístup k vaší e-mailové adrese a stavu ověření",
     "Group memberships" : "Členství ve skupinách",
@@ -166,6 +167,7 @@ OC.L10N.register(
     "Client ID:" : "Identif. klienta:",
     "Permissions:" : "Oprávnění:",
     "Authorized on:" : "Pověřeno na:",
+    "Edit permissions" : "Upravit oprávnění",
     "Revoke Access" : "Odvolat přístup",
     "Are you sure you want to revoke access for \"{clientName}\"?" : "Opravdu chcete odvolat přístup pro „{clientName}“?"
 },

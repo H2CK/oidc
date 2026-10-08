@@ -12,6 +12,7 @@ OC.L10N.register(
     "Save" : "Stoor",
     "Delete" : "Skrap",
     "Disable" : "Deaktiveer",
+    "Phone number" : "Foonnommer",
     "Email address" : "E-posadres",
     "Continue" : "Gaan voort"
 },

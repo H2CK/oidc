@@ -37,10 +37,12 @@ OC.L10N.register(
     "Remove" : "Quitar",
     "Scope" : "Ámbitu",
     "Profile information" : "Información del perfil",
+    "Phone number" : "Númberu de teléfonu",
     "Email address" : "Direición de corréu electrónicu",
     "Deny" : "Negar",
     "Allow" : "Permitir",
     "Continue" : "Siguir",
-    "Loading..." : "Cargando..."
+    "Loading..." : "Cargando...",
+    "Edit permissions" : "Editar los permisos"
 },
 "nplurals=2; plural=(n != 1);");
