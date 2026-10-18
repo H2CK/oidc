@@ -1,6 +1,7 @@
 OC.L10N.register(
     "oidc",
     {
+    "Log out" : "Deconectare",
     "Cancel" : "Cancel",
     "Public" : "Public",
     "Avatar" : "Avatar",
