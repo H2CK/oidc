@@ -42,6 +42,7 @@ env:
   OAUTH_JWT_CLIENT_SECRET: oauth-conformance-jwt-secret-000000001
   OAUTH_SCOPE_LIMITED_CLIENT_ID: oauth-conformance-scope-client-00000001
   OAUTH_SCOPE_LIMITED_CLIENT_SECRET: oauth-conformance-scope-secret-00000001
+  OAUTH_CONSENT_CLIENT_ID: oauth-conformance-consent-client-00000001
   OAUTH_SECOND_CLIENT_ID: oauth-conformance-client-000000000002
   OAUTH_SECOND_CLIENT_SECRET: oauth-conformance-secret-0000000002
   OIDC_TEST_USER: oidc-test-user
@@ -145,8 +146,44 @@ jobs:
           OAUTH_REQUIRE_REVOCATION: ${{ github.event_name == 'workflow_dispatch' && inputs.require_revocation }}
         run: |
           python3 -m pytest .github/oauth-tests \
+            --ignore=.github/oauth-tests/test_consent_flow.py \
             -c .github/oauth-tests/pytest.ini \
             --junitxml=oauth-results/junit.xml \
+            -v
+
+      - name: Enable user consent and run consent tests
+        id: consent_tests
+        continue-on-error: true
+        env:
+          OAUTH_REPORT_PREFIX: consent-
+        run: |
+          cd "$NEXTCLOUD_DIR"
+          php occ config:app:set oidc allow_user_settings --value=enabled
+          server_pid="$(cat "$OAUTH_RESULTS_DIR/nextcloud-server.pid")"
+          kill "$server_pid"
+          for i in {1..10}; do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          if kill -0 "$server_pid" 2>/dev/null; then
+            echo "Nextcloud PHP server did not stop after configuration change" >&2
+            exit 1
+          fi
+          nohup php -S 0.0.0.0:8080 -t . >"$OAUTH_RESULTS_DIR/nextcloud-server.log" 2>&1 &
+          echo $! >"$OAUTH_RESULTS_DIR/nextcloud-server.pid"
+          cd "$GITHUB_WORKSPACE"
+          for i in {1..30}; do
+            if curl --fail --silent --cacert "$OAUTH_CA_CERT" "$OAUTH_DISCOVERY_URL" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent --cacert "$OAUTH_CA_CERT" "$OAUTH_DISCOVERY_URL" >/dev/null
+          python3 -m pytest .github/oauth-tests/test_consent_flow.py \
+            -c .github/oauth-tests/pytest.ini \
+            --junitxml=oauth-results/consent-junit.xml \
             -v
 
       - name: Collect service logs
@@ -167,10 +204,13 @@ jobs:
             oauth-results/OAUTH-CONFORMANCE.md
             oauth-results/results.json
             oauth-results/junit.xml
+            oauth-results/consent-results.json
+            oauth-results/consent-OAUTH-CONFORMANCE.md
+            oauth-results/consent-junit.xml
             oauth-results/nextcloud-server.log
             oauth-results/nextcloud.log
             oauth-results/docker-compose.log
 
       - name: Enforce OAuth conformance result
-        if: steps.oauth_tests.outcome != 'success'
+        if: steps.oauth_tests.outcome != 'success' || steps.consent_tests.outcome != 'success'
         run: exit 1

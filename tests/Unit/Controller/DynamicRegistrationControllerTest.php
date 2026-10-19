@@ -102,7 +102,11 @@ class DynamicRegistrationControllerTest extends TestCase {
         $this->throttler = $this->createMock(Throttler::class);
         $reflection4 = new \ReflectionClass(Throttler::class);
         $constructor4 = $reflection4->getConstructor();
-        $constructor4->invoke($this->throttler, $this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList);
+        $throttlerArguments = [$this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList];
+        if ($constructor4->getNumberOfParameters() > count($throttlerArguments)) {
+            $throttlerArguments[] = $this->createMock(\OCP\EventDispatcher\IEventDispatcher::class);
+        }
+        $constructor4->invokeArgs($this->throttler, $throttlerArguments);
 
         $this->customClaimMapper = $this->createMock(CustomClaimMapper::class);
 

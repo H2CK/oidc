@@ -31,13 +31,13 @@ class Application extends App implements IBootstrap
 {
     public const APP_ID = 'oidc';
 
-    public const DEFAULT_SCOPE = 'openid profile email roles';
+    public const DEFAULT_SCOPE = 'openid';
     public const DEFAULT_EXPIRE_TIME = '900';
     public const AUTHORIZATION_CODE_LIFETIME = 600;
     public const DEFAULT_REFRESH_EXPIRE_TIME = '900';
     public const DEFAULT_REFRESH_REPLAY_GRACE_SECONDS = '5';
     public const DEFAULT_CLIENT_EXPIRE_TIME = '3600';
-    public const DEFAULT_ALLOW_USER_SETTINGS = 'no';
+    public const DEFAULT_ALLOW_USER_SETTINGS = 'enabled';
     public const DEFAULT_RESTRICT_USER_INFORMATION = 'no';
     public const DEFAULT_TOKEN_TYPE = 'opaque';
     public const DEFAULT_PROVIDE_REFRESH_TOKEN_ALWAYS = 'false';
@@ -57,6 +57,8 @@ class Application extends App implements IBootstrap
     public const APP_CONFIG_DEFAULT_CLIENT_EXPIRE_TIME = 'client_expire_time';
     public const APP_CONFIG_OVERWRITE_EMAIL_VERIFIED = 'overwrite_email_verified';
     public const APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION = 'dynamic_client_registration';
+    public const APP_CONFIG_WEBFINGER_ACCT_DISCLOSURE = 'webfinger_acct_disclosure';
+    public const DEFAULT_WEBFINGER_ACCT_DISCLOSURE = 'false';
     public const APP_CONFIG_ALLOW_USER_SETTINGS = 'allow_user_settings';
     public const APP_CONFIG_RESTRICT_USER_INFORMATION = 'restrict_user_information';
     public const APP_CONFIG_GROUP_CLAIM_TYPE = 'group_claim_type';

@@ -108,13 +108,18 @@ stylelint-fix:
 	npm run stylelint:fix
 
 # Tests
-test: test-unit test-integration
+.PHONY: test-ui
+
+test: test-unit test-integration test-ui
 
 test-unit:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.xml
 
 test-integration:
 	./vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+
+test-ui:
+	npm run test:frontend
 
 ##### Building #####
 

@@ -181,6 +181,11 @@ class Admin implements ISettings {
         $this->initialState->provideInitialState(
                 'dynamicClientRegistration', $this->appConfig->getAppValueString(Application::APP_CONFIG_DYNAMIC_CLIENT_REGISTRATION));
         $this->initialState->provideInitialState(
+            'webfingerAcctDisclosure', $this->appConfig->getAppValueString(
+                Application::APP_CONFIG_WEBFINGER_ACCT_DISCLOSURE,
+                Application::DEFAULT_WEBFINGER_ACCT_DISCLOSURE
+            ));
+        $this->initialState->provideInitialState(
                 'allowUserSettings', $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_USER_SETTINGS, Application::DEFAULT_ALLOW_USER_SETTINGS));
         $this->initialState->provideInitialState(
                 'restrictUserInformation', $this->appConfig->getAppValueString(Application::APP_CONFIG_RESTRICT_USER_INFORMATION, Application::DEFAULT_RESTRICT_USER_INFORMATION));

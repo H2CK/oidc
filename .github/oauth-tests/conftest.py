@@ -49,7 +49,8 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo):
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     result_dir = Path(os.environ.get("OAUTH_RESULTS_DIR", "oauth-results"))
     result_dir.mkdir(parents=True, exist_ok=True)
-    (result_dir / "results.json").write_text(json.dumps(_RESULTS, indent=2), encoding="utf-8")
+    report_prefix = os.environ.get("OAUTH_REPORT_PREFIX", "")
+    (result_dir / f"{report_prefix}results.json").write_text(json.dumps(_RESULTS, indent=2), encoding="utf-8")
 
     lines = [
         "# OAuth conformance test result",
@@ -62,4 +63,4 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             f"| `{name}` | {data['source']} | {data['extension']} | {data['advisory']} | **{data['status']}** |"
         )
     lines += ["", f"Pytest exit status: `{exitstatus}`", ""]
-    (result_dir / "OAUTH-CONFORMANCE.md").write_text("\n".join(lines), encoding="utf-8")
+    (result_dir / f"{report_prefix}OAUTH-CONFORMANCE.md").write_text("\n".join(lines), encoding="utf-8")

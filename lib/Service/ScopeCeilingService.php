@@ -20,8 +20,8 @@ use Psr\Log\LoggerInterface;
  * through clamp(), so the policy lives in exactly one place.
  *
  * ceiling(uid) = union of the scopes of the user's groups that have a row;
- * no limit when none of the user's groups has a row. DEFAULT_SCOPE is always
- * allowed so login never breaks.
+ * no limit when none of the user's groups has a row. The mandatory OIDC
+ * openid scope remains allowed so login never breaks.
  */
 class ScopeCeilingService {
 

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.3] - 2026-10-19
+
+### Fixed
+
+- Require explicit consent for dynamically registered clients even when general user consent is disabled; keep consent revocation and permission updates available to users.
+- Enforce group scope ceilings for `profile`, `email`, and `roles`; only `openid` is implicitly allowed for users in limited groups.
+
+### Added
+
+- Add an administrator setting for WebFinger local `acct:` disclosure, disabled by default while preserving issuer discovery.
+- Extend `TokenGenerationRequestEvent` with expected-audience validation and effective client, scope, audience, and resource metadata. Legacy calls without an explicit expected audience remain compatible but emit a deprecation notice.
+
 ## [2.5.2] - 2026-10-06
 
 ### Fixed

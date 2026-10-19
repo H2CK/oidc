@@ -209,7 +209,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->testClientId,
             $this->testUserId,
             '',
-            ''
+            '',
+            $this->testClientId
         );
 
         // Handle the event
@@ -221,6 +222,10 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         $this->assertNotNull($event->getRefreshToken(), 'Refresh token should be generated');
         $this->assertNotNull($event->getExpiresIn(), 'Expires in should be set');
         $this->assertEquals(Application::DEFAULT_EXPIRE_TIME, $event->getExpiresIn(), 'Expires in should match default');
+        $this->assertSame($this->testClientId, $event->getClientIdentifier());
+        $this->assertSame('openid', $event->getScope());
+        $this->assertSame($this->testClientId, $event->getAudience());
+        $this->assertNull($event->getResource());
 
         // Verify the access token was stored in the database by trying to retrieve it
         try {
@@ -266,7 +271,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->testClientId,
             $this->testUserId,
             $extraScopes,
-            ''
+            '',
+            $this->testClientId
         );
 
         // Handle the event
@@ -276,16 +282,13 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         $this->assertNotNull($event->getAccessToken(), 'Access token should be generated');
         $this->assertNotNull($event->getIdToken(), 'ID token should be generated');
 
-        // Verify the scope in the stored access token includes both default and extra scopes
+        // Only openid is implicit; profile and email must be explicitly requested.
         try {
             $storedToken = $this->accessTokenMapper->getByAccessToken($event->getAccessToken());
             $scope = $storedToken->getScope();
 
-            $this->assertStringContainsString('openid', $scope, 'Scope should contain default scope');
-            $this->assertStringContainsString('profile', $scope, 'Scope should contain default scope');
-            $this->assertStringContainsString('email', $scope, 'Scope should contain default scope');
-            $this->assertStringContainsString('custom:scope:read', $scope, 'Scope should contain extra scope');
-            $this->assertStringContainsString('custom:scope:write', $scope, 'Scope should contain extra scope');
+            $this->assertSame('openid custom:scope:read custom:scope:write', $scope);
+            $this->assertSame($scope, $event->getScope());
         } catch (\Exception $e) {
             $this->fail('Failed to retrieve stored access token: ' . $e->getMessage());
         }
@@ -317,6 +320,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->testClientId,
             $this->testUserId,
             '',
+            $resource,
             $resource
         );
 
@@ -326,6 +330,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         // Verify that tokens were generated
         $this->assertNotNull($event->getAccessToken(), 'Access token should be generated');
         $this->assertNotNull($event->getIdToken(), 'ID token should be generated');
+        $this->assertSame($resource, $event->getAudience());
+        $this->assertSame($resource, $event->getResource());
 
         // Verify the resource in the stored access token
         try {
@@ -334,6 +340,44 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         } catch (\Exception $e) {
             $this->fail('Failed to retrieve stored access token: ' . $e->getMessage());
         }
+    }
+
+    public function testExpectedAudienceMismatchDoesNotMintTokens(): void
+    {
+        $this->configureAppConfig();
+        $event = new TokenGenerationRequestEvent(
+            $this->testClientId,
+            $this->testUserId,
+            '',
+            '',
+            'https://unexpected.example/resource'
+        );
+
+        $this->listener->handle($event);
+
+        $this->assertNull($event->getAccessToken());
+        $this->assertNull($event->getAudience());
+        $this->assertNull($event->getScope());
+    }
+
+    public function testLegacyConstructorRemainsUsableAndEmitsDeprecation(): void
+    {
+        $deprecation = null;
+        set_error_handler(static function (int $severity, string $message) use (&$deprecation): bool {
+            if ($severity === E_USER_DEPRECATED) {
+                $deprecation = $message;
+                return true;
+            }
+            return false;
+        });
+        try {
+            $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertSame($this->testClientId, $event->getClientIdentifier());
+        $this->assertStringContainsString('deprecated', $deprecation ?? '');
     }
 
     /**
@@ -362,7 +406,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $nonExistentClientId,
             $this->testUserId,
             '',
-            ''
+            '',
+            $nonExistentClientId
         );
 
         // Handle the event
@@ -416,7 +461,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $expiredClientId,
             $this->testUserId,
             '',
-            ''
+            '',
+            $expiredClientId
         );
 
         // Handle the event
@@ -477,7 +523,8 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
             $this->testClientId,
             $this->testUserId,
             '',
-            ''
+            '',
+            $this->testClientId
         );
 
         // Handle the event
@@ -532,7 +579,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
     private function mintScope(string $extraScopes): ?string
     {
-        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, $extraScopes, '');
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, $extraScopes, '', $this->testClientId);
         $this->listener->handle($event);
         if ($event->getAccessToken() === null) {
             return null;
@@ -551,7 +598,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
         $scope = $this->mintScope('notes.read notes.write');
 
-        $this->assertSame('openid profile email notes.read', $scope);
+        $this->assertSame('openid notes.read', $scope);
     }
 
     /**
@@ -565,7 +612,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
         $scope = $this->mintScope('notes.read notes.write files.read');
 
-        $this->assertSame('openid profile email roles notes.read', $scope);
+        $this->assertSame('openid notes.read', $scope);
     }
 
     public function testGroupScopeCeilingIsUnionOfGroups(): void
@@ -577,7 +624,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
         $scope = $this->mintScope('notes.read notes.write files.read');
 
-        $this->assertSame('openid profile email roles notes.read files.read', $scope);
+        $this->assertSame('openid notes.read files.read', $scope);
     }
 
     public function testUserInNoConfiguredGroupIsUnrestricted(): void
@@ -588,7 +635,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
 
         $scope = $this->mintScope('notes.read notes.write');
 
-        $this->assertSame('openid profile email roles notes.read notes.write', $scope);
+        $this->assertSame('openid notes.read notes.write', $scope);
     }
 
     /**
@@ -620,7 +667,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
     public function testEmptyScopeCeilingDoesNotRestoreDefaultPermissions(): void {
         $this->configureAppConfig();
         $this->setClientAllowedScopes('notes.read');
-        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, '', '', $this->testClientId);
 
         $this->listener->handle($event);
 
@@ -632,7 +679,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
     public function testOAuthOnlyEventDoesNotReceiveAnIdToken(): void {
         $this->configureAppConfig();
         $this->setClientAllowedScopes('profile');
-        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, 'profile', '', $this->testClientId);
 
         $this->listener->handle($event);
 
@@ -646,7 +693,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
         $client = $this->clientMapper->getByIdentifier($this->testClientId);
         $client->setRegisteredGrantTypes(['authorization_code']);
         $this->clientMapper->update($client);
-        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId);
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, '', '', $this->testClientId);
 
         $this->listener->handle($event);
 
@@ -659,7 +706,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
     public function testInvalidOrOversizedEventScopeDoesNotMintTokens(): void {
         $this->configureAppConfig();
         foreach (["notes.read\nnotes.write", str_repeat('a', 512)] as $extraScopes) {
-            $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, $extraScopes);
+            $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, $extraScopes, '', $this->testClientId);
             $this->listener->handle($event);
             $this->assertNull($event->getAccessToken());
             $this->assertNull($event->getIdToken());
@@ -670,7 +717,7 @@ class TokenGenerationRequestListenerTest extends \Test\TestCase
     public function testEventRefreshTokenCanBeRedeemedAndRotatedTwice(): void {
         $this->configureAppConfig();
         $this->setClientAllowedScopes('openid profile Files:Read');
-        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, 'Files:Read', '');
+        $event = new TokenGenerationRequestEvent($this->testClientId, $this->testUserId, 'Files:Read', '', $this->testClientId);
         $this->listener->handle($event);
         $presented = $event->getRefreshToken();
         $this->assertNotNull($presented);

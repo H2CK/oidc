@@ -275,20 +275,6 @@ class ConsentController extends Controller {
             return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
         }
 
-        // Check if user settings are allowed by administrator
-        $allowUserSettings = $this->appConfig->getAppValueString(
-            Application::APP_CONFIG_ALLOW_USER_SETTINGS,
-            Application::DEFAULT_ALLOW_USER_SETTINGS
-        );
-
-        if ($allowUserSettings === 'no') {
-            $this->logger->warning('User attempted to revoke consent but user settings are disabled by admin');
-            return new JSONResponse(
-                ['error' => 'Consent revocation is disabled by your administrator'],
-                Http::STATUS_FORBIDDEN
-            );
-        }
-
         $uid = $this->userSession->getUser()->getUID();
 
         $this->userConsentMapper->beginChange($uid, $clientId);
@@ -315,20 +301,6 @@ class ConsentController extends Controller {
     public function updateScopes(int $clientId): JSONResponse {
         if (!$this->userSession->isLoggedIn()) {
             return new JSONResponse(['error' => 'Not logged in'], Http::STATUS_UNAUTHORIZED);
-        }
-
-        // Check if user settings are allowed by administrator
-        $allowUserSettings = $this->appConfig->getAppValueString(
-            Application::APP_CONFIG_ALLOW_USER_SETTINGS,
-            Application::DEFAULT_ALLOW_USER_SETTINGS
-        );
-
-        if ($allowUserSettings === 'no') {
-            $this->logger->warning('User attempted to update consent scopes but user settings are disabled by admin');
-            return new JSONResponse(
-                ['error' => 'Consent modification is disabled by your administrator'],
-                Http::STATUS_FORBIDDEN
-            );
         }
 
         $uid = $this->userSession->getUser()->getUID();

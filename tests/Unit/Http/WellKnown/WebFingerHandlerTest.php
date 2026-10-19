@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace OCA\OIDCIdentityProvider\Tests\Unit\Http\WellKnown;
 
 use OCA\OIDCIdentityProvider\Http\WellKnown\WebFingerHandler;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Http\WellKnown\IRequestContext;
 use OCP\Http\WellKnown\JrdResponse;
 use OCP\IRequest;
@@ -21,6 +22,7 @@ class WebFingerHandlerTest extends TestCase {
     private string $resource = 'acct:alice@cloud.example';
     private WebFingerHandler $handler;
     private IRequestContext $context;
+    private bool $discloseAcct = false;
 
     protected function setUp(): void {
         $request = $this->createMock(IRequest::class);
@@ -34,11 +36,27 @@ class WebFingerHandlerTest extends TestCase {
         $users = $this->createMock(IUserManager::class);
         $user = $this->createMock(IUser::class);
         $users->method('get')->willReturnCallback(static fn (string $uid) => in_array($uid, ['alice', 'alice@example.net'], true) ? $user : null);
-        $this->handler = new WebFingerHandler($urls, $users);
+        $appConfig = $this->createMock(IAppConfig::class);
+        $appConfig->method('getAppValueString')->willReturnCallback(fn (string $key, string $default = ''): string => $this->discloseAcct ? 'true' : $default);
+        $this->handler = new WebFingerHandler($urls, $users, $appConfig);
     }
 
     public function testKnownAccountPreservesTheCompleteResourceSubject(): void {
+        $this->discloseAcct = true;
         $response = $this->handler->handle('webfinger', $this->context, null);
+        $this->assertInstanceOf(JrdResponse::class, $response);
+        $this->assertSame($this->resource, $response->toHttpResponse()->getData()['subject']);
+    }
+
+    public function testLocalAccountDisclosureIsDisabledByDefault(): void {
+        $previous = new JrdResponse('acct:previous@cloud.example');
+        $this->assertSame($previous, $this->handler->handle('webfinger', $this->context, $previous));
+    }
+
+    public function testIssuerLookupRemainsAvailableWhenAccountDisclosureIsDisabled(): void {
+        $this->resource = 'https://cloud.example/nextcloud';
+        $response = $this->handler->handle('webfinger', $this->context, null);
+
         $this->assertInstanceOf(JrdResponse::class, $response);
         $this->assertSame($this->resource, $response->toHttpResponse()->getData()['subject']);
     }
@@ -52,6 +70,7 @@ class WebFingerHandlerTest extends TestCase {
     }
 
     public function testPercentEncodedLocalAccountNameStillPreservesSubject(): void {
+        $this->discloseAcct = true;
         $this->resource = 'acct:alice%40example.net@cloud.example';
         $response = $this->handler->handle('webfinger', $this->context, null);
         $this->assertInstanceOf(JrdResponse::class, $response);

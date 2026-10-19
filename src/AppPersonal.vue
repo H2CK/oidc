@@ -14,12 +14,6 @@
 			">
 			<span v-if="error" class="msg error">{{ errorMsg }}</span>
 
-			<div v-if="localAllowUserSettings == 'no'">
-				<p>
-					{{ t('oidc', 'All settings for the login at other services are managed by your administrator.') }}
-				</p>
-			</div>
-
 			<div v-if="localAllowUserSettings != 'no'">
 				<h4>
 					{{ t("oidc", "Restrict Personal Information") }}
@@ -33,7 +27,7 @@
 					@update:modelValue="updateRestrictUserInformation" />
 			</div>
 
-			<AuthorizedApps :allow-user-settings="localAllowUserSettings" />
+			<AuthorizedApps />
 		</NcSettingsSection>
 	</div>
 </template>

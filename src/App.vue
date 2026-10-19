@@ -384,6 +384,23 @@
 					</div>
 					<div class="container-inner">
 						<p style="margin-top: 1em;">
+							{{ t('oidc', 'WebFinger Account Disclosure') }}
+						</p>
+						<select id="webfingerAcctDisclosure"
+							v-model="localWebfingerAcctDisclosure"
+							:placeholder="t('oidc', 'Allow WebFinger to disclose local account existence')"
+							style="max-width: 100%; width: 740px;"
+							@change="setWebfingerAcctDisclosure">
+							<option value="false">
+								{{ t('oidc', 'Do not disclose') }}
+							</option>
+							<option value="true">
+								{{ t('oidc', 'Disclose local accounts') }}
+							</option>
+						</select>
+					</div>
+					<div class="container-inner">
+						<p style="margin-top: 1em;">
 							{{ t('oidc', 'Dynamic Client Registration') }}
 						</p>
 						<select id="dynamicClientRegistration"
@@ -528,7 +545,7 @@
 							{{ t('oidc', 'Group Scope Limits') }}
 						</p>
 						<p class="hint" style="margin-top: 0.5em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
-							{{ t('oidc', 'Members of a listed group can only be issued the scopes configured for their groups (the union across all of their listed groups). openid, profile, email and roles are always allowed. Users in no listed group are not limited. Applies to every client, including dynamically registered ones.') }}
+							{{ t('oidc', 'Members of a listed group can only be issued the scopes configured for their groups (the union across all of their listed groups). Only openid is always allowed; profile, email and roles must be included in the group limits. Users in no listed group are not limited. Applies to every client, including dynamically registered ones.') }}
 						</p>
 						<p class="hint" style="margin-top: 0.25em; font-size: 0.9em; color: var(--color-text-maxcontrast);">
 							{{ t('oidc', 'Suggestions are the scopes the configured clients allow. A scope no client requests simply never applies, so a typo silently narrows the limit rather than widening it; type a scope to add one a dynamically registered client will request.') }}
@@ -734,6 +751,10 @@ export default {
 			type: String,
 			required: true,
 		},
+		webfingerAcctDisclosure: {
+			type: String,
+			required: true,
+		},
 		allowUserSettings: {
 			type: String,
 			required: true,
@@ -839,6 +860,7 @@ export default {
 			localRefreshExpireTime: this.refreshExpireTime,
 			localOverwriteEmailVerified: this.overwriteEmailVerified,
 			localDynamicClientRegistration: this.dynamicClientRegistration,
+			localWebfingerAcctDisclosure: this.webfingerAcctDisclosure,
 			localAllowUserSettings: this.allowUserSettings,
 			localDefaultTokenType: this.defaultTokenType,
 			localProvideRefreshTokenAlways: this.provideRefreshTokenAlways,
@@ -1657,6 +1679,15 @@ export default {
 					dynamicClientRegistration: this.localDynamicClientRegistration,
 				}).then((response) => {
 				this.localDynamicClientRegistration = response.data.dynamic_client_registration
+			})
+		},
+		setWebfingerAcctDisclosure() {
+			axios.post(
+				generateUrl('apps/oidc/webfingerAcctDisclosure'),
+				{
+					webfingerAcctDisclosure: this.localWebfingerAcctDisclosure,
+				}).then((response) => {
+				this.localWebfingerAcctDisclosure = response.data.webfinger_acct_disclosure
 			})
 		},
 		setAllowUserSettings() {
