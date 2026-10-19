@@ -32,7 +32,7 @@ class OIDCSet extends Command {
             ->setName('oidc:group-scopes:set')
             ->setDescription('Set the maximum scopes that members of a group may be issued')
             ->addArgument('group_id', InputArgument::REQUIRED, 'The group id')
-            ->addArgument('scopes', InputArgument::REQUIRED, 'Space-separated maximum scopes (openid profile email roles are always allowed)');
+            ->addArgument('scopes', InputArgument::REQUIRED, 'Space-separated maximum scopes (openid is always allowed)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {

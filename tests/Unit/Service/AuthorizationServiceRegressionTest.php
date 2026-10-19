@@ -230,6 +230,17 @@ class AuthorizationServiceRegressionTest extends TestCase {
         $this->assertStringContainsString('code=', $response->getRedirectURL());
     }
 
+    public function testDcrClientStillRequiresConsentWhenUserSettingsAreDisabled(): void {
+        $this->allowConsent = 'no';
+        $this->client->setDcr(true);
+        $this->consents->method('findByUserAndClient')->willReturn(null);
+        $this->tokens->expects($this->never())->method('insert');
+
+        $response = $this->service->process($this->request());
+
+        $this->assertSame('/route/oidc.Consent.show', $response->getRedirectURL());
+    }
+
     public function testDisabledSessionUserCannotAuthorize(): void {
         $this->userEnabled = false;
         $this->tokens->expects($this->never())->method('insert');

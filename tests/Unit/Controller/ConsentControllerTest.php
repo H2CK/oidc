@@ -151,7 +151,7 @@ class ConsentControllerTest extends TestCase {
         $this->assertEquals('openid profile email', $params['requestedScopes']);
     }
 
-    public function testRevokeConsentDeletesAccessTokens(): void {
+    public function testRevokeConsentRemainsAvailableWhenUserSettingsAreDisabled(): void {
         $this->userSession->method('isLoggedIn')->willReturn(true);
         $this->user->method('getUID')->willReturn('testuser');
 
@@ -160,7 +160,7 @@ class ConsentControllerTest extends TestCase {
                 Application::APP_CONFIG_ALLOW_USER_SETTINGS,
                 Application::DEFAULT_ALLOW_USER_SETTINGS
             )
-            ->willReturn('yes');
+            ->willReturn('no');
 
         $this->userConsentMapper->expects($this->once())
             ->method('deleteByUserAndClient')
@@ -243,7 +243,7 @@ class ConsentControllerTest extends TestCase {
         $this->user->method('getUID')->willReturn('alice');
         $this->request->method('getParam')->with('scopes')->willReturn($selected);
         $this->time->method('getTime')->willReturn(1000);
-        $this->appConfig->method('getAppValueString')->willReturn('yes');
+        $this->appConfig->method('getAppValueString')->willReturn('no');
         $client = new Client(allowedScopes: $allowed);
         $client->setId(1);
         $client->setClientIdentifier('client');

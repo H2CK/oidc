@@ -610,7 +610,7 @@ class AuthorizationService
             Application::DEFAULT_ALLOW_USER_SETTINGS
         );
 
-        if ($allowUserSettings === 'no') {
+        if ($allowUserSettings === 'no' && !$client->isDcr()) {
             // Administrator has disabled user consent - auto-grant all scopes
             $this->logger->debug('User consent disabled by admin for user ' . $uid . ' and client ' . $client_id . ' - auto-granting all scopes');
 

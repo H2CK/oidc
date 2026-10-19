@@ -136,15 +136,26 @@ class TokenGenerationRequestListener implements IEventListener {
                 $resource = null;
             }
         }
+        if ($resource !== null) {
+            $resource = substr($resource, 0, 2000);
+        }
+        $audience = $resource ?? $clientIdentifier;
+        if ($event->getExpectedAudience() !== null && $event->getExpectedAudience() !== $audience) {
+            $this->logger->notice('[TokenGenerationRequestListener] Resolved audience does not match the event expectation');
+            return;
+        }
         if ($resource === null) {
-            $accessToken->setResource(null);
+            $accessToken->setResource('');
         } else {
-            $accessToken->setResource(substr($resource, 0, 2000));
+            $accessToken->setResource($resource);
         }
         $accessToken->setAccessToken($this->jwtGenerator->generateAccessToken($accessToken, $client, $protocol, $host));
         $accessToken = $this->accessTokenMapper->insert($accessToken);
 
         $event->setAccessToken($accessToken->getAccessToken());
+        $event->setAudience($audience);
+        $event->setScope($scopes);
+        $event->setResource($resource);
         $event->setExpiresIn($expireTime);
         if (in_array('openid', explode(' ', $scopes), true)) {
             $event->setIdToken($this->jwtGenerator->generateIdToken($accessToken, $client, $protocol, $host, false));

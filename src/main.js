@@ -15,6 +15,7 @@ const groups = loadState('oidc', 'groups')
 const logoutRedirectUris = loadState('oidc', 'logoutRedirectUris')
 const overwriteEmailVerified = loadState('oidc', 'overwriteEmailVerified')
 const dynamicClientRegistration = loadState('oidc', 'dynamicClientRegistration')
+const webfingerAcctDisclosure = loadState('oidc', 'webfingerAcctDisclosure')
 const allowUserSettings = loadState('oidc', 'allowUserSettings')
 const restrictUserInformation = loadState('oidc', 'restrictUserInformation')
 const defaultTokenType = loadState('oidc', 'defaultTokenType')
@@ -31,6 +32,7 @@ const app = createApp(App, {
 	logoutRedirectUris,
 	overwriteEmailVerified,
 	dynamicClientRegistration,
+	webfingerAcctDisclosure,
 	allowUserSettings,
 	restrictUserInformation,
 	defaultTokenType,

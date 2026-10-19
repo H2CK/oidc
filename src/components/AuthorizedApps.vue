@@ -9,12 +9,7 @@
 			<NcNoteCard :type="notification.type" :text="notification.text" />
 		</div>
 		<p class="description">
-			<span v-if="allowUserSettings === 'no'">
-				{{ t('oidc', 'These applications have access to your account. Access is managed by your administrator.') }}
-			</span>
-			<span v-else>
-				{{ t('oidc', 'These applications have access to your account. You can revoke access at any time.') }}
-			</span>
+			{{ t('oidc', 'These applications have access to your account. You can revoke access at any time.') }}
 		</p>
 
 		<div v-if="loading" class="loading">
@@ -65,7 +60,7 @@
 						<button :disabled="savingScopes" @click="editingClient = null">{{ t('oidc', 'Cancel') }}</button>
 					</div>
 				</div>
-				<div v-if="allowUserSettings !== 'no'" class="consent-actions">
+				<div class="consent-actions">
 					<button :disabled="savingScopes || revoking !== null" @click="editScopes(consent)">{{ t('oidc', 'Edit permissions') }}</button>
 					<button
 						class="button secondary"
@@ -94,12 +89,6 @@ import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 export default {
 	name: 'AuthorizedApps',
 	components: { NcNoteCard },
-	props: {
-		allowUserSettings: {
-			type: String,
-			required: true,
-		},
-	},
 	data() {
 		return {
 			consents: [],

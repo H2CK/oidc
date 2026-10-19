@@ -72,7 +72,7 @@ class ScopeCeilingServiceTest extends TestCase {
         $this->logger->expects($this->once())->method('info');
 
         $this->assertSame(
-            'openid profile email roles notes.read',
+            'openid notes.read',
             $this->service->clamp('alice', 'openid profile email roles notes.read notes.write files.read', 'client-a'),
         );
     }
@@ -86,10 +86,16 @@ class ScopeCeilingServiceTest extends TestCase {
         );
     }
 
-    public function testDefaultScopesAlwaysAllowed(): void {
+    public function testOnlyOpenidIsAlwaysAllowed(): void {
         $this->givenUser(['locked'], ['locked' => '']);
 
-        $this->assertSame('openid profile email roles', $this->service->clamp('alice', 'openid profile email roles notes.read'));
+        $this->assertSame('openid', $this->service->clamp('alice', 'openid profile email roles notes.read'));
+    }
+
+    public function testGroupCeilingCanExplicitlyAllowProfileEmailAndRoles(): void {
+        $this->givenUser(['members'], ['members' => 'profile email roles']);
+
+        $this->assertSame('openid profile email roles', $this->service->clamp('alice', 'openid profile email roles'));
     }
 
     public function testEverythingRemovedReturnsEmpty(): void {

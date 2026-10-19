@@ -55,6 +55,14 @@ More information on the compliance can be found in the [latest test run](https:/
 
 ## Attention - Potential Breaking Change
 
+### Version >2.5.3
+
+User consent is enabled by default. Dynamically registered clients always require user consent, even when an administrator sets `allow_user_settings` to `no`.
+
+Authorization requests that omit `scope` now default to `openid` only. Existing clients that rely on profile, email or role claims must request the corresponding scopes explicitly.
+
+Group scope ceilings no longer implicitly allow `profile`, `email` and `roles`; only `openid` is always allowed. If a user belongs to a group with a configured scope limit, these scopes must be included in the union of the user's group limits. Existing clients may consequently receive fewer profile, email or role claims, or fail when they rely on one of these scopes. Users without a configured group limit are unaffected by this ceiling change. Review group limits after upgrading if clients rely on these scopes.
+
 ### Version >2.5.0
 
 #### Redirect URI upgrade
@@ -472,7 +480,7 @@ These restrictions are intentional authorization-server policy choices. RFC 8693
 
 ## Scopes
 
-Following the supported scopes are described. If no scope is defined during the authorization request, the following scopes will be used: `openid profile email roles`. Based on the defined scope different information about the user will be provided at the userinfo endpoint. For authorization code flow, profile and email scope claims are not added to the ID token unless they are explicitly requested with the OpenID Connect `claims` parameter.
+Following the supported scopes are described. If no scope is defined during the authorization request, `openid` is used. Based on the defined scope different information about the user will be provided at the userinfo endpoint. For authorization code flow, profile and email scope claims are not added to the ID token unless they are explicitly requested with the OpenID Connect `claims` parameter.
 
 Further scopes are passed transparently. Also namescaped scopes are supported. E.g. read:messages, api:admin.
 
@@ -490,7 +498,7 @@ Further scopes are passed transparently. Also namescaped scopes are supported. E
 Administrators can cap the scopes that members of a group may be issued, independent of the client. This also covers dynamically registered clients, whose `allowed_scopes` is whatever the client asked for at registration.
 
 - A user whose groups have a limit configured is issued only requested scopes that appear in the **union** of those groups' limits.
-- `openid profile email roles` are always allowed. Include `offline_access` in a limit if its members need refresh tokens.
+- `openid` is always allowed. Other scopes, including `profile`, `email` and `roles`, must be included in a group's limit to be issued to its members. Include `offline_access` in a limit if its members need refresh tokens.
 - Users in no limited group are not restricted, so nothing changes until a limit is configured.
 - The limit applies wherever a token is issued: the authorization endpoint (before consent, so users are only asked about scopes they can receive), the `TokenGenerationRequestEvent`, refresh token grants and token exchange. Removing a user from a group therefore narrows their scopes at the next refresh.
 - Each removed scope is logged at `info` level with the user and client.
@@ -550,12 +558,24 @@ The app provides the events [TokenValidationRequestEvent](https://github.com/H2C
 
 To get a token from the oidc app, the TokenGenerationRequestEvent can be emitted. A client must have been created in advance in the settings of the oidc app. The same limits as the authorization endpoint apply: the requested extra scopes are filtered by the client's allowed scopes and the user's [group scope limits](#group-scope-limits), and no token is issued if the client is restricted to groups the user is not a member of.
 
+Pass the expected audience as the fifth constructor argument. It must match the resolved resource, or the client identifier when no resource is configured. Pass `null` explicitly when the caller does not have an audience expectation. Calls using the legacy constructor form without this argument remain temporarily compatible but emit a deprecation notice and will be removed in a future release. After dispatch, the event exposes the effective client, scope, audience, and resource alongside the tokens.
+
 ```php
 if (class_exists(OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent::class)) {
-    $event = new OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent('client_identifier', 'user_id');
+  $event = new OCA\OIDCIdentityProvider\Event\TokenGenerationRequestEvent(
+    'client_identifier',
+    'user_id',
+    'profile email',
+    null,
+    'client_identifier'
+  );
     $this->eventDispatcher->dispatchTyped($event);
     $accessToken = $event->getAccessToken();
     $idToken = $event->getIdToken();
+  $clientIdentifier = $event->getClientIdentifier();
+  $scope = $event->getScope();
+  $audience = $event->getAudience();
+  $resource = $event->getResource();
     ...
 } else {
     $this->logger->debug('The oidc app is not installed/available');
@@ -600,6 +620,7 @@ Several global OIDC app settings can be changed with the Nextcloud `occ config:a
 | `refresh_expire_time` | Refresh token lifetime in seconds. Use `never` for refresh tokens that do not expire by time. | `occ config:app:set oidc refresh_expire_time --value "604800"` |
 | `client_expire_time` | Lifetime of dynamically registered clients in seconds. | `occ config:app:set oidc client_expire_time --value "86400"` |
 | `default_token_type` | Default access token type for newly created clients. Supported values are `opaque` and `jwt`. | `occ config:app:set oidc default_token_type --value "jwt"` |
+| `webfinger_acct_disclosure` | Allow WebFinger to disclose whether a local `acct:` account exists. Defaults to `false`; issuer discovery remains available. | `occ config:app:set oidc webfinger_acct_disclosure --value "true"` |
 | `device_code_in_verification_uri` | Restores the legacy device-flow behavior of embedding the user code in `verification_uri` by setting the option to `true`. The default is `false`, which follows RFC 8628 and returns the short verification URI without the user code. | `occ config:app:set oidc device_code_in_verification_uri --value "true"` |
 | `refresh_replay_grace_seconds` | Buffer window in seconds before a replayed refresh token is considered invalid. Allowed range is 0 to 5 seconds. | `occ config:app:set oidc refresh_replay_grace_seconds --value "5"` |
 | `provide_refresh_token_always` | Legacy mode for refresh tokens. Set to `true` to issue refresh tokens even without the `offline_access` scope; set to `false` for OIDC-compliant behavior. | `occ config:app:set oidc provide_refresh_token_always --value "false"` |

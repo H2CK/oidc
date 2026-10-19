@@ -1292,7 +1292,7 @@ class OIDCCodeFlowTest extends \Test\TestCase
         $this->assertNotEmpty($matches[1] ?? null, 'form_post response did not contain an authorization code');
 
         $accessToken = $this->accessTokenMapper->getByCode($matches[1]);
-        $this->assertSame('openid profile email notes.read', $accessToken->getScope());
+        $this->assertSame('openid notes.read', $accessToken->getScope());
     }
 
     /**

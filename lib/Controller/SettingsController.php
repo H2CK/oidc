@@ -964,6 +964,19 @@ class SettingsController extends Controller
         return new JSONResponse($result);
     }
 
+    public function setWebfingerAcctDisclosure(string $webfingerAcctDisclosure): JSONResponse
+    {
+        if ($webfingerAcctDisclosure === 'true' || $webfingerAcctDisclosure === 'false') {
+            $this->appConfig->setAppValueString(Application::APP_CONFIG_WEBFINGER_ACCT_DISCLOSURE, $webfingerAcctDisclosure);
+        }
+        return new JSONResponse([
+            'webfinger_acct_disclosure' => $this->appConfig->getAppValueString(
+                Application::APP_CONFIG_WEBFINGER_ACCT_DISCLOSURE,
+                Application::DEFAULT_WEBFINGER_ACCT_DISCLOSURE
+            ),
+        ]);
+    }
+
     public function setDefaultTokenType(
                     string $defaultTokenType
                     ): JSONResponse

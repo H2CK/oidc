@@ -11,7 +11,8 @@ namespace OCA\OIDCIdentityProvider\Event;
 use OCP\EventDispatcher\Event;
 
 /**
- * This event is emitted by other apps that need an access+id token from one of our Oidc clients
+ * This event is emitted by other apps that need an access+id token from one of our Oidc clients.
+ * The constructor form without an expected audience is deprecated and will be removed in a future release.
  */
 class TokenGenerationRequestEvent extends Event {
 
@@ -20,14 +21,23 @@ class TokenGenerationRequestEvent extends Event {
     private ?string $refreshToken = null;
     private ?int $expiresIn = null;
     private ?int $refreshExpiresIn = null;
+    private ?string $scope = null;
+    private ?string $audience = null;
 
     public function __construct(
         private string $clientIdentifier,
         private string $userId,
         private string $extraScopes = "",
-        private string $resource = "",
+        private ?string $resource = "",
+        private ?string $expectedAudience = null,
     ) {
         parent::__construct();
+        if (func_num_args() < 5) {
+            trigger_error(
+                'TokenGenerationRequestEvent without an explicit expected audience is deprecated and will be removed in a future release.',
+                E_USER_DEPRECATED
+            );
+        }
     }
 
     public function getClientIdentifier(): string {
@@ -44,6 +54,30 @@ class TokenGenerationRequestEvent extends Event {
 
     public function getResource(): ?string {
         return $this->resource;
+    }
+
+    public function setResource(?string $resource): void {
+        $this->resource = $resource;
+    }
+
+    public function getExpectedAudience(): ?string {
+        return $this->expectedAudience;
+    }
+
+    public function getScope(): ?string {
+        return $this->scope;
+    }
+
+    public function setScope(string $scope): void {
+        $this->scope = $scope;
+    }
+
+    public function getAudience(): ?string {
+        return $this->audience;
+    }
+
+    public function setAudience(string $audience): void {
+        $this->audience = $audience;
     }
 
     public function getAccessToken(): ?string {

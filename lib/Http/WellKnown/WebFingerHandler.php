@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace OCA\OIDCIdentityProvider\Http\WellKnown;
 
+use OCA\OIDCIdentityProvider\AppInfo\Application;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Services\IAppConfig;
 use OCP\Http\WellKnown\IHandler;
 use OCP\Http\WellKnown\IRequestContext;
 use OCP\Http\WellKnown\IResponse;
@@ -23,6 +25,7 @@ class WebFingerHandler implements IHandler {
     public function __construct(
         IURLGenerator $urlGenerator,
         private IUserManager $userManager,
+        private IAppConfig $appConfig,
     ) {
         $this->urlGenerator = $urlGenerator;
     }
@@ -71,6 +74,12 @@ class WebFingerHandler implements IHandler {
         if ($subject !== $issuer) {
             if (!preg_match('/\Aacct:([^@\s]+)@([^@\s]+)\z/D', $subject, $matches)
                 || strcasecmp($matches[2], $request->getServerHost()) !== 0) {
+                return $previousResponse;
+            }
+            if ($this->appConfig->getAppValueString(
+                Application::APP_CONFIG_WEBFINGER_ACCT_DISCLOSURE,
+                Application::DEFAULT_WEBFINGER_ACCT_DISCLOSURE
+            ) !== 'true') {
                 return $previousResponse;
             }
             $userId = rawurldecode($matches[1]);

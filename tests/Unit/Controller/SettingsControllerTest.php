@@ -204,6 +204,18 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals($signingAlg, $result->getData()['signingAlg']);
     }
 
+    public function testSetWebfingerAcctDisclosure(): void {
+        $this->appConfig->expects($this->once())
+            ->method('setAppValueString')
+            ->with('webfinger_acct_disclosure', 'true');
+        $this->appConfig->method('getAppValueString')
+            ->willReturn('true');
+
+        $response = $this->controller->setWebfingerAcctDisclosure('true');
+
+        $this->assertSame('true', $response->getData()['webfinger_acct_disclosure']);
+    }
+
     public function testAddClientwCreds() {
         $name = 'TEST';
         $redirectUri = 'https://local.lo';

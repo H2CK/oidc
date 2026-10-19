@@ -103,6 +103,11 @@ return [
             'verb' => 'POST',
         ],
         [
+            'name' => 'Settings#setWebfingerAcctDisclosure',
+            'url' => '/webfingerAcctDisclosure',
+            'verb' => 'POST',
+        ],
+        [
             'name' => 'Settings#setDefaultTokenType',
             'url' => '/defaultTokenType',
             'verb' => 'POST',

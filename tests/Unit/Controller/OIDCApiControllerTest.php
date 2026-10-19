@@ -512,7 +512,7 @@ class OIDCApiControllerTest extends TestCase {
         );
 
         $this->assertSame(Http::STATUS_OK, $response->getStatus());
-        $this->assertSame('openid profile offline_access notes.read', $response->getData()['scope']);
+        $this->assertSame('openid offline_access notes.read', $response->getData()['scope']);
     }
 
     private function createTexTarget(string $resource = 'https://resource.example/api'): TexTargets {
