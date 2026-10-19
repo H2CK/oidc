@@ -158,7 +158,28 @@ jobs:
         run: |
           cd "$NEXTCLOUD_DIR"
           php occ config:app:set oidc allow_user_settings --value=enabled
+          server_pid="$(cat "$OAUTH_RESULTS_DIR/nextcloud-server.pid")"
+          kill "$server_pid"
+          for i in {1..10}; do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          if kill -0 "$server_pid" 2>/dev/null; then
+            echo "Nextcloud PHP server did not stop after configuration change" >&2
+            exit 1
+          fi
+          nohup php -S 0.0.0.0:8080 -t . >"$OAUTH_RESULTS_DIR/nextcloud-server.log" 2>&1 &
+          echo $! >"$OAUTH_RESULTS_DIR/nextcloud-server.pid"
           cd "$GITHUB_WORKSPACE"
+          for i in {1..30}; do
+            if curl --fail --silent --cacert "$OAUTH_CA_CERT" "$OAUTH_DISCOVERY_URL" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --fail --silent --cacert "$OAUTH_CA_CERT" "$OAUTH_DISCOVERY_URL" >/dev/null
           python3 -m pytest .github/oauth-tests/test_consent_flow.py \
             -c .github/oauth-tests/pytest.ini \
             --junitxml=oauth-results/consent-junit.xml \
