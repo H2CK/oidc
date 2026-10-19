@@ -1,7 +1,7 @@
 { "translations": {
     "You must be logged in to continue authorization." : "Yetkilendirmek için oturum açmalısınız.",
     "Authorization session expired. Please try again." : "Yetkilendirme oturumunun süresi dolmuş. Lütfen yeniden deneyin.",
-    "Continue authorization" : "Yetkilendirmeye ilerle",
+    "Continue authorization" : "Yetki vermeye ilerle",
     "Invalid authorization continuation." : "Yetkilendirme sürekliliği geçersiz.",
     "You must be logged in to view this page." : "Bu sayfayı görüntüleyebilmek için oturum açmalısınız.",
     "No consent request pending. Please start authorization again." : "Bekleyen bir rıza isteği yok. Lütfen yetkilendirmeyi yeniden başlatın.",
@@ -238,16 +238,16 @@
     "Eight characters. The dash is added for you, and pasting the whole link works too." : "Sekiz karakter. Tire sizin için eklenir ve tüm bağlantıyı yapıştırmak da işe yarar.",
     "Continue" : "İlerle",
     "This approval expires after 90 days." : "Bu onayın geçerlilik süresi 90 gün sonra dolacak.",
-    "You can revoke this access at any time from your account settings." : "Bu erişim iznini istediğiniz zaman hesap ayarlarınızdan iptal edebilirsiniz.",
+    "You can revoke this access at any time from your account settings." : "Bu erişme iznini istediğiniz zaman hesap ayarlarınızdan geçersiz kılabilirsiniz.",
     "The device request is complete. You can close this page." : "Aygıt isteği tamamlandı. Bu sayfayı kapatabilirsiniz.",
     "Failed to load authorized applications" : "Yetkilendirilmiş uygulamalar yüklenemedi",
-    "Access revoked successfully" : "Erişim iptal edildi",
-    "Failed to revoke access" : "Erişim iptal edilemedi",
+    "Access revoked successfully" : "Erişme izni geçersiz kılındı",
+    "Failed to revoke access" : "Erişme izni geçersiz kılınamadı",
     "Permissions updated" : "İzinler güncellendi",
     "Failed to update permissions" : "İzinler güncellenemedi",
     "Authorized Applications" : "Yetkilendirilmiş uygulamalar",
     "These applications have access to your account. Access is managed by your administrator." : "Bu uygulamalar hesabınıza erişebilir. Erişim izinleri yöneticiniz tarafından ayarlanıyor.",
-    "These applications have access to your account. You can revoke access at any time." : "Bu uygulamalar hesabınıza erişebilir. Erişim izinlerini istediğiniz zaman iptal edebilirsiniz.",
+    "These applications have access to your account. You can revoke access at any time." : "Bu uygulamalar hesabınıza erişebilir. Erişme izinlerini istediğiniz zaman geçersiz kılabilirsiniz.",
     "Loading..." : "Yükleniyor...",
     "No authorized applications" : "Yetkilendirilmiş bir uygulama yok",
     "Client ID:" : "İstemci kimliği:",
@@ -256,7 +256,7 @@
     "Approval expires on: {date}" : "Onayın geçerlilik sonu: {date}",
     "Save permissions" : "İzinleri kaydet",
     "Edit permissions" : "İzinleri düzenle",
-    "Revoke Access" : "Erişim iznini iptal et",
-    "Are you sure you want to revoke access for \"{clientName}\"?" : "\"{clientName}\" için erişim iznini iptal etmek istediğinize emin misiniz?"
+    "Revoke Access" : "Erişme iznini geçersiz kıl",
+    "Are you sure you want to revoke access for \"{clientName}\"?" : "\"{clientName}\" için erişme iznini geçersiz kılmak istediğinize emin misiniz?"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
