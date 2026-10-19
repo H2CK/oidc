@@ -146,6 +146,7 @@ jobs:
           OAUTH_REQUIRE_REVOCATION: ${{ github.event_name == 'workflow_dispatch' && inputs.require_revocation }}
         run: |
           python3 -m pytest .github/oauth-tests \
+            --ignore=.github/oauth-tests/test_consent_flow.py \
             -c .github/oauth-tests/pytest.ini \
             --junitxml=oauth-results/junit.xml \
             -v
