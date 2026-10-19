@@ -146,13 +146,18 @@ class OIDCImplicitFlowTest extends \Test\TestCase
 
         // Try to get real services from Server container, fall back to mocks
         try {
-            $this->throttler = new \OC\Security\Bruteforce\Throttler(
+            $throttlerClass = new \ReflectionClass(\OC\Security\Bruteforce\Throttler::class);
+            $throttlerArguments = [
                 Server::get(ITimeFactory::class),
                 Server::get(LoggerInterface::class),
                 Server::get(IConfig::class),
                 $this->createMock(\OC\Security\Bruteforce\Backend\IBackend::class),
                 $this->createMock(\OC\Security\Ip\BruteforceAllowList::class)
-            );
+            ];
+            if ($throttlerClass->getConstructor()->getNumberOfParameters() > count($throttlerArguments)) {
+                $throttlerArguments[] = $this->createMock(\OCP\EventDispatcher\IEventDispatcher::class);
+            }
+            $this->throttler = $throttlerClass->newInstanceArgs($throttlerArguments);
         } catch (\Exception $e) {
             // Create a simple mock if real service can't be instantiated
             $this->throttler = $this->createConfiguredMock(

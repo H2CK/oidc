@@ -65,7 +65,11 @@ class DiscoveryControllerTest extends TestCase {
         $this->throttler = $this->createMock(Throttler::class);
         $reflection = new \ReflectionClass(Throttler::class);
         $constructor = $reflection->getConstructor();
-        $constructor->invoke($this->throttler, $this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList);
+        $throttlerArguments = [$this->time, $this->logger, $this->config, $this->throttlerBackend, $this->bruteforceAllowList];
+        if ($constructor->getNumberOfParameters() > count($throttlerArguments)) {
+            $throttlerArguments[] = $this->createMock(\OCP\EventDispatcher\IEventDispatcher::class);
+        }
+        $constructor->invokeArgs($this->throttler, $throttlerArguments);
 
         $this->config->method('getSystemValueBool')
             ->willReturnCallback(function($key, $default) {
