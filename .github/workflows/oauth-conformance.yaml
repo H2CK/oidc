@@ -42,6 +42,7 @@ env:
   OAUTH_JWT_CLIENT_SECRET: oauth-conformance-jwt-secret-000000001
   OAUTH_SCOPE_LIMITED_CLIENT_ID: oauth-conformance-scope-client-00000001
   OAUTH_SCOPE_LIMITED_CLIENT_SECRET: oauth-conformance-scope-secret-00000001
+  OAUTH_CONSENT_CLIENT_ID: oauth-conformance-consent-client-00000001
   OAUTH_SECOND_CLIENT_ID: oauth-conformance-client-000000000002
   OAUTH_SECOND_CLIENT_SECRET: oauth-conformance-secret-0000000002
   OIDC_TEST_USER: oidc-test-user
@@ -149,6 +150,20 @@ jobs:
             --junitxml=oauth-results/junit.xml \
             -v
 
+      - name: Enable user consent and run consent tests
+        id: consent_tests
+        continue-on-error: true
+        env:
+          OAUTH_REPORT_PREFIX: consent-
+        run: |
+          cd "$NEXTCLOUD_DIR"
+          php occ config:app:set oidc allow_user_settings --value=enabled
+          cd "$GITHUB_WORKSPACE"
+          python3 -m pytest .github/oauth-tests/test_consent_flow.py \
+            -c .github/oauth-tests/pytest.ini \
+            --junitxml=oauth-results/consent-junit.xml \
+            -v
+
       - name: Collect service logs
         if: always()
         run: |
@@ -167,10 +182,13 @@ jobs:
             oauth-results/OAUTH-CONFORMANCE.md
             oauth-results/results.json
             oauth-results/junit.xml
+            oauth-results/consent-results.json
+            oauth-results/consent-OAUTH-CONFORMANCE.md
+            oauth-results/consent-junit.xml
             oauth-results/nextcloud-server.log
             oauth-results/nextcloud.log
             oauth-results/docker-compose.log
 
       - name: Enforce OAuth conformance result
-        if: steps.oauth_tests.outcome != 'success'
+        if: steps.oauth_tests.outcome != 'success' || steps.consent_tests.outcome != 'success'
         run: exit 1

@@ -16,6 +16,7 @@ OAUTH_JWT_CLIENT_ID="${OAUTH_JWT_CLIENT_ID:-oauth-conformance-jwt-client-0000000
 OAUTH_JWT_CLIENT_SECRET="${OAUTH_JWT_CLIENT_SECRET:-oauth-conformance-jwt-secret-000000001}"
 OAUTH_SCOPE_LIMITED_CLIENT_ID="${OAUTH_SCOPE_LIMITED_CLIENT_ID:-oauth-conformance-scope-client-00000001}"
 OAUTH_SCOPE_LIMITED_CLIENT_SECRET="${OAUTH_SCOPE_LIMITED_CLIENT_SECRET:-oauth-conformance-scope-secret-00000001}"
+OAUTH_CONSENT_CLIENT_ID="${OAUTH_CONSENT_CLIENT_ID:-oauth-conformance-consent-client-00000001}"
 OAUTH_SECOND_CLIENT_ID="${OAUTH_SECOND_CLIENT_ID:-oauth-conformance-client-000000000002}"
 OAUTH_SECOND_CLIENT_SECRET="${OAUTH_SECOND_CLIENT_SECRET:-oauth-conformance-secret-0000000002}"
 OAUCH_CLIENT_ID="${OAUCH_CLIENT_ID:-oauch-conformance-client-00000000001}"
@@ -109,6 +110,13 @@ rsync -a --delete \
   php occ oidc:create "OAuth conformance scope limited client" "$OAUTH_CALLBACK_URI" \
     --client_id "$OAUTH_SCOPE_LIMITED_CLIENT_ID" \
     --client_secret "$OAUTH_SCOPE_LIMITED_CLIENT_SECRET" \
+    --type confidential \
+    --flow code \
+    --allowed_scopes "openid profile"
+
+  php occ oidc:create "OAuth consent flow test client" "$OAUTH_CALLBACK_URI" \
+    --client_id "$OAUTH_CONSENT_CLIENT_ID" \
+    --client_secret "oauth-conformance-consent-secret-00000001" \
     --type confidential \
     --flow code \
     --allowed_scopes "openid profile"

@@ -29,6 +29,7 @@ JWT_CLIENT_ID = os.environ.get("OAUTH_JWT_CLIENT_ID", "oauth-conformance-jwt-cli
 JWT_CLIENT_SECRET = os.environ.get("OAUTH_JWT_CLIENT_SECRET", "oauth-conformance-jwt-secret-000000001")
 SCOPE_LIMITED_CLIENT_ID = os.environ.get("OAUTH_SCOPE_LIMITED_CLIENT_ID", "oauth-conformance-scope-client-00000001")
 SCOPE_LIMITED_CLIENT_SECRET = os.environ.get("OAUTH_SCOPE_LIMITED_CLIENT_SECRET", "oauth-conformance-scope-secret-00000001")
+CONSENT_CLIENT_ID = os.environ.get("OAUTH_CONSENT_CLIENT_ID", "oauth-conformance-consent-client-00000001")
 SECOND_CLIENT_ID = os.environ.get("OAUTH_SECOND_CLIENT_ID", "oauth-conformance-client-000000000002")
 SECOND_CLIENT_SECRET = os.environ.get("OAUTH_SECOND_CLIENT_SECRET", "oauth-conformance-secret-0000000002")
 REDIRECT_URI = os.environ.get("OAUTH_CALLBACK_URI", "https://oauth-callback:9444/callback")
@@ -92,6 +93,7 @@ class OAuthHarness:
         code_challenge: str | None = None,
         code_challenge_method: str | None = None,
         extra: dict[str, str] | None = None,
+        require_consent: bool = False,
     ) -> dict[str, str]:
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
         CALLBACK_FILE.unlink(missing_ok=True)
@@ -114,7 +116,17 @@ class OAuthHarness:
         url = f"{self.metadata['authorization_endpoint']}?{urlencode(params)}"
         browser.get(url)
         self._login_if_needed(browser)
-        self._approve_if_needed(browser)
+        if require_consent:
+            consent = WebDriverWait(browser, 15).until(
+                lambda driver: driver.find_element(By.ID, "oidc-consent-container")
+            )
+            allow = consent.find_element(
+                By.XPATH,
+                ".//button[contains(translate(normalize-space(.), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'allow')]",
+            )
+            allow.click()
+        else:
+            self._approve_if_needed(browser)
 
         deadline = time.time() + 35
         while time.time() < deadline:
