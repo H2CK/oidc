@@ -21,6 +21,7 @@ OC.L10N.register(
     "Never" : "James",
     "Disable" : "Diweredekaat",
     "Enable" : "Aotreañ",
+    "Phone number" : "Niverenn bellgomz",
     "Deny" : "Difennet",
     "Allow" : "Aotrañ",
     "Continue" : "Kendec'hel"

@@ -85,7 +85,6 @@
     "Regenerate Keys" : "Відновити ключі",
     "Scope" : "Область",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect дозволяє вам входити до зовнішніх сервісів за допомогою вашого облікового запису користувача {instanceName}.",
-    "All settings for the login at other services are managed by your administrator." : "Всі налаштування для входу в інші сервіси керуються вашим адміністратором.",
     "Restrict Personal Information" : "Обмежити особисту інформацію",
     "Profile information" : "Інформація профілю",
     "Phone number" : "Номер телефону",

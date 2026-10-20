@@ -95,7 +95,6 @@ OC.L10N.register(
     "Scope" : "Toepassingsgebied",
     "Function" : "Functie",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "Met OpenID Connect kun je inloggen bij externe diensten met je {instanceName} gebruikersaccount.",
-    "All settings for the login at other services are managed by your administrator." : "Alle instellingen voor het aanmelden bij andere services worden beheerd door je beheerder.",
     "Restrict Personal Information" : "Persoonlijke gegevens beperken",
     "Profile information" : "Profiel informatie",
     "Phone number" : "Telefoonnummer",

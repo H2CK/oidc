@@ -62,7 +62,6 @@ OC.L10N.register(
     "Select group" : "グループを選択",
     "Scope" : "スコープ",
     "OpenID Connect allows you to log in to external services with your {instanceName} user account." : "OpenID Connect を使用すると、{instanceName} のユーザーアカウントで外部サービスにログインできます。",
-    "All settings for the login at other services are managed by your administrator." : "他のサービスへのログインに関するすべての設定は、管理者によって管理されています。",
     "Profile information" : "プロフィール情報",
     "Phone number" : "電話番号",
     "Email address" : "メールアドレス",
@@ -70,7 +69,6 @@ OC.L10N.register(
     "Allow" : "許可",
     "Continue" : "続ける",
     "Authorized Applications" : "承認済みアプリケーション",
-    "These applications have access to your account. Access is managed by your administrator." : "これらのアプリケーションはあなたのアカウントにアクセスできます。アクセス権限は管理者によって管理されています。",
     "Loading..." : "読み込み中…",
     "Edit permissions" : "権限を編集"
 },
