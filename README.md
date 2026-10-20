@@ -55,7 +55,7 @@ More information on the compliance can be found in the [latest test run](https:/
 
 ## Attention - Potential Breaking Change
 
-### Version >2.5.3
+### Version >2.6.0
 
 User consent is enabled by default. Dynamically registered clients always require user consent, even when an administrator sets `allow_user_settings` to `no`.
 
