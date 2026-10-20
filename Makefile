@@ -171,6 +171,11 @@ assemble:
 	--exclude=docs \
 	--exclude=.phpunit.result.cache \
 	--exclude=stylelint.config.js \
+	--exclude=AGENTS.md \
+	--exclude=TODO.md \
+	--exclude=DEVELOPMENT.md \
+	--exclude=.agents \
+	--exclude=eslint.config.mjs \
 	$(project_dir) $(build_dir)
 
 ##### Cleaning #####
