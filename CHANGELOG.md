@@ -2,17 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.5.3] - 2026-10-19
+## [2.6.0] - 2026-10-20
 
 ### Fixed
 
-- Require explicit consent for dynamically registered clients even when general user consent is disabled; keep consent revocation and permission updates available to users.
-- Enforce group scope ceilings for `profile`, `email`, and `roles`; only `openid` is implicitly allowed for users in limited groups.
+- Require explicit consent for dynamically registered clients even when general user consent is disabled; keep consent revocation and permission updates available to users ([#750](https://github.com/H2CK/oidc/pull/750)).
+- Enforce group scope ceilings for `profile`, `email`, and `roles`; only `openid` is implicitly allowed for users in limited groups ([#750](https://github.com/H2CK/oidc/pull/750)).
 
 ### Added
 
-- Add an administrator setting for WebFinger local `acct:` disclosure, disabled by default while preserving issuer discovery.
-- Extend `TokenGenerationRequestEvent` with expected-audience validation and effective client, scope, audience, and resource metadata. Legacy calls without an explicit expected audience remain compatible but emit a deprecation notice.
+- Add an administrator setting for WebFinger local `acct:` disclosure, disabled by default while preserving issuer discovery ([#750](https://github.com/H2CK/oidc/pull/750)).
+- Extend `TokenGenerationRequestEvent` with expected-audience validation and effective client, scope, audience, and resource metadata. Legacy calls without an explicit expected audience remain compatible but emit a deprecation notice ([#750](https://github.com/H2CK/oidc/pull/750)).
+
+### Changed
+
+- Updated Vue and Vue compiler dependencies ([#748](https://github.com/H2CK/oidc/pull/748), [#749](https://github.com/H2CK/oidc/pull/749)).
+- Updated translations.
 
 ## [2.5.2] - 2026-10-06
 

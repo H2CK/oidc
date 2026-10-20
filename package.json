@@ -1,7 +1,7 @@
 {
 	"name": "oidc",
 	"description": "Use Nextcloud as OIDC Identity Provider",
-	"version": "2.5.3",
+	"version": "2.6.0",
 	"author": "Thorsten Jagel <dev@jagel.net>",
 	"bugs": {
 		"url": "https://github.com/H2CK/oidc/issues"
@@ -27,15 +27,15 @@
 	"dependencies": {
 		"@jridgewell/sourcemap-codec": "^1.6.0",
 		"@mdi/js": "^7.4.47",
+		"@nextcloud/auth": "2.6.0",
 		"@nextcloud/axios": "^2.6.0",
 		"@nextcloud/initial-state": "^3.0.0",
 		"@nextcloud/l10n": "^3.3.0",
 		"@nextcloud/logger": "^3.0.2",
 		"@nextcloud/router": "^3.0.1",
 		"@nextcloud/vue": "^9.13.1",
-		"webpack": "^5.111.1",
-		"@nextcloud/auth": "2.6.0",
-		"vue": "3.5.44"
+		"vue": "3.5.44",
+		"webpack": "^5.111.1"
 	},
 	"browserslist": [
 		"extends @nextcloud/browserslist-config"
@@ -51,7 +51,6 @@
 		"@nextcloud/stylelint-config": "^3.2.2",
 		"@nextcloud/webpack-vue-config": "^7.0.4",
 		"@vue/compiler-sfc": "^3.5.44",
-		"postcss-html": "^1.8.0",
 		"eslint": "10.12.0"
 	}
 }
