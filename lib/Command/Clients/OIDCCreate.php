@@ -63,8 +63,8 @@ class OIDCCreate extends Command
             )
             ->addArgument(
                 'redirect_uris',
-                InputArgument::REQUIRED | InputArgument::IS_ARRAY,
-                'An array of redirect uris'
+                InputArgument::OPTIONAL | InputArgument::IS_ARRAY,
+                'An array of redirect uris (omit for clients that never use a redirect-based flow)'
             )
             ->addOption(
                 'algorithm',

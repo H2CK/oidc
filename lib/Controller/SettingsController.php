@@ -135,8 +135,11 @@ class SettingsController extends Controller
             return new JSONResponse(['error' => 'Only RS256 and HS256 are supported signing algorithms.'], Http::STATUS_BAD_REQUEST);
         }
 
+        // A client without a redirect URI is valid (e.g. device grant or
+        // server-side token generation); /authorize rejects it.
+        $redirectUri = trim($redirectUri);
         try {
-            if ($this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
+            if ($redirectUri !== '' && $this->redirectUriService->isValidRedirectUri($redirectUri, $this->appConfig->getAppValueString(Application::APP_CONFIG_ALLOW_SUBDOMAIN_WILDCARDS, Application::DEFAULT_ALLOW_SUBDOMAIN_WILDCARDS) === 'true') === false) {
                 return new JSONResponse(['message' => $this->l->t('Your redirect URL needs to be a full URL for example: https://yourdomain.com/path')], Http::STATUS_BAD_REQUEST);
             }
         } catch (RedirectUriValidationException $e) {
@@ -153,7 +156,7 @@ class SettingsController extends Controller
 
         $client = new Client(
             $name,
-            [ $redirectUri ],
+            $redirectUri === '' ? [] : [ $redirectUri ],
             $signingAlg,
             $type,
             $flowType,

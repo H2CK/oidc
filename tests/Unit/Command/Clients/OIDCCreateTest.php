@@ -249,6 +249,38 @@ class OIDCCreateTest extends TestCase
         $this->assertTrue($client->getFrontchannelLogoutSessionRequired());
     }
 
+    public function testExecuteCreatesClientWithoutRedirectUri(): void
+    {
+        $client = null;
+        $this->clientMapper
+            ->method('insert')
+            ->willReturnCallback(static function (Client $value) use (&$client): Client {
+                $client = $value;
+                return $value;
+            });
+
+        $tester = new CommandTester($this->command);
+        $statusCode = $tester->execute([
+            'name' => 'Device Client',
+            '--type' => 'public',
+        ]);
+
+        $this->assertSame(Command::SUCCESS, $statusCode);
+        $this->assertSame([], $client->getRedirectUris());
+    }
+
+    public function testExecuteRejectsFrontChannelLogoutWithoutRedirectUri(): void
+    {
+        $tester = new CommandTester($this->command);
+
+        $statusCode = $tester->execute([
+            'name' => 'Front-Channel Client',
+            '--frontchannel_logout_uri' => 'https://rp.example/logout',
+        ]);
+
+        $this->assertSame(Command::FAILURE, $statusCode);
+    }
+
     public function testExecuteRejectsFrontChannelLogoutUriOnDifferentOrigin(): void
     {
         $tester = new CommandTester($this->command);
