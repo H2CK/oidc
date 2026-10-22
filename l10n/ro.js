@@ -25,6 +25,7 @@ OC.L10N.register(
     "30 minutes" : "30 de minute",
     "12 hours" : "12 ore",
     "1 day" : "1 zi",
+    "7 days" : "7 zile",
     "Never" : "Niciodată",
     "Disable" : "Dezactivează",
     "Enable" : "Activare",

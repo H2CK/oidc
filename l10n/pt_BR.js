@@ -147,7 +147,7 @@ OC.L10N.register(
     "1 day" : "1 dia",
     "7 days" : "7 dias",
     "Never" : "Nunca",
-    "WebFinger Account Disclosure" : "Divulgação de informações sobre contas via WebFinger",
+    "WebFinger Account Disclosure" : "Divulgação de contas via WebFinger",
     "Allow WebFinger to disclose local account existence" : "Permitir que o WebFinger divulgue a existência de contas locais",
     "Do not disclose" : "Não divulgar",
     "Disclose local accounts" : "Divulgar contas locais",
