@@ -31,7 +31,7 @@ OC.L10N.register(
     "Authorization request is missing a redirect URI." : "Anmodningen om godkendelse mangler en omdirigerings-URI.",
     "The user is not a member of the groups defined for the client. You are not allowed to retrieve a login token." : "Brugeren er ikke medlem af de grupper, der er defineret for klienten. Du har ikke lov til at hente et login token.",
     "A failure during JWT creation occured. Please inform the administrator of your client." : "Der opstod en fejl under oprettelsen af JWT. Informer venligst din klients administrator.",
-    "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient er ikke autoriseret til at oprette forbindelse. Informer venligst din klients administrator.",
+    "Your client is not authorized to connect. Please inform the administrator of your client." : "Din klient har ikke tilladelse til at oprette forbindelse. Giv din klients administrator besked.",
     "Your client is expired. Please inform the administrator of your client." : "Din klient er udløbet. Underret din administrator om din klient.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Den modtagne omdirigerings URI er ikke accepteret til at forbinde med. Underret din administrator.",
     "Too many authorization requests. Please try again later." : "For mange anmodninger om godkendelse. Prøv igen senere.",
