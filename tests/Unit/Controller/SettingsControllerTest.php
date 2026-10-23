@@ -535,6 +535,54 @@ class SettingsControllerTest extends TestCase {
         $this->assertEquals(Http::STATUS_BAD_REQUEST, $result->getStatus(), 'Status Code does not match!');
     }
 
+    public function testAddClientWithoutRedirectUri(): void {
+        $this->clientMapper
+            ->expects($this->once())
+            ->method('insert')
+            ->willReturnCallBack(
+                function ($arg) {
+                    $this->assertSame([], $arg->getRedirectUris());
+                    $arg->setId(1);
+                    return $arg;
+                }
+            );
+        $this->redirectUriMapper->method('getByClientId')->willReturn([]);
+
+        $result = $this->controller->addClient('TEST', '  ', 'RS256', 'public', 'code', 'opaque');
+
+        $this->assertSame(Http::STATUS_OK, $result->getStatus());
+        $this->assertSame([], $result->getData()['redirectUris']);
+    }
+
+    public function testUpdateClientConfigurationRemovesAllRedirectUris(): void {
+        $client = new Client('TEST', ['https://rp.example/callback'], 'RS256', 'public');
+        $client->setId(1);
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->request->method('getParams')->willReturn(['redirectUris' => []]);
+        $this->clientMapper->expects($this->once())->method('update');
+        $this->redirectUriMapper->expects($this->once())->method('deleteByClientId')->with(1);
+        $this->redirectUriMapper->expects($this->never())->method('insert');
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertSame(Http::STATUS_OK, $result->getStatus());
+    }
+
+    public function testUpdateClientConfigurationRejectsFrontChannelLogoutWithoutRedirectUri(): void {
+        $client = new Client('TEST', [], 'RS256', 'confidential');
+        $client->setId(1);
+        $this->clientMapper->method('getByUid')->with(1)->willReturn($client);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([]);
+        $this->request->method('getParams')->willReturn([
+            'frontchannelLogoutUri' => 'https://rp.example/logout',
+        ]);
+        $this->clientMapper->expects($this->never())->method('update');
+
+        $result = $this->controller->updateClientConfiguration(1);
+
+        $this->assertSame(Http::STATUS_BAD_REQUEST, $result->getStatus());
+    }
+
     public function testUpdateClientFlowCode() {
         $id = '11';
         $flowType = 'any string';

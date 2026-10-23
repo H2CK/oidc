@@ -942,6 +942,13 @@ class AuthorizationService
 
         // Check if redirect URI is configured for client
         $redirectUris = $this->redirectUriMapper->getByClientId($client->getId());
+        if ($redirectUris === []) {
+            // Clients registered without a redirect URI never take part in redirect-based flows.
+            $this->logger->notice('Client ' . $clientId . ' has no registered redirect URI; redirect-based flows are not allowed.');
+            return new TemplateResponse('core', '403', [
+                'message' => $this->l->t('This client is not allowed to use redirect-based flows. Please inform the administrator of your client.'),
+            ], TemplateResponse::RENDER_AS_ERROR, Http::STATUS_FORBIDDEN);
+        }
         foreach ($redirectUris as $registeredRedirectUri) {
             try {
                 $this->redirectUriService->isValidRedirectUri($registeredRedirectUri->getRedirectUri(), true, !$client->isDcr());
