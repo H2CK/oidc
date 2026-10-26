@@ -46,6 +46,12 @@ Updates the version number in:
 - `package.json` - Node.js package file
 - `package-lock.json` - Node.js lock file (both root and package entries)
 
+Compare the current version in `appinfo/info.xml` with the target version. If the major or minor component changes, update `SECURITY.md` to support the target major.minor combination:
+- Set the supported row to `MAJOR.MINOR.x` for the target version.
+- Set the unsupported row to `< MAJOR.MINOR` for the target version.
+- Leave `SECURITY.md` unchanged for patch-only releases.
+- Verify both rows reflect the target version before continuing.
+
 ### 4. **Generate Changelog Entry**
 - Extracts the last release date from CHANGELOG.md
 - Searches Git history for merge commits and pull request references since the last release
@@ -111,6 +117,7 @@ Or it will automatically detect the app directory structure.
 - `package-lock.json` - Must exist
 - `CHANGELOG.md` - Must exist with previous releases
 - `Makefile` - Must have `build-test` target
+- `SECURITY.md` - Required when the release changes the major or minor version
 
 ### Required Tools
 - `git` - For accessing commit history and merge requests
@@ -144,6 +151,7 @@ All file updates are performed with `sed` in-place edits. The skill:
 1. Creates backups automatically (on macOS with `sed -i ''`)
 2. Validates changes were applied correctly
 3. Reports success/failure for each file
+4. Updates `SECURITY.md` only when the target major.minor combination differs from the current version, then verifies the supported and unsupported rows
 
 ### Changelog Generation
 The changelog entry is inserted at the top of the file, below the header, maintaining:
@@ -241,9 +249,13 @@ STEP 5: Update Version Files
 │  └─ Replace <version>X.Y.Z</version> with new version
 ├─ Update package.json
 │  └─ Replace "version": "X.Y.Z" with new version
-└─ Update package-lock.json
+├─ Update package-lock.json
    ├─ Update root package version
    └─ Update top-level version
+├─ If major.minor changed, update SECURITY.md
+│  ├─ Set the supported version to MAJOR.MINOR.x
+│  └─ Set versions below MAJOR.MINOR as unsupported
+└─ If patch-only, leave SECURITY.md unchanged
 
 STEP 6: Update CHANGELOG.md
 ├─ Create new entry header with version and date

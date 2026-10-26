@@ -51,7 +51,7 @@
 							type="url"
 							name="redirectUri"
 							style="max-width: 100%; width: 740px;"
-							:label="t('oidc', 'Redirection URI (optional)')"
+							:label="t('oidc', 'Redirection URI (optional - can be omitted for clients that never use a redirect-based flow)')"
 							:placeholder="t('oidc', 'https://example.com/redirect')" />
 						<NcSelect v-bind="signingAlgs.props"
 							v-model="signingAlgs.props.value"

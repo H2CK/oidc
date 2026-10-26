@@ -160,6 +160,18 @@ $ php occ
 
 Use the option `--help` to retrieve more information on how to use the commands.
 
+### Clients without a Redirect URI
+
+A redirect URI can be omitted when a client never uses a browser-based, redirect flow. Typical examples are clients that use the Device Authorization Grant or applications that obtain tokens server-side by emitting a `TokenGenerationRequestEvent`. No placeholder URI is needed.
+
+In the administration settings, leave **Redirection URI (optional - can be omitted for clients that never use a redirect-based flow)** empty when creating the client, or remove all redirect URIs when editing it. With the CLI, omit the `redirect_uris` argument, for example:
+
+```bash
+occ oidc:create "Automation client" --type confidential
+```
+
+A client with no registered redirect URI cannot use `/authorize` for browser-based authorization; the request is rejected with HTTP 403. Front-Channel Logout also requires a registered redirect URI and cannot be enabled for such a client. Add a valid redirect URI before using either feature. Dynamically registered device-only clients have separate flow metadata requirements; see [Device Authorization Grant](#device-authorization-grant).
+
 ### Wildcard support in Redirect Uris
 
 Wildcards in configured redirect uris are allowed as described in the following.

@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.1] - 2026-10-26
+
+### Added
+
+- Allow registering clients without redirect URIs when they do not use redirect-based flows ([#753](https://github.com/H2CK/oidc/pull/753)).
+
+### Changed
+
+- Updated ESLint from 10.12.0 to 10.13.0 ([#754](https://github.com/H2CK/oidc/pull/754)).
+- Updated translations.
+
 ## [2.6.0] - 2026-10-20
 
 ### Fixed
