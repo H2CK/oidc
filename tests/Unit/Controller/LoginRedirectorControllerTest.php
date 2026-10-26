@@ -346,6 +346,23 @@ class LoginRedirectorControllerTest extends TestCase {
         $this->assertSame([], $this->createdTransactions);
     }
 
+    public function testClientWithoutRedirectUriIsRejected(): void {
+        $client = new Client();
+        $client->id = 1;
+        $this->clientMapper->method('getByIdentifier')->with('client1')->willReturn($client);
+        $this->redirectUriMapper->method('getByClientId')->with(1)->willReturn([]);
+        $this->userSession->method('isLoggedIn')->willReturn(true);
+        $this->urlGenerator->expects($this->never())->method('linkToRoute');
+
+        $response = $this->controller->authorize(
+            'client1', 'state-1', 'code', 'https://attacker.example/callback', 'openid', 'nonce-1'
+        );
+
+        $this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
+        $this->assertInstanceOf(TemplateResponse::class, $response);
+        $this->assertSame([], $this->createdTransactions);
+    }
+
     public function testAuthorizePromptNoneNotLoggedInReturnsLoginRequired() {
         $clientId = 'client1';
         $state = 'state-1';
