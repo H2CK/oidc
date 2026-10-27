@@ -8,6 +8,7 @@ OC.L10N.register(
     "Website" : "Sajt",
     "Settings" : "Поставке",
     "Name" : "Ime",
+    "Add" : "Dodaj",
     "Type" : "Tip",
     "Save" : "Sačuvaj",
     "Delete" : "Obriši",
@@ -18,6 +19,7 @@ OC.L10N.register(
     "12 hours" : "12 sati",
     "Never" : "Nikad",
     "Disable" : "Isključi",
+    "Remove" : "Ukloni",
     "Deny" : "Odbij",
     "Allow" : "Dozvoli"
 },
