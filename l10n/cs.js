@@ -152,6 +152,7 @@ OC.L10N.register(
     "{clientName} is requesting access to your account." : "{clientName} žádá o přístup k vašemu účtu.",
     "This application will be able to:" : "Tato aplikace bude moci:",
     "Deny" : "Odepřít",
+    "Processing..." : "Zpracovávání…",
     "Allow" : "Umožnit",
     "Continue" : "Pokračovat",
     "You can revoke this access at any time from your account settings." : "Tento přístup je možné kdykoli odvolat a to z nastavení vašeho účtu.",
