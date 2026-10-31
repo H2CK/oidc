@@ -45,7 +45,7 @@
 		"npm": ">=10"
 	},
 	"devDependencies": {
-		"@babel/core": "^8.0.7",
+		"@babel/core": "^8.0.9",
 		"@babel/preset-env": "^8.0.7",
 		"@nextcloud/babel-config": "^2.0.0",
 		"@nextcloud/browserslist-config": "^3.1.2",
