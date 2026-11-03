@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.2] - 2026-11-03
+
+### Changed
+
+- Updated dependencies ([#755](https://github.com/H2CK/oidc/pull/755), [#756](https://github.com/H2CK/oidc/pull/756), [#757](https://github.com/H2CK/oidc/pull/757), [#758](https://github.com/H2CK/oidc/pull/758)).
+- Updated translations.
+
 ## [2.6.1] - 2026-10-26
 
 ### Added
