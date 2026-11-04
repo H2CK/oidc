@@ -12,7 +12,7 @@
 - **Namespace**: `OCA\OIDCIdentityProvider`
 - **Minimum Nextcloud**: 32 (appinfo/info.xml permits 32–35)
 - **PHP Requirements**: 8.2+
-- **Node Requirements**: 22.14+ or 24.x, npm 10+ (see package.json)
+- **Node Requirements**: 22.18+, 24.x, or 26.x; npm 10+ (see package.json)
 
 ## Architecture
 
