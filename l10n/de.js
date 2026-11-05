@@ -34,7 +34,7 @@ OC.L10N.register(
     "Your client is not authorized to connect. Please inform the administrator of your client." : "Dein Client ist nicht berechtigt, eine Verbindung herzustellen. Bitte informiere die Administration deines Clients.",
     "Your client is expired. Please inform the administrator of your client." : "Dein Client ist abgelaufen. Bitte informiere die Administration deines Clients.",
     "The received redirect URI is not accepted to connect. Please inform the administrator of your client." : "Die empfangene Weiterleitungs-URI wird nicht zum Herstellen einer Verbindung akzeptiert. Bitte informiere die Administration deines Clients.",
-    "This client is not allowed to use redirect-based flows. Please inform the administrator of your client." : "Dieser Client darf keine umleitungsbasierten Flüsse verwenden. Bitte die Administration des Kunden informieren",
+    "This client is not allowed to use redirect-based flows. Please inform the administrator of your client." : "Dieser Client darf keine umleitungsbasierten Abläufe verwenden. Bitte die Administration des Kunden informieren.",
     "Too many authorization requests. Please try again later." : "Zu viele Autorisierungsanfragen. Bitte später noch einmal versuchen.",
     "Code Authorization Flow" : "Code-Autorisierungsablauf",
     "Code & Implicit Authorization Flow" : "Code- und Impliziter-Autorisierungsablauf",
