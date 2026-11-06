@@ -84,7 +84,7 @@ OC.L10N.register(
     "Add client" : "Client hinzufügen",
     "Name" : "Name",
     "OIDC Client Name e.g Client 1" : "Name des OIDC-Clients, z. B. Client 1",
-    "Redirection URI (optional - can be omitted for clients that never use a redirect-based flow)" : "Umleitungs-URI (Optional – kann für Clients weggelassen werden, die nie einen umleitungsbasierten Flow verwenden)",
+    "Redirection URI (optional - can be omitted for clients that never use a redirect-based flow)" : "Umleitungs-URI (Optional – kann für Clients weggelassen werden, die nie einen umleitungsbasierten Ablauf verwenden)",
     "https://example.com/redirect" : "https://beispiel.de/redirect",
     "Signing Algorithm" : "Signieralgorithmus",
     "Select Signing Algorithm" : "Signieralgorithmus auswählen",
