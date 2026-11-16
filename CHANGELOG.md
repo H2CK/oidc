@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.6.3] - 2026-11-16
+
+### Fixed
+
+- Add critical extensions to generated CA certificates so self-signed certificate chains validate correctly during test execution in workflows.
+
+### Changed
+
+- Updated dependencies ([#759](https://github.com/H2CK/oidc/pull/759), [#760](https://github.com/H2CK/oidc/pull/760), [#761](https://github.com/H2CK/oidc/pull/761), [#762](https://github.com/H2CK/oidc/pull/762), [#763](https://github.com/H2CK/oidc/pull/763)).
+- Updated translations.
+
 ## [2.6.2] - 2026-11-03
 
 ### Changed
