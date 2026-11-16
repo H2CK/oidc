@@ -86,6 +86,8 @@ jobs:
           mkdir -p .github/oauth-tests/certs oauth-results
           openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
             -subj "/CN=OIDC OAuth Conformance Test CA" \
+            -addext "basicConstraints=critical,CA:TRUE" \
+            -addext "keyUsage=critical,keyCertSign,cRLSign" \
             -keyout .github/oauth-tests/certs/ca.key \
             -out .github/oauth-tests/certs/ca.crt
           openssl req -newkey rsa:2048 -nodes \
