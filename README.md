@@ -6,7 +6,7 @@
 [![OIDC Compliance Test](https://img.shields.io/github/actions/workflow/status/H2CK/oidc/oidc-conformance.yaml?branch=master&label=OIDC%20Compliance%20Test)](https://github.com/H2CK/oidc/actions/workflows/oidc-conformance.yaml)
 [![Donate](https://img.shields.io/badge/donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=QRSDVQA2UMJQC&source=url)
 
-This is the an OIDC App for Nextcloud. This application allows to use your Nextcloud Login at other services supporting OpenID Connect.
+This is the OIDC App for Nextcloud. This application allows to use your Nextcloud Login at other services supporting OpenID Connect.
 
 Provided features:
 
