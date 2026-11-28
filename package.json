@@ -35,7 +35,7 @@
 		"@nextcloud/router": "^3.0.1",
 		"@nextcloud/vue": "^9.14.0",
 		"vue": "3.5.46",
-		"webpack": "^5.112.2"
+		"webpack": "^5.113.0"
 	},
 	"browserslist": [
 		"extends @nextcloud/browserslist-config"
